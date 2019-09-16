@@ -59,7 +59,7 @@ public class PushMessageLogServiceImpl extends BaseServiceImpl<PushMessageLogDao
     public List<PushMessageLog> selectPushMessageLogList(Page page, Integer bizType) {
         if (bizType.equals(BizTypeEnum.PUSH.getId())) {
             Customer customer =   LoginContextHolder.getRequestAttributes();
-            return this.baseMapper.selectPushMessageLogByPage(page,customer.id, bizType);
+            return this.baseMapper.selectPushMessageLogByPage(page,customer.getId(), bizType);
         } else {
             return this.baseMapper.selectAnnouncementMessageLogByPage(page, bizType);
         }
