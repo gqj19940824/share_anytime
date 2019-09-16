@@ -60,8 +60,8 @@ dependencies {
     //compile group: 'org.apache.poi', name: 'poi-ooxml', version: "4.0"
     compile group: 'com.github.tobato', name: 'fastdfs-client', version: '1.26.2'
     compile group: 'org.springframework', name: 'spring-web', version: '5.0.8.RELEASE'
-    compile group: 'org.apache.solr', name: 'solr-solrj', version: '7.5.0'
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-solr', version: '2.0.5.RELEASE'
+//    compile group: 'org.apache.solr', name: 'solr-solrj', version: '7.5.0'
+//    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-solr', version: '2.0.5.RELEASE'
     compile group: 'com.lowagie', name: 'itext', version: '2.0.8'
     compile group: 'com.lowagie', name: 'itextasian', version: '1.5.2'
     compile group: 'commons-net', name: 'commons-net', version: '3.4'
