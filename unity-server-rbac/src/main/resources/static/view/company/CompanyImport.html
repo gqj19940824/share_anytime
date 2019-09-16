@@ -1,0 +1,93 @@
+<#include "/comm/head.html">
+<body>
+<div id="app">
+
+    <div class="demo-form-inline" style="padding: 5px 20px 0px 0px;width: 100%;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" label-width="100px" style="width: 100%;">
+            <el-row>
+                <el-col>
+                    <el-form-item label="Excel文件" prop="file">
+                        <el-input type="file" @change="getFile($event)" id="file" name="file" accept=".xlsx,.xls"></el-input>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-form-item>
+                <el-button type="primary" icon="el-icon-check" id="add_form_but_id" @click="importCompany()">导入</el-button>
+                <el-button type="info" icon="el-icon-close" @click="closeImport()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    var vue = loadForm(
+        {
+            methods: {
+                //数据校验
+                getFile: function(event){
+                    this.formData.file = document.getElementById('file').files[0];
+                    //this.formData.file = event;
+                    if(this.formData.file.name.indexOf(".xls") == -1){
+                        //alert("只允许导入xsl或xslx格式文件");
+                        vue.$message({type: 'error', message: '只允许导入xsl或xslx格式文件'});
+                        //var file = document.getElementById('file');
+                        this.formData.file = null;
+                        //file.value = '';
+                        return;
+                    }
+                },
+                importCompany: function () {
+                    let formData = new FormData();
+                    formData.append('file', this.formData.file);
+                    //上传图片
+                    let config = {
+                        headers: {'Content-Type': 'multipart/form-data',"X-AUTH-TOKEN": localStorage.getItem("token")}
+                    }
+                    axios.post("${base}/company/importCompanyInfo",
+                        formData, config).then(function (res) {
+                        if (res.data.code === 0) {
+                            v.$message({type: 'success', message: res.data.message});
+                            v.dialogHide(1);
+                            window.parent.frames["${iframe}"].contentWindow.vue.reload();
+                        } else {
+                            //按钮禁用
+                            v.$message({type: 'error', message: res.data.message,'duration':6000});
+                            //$("#add_form_but_id").removeAttr("disabled");
+                        }
+                    }).catch(function (err) {
+                        //按钮禁用
+                        //$("#add_form_but_id").removeAttr("disabled");
+                    });
+                },
+                closeImport: function () {
+                    v.dialogHide(1);
+                }
+            },
+            formData: {
+                file: null
+            },
+            rules: {
+                file: [
+                    {required: true, message: '请选择需要导入的文件', trigger: 'blur'}
+                ]
+            },
+            data: {
+
+            },
+            urlSave: '${base}/company/importCompanyInfo',
+            dialogIndex: 0,
+            iframe: '${iframe}'
+        }
+    );
+
+
+</script>
+</body>
+</html>
+

@@ -1,0 +1,336 @@
+<#include "/comm/head.html"/>
+<body>
+<style>
+    /*.el-input__inner{ width:130px; }*/
+    .el-header {
+        height: auto!important;
+    }
+
+    .el-header .el-input__inner {
+        width: 140px;
+    }
+
+    .el-date-editor {
+        width: 140px !important;
+    }
+
+    .el-main {
+        padding: 0px;
+        margin: 0px;
+        overflow: visible !important;
+    }
+    .el-button--small, .el-button--small.is-round {
+        padding: 5px 10px!important;
+    }
+
+    .el-form-item {
+        margin-bottom: 10px!important;
+    }
+</style>
+<div id="app">
+    <el-container>
+        <el-header>
+
+            <div style="height:auto;padding-top: 5px;">
+                <el-form :inline="true">
+                    <el-button-group>
+                        <el-tooltip v-if="authentication(0)" class="item" effect="dark" content="添加" placement="bottom">
+                            <el-button type="primary" icon="el-icon-circle-plus-outline" @click="handleAdd()"></el-button>
+                        </el-tooltip>
+                        <el-tooltip v-if="authentication(4)" class="item" effect="dark" content="导入" placement="bottom">
+                            <el-button type="primary" icon="fa fa-clipboard" @click="impoerUser()"></el-button>
+                        </el-tooltip>
+                        <el-tooltip v-if="authentication(4)" class="item" effect="dark" content="下载导入模板" placement="bottom">
+                            <el-button type="primary" icon="fa fa-arrow-circle-down" @click="downUserTemplate()"></el-button>
+                        </el-tooltip>
+                    </el-button-group>
+                    <el-form-item label="登录名">
+                        <el-input style="wdith:60px" v-model="search.loginName.data" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                    <el-form-item label="手机号">
+                        <el-input style="wdith:60px" v-model="search.phone.data" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                    <el-form-item label="姓名">
+                        <el-input style="wdith:60px" v-model="search.name.data" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="注册时间">
+                        <el-date-picker style="wdith:80px"
+                                        v-model="search.gmtCreate[0].data"
+                                        type="date"
+                                        format="yyyy-MM-dd"
+                                        value-format="yyyy-MM-dd 00:00:00.000"
+                                        @change="checkSelectDate(search)"
+                                        placeholder="请选择日期">
+                        </el-date-picker>
+                        至
+                        <el-date-picker style="wdith:80px"
+                                        v-model="search.gmtCreate[1].data"
+                                        type="date"
+                                        format="yyyy-MM-dd"
+                                        value-format="yyyy-MM-dd 23:59:59.999"
+                                        @change="checkSelectDate(search)"
+                                        placeholder="请选择日期">
+                        </el-date-picker>
+                    </el-form-item>
+                    <el-button-group>
+                        <el-tooltip v-if="authentication(3)" class="item" effect="dark" content="搜索" placement="bottom">
+                            <el-button type="primary" icon="el-icon-search" @click="handleSearch()"></el-button>
+                        </el-tooltip>
+                        <el-tooltip v-if="authentication(3)" class="item" effect="dark" content="清空" placement="bottom">
+                            <el-button type="primary" icon="fa fa-repeat" @click="handleReset()"></el-button>
+                        </el-tooltip>
+                    </el-button-group>
+                </el-form>
+
+            </div>
+        </el-header>
+        <el-main>
+            <el-table
+                    row-style="height:15px"
+                    cell-style="padding:5px"
+                    :data="tableData"
+                    style='width:100%;'
+                    stripe="true"
+                    :header-cell-style="{
+                        'background-color': '#fafafa',
+                        'color': '#333',
+                        'border-bottom': '1px solid #fafafa'
+                    }"
+                    :height="tableHeight"
+                    fit="true"
+                    border>
+                <el-table-column
+                        type="selection"
+                        width="50"
+                        align="center">
+                </el-table-column>
+                <el-table-column
+                        type="index"
+                        label="序号"
+                        width="50"
+                        align="center">
+                </el-table-column>
+                <el-table-column
+                        prop="loginName" label="登录名称" min-width="120" align="center">
+                </el-table-column>
+
+                <el-table-column
+                        prop="phone" label="手机号" min-width="120" align="center">
+                </el-table-column>
+
+                <!--<el-table-column
+                        prop="email" label="邮箱" min-width="150" align="center">
+                </el-table-column>-->
+
+                <el-table-column
+                        prop="name" label="姓名" min-width="110" align="center">
+                </el-table-column>
+
+                <el-table-column
+                        prop="position" label="职位" min-width="100" align="center">
+                </el-table-column>
+                <el-table-column
+                        prop="company" label="所属机构名称" width="230">
+                </el-table-column>
+
+                <el-table-column
+                        prop="createDate" label="注册时间" min-width="170" align="center">
+                </el-table-column>
+
+                <el-table-column label="操作" fixed="right" min-width="400" align="center">
+                    <template slot-scope="scope">
+                        <div>
+                            <el-button-group>
+                                <el-button
+                                        v-if="authentication(1)"
+                                        type="text"
+                                        size="small"
+                                        @click="handleEdit(scope.$index, scope.row)">修改
+                                </el-button><!--icon="el-icon-edit" round-->
+                                <!--<el-button
+                                        v-if="authentication(30)"
+                                        type="text"
+                                        size="small"
+                                        @click="openDepartment(scope.row)">组织架构
+                                </el-button>-->
+                                <el-button
+                                        v-if="authentication(31)"
+                                        type="text"
+                                        size="small"
+                                        @click="openIdentity(scope.row)">身份
+                                </el-button><!--icon="fa fa-address-card" round-->
+                                <el-button
+                                        v-if="authentication(32)"
+                                        type="text"
+                                        size="small"
+                                        @click="openRole(scope.row)">角色
+                                </el-button><!--icon="fa fa-users" round-->
+                                <el-button
+                                        v-if="authentication(30)"
+                                        type="text"
+                                        size="small"
+                                        @click="openDataPermission(scope.row)">数据权限
+                                </el-button><!--icon="fa fa-sitemap" round-->
+                                <el-button
+                                        v-if="authentication(33)"
+                                        type="text"
+                                        size="small"
+                                        @click="openModuleResource(scope.row)">功能资源
+                                </el-button><!--icon="fa fa-scribd" round-->
+                                <!--<el-button
+                                        v-if="authentication(34)"
+                                        type="text"
+                                        size="small"
+                                        @click="openApiResource(scope.row)">接口资源
+                                </el-button>--><!--icon="fa fa-adn" round-->
+                                <el-button
+                                        v-if="authentication(2)"
+                                        type="text"
+                                        size="small"
+                                        @click="handleDel(scope.$index, scope.row)">删除
+                                </el-button><!--icon="el-icon-delete" round-->
+                                <el-button
+                                        v-if="authentication(40)"
+                                        type="text"
+                                        size="small"
+                                        @click="resetPwd(scope.row)">重置密码
+                                </el-button>
+                            </el-button-group>
+                        </div>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <div align="center">
+                <el-pagination
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                        :current-page="currentPage"
+                        :page-sizes="[10, 20, 30, 40]"
+                        :page-size="pagesize"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="totalCount">
+            </div>
+        </el-main>
+    </el-container>
+</div>
+
+<#include "/comm/js.html"/>
+
+<script type="text/javascript">
+    let button = ${button};
+    var vue = loadTable({
+        data: {
+            search: {
+                name: {op: "cn", data: ""},
+                loginName: {op: "cn", data: ""},
+                phone: {op: "cn", data: ""},
+                gmtCreate: [{op: "ge", data: ""}, {op: "le", data: ""}]
+            },
+            button:button
+        },
+        methods: {
+            impoerUser: function(){
+                v.dialogShow(1, {
+                    title: '用户批量导入',
+                    url: '${base}/user/userImportEntrance/${iframe}',
+                    width: 450,
+                    height: 200
+                })
+            },
+            openDepartment: function (row) {
+                v.dialogShow(1, {
+                    title: '分配组织架构',
+                    url: '${base}/department/userToModuleEntrance/${iframe}/'+row.id,
+                    width: 400,
+                    height: 450
+                })
+            },
+            openDataPermission: function (row) {
+                v.dialogShow(1, {
+                    title: '分配数据权限',
+                    url: '${base}/outpost/view/userToDataModuleEntrance/${iframe}/'+row.id,
+                    width: 650,
+                    height: 420
+                })
+            },
+            openIdentity: function (row) {
+                v.dialogShow(1, {
+                    title: '当前已有身份列表',
+                    url: '${base}/identity/userAndIdentityEntrance/${iframe}/'+row.id,
+                    width: 700,
+                    height: 500
+                })
+            },
+            openRole: function (row) {
+                v.dialogShow(1, {
+                    title: '当前已有角色列表',
+                    url: '${base}/role/userAndRoleEntrance/${iframe}/'+row.id,
+                    width: 600,
+                    height: 500
+                })
+            },
+            openModuleResource: function (row) {
+                v.dialogShow(1, {
+                    title: '分配资源权限',
+                    url: '${base}/resource/userAndModuleResourceEntrance/${iframe}/'+row.id,
+                    width: 400,
+                    height: 450
+                })
+            },
+            openApiResource: function (row) {
+                v.dialogShow(1, {
+                    title: '分配接口权限',
+                    url: '${base}/resource/userAndApiResourceEntrance/${iframe}/'+row.id,
+                    width: 400,
+                    height: 450
+                })
+            },
+            resetPwd:async function (row) {
+                let r = await v.$confirm('确认重置密码？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'}).catch(() => {});
+                if(r=='confirm') {
+                    let {data} = await axios.get('${base}/user/resetPwd/'+row.id);
+                    if (data.code == 0) {
+                        this.$message({type: 'success', message: data.message});
+                        //this.reload();
+                    }
+                    else {
+                        this.$message({type: 'error', message: data.message});
+                    }
+                }
+            },
+            downUserTemplate: function () {
+                try {
+                    location.href ='${base}/user/downloadUserTemplate';
+                }catch (e){
+                    this.$message.error('文件损坏，请联系管理员');
+                }
+            }
+        },
+        urlList: "${base}/user/listByPage",
+        urlDel: "${base}/user/delUser/",
+        urlEdit: "${base}/user/editEntrance/${iframe}",
+        dialogWidth: 800,
+        dialogHeight: 400,
+        title: '用户',
+        dialogIndex:0,
+    });
+
+    function checkSelectDate(search) {
+        if (search.gmtCreate[0].data != '' && search.gmtCreate[1].data != ''){
+            var startTime=Date.parse(new Date(search.gmtCreate[0].data));
+            var endTime=Date.parse(new Date(search.gmtCreate[1].data));
+            if (((endTime-startTime)/1000/3600/24) < 0){
+                v.$message.error('结束时间不能小于开始时间');
+                search.gmtCreate[1].data = '';
+            }
+        }
+
+    }
+</script>
+</body>
+</html>

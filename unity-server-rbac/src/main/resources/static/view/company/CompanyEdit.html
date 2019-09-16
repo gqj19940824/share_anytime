@@ -1,0 +1,139 @@
+<#include "/comm/head.html">
+<body>
+<div id="app">
+
+    <div class="demo-form-inline"  style="padding: 5px 20px 0px 0px;width: 100%;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" label-width="100px" style="width: 100%;">
+            <el-row>
+                <el-col :span="12">
+                    <el-form-item label="企业名称" prop="name">
+                    
+                    <el-input v-model="formData.name" placeholder="请输入内容"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="联系方式" prop="phone">
+
+                        <el-input v-model="formData.phone" placeholder="请输入内容"></el-input>
+
+                    </el-form-item>
+                </el-col>
+
+                <el-col>
+                    <el-form-item label="所属服务港" prop="outpostName">
+                        <el-input placeholder="请选择所属服务港" type="text" readonly="true" v-model="formData.outpostName">
+                            <template slot="append">
+                                <el-button type="primary" icon="el-icon-edit-outline" @click="selectOutpostName()">选择</el-button>
+                            </template>
+                        </el-input>
+                        <input type="hidden" value="formData.idOutpost"/>
+                    </el-form-item>
+                </el-col>
+
+                <el-col>
+                    <el-form-item label="企业地址" prop="address">
+                    
+                    <el-input v-model="formData.address" placeholder="请输入内容"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+
+                <el-col>
+                    <el-form-item label="备注" prop="notes">
+                        <el-input v-model="formData.notes" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-form-item>
+                <el-button v-show="btnAddShow" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加</el-button>
+               <el-button type="primary" icon="el-icon-check" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let {id=null,name='',address='',phone='',notes='',sort='',outpostName='',idOutpost=null} = entity;
+    var vue = loadForm(
+        {
+            methods:{
+                selectOutpostName: function () {
+                    var getOutpostUrl = '${base}/outpost/view/companySelectOutpostEntrance/dialog0/bak_method_getOutpost/'+ this.formData.idOutpost;
+                    v.dialogShow(2, {
+                        title: '服务港列表',
+                        url: getOutpostUrl,
+                        width: 900,
+                        height: 500
+                    });
+                },
+                bak_method_getOutpost: function (data) {
+                    this.formData.idOutpost = data.id;
+                    this.formData.outpostName = data.name;
+                },
+                beforeSave: function(){
+                    var phoneReg1 = new RegExp("^1([38][0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|9[89])\\d{8}$");
+                    var phoneReg2 = new RegExp("^(\\(\\d{3,4}\\)|\\d{3,4}|\\s)?\\d{7,11}$");
+                    if(vue.formData.phone){
+                        if(!phoneReg1.test(vue.formData.phone) && !phoneReg2.test(vue.formData.phone)){
+                            v.$message.error('联系电话格式不正确');
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            },
+            formData:{
+                id:id
+                  ,name:name          
+                  ,address:address          
+                  ,phone:phone          
+                  ,notes:notes
+                ,sort:sort
+                ,outpostName:outpostName
+                ,idOutpost:idOutpost
+            },
+            rules: {
+                name:[
+                    { required: true, message: '请输入企业名称', trigger: 'blur' },
+                    { min: 1, max: 20, message: '企业名称长度在 1 到 20 个字符', trigger: 'blur' }
+                ],
+                outpostName:[
+                    { required: true, message: '请选择服务港', trigger: 'change' }
+                ],
+                phone:[
+                    { required: true, message: '请输入', trigger: 'blur' },
+                    { min: 8, max: 11, message: '联系方式长度在 8 到 11 个字符', trigger: 'blur' }
+                ],
+                /*,
+                phone:[
+                    { required: true, message: '请输入', trigger: 'blur' },
+                    { min: 1, max: 20, message: '联系方式长度在 1 到 20 个字符', trigger: 'blur' }
+                ],*/
+                notes:[
+                    { required: false, message: '请输入', trigger: 'blur' },
+                    { min: 1, max: 255, message: '备注长度在 1 到 255 个字符', trigger: 'blur' }
+                ]
+            },
+            data:{
+                btnAddShow:(entity.id?false:true)
+            },
+            urlSave:'${base}/company/save',
+            dialogIndex:0,
+            iframe:'${iframe}'
+        }
+    );
+
+
+</script>
+</body>
+</html>
+

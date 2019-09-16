@@ -1,0 +1,79 @@
+<#include "/comm/head.html">
+<body>
+<div id="app">
+
+    <div class="demo-form-inline" style="height:40px;padding-top: 5px;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData">
+
+            <el-form-item label="编号_身份" prop="idRbacIdentity">
+                    <el-input v-model="formData.idRbacIdentity" placeholder="请输入内容"></el-input>
+           </el-form-item>  
+            <el-form-item label="编号_角色" prop="idRbacRole">
+                    <el-input v-model="formData.idRbacRole" placeholder="请输入内容"></el-input>
+           </el-form-item>  
+            <el-form-item label="排序" prop="sort">
+                    <el-input v-model="formData.sort" placeholder="请输入内容"></el-input>
+           </el-form-item>  
+            <el-form-item label="备注" prop="notes">
+                    <el-input v-model="formData.notes" placeholder="请输入内容"></el-input>
+           </el-form-item>  
+            <el-form-item label="是否系统角色" prop="isSystemRole">
+                    
+                <el-select v-model="formData.isSystemRole" placeholder="请选择是否系统角色" >
+                    <el-option value="" label="请选择是否系统角色"></el-option>
+                    <el-option v-for="(item, index) in flagList" :key="item.value" :value="item.id" :label="item.name"></el-option>
+                </el-select>                    
+           </el-form-item>  
+            <el-form-item>
+                <el-button v-show="btnAddShow" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加</el-button>
+               <el-button type="primary" icon="el-icon-check" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let {id='',idRbacIdentity='',idRbacRole='',sort='',notes='',isSystemRole=''} = entity;
+    var vue = loadForm(
+        {
+            methods:{},
+            formData:{
+                id:id,
+                sort:sort
+               ,idRbacIdentity:idRbacIdentity
+               ,idRbacRole:idRbacRole
+               ,notes:notes
+               ,isSystemRole:isSystemRole.toString()
+            },
+            rules: {
+                idRbacIdentity:{ required: true, message: '请输入编号_身份', trigger: 'blur' },
+                idRbacRole:{ required: true, message: '请输入编号_角色', trigger: 'blur' },
+                sort:{ required: true, message: '请输入排序', trigger: 'blur' },
+                notes:{ required: true, message: '请输入备注', trigger: 'blur' },
+                isSystemRole:{ required: true, message: '请输入是否系统角色', trigger: 'blur' },
+            },
+            data:{
+                btnAddShow:(entity.id?false:true)
+                ,flagList[
+                    {id:'1',name:'是'}
+                    ,{id:'0',name:'否'}
+                ]
+            },
+            urlSave:'${base}/defaultrole/save',
+            iframe:'${iframe}'
+        }
+    );
+
+
+</script>
+</body>
+</html>
+

@@ -1,0 +1,40 @@
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude module: "spring-boot-starter-tomcat"
+        exclude module: "jackson-databind"
+    }
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-security'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    compile group: 'de.codecentric', name: 'spring-boot-admin-starter-server', version: '2.0.6'
+    compile group: 'de.codecentric', name: 'spring-boot-admin-starter-client', version: '2.0.6'
+    compile group: 'de.codecentric', name: 'spring-boot-admin-server-ui', version: '2.0.6'
+    // https://mvnrepository.com/artifact/com.github.ulisesbocchio/jasypt-spring-boot-starter
+    compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '2.0.0'
+    compile group: 'org.jolokia', name: 'jolokia-core'
+    compile "org.projectlombok:lombok:${rootProject.ext.version.lombok}"
+
+
+
+}
+archivesBaseName="unity-server-admin"
+jar {
+
+    from {
+        //添加依懒到打包文件
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    manifest {
+        attributes 'Main-Class': 'com.unity.Application'
+    }
+}
+
+task clearJar(type: Delete) {
+    delete 'build/libs/lib'
+}
+
+task copyJar(type: Copy) {
+    from configurations.runtime
+    into('build/libs/lib')
+}
+
+task release(type: Copy, dependsOn: [build, clearJar, copyJar])

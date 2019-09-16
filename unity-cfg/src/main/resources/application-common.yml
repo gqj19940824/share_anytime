@@ -1,0 +1,220 @@
+spring.profiles.active: devel
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://127.0.0.1:20000/eureka/eureka/
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 10000
+
+spring.jpa.show-sql: true
+
+logging:
+  level:
+    root: INFO
+
+
+spring:
+  security:
+    user:
+      name: admin
+      password: 111111
+      roles: ADMIN
+#  flyway:
+#    enabled: false
+
+---
+spring.profiles: devel
+#logging.file: D:/data/logs/unity/${spring.application.name}/application.log
+system:
+  configuration:
+    upload-path: D:/test_dir/develTemp/
+    multipart-path: "D:/test_dir/develTemp/"
+    domain-name: http://localhost/
+    fastdfs-file-read-path-head: https://innovation-test.jingcaiwang.cn/
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: "*"
+#        exclude: env
+#  endpoint:
+#    health:
+#      show-details: always
+#    # 可以关闭制定的端点
+#    shutdown:
+#      enabled: false
+#jasypt:
+#  encryptor:
+#    #这里可以理解成是加解密的时候使用的密钥
+#    password: security
+spring:
+#  boot:
+#    admin:
+#      client:
+#        url: http://127.0.0.1:20010/server-admin
+#        instance:
+#          service-base-url: http://127.0.0.1:${server.port}
+#        username: "admin"       #These two are needed so that the client
+#        password: "admin"
+  servlet:
+    multipart:
+      maxFileSize: 300MB
+      maxRequestSize: 500MB
+      location: "D:/test_dir/develTemp/"
+  data:
+    solr:
+      host: https://innovation-test.jingcaiwang.cn/solr
+fdfs:
+  so-timeout: 8000
+  connect-timeout: 10000
+  tracker-list:
+    - 172.19.1.56:22122   #TrackerList参数,支持多个
+---
+spring:
+  profiles: test
+  servlet:
+    multipart:
+      maxFileSize: 300MB
+      maxRequestSize: 500MB
+      location: /data/upload/testTemp/
+    data:
+      solr:
+        host: https://172.19.1.92:8983/solr
+#springboot admin 切入点管理
+  boot:
+    admin:
+      client:
+        url: http://127.0.0.1:20010/server-admin
+        instance:
+          service-base-url: http://127.0.0.1:${server.port}
+        username: "admin"       #These two are needed so that the client
+        password: "admin"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+        exclude: env
+  endpoint:
+    health:
+      show-details: always
+    # 可以关闭制定的端点
+    shutdown:
+      enabled: false
+jasypt:
+  encryptor:
+    #这里可以理解成是加解密的时候使用的密钥
+    password: security
+logging:
+  file: /data/logs/unity/${spring.application.name}/application.log
+  pattern:
+    file: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"
+
+#system.configuration.upload-path: /data/upload/
+system:
+  configuration:
+    upload-path: /data/upload/
+    multipart-path: /data/upload/testTemp/
+    domain-name: https://security-test.jingcaiwang.cn/
+    fastdfs-file-read-path-head: https://security-test.jingcaiwang.cn/
+
+fdfs:
+  so-timeout: 8000
+  connect-timeout: 10000
+  tracker-list:
+    - 172.19.1.56:22122   #TrackerList参数,支持多个
+---
+spring.profiles: uat
+logging:
+  file: /data/logs/unity/${spring.application.name}/application.log
+  pattern:
+    file: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"
+
+system:
+  configuration:
+    upload-path: /data/upload/
+    multipart-path: /data/upload/uatTemp/
+    domain-name: http://pocketbook.uat.jingcaiwang.cn/
+    fastdfs-file-read-path-head: https://esp.jingcaiwang.cn/
+spring:
+  data:
+    solr:
+      host: http://172.19.1.56:8983/solr/search_core
+  boot:
+    admin:
+      client:
+        url: http://127.0.0.1:20010/server-admin
+        instance:
+          service-base-url: http://127.0.0.1:${server.port}
+        username: "admin"       #These two are needed so that the client
+        password: "admin"
+  servlet:
+    multipart:
+      maxFileSize: 300MB
+      maxRequestSize: 500MB
+      location: /data/upload/uatTemp/
+
+fdfs:
+  so-timeout: 8000
+  connect-timeout: 10000
+  tracker-list:
+    - 172.19.1.56:22122   #TrackerList参数,支持多个
+---
+spring.profiles: prod
+#springboot admin 切入点管理
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+        exclude: env
+  endpoint:
+    health:
+      show-details: always
+    # 可以关闭制定的端点
+    shutdown:
+      enabled: false
+jasypt:
+  encryptor:
+    #这里可以理解成是加解密的时候使用的密钥
+    password: security
+logging:
+  file: /data/logs/unity/${spring.application.name}/application.log
+  pattern:
+    file: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"
+
+system:
+  configuration:
+    upload-path: /data/upload/
+    multipart-path: /data/upload/prodTemp/
+    domain-name: http://ykaq.bdagroup.com.cn/
+    fastdfs-file-read-path-head: http://ykaq.bdagroup.com.cn/
+spring:
+  boot:
+    admin:
+      client:
+        url: http://127.0.0.1:20010/server-admin
+        instance:
+          service-base-url: http://127.0.0.1:${server.port}
+        username: "admin"       #These two are needed so that the client
+        password: "admin"
+  servlet:
+    multipart:
+      maxFileSize: 300MB
+      maxRequestSize: 500MB
+      location: /data/upload/prodTemp/
+  data:
+    solr:
+      host: http://127.0.0.1:8983/solr
+fdfs:
+  so-timeout: 8000
+  connect-timeout: 10000
+  tracker-list:
+    - 192.168.2.58:22122   #TrackerList参数,支持多个
+---

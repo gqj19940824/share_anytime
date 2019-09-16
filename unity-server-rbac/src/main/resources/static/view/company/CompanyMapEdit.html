@@ -1,0 +1,97 @@
+<#include "/comm/head.html">
+<body>
+<div id="app">
+
+    <div class="demo-form-inline"  style="padding: 5px 20px 0px 0px;width: 100%;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" label-width="80px" style="width: 100%;">
+            <el-row>
+                <el-col :span="12">
+                    <el-form-item label="" prop="idCompany">
+                    
+                    <el-input placeholder="请输入内容" type="idCompany" v-model.number="formData.idCompany" autocomplete="off"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="" prop="lng">
+                    
+                    <el-input placeholder="请输入内容" type="lng" v-model.number="formData.lng" autocomplete="off"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="" prop="lat">
+                    
+                    <el-input placeholder="请输入内容" type="lat" v-model.number="formData.lat" autocomplete="off"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="" prop="notes">
+                    
+                    <el-input v-model="formData.notes" placeholder="请输入内容"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-form-item>
+                <el-button v-show="btnAddShow" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加</el-button>
+               <el-button type="primary" icon="el-icon-check" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let {id='',idCompany='',lng='',lat='',notes='',sort=''} = entity;
+    var vue = loadForm(
+        {
+            methods:{
+            },
+            formData:{
+                id:id
+                  ,idCompany:idCompany          
+                  ,lng:lng          
+                  ,lat:lat          
+                  ,notes:notes          
+            },
+            rules: {
+                idCompany:[
+                    { required: true, message: '请输入', trigger: 'blur' },
+                    { type: 'number', message: '必须为数字值',trigger: 'blur' }
+                ],
+                lng:[
+                    { required: true, message: '请输入', trigger: 'blur' },
+                    { type: 'number', message: '必须为数字值',trigger: 'blur' }
+                ],
+                lat:[
+                    { required: true, message: '请输入', trigger: 'blur' },
+                    { type: 'number', message: '必须为数字值',trigger: 'blur' }
+                ],
+                notes:[
+                    { required: true, message: '请输入', trigger: 'blur' },
+                    { min: 1, max: 255, message: '长度在 1 到 255 个字符', trigger: 'blur' }
+                ],
+            },
+            data:{
+                btnAddShow:(entity.id?false:true)
+            },
+            urlSave:'${base}/companymap/save',
+            dialogIndex:0,
+            iframe:'${iframe}'
+        }
+    );
+
+
+</script>
+</body>
+</html>
+

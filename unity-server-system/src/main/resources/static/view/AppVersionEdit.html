@@ -1,0 +1,166 @@
+<#include "/comm/head.html">
+
+<body>
+<style>
+    .el-textarea {
+        display: inline-block;
+        width: 90%;
+        vertical-align: bottom;
+        font-size: 14px;
+    }
+    .el-input {
+        position: relative;
+        font-size: 14px;
+        display: inline-block;
+        width: 80%;
+    }
+
+</style>
+
+<div id="app">
+    <!--<el-scrollbar>-->
+    <div class="source">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" label-width="85px" class="el-form">
+            <el-row>
+                <el-col :span="12">
+                    <el-form-item label="项目名称" prop="name">
+                        <el-input v-model="formData.name" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="包名" prop="packName">
+                        <el-input v-model="formData.packName" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="版本" prop="version">
+                        <el-input v-model="formData.version" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="下载路径" prop="downloadPath">
+                        <el-input v-model="formData.downloadPath" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <!--<el-form-item label="系统类型" prop="systemType">
+                        <el-input v-model="formData.systemType" placeholder="请输入内容"></el-input>
+                    </el-form-item>-->
+                    <el-form-item label="系统类型" prop="systemType">
+                        <el-select v-model="formData.systemType" placeholder="请选择">
+                            <el-option
+                                    v-for="item in systemType"
+                                    :key="item.value"
+                                    :label="item.name"
+                                    :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="强制升级" prop="isMustUpgrade">
+                        <!--<el-input v-model="formData.isMustUpgrade" placeholder="请输入内容"></el-input>-->
+                        <el-select v-model="formData.isMustUpgrade" placeholder="请选择">
+                            <el-option
+                                    v-for="item in isMustUpgrade"
+                                    :key="item.value"
+                                    :label="item.name"
+                                    :value="item.id">
+                            </el-option>
+                        </el-select>
+
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="sql更新" prop="sqlChange">
+                        <el-input v-model="formData.sqlChange" placeholder="请输入sql更新"></el-input>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="内部版本" prop="versionInside">
+                        <el-input v-model.number="formData.versionInside" placeholder="请输入内部版本"></el-input>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="24">
+                    <el-form-item label="更新内容" prop="notes">
+                        <el-input type="textarea" :rows="5" v-model="formData.notes" placeholder="请输入更新内容"></el-input>
+                    </el-form-item>
+                </el-col>
+
+            </el-row>
+            <el-form-item>
+               <!-- <el-button v-show="btnAddShow" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加
+                </el-button>-->
+                <el-button type="primary" icon="el-icon-check" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>
+
+        </el-form>
+
+    </div>
+    <!--<el-scrollbar>-->
+</div>
+
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let {id = '', notes = '', packName = '', name = '', version = '', versionInside = '', isMustUpgrade = '', systemType = '', downloadPath = '', sqlChange = ''} = entity;
+    var vue = loadForm(
+        {
+            methods: {},
+            formData: {
+                id: id
+                , notes: notes
+                , packName: packName
+                , name: name
+                , version: version
+                , versionInside: versionInside
+                , isMustUpgrade: isMustUpgrade
+                , systemType: systemType
+                , downloadPath: downloadPath
+                , sqlChange: sqlChange
+            },
+            rules: {
+                packName: {required: true, message: '请输入包名', trigger: 'blur'},
+                name: {required: true, message: '请输入项目名称', trigger: 'blur'},
+                version: {required: true, message: '请输入版本', trigger: 'blur'},
+                versionInside: [{required: true, message: '请输入内部版本', trigger: 'blur'},
+                    {type: "number", message: '内部版本必须是数字', trigger: 'blur'}],
+                isMustUpgrade: {required: true, message: '请输入是否必须升级', trigger: 'blur'},
+                systemType: {required: true, message: '请输入系统类型:status:2 android,3 ios', trigger: 'blur'},
+                downloadPath: {required: true, message: '请输入下载路径', trigger: 'blur'},
+                notes: {required: true, message: '请输入备注:textarea:', trigger: 'blur'}
+                // sqlChange:{ required: true, message: '请输入sql更新', trigger: 'blur' },
+            },
+            data: {
+                btnAddShow: (entity.id ? false : true),
+                systemType: [
+                    {id: 2, name: "Android"},
+                    {id: 3, name: "Ios"}
+                ],
+                isMustUpgrade: [
+                    {id: 0, name: "否"},
+                    {id: 1, name: "是"}
+                ]
+            },
+            urlSave: '${base}/appversion/save',
+            iframe: '${iframe}'
+        }
+    );
+
+</script>
+</body>
+</html>
+

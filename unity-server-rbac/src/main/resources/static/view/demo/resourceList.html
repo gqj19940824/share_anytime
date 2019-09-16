@@ -1,0 +1,62 @@
+
+<#include "/comm/head.html">
+<body>
+<style>
+    /*.el-input__inner{ width:130px; }*/
+    .el-header  {
+    }
+    .el-header .el-input__inner{ width:140px; }
+    .el-date-editor { width:140px !important; }
+    .el-main {
+        padding: 0px;
+        margin: 0px;
+        overflow:visible !important;
+    }
+</style>
+<div id="app">
+<el-container>
+    <el-header>
+
+        <div  style="height:40px;padding-top: 5px;">
+
+                <el-button-group>
+                    <el-tooltip class="item" effect="dark" content="添加顶级节点" placement="bottom">
+                        <el-button type="primary" icon="el-icon-plus" @click="handleAddRoot()"></el-button>
+                    </el-tooltip>
+                    <el-tooltip class="item" effect="dark" content="添加下级节点" placement="bottom">
+                        <el-button type="primary" icon="el-icon-circle-plus-outline" @click="handleAdd()"></el-button>
+                    </el-tooltip>
+                    <el-tooltip class="item" effect="dark" content="修改" placement="bottom">
+                        <el-button type="primary" icon="el-icon-edit" @click="handleEdit()"></el-button>
+                    </el-tooltip>
+                    <el-tooltip class="item" effect="dark" content="删除" placement="bottom">
+                        <el-button type="primary" icon="el-icon-delete" @click="handleDel()"></el-button>
+                    </el-tooltip>
+
+                </el-button-group>
+
+        </div>
+    </el-header>
+    <el-main>
+        <ul id="ztree" class="ztree"></ul>
+    </el-main>
+</el-container>
+</div>
+<#include "/comm/js.html">
+<#include "/comm/ztree.html">
+
+<script type="text/javascript">
+    var vue = loadTree({
+        data:{
+            treeName:'ztree'
+        },
+        urlList:"${base}/tree/tree",
+        urlDel:"${base}/tree/",
+        urlEdit:"${base}/tree/editEntrance/${iframe}",
+        dialogWidth:"800px",
+        dialogHeight:"350px",
+        title:'资源'
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+
+<#include "/comm/head.html">
+<body>
+<div id="app">
+
+    <div class="demo-form-inline" style="height:40px;padding-top: 5px;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData">
+            <el-form-item label="资源名称" prop="name">
+                <el-input v-model="formData.name" placeholder="请输入内容"></el-input>
+            </el-form-item>
+            <el-form-item label="资源地址" prop="resourceUrl">
+                <el-input v-model="formData.resourceUrl" placeholder="请输入内容"></el-input>
+            </el-form-item>
+            <!--<el-form-item label="资源类型" prop="resourceType">
+                <el-input v-model="formData.resourceType" placeholder="请输入内容"></el-input>
+            </el-form-item>-->
+            <el-form-item label="备注" prop="notes">
+                <el-input v-model="formData.notes" placeholder="请输入内容"></el-input>
+            </el-form-item>
+            <!--<el-form-item label="资源图标" prop="resourcePic">
+                <el-input v-model="formData.resourcePic" placeholder="请输入内容"></el-input>
+            </el-form-item>-->
+            <el-form-item label="上级资源" prop="idParent">
+                <div @click="getParentTree()">
+                    <el-input v-model="formData.idParent" readonly="readonly" placeholder="请选择上级资源"></el-input>
+                </div>
+            </el-form-item>
+            <!--<el-form-item label="树层次" prop="iLevel">
+                <el-input v-model="formData.iLevel" placeholder="请输入内容"></el-input>
+            </el-form-item>-->
+            <!--<el-form-item label="级次编码" prop="gradationCode">
+                <el-input v-model="formData.gradationCode" placeholder="请输入内容"></el-input>
+            </el-form-item>
+            <el-form-item label="平台" prop="platform">
+                <el-input v-model="formData.platform" placeholder="请输入内容"></el-input>
+            </el-form-item>-->
+            <el-form-item label="功能列表" prop="functionList">
+                <el-input v-model="formData.functionList" placeholder="请输入内容"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button v-show="btnAddShow" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加</el-button>
+                <el-button type="primary" icon="el-icon-check" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    var v = window.parent.vue;
+    let entity = ${entity};
+    let {id='',notes='',name='',resourceUrl='',resourceType='',idParent='',functionList='',resourceFlag=''} = entity;
+    var vue = loadForm(
+        {
+            methods:{
+                getParentTree: function () {
+                   //根据类型加载对应的树
+                    v.dialogShow(1,{title:'选择上级资源',url:'${base}/resource/goModuleTree/${iframe}',width:'100%',height:'650px'});
+                },
+                setParentData: function(data){
+                    console.info('----'+data);
+                }
+            },
+            formData:{
+                id:id
+               ,notes:notes
+               ,name:name
+               ,resourceUrl:resourceUrl
+               ,resourceType:resourceType
+                ,resourceFlag:resourceFlag
+               /*,resourcePic:resourcePic*/
+               ,idParent:idParent
+               /*,iLevel:iLevel
+               ,gradationCode:gradationCode
+               ,platform:platform*/
+               ,functionList:functionList
+            },
+            rules: {
+                notes:{ required: true, message: '请输入备注', trigger: 'blur' },
+                name:{ required: true, message: '请输入资源名称', trigger: 'blur' },
+                resourceUrl:{ required: true, message: '请输入资源地址', trigger: 'blur' },
+                resourceType:{ required: true, message: '请输入资源类型:status:1 模块,2 功能,4 接口', trigger: 'blur' },
+                /*resourcePic:{ required: true, message: '请输入资源图标', trigger: 'blur' },*/
+                idParent:{ required: true, message: '请选择上级资源', trigger: 'blur' },
+                /*iLevel:{ required: true, message: '请输入树层次', trigger: 'blur' },
+                gradationCode:{ required: true, message: '请输入级次编码', trigger: 'blur' },
+                platform:{ required: true, message: '请输入平台:status:1 web,2 android,3 ios,4 微信,5 小程序', trigger: 'blur' },*/
+                functionList:{ required: true, message: '请输入功能列表', trigger: 'blur' },
+            },
+            data:{
+                btnAddShow:(entity.id?false:true)
+            },
+            urlSave:'${base}/resource/save',
+            iframe:'${iframe}'
+        }
+    );
+
+</script>
+</body>
+</html>
+

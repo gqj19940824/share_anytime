@@ -1,0 +1,28 @@
+dependencies {
+    compile project(':unity-cfg')
+    // https://mvnrepository.com/artifact/org.jdom/jdom
+    compile group: 'com.github.tobato', name: 'fastdfs-client', version: '1.26.2'
+    compile group: 'org.springframework', name: 'spring-web', version: '5.0.8.RELEASE'
+}
+archivesBaseName="unity-server-resource"
+jar {
+
+    from {
+        //添加依懒到打包文件
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    manifest {
+        attributes 'Main-Class': 'com.unity.Application'
+    }
+}
+
+task clearJar(type: Delete) {
+    delete 'build/libs/lib'
+}
+
+task copyJar(type: Copy) {
+    from configurations.runtime
+    into('build/libs/lib')
+}
+
+task release(type: Copy, dependsOn: [build, clearJar, copyJar])

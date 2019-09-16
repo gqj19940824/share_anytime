@@ -1,0 +1,82 @@
+
+<#include "/comm/head.html">
+<body>
+<div id="app">
+
+    <div class="source">
+        <el-form :model="formData" :rules="rules" ref="formData" style="width: 360px" label-width="100px" class="el-form">
+            <el-form-item label="原密码" prop="oldPwd" >
+                <el-input v-model="formData.oldPwd" type="password"></el-input>
+            </el-form-item>
+            <el-form-item label="新密码" prop="pwd">
+                <el-input v-model="formData.pwd" type="password"></el-input>
+            </el-form-item>
+            <el-form-item label="确认新密码" prop="checkPwd">
+                <el-input v-model="formData.checkPwd" type="password"></el-input>
+            </el-form-item>
+
+            <el-form-item>
+                <el-button type="primary" icon="el-icon-circle-check-outline" @click="submitForm()">提交</el-button>
+                <el-button type="info" icon="el-icon-circle-close-outline" @click="closeUserPwdEdit()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+    </div>
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    var v = window.parent.vue;
+    var vue = loadForm(
+        {
+            methods:{
+                submitForm: function () {
+                    if(this.formData.oldPwd == '' || this.formData.oldPwd == null){
+                        v.$message('请输入原密码!');
+                    } else if(this.formData.pwd == '' || this.formData.pwd == null){
+                        v.$message('请输入新密码!');
+                    } else if(this.formData.checkPwd == '' || this.formData.checkPwd == null){
+                        v.$message('请再次输入新密码!');
+                    } else if(this.formData.pwd != this.formData.checkPwd){
+                        v.$message.error('两次输入密码不一致!');
+                    }else{
+                        axios.post('${base}/user/updateUserPwd',
+                            {'pwd':this.formData.pwd,'oldPwd':this.formData.oldPwd},
+                            {headers: {
+                                "Content-Type": "application/json",
+                                "X-AUTH-TOKEN": localStorage.getItem("token")
+                            }})
+                            .then(function (res) {
+                                if (res.data.code === 0) {
+                                    v .$message({type: 'success', message: res.data.message});
+                                    v.dialogHide(1);
+                                } else {
+                                    v.$message({type: 'error', message: res.data.message});
+                                }
+                            }).catch(function (err) {
+                            v.$message({type: 'error', message: '网络错误，请稍后重试'});
+                        });
+                    }
+                },
+                closeUserPwdEdit: function () {
+                    v.dialogHide(1);
+                }
+            },
+            formData:{
+                oldPwd:null,
+                pwd:null,
+                checkPwd:null
+            },
+            rules: {
+                oldPwd:{required: true, message: '请输入原密码', trigger: 'blur' },
+                pwd:{required: true, message: '请输入新密码', trigger: 'blur' },
+                checkPwd:{required: true, message: '请再次输入新密码', trigger: 'blur' }
+            },
+            urlSave:'${base}/user/updatePwd',
+            iframe:'${iframe}'
+        }
+    );
+
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+group 'com.unity'
+version '1.0.0.SNAPSHOT'
+
+buildscript {
+    repositories {
+        maven { url "https://repo.spring.io/milestone" }
+        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+        mavenCentral()
+        mavenLocal()
+    }
+    dependencies {
+        classpath group: 'org.springframework.boot', name: 'spring-boot-gradle-plugin', version: '2.0.2.RELEASE'
+    }
+}
+
+apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'io.spring.dependency-management'
+apply from: "config.gradle"
+
+repositories {
+    maven { url "https://repo.spring.io/milestone" }
+    maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+    mavenCentral()
+    mavenLocal()
+}
+
+
+sourceCompatibility = 1.8
+
+subprojects {
+    group 'com.unity'
+    version '1.0.0.SNAPSHOT'
+
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    dependencyManagement {
+        imports {
+            mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Finchley.RC1'
+        }
+    }
+
+    repositories {
+        maven { url 'http://192.168.101.47:8081/repository/3rd/' }
+        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+        maven { url "https://repo.spring.io/milestone" }
+        mavenCentral()
+        mavenLocal()
+    }
+
+    dependencies{
+//        compile "org.springframework.boot:spring-boot-configuration-processor"
+//        compile "org.projectlombok:lombok:${rootProject.ext.version.lombok}"
+        compile "com.google.code.gson:gson:${rootProject.ext.version.gson}"
+        
+//        compile "com.alibaba:fastjson:1.2.54"
+
+    }
+
+    def projName = it.project.name
+    def packageName = projName.replaceAll("[-_]", "")
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+//    jar {
+//        enabled = true
+//        baseName = projName
+//        version = '1.0.0.SNAPSHOT'
+//    }
+
+
+    sourceSets {
+        main {
+            java {
+                srcDirs = ['src/main/java']
+            }
+            resources {
+                srcDirs = ['src/main/resources', 'src/main/java',]
+                excludes = ['**／*.java']
+            }
+        }
+    }
+
+    compileJava.dependsOn(processResources)
+
+
+}

@@ -1,0 +1,44 @@
+server:
+  port: ${port:10030}
+#  servlet:
+#     context-path: /server-resource/
+spring.application.name: unity-server-re
+
+#logbook:
+#  write:
+#    level: info
+#  format:
+#    style: http
+
+spring.profiles.include:
+  - db
+  - freemarker
+  - mybatis
+  - common
+  - redis
+
+
+spring:
+  security:
+    model: permit
+    permit:
+      - /server/upload  #文件上传
+      - /server/uploadBatch #文件批量上传
+      - /server/download    # 文件下载
+      - /server/batchDownload   # 文件批量下载
+      - /server/delete    # 文件删除
+      - /server/deleteBatch   # 文件批量删除
+      - /server/uploadForUE   # Ueditor上传图片
+      - /server/fileUpload  #文件上传
+      - /server/jarFileUpload  #文件上传
+      - /server/findBigFileUrl #文件批量上传
+      - /editor/vueConfig  # VUE 富文本配置
+      - /editor/upload  # 富文本配置
+      - /editor/config  # 富文本上传
+      - /deployenvopt/listByPage  #远程部署
+      - /deployenvopt/save  #远程部署
+      - /deployenvopt/getDetailById  #远程部署
+      - /deployenvopt/doShellScript  #执行远程部署
+      - /deployenvopt/deleteIds  #执行远程部署
+
+

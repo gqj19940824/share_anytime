@@ -1,0 +1,15 @@
+
+1	核心	core
+2	配置	config
+3	工具	util
+4	测试	test
+5	数据	data
+6	系统	system
+7	日志	log
+8	资源	resource
+9	用户权限	rbac
+10	支付服务	pay	
+11	消息	message
+13	微信服务	weixin
+14	内容管理	cms	
+15	学习考试系统	exam

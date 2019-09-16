@@ -1,0 +1,75 @@
+<#include "/comm/head.html">
+<body>
+<div id="app">
+
+    <div class="demo-form-inline"  style="padding: 5px 20px 0px 0px;width: 100%;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" label-width="120px" style="width: 100%;">
+            <el-row>
+
+                <el-col>
+                    <el-form-item label="分类名称" prop="name">
+                    
+                    <el-input v-model="formData.name" placeholder="请输入内容"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+                <el-col>
+                    <el-form-item label="备注" prop="notes">
+                        <el-input v-model="formData.notes" type="textarea"
+                                  :rows="3" placeholder="请输入内容"></el-input>
+                       <!-- <el-input v-model="formData.notes" placeholder="请输入内容"></el-input>-->
+
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-form-item>
+               <!-- <el-button v-show="btnAddShow" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加</el-button>-->
+               <el-button type="primary" icon="el-icon-check" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let {id='',sort='',notes='',name=''} = entity;
+    var vue = loadForm(
+        {
+            methods:{
+            },
+            formData:{
+                id:id
+                  ,notes:notes          
+                  ,name:name          
+            },
+            rules: {
+                notes:[
+                    { required: false, message: '请输入', trigger: 'blur' },
+                    { min: 1, max: 191, message: '长度在 1 到 191 个字符', trigger: 'blur' }
+                ],
+                name:[
+                    { required: true, message: '请输入', trigger: 'blur' },
+                    { min: 1, max: 15, message: '长度在 1 到 15 个字符', trigger: 'blur' }
+                ]
+            },
+            data:{
+                btnAddShow:(entity.id?false:true)
+            },
+            urlSave:'${base}/whistletype/save',
+            dialogIndex:0,
+            iframe:'${iframe}'
+        }
+    );
+
+
+</script>
+</body>
+</html>
+

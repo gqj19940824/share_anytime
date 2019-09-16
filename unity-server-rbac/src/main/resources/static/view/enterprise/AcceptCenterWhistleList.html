@@ -1,0 +1,355 @@
+<#include "/comm/head.html"/>
+<body>
+<style>
+    /*element.style {
+        height: 200px;
+    }*/
+    /*.el-header {
+        padding: 0 5px;
+        width: 100%;
+    }*/
+    .el-header .el-input__inner {
+        width: 160px;
+    }
+
+    .el-date-editor {
+        width: 140px !important;
+    }
+
+    .el-header {
+        padding: 0 5px
+    }
+    .el-form-item {
+         margin-bottom: 10px;
+    }
+
+    /*.el-main {
+        padding: 0px;
+        margin: 0px;
+        overflow: visible !important;
+    }*/
+</style>
+<div id="app">
+    <el-container>
+        <el-header style="height: auto" >
+
+            <div style="padding-top: 5px;">
+
+                <el-form :inline="true" class="demo-form-inline">
+                    <el-form-item label="企业党组织" style="margin-left: 10px">
+                        <el-input placeholder="请选择企业党组织" readonly="true"
+                                  v-model="search.enterpriseName.data">
+                            <template slot="append">
+                                <el-button type="primary" icon="el-icon-edit-outline" @click="selectEnterpriseName()">
+                                    选择
+                                </el-button>
+                            </template>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item label="响应部门" style="margin-left: 10px">
+                        <el-input placeholder="请选择响应部门" readonly="true"
+                                  v-model="search.oldRespDepName.data">
+                            <template slot="append">
+                                <el-button type="primary" icon="el-icon-edit-outline"
+                                           @click="selectRespDepartmentName()">选择
+                                </el-button>
+                            </template>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item label="服务港名称" style="margin-left: 10px">
+                        <el-input style="wdith:100px" v-model="search.outpostName.data" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                    <el-form-item label="需求标题" style="margin-left: 10px">
+                        <el-input style="wdith:100px" v-model="search.title.data" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                    <el-form-item label="需求状态" prop="status" style="margin-left: 10px">
+                        <el-select v-model="search.status.data" >
+                            <el-option v-for="(item, index) in statusList" :key="item.id" :value="item.id"
+                                       :label="item.name"></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="需求类型" prop="whistleTypeId" style="margin-left: 10px">
+                        <el-select v-model="search.whistleTypeId.data">
+                            <el-option v-for="(item, index) in whistleTypeList" :key="item.id" :value="item.id"
+                                       :label="item.name"></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-button-group >
+                        <el-tooltip v-show="authentication(3)" class="item" effect="dark" content="搜索"
+                                    placement="bottom">
+                            <el-button type="primary" icon="el-icon-search" @click="handleSearch()"></el-button>
+                        </el-tooltip>
+                        <el-tooltip v-show="authentication(3)" class="item" effect="dark" content="清空"
+                                    placement="bottom">
+                            <el-button type="primary" icon="fa fa-repeat" @click="handleReset()"></el-button>
+                        </el-tooltip>
+                        <el-tooltip v-show="authentication(3)" class="item" effect="dark" content="导出"
+                                    placement="bottom">
+                            <el-button type="primary" icon="fa fa-file-excel-o" @click="handleExports()"></el-button>
+                        </el-tooltip>
+                    </el-button-group>
+                </el-form>
+
+            </div>
+        </el-header>
+        <el-main style="padding: 0;">
+            <el-table
+                    row-style="height:15px"
+                    cell-style="padding:5px"
+                    :header-cell-style="{
+                        'background-color': '#fafafa',
+                        'color': '#333',
+                        'border-bottom': '1px solid #fafafa'
+                    }"
+                    :data="tableData"
+                    style='width:100%;'
+                    :height="tableHeight"
+                    @selection-change="handleSelectionChange"
+                    border>
+                <el-table-column
+                        type="index"
+                        label="序号"
+                        width="50">
+                </el-table-column>
+                <el-table-column
+                        label="指示灯"
+                        min-width="60">
+                    <template slot-scope="scope" v-if="scope.row.status===20">
+                                <div v-if="scope.row.workStatus <= 0"  align="center"><img src="${base}/lib/img/icon/greenRight2.png" width="22px" height="22px"></div>
+                                <div v-if="scope.row.workStatus > 0 && scope.row.workStatus <= 3"  align="center"><img src="${base}/lib/img/icon/yellowRight2.png" width="22px" height="22px"></div>
+                                <div v-if="scope.row.workStatus > 3"  align="center"><img src="${base}/lib/img/icon/redRight2.png" width="22px" height="22px"></div>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        prop='sNo'
+                        label="哨声编号"
+                        min-width="130">
+                </el-table-column>
+                <el-table-column
+                        prop='companyName'
+                        label="企业党组织名称"
+                        min-width="100">
+                </el-table-column>
+                <el-table-column
+                        prop='outpostName'
+                        label="服务港名称"
+                        min-width="100">
+                </el-table-column>
+                <el-table-column
+                        prop='title'
+                        label="需求标题"
+                        min-width="150">
+                </el-table-column>
+                <!--<el-table-column
+                        prop='userName'
+                        label="创建用户"
+                        min-width="70">
+                </el-table-column>-->
+                <el-table-column
+                        prop='whistleTypeName'
+                        label="需求类型"
+                        min-width="80">
+                </el-table-column>
+                <el-table-column
+                        prop='limitDate'
+                        label="限时反馈"
+                        min-width="90">
+                </el-table-column>
+                <el-table-column
+                        prop='statusTitle'
+                        label="需求状态"
+                        min-width="80">
+                </el-table-column>
+                <el-table-column
+                        prop='respDepartmentName'
+                        label="响应部门"
+                        min-width="100">
+                </el-table-column>
+                <el-table-column
+                        prop='statusType'
+                        label="受理状态"
+                        min-width="70"
+                        :formatter="statusTypeFormatter">
+                </el-table-column>
+                <!--<el-table-column
+                        prop='isAppoint'
+                        label="是否指派"
+                        min-width="50"
+                        :formatter="isAppointFormatter">
+                </el-table-column>-->
+                <el-table-column
+                        min-width="150"
+                        label="操作">
+                    <template slot-scope="scope">
+                        <!--<el-button v-if="scope.row.status != 30"
+                                   size="small"
+                                   type="text"
+                                   @click="handleEdit(scope.$index, scope.row)">编辑30
+                        </el-button>-->
+                        <el-button v-if="scope.row.statusType != 1"
+                                   size="small"
+                                   type="text"
+                                   @click="handleEdit(scope.$index, scope.row)">编辑
+                        </el-button>
+
+                        <el-button
+                                v-if="scope.row.status === 30 && scope.row.isThumbsUps == 0 && vue.$data.userId == scope.row.userId"
+                                size="small"
+                                type="text"
+                                @click="thumbsUpTask(scope.$index, scope.row)">评价
+                        </el-button>
+                        <!--状态为已解决并且本人创建并且已评价 可以看详情 或者非本人创建并且已解决 可以看 驳回状态可以直接看-->
+                        <!--(scope.row.status === 30 && vue.$data.userId == scope.row.userId && scope.row.isThumbsUps != 0) || (scope.row.status === 30 && vue.$data.userId != scope.row.userId) || scope.row.status===40-->
+                        <el-button size="small"
+                                   type="text"
+                                   @click="handleDetail(scope.$index, scope.row)">详情
+                        </el-button>
+                        <!--<el-button v-show="authentication(2)"
+                                   size="small"
+                                   type="text"
+                                   @click="handleDel(scope.$index, scope.row)">删除
+                        </el-button>-->
+
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <div align="center">
+                <el-pagination
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                        :current-page="currentPage"
+                        :page-sizes="[10, 20, 30, 40]"
+                        :page-size="pagesize"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="totalCount">
+                </el-pagination>
+            </div>
+        </el-main>
+    </el-container>
+</div>
+
+<#include "/comm/js.html"/>
+
+<script type="text/javascript">
+
+    var vue = loadTable({
+        data: {
+            userId: ${userId},
+            button: ${button},
+            search: {
+                idEnterprise: {op: "eq", data: ""},
+                title: {op: "cn", data: ""},
+                outpostName: {op: "cn", data: ""},
+                enterpriseName: {op: "bn", data: ""},//不需要的条件
+                oldRespDepId: {op: "eq", data: ""},
+                resourceType: {op: "eq", data: "20"},
+                oldRespDepName: {op: "bn", data: ""},//不需要的条件
+                whistleTypeId: {op: "eq", data: ""},
+                gmtModified: [{op: "ge", data: ""}, {op: "le", data: ""}]
+                , status: {op: "eq", data: ""}
+            }
+            , statusList: [
+                {id: '', name: '全部'}
+                , {id: '10', name: '待受理'}
+                , {id: '20', name: '受理中'}
+                , {id: '30', name: '已解决'}
+                , {id: '40', name: '驳回'}
+            ]
+            , whistleTypeList:${whistleTypeList}
+        },
+        urlList: "${base}/enterprisewhistle/listByPage",
+        urlDel: "${base}/enterprisewhistle/del/",
+        urlEdit: "${base}/enterprisewhistle/view/editAcceptEntrance/${iframe}/2",
+        urlChangeOrder: "${base}/enterprisewhistle/changeOrder",
+        urlExport: "${base}/enterprisewhistle/exportEnterpriseWhistle/excel",
+        dialogWidth: 900,
+        dialogHeight: 600,
+        title: '企业需求',
+        dialogIndex: 0,
+        methods: {
+            isAppointFormatter: function(row, column){
+                if(row.isAppoint===0){
+                    return '否';
+                }else {
+                    return '是';
+                }
+            },
+            statusTypeFormatter: function(row, column){
+                if(row.statusType===0){
+                    return '拒绝';
+                }else if(row.statusType===1) {
+                    return '接受';
+                }else {
+                    return '';
+                }
+            },
+            handleExports:function() {
+                let cond = JSON.stringify(search2Cond(this.$data.search, "AND"));
+                cond = encodeURIComponent(cond);
+                console.log(cond);
+                location.href = "${base}/enterprisewhistle/exportEnterpriseWhistle/excel?cond="+cond;
+            },
+            handleDetail:function(index, row) {
+                v.dialogShow(1,{title:'企业需求详情',url:"${base}/enterprisewhistle/view/detailEntrance/${iframe}?id="+row.id,width:900,height:600});
+            },
+            startTask: function (index, row) {
+                //调用后台方法
+                axios.post('${base}/enterprisewhistle/updateEnterpriseWhistleStatus', {'id': row.id, 'status': 20})
+                    .then(function (res) {
+                        if (res.data.code === 0) {
+                            row.statusTitle = '受理中';
+                            row.status = 20;
+                            v.$message({type: 'success', message: res.data.message});
+                        } else {
+                            v.$message({type: 'error', message: res.data.message});
+                        }
+                    }).catch(function (err) {
+                    v.$message({type: 'error', message: '网络错误，请稍后重试'});
+                });
+            }, thumbsUpTask: function (index, row) {
+                //弹出页面
+                v.dialogShow(1, {
+                    title: '评价',
+                    url: '${base}/enterprisewhistle/view/evaluateEntrance/${iframe}/' + row.id + '/' + row.idEnterprise,
+                    width: 600,
+                    height: 250
+                })
+
+            }
+            , selectEnterpriseName: function () {
+                var wid = 0;
+                var getOutpostUrl = '${base}/company/view/userSelectCompanyEntrance/${iframe}/bak_method_company/' + wid;
+                v.dialogShow(2, {
+                    title: '企业列表',
+                    url: getOutpostUrl,
+                    width: 900,
+                    height: 500
+                });
+            },
+            selectRespDepartmentName: function () {
+                var wid = 0;
+                var getRespDepartmentUrl = '${base}/respdepartment/view/selectRespdepartmentEntrance/${iframe}/bak_method_resDepartment/' + wid;
+                v.dialogShow(2, {
+                    title: '响应部门列表',
+                    url: getRespDepartmentUrl,
+                    width: 900,
+                    height: 500
+                });
+            },
+            bak_method_company: function (data) {
+                this.$data.search.idEnterprise.data = data.id;
+                this.$data.search.enterpriseName.data = data.name;
+            },
+            bak_method_resDepartment: function (data) {
+                this.$data.search.oldRespDepId.data = data.id;
+                this.$data.search.oldRespDepName.data = data.name;
+            }
+        }
+    });
+
+
+</script>
+</body>

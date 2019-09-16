@@ -1,0 +1,85 @@
+<#include "/comm/head.html">
+<body>
+<div id="app">
+
+    <div class="demo-form-inline"  style="padding: 5px 20px 0px 0px;width: 100%;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" label-width="80px" style="width: 100%;">
+            <el-row>
+                <el-col :span="12">
+                    <el-form-item label="编号_分组信息" prop="idMeGroupInfo">
+                    
+                    <el-input placeholder="请输入内容" type="idMeGroupInfo" v-model.number="formData.idMeGroupInfo" autocomplete="off"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="备注" prop="notes">
+                    
+                    <el-input type="textarea" v-model="formData.notes"></el-input>                  
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="人员" prop="rbacUserId">
+                    
+                    <el-input placeholder="请输入内容" type="rbacUserId" v-model.number="formData.rbacUserId" autocomplete="off"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-form-item>
+                <el-button v-show="btnAddShow" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加</el-button>
+               <el-button type="primary" icon="el-icon-check" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let {id='',idMeGroupInfo='',sort='',notes='',rbacUserId=''} = entity;
+    var vue = loadForm(
+        {
+            methods:{
+            },
+            formData:{
+                id:id
+                  ,idMeGroupInfo:idMeGroupInfo          
+                  ,notes:notes
+                  
+                  ,rbacUserId:rbacUserId          
+            },
+            rules: {
+                idMeGroupInfo:[
+                    { required: true, message: '请输入编号_分组信息', trigger: 'blur' },
+                    { type: 'number', message: '编号_分组信息必须为数字值',trigger: 'blur' }
+                ],
+                notes:[
+                    { required: true, message: '请输入备注', trigger: 'blur' },
+                    { min: 1, max: 255, message: '长度在 1 到 255 个字符', trigger: 'blur' }
+                ],
+                rbacUserId:[
+                    { required: true, message: '请输入人员', trigger: 'blur' },
+                    { type: 'number', message: '人员必须为数字值',trigger: 'blur' }
+                ],
+            },
+            data:{
+                btnAddShow:(entity.id?false:true)
+            },
+            urlSave:'${base}/usersgroupinfo/save',
+            dialogIndex:0,
+            iframe:'${iframe}'
+        }
+    );
+
+
+</script>
+</body>
+</html>
+

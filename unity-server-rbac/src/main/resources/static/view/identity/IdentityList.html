@@ -1,0 +1,232 @@
+
+<#include "/comm/head.html">
+<body>
+<style>
+    .el-header .el-input__inner{ width:140px; }
+    .el-date-editor { width:140px !important; }
+    .el-main {
+        padding: 0px;
+        margin: 0px;
+        overflow:visible !important;
+    }
+    .el-header {
+        height: 50px!important;
+    }
+    .el-button--small, .el-button--small.is-round {
+        padding: 5px 10px!important;
+    }
+</style>
+<div id="app">
+<el-container>
+    <el-header>
+
+        <div  style="height:40px;padding-top: 5px;">
+
+            <el-form :inline="true">
+                <el-button-group>
+                    <el-tooltip v-if="authentication(0)" class="item" effect="dark" content="添加" placement="bottom">
+                        <el-button type="primary" icon="el-icon-circle-plus-outline" @click="handleAdd()"></el-button>
+                    </el-tooltip>
+                    <!--<el-tooltip v-if="authentication(2)" class="item" effect="dark" content="批量删除" placement="bottom">
+                        <el-button type="primary" icon="el-icon-delete" @click="handleDelBatch()"></el-button>
+                    </el-tooltip>-->
+                </el-button-group>
+                <el-form-item>
+                </el-form-item>
+                <el-form-item label="名称">
+                    <el-input style="wdith:60px"  v-model="search.name.data" placeholder="请输入内容"></el-input>
+                </el-form-item>
+                <el-form-item label="修改人">
+                    <el-input style="wdith:60px"  v-model="search.editor.data" placeholder="请输入内容"></el-input>
+                </el-form-item>
+                <el-form-item label="修改时间">
+                    <el-date-picker   style="wdith:80px"
+                            v-model="search.gmtModified[0].data"
+                            type="date"
+                            format="yyyy-MM-dd"
+                            value-format="yyyy-MM-dd 00:00:00.000"
+                            @change="checkSelectDate(search)"
+                            placeholder="请选择日期">
+                    </el-date-picker> 至 <el-date-picker    style="wdith:80px"
+                        v-model="search.gmtModified[1].data"
+                        type="date"
+                        format="yyyy-MM-dd"
+                        value-format="yyyy-MM-dd 23:59:59.999"
+                        @change="checkSelectDate(search)"
+                        placeholder="请选择日期">
+                    </el-date-picker>
+                </el-form-item>
+
+                <!--<div>-->
+                    <el-button-group>
+                        <el-tooltip v-if="authentication(3)" class="item" effect="dark" content="搜索" placement="bottom">
+                            <el-button type="primary" icon="el-icon-search" @click="handleSearch()"></el-button>
+                        </el-tooltip>
+                        <el-tooltip v-if="authentication(3)" class="item" effect="dark" content="清空" placement="bottom">
+                            <el-button type="primary" icon="fa fa-repeat" @click="handleReset()"></el-button>
+                        </el-tooltip>
+                    </el-button-group>
+                <!--</div>-->
+            </el-form>
+
+        </div>
+    </el-header>
+    <el-main>
+            <el-table
+                    row-style="height:15px"
+                    cell-style="padding:5px"
+                    :data="tableData"
+                    style='width:100%;'
+                    stripe="true"
+                    :header-cell-style="{
+                        'background-color': '#fafafa',
+                        'color': '#333',
+                        'border-bottom': '1px solid #fafafa'
+                    }"
+                    :height="tableHeight"
+                    @selection-change="handleSelectionChange"
+                    border>
+                <el-table-column
+                        type="selection"
+                        width="55">
+                </el-table-column>
+                <el-table-column
+                        type="index"
+                        label="序号"
+                        width="50">
+                </el-table-column>
+                <!--<el-table-column
+                        prop="gmtModified"
+                        label="修改时间">
+                </el-table-column>-->
+               <!-- <el-table-column
+                        prop="editor"
+                        label="修改人">
+                </el-table-column>-->
+                <el-table-column
+                        prop="name"
+                        label="身份名称">
+                </el-table-column>
+                <el-table-column
+                        prop="notes"
+                        label="备注">
+                </el-table-column>
+                <el-table-column
+                        prop="platform"
+                        label="平台"
+                        :formatter="formatPlatform">
+                </el-table-column>
+                <el-table-column
+                        prop="gmtCreate"
+                        label="创建时间">
+                </el-table-column>
+                <el-table-column
+                        fixed="right"
+                        label="操作"
+                        width="300">
+                    <template slot-scope="scope">
+
+                        <div>
+                            <el-button-group>
+                                <!--<el-tooltip v-if="authentication(1)" class="item" effect="dark" content="修改" placement="bottom">-->
+                                    <el-button
+                                            v-if="authentication(1)"
+                                            type="text"
+                                            size="small"
+                                            @click="handleEdit(scope.$index, scope.row)">修改
+                                    </el-button><!--icon="el-icon-edit"-->
+                                <!--</el-tooltip>
+                                <el-tooltip v-if="authentication(33)" class="item" effect="dark" content="功能资源" placement="bottom">-->
+                                    <el-button
+                                            v-if="authentication(33)"
+                                            type="text"
+                                            size="small"
+                                            @click="openModuleResource(scope.row)">功能资源
+                                    </el-button><!--icon="fa fa-map"-->
+                                <!--</el-tooltip>
+                                <el-tooltip v-if="authentication(34)" class="item" effect="dark" content="接口资源" placement="bottom">-->
+                                    <!--<el-button
+                                            v-if="authentication(34)"
+                                            type="text"
+                                            size="small"
+                                            @click="openApiResource(scope.row)">接口资源
+                                    </el-button>--><!--icon="fa fa-adn"-->
+                                <!--</el-tooltip>
+                                <el-tooltip v-if="authentication(2)" class="item" effect="dark" content="删除身份信息" placement="bottom">-->
+                                    <el-button
+                                            v-if="authentication(2)"
+                                            type="text"
+                                            size="small"
+                                            @click="handleDel(scope.$index, scope.row)">删除
+                                    </el-button><!--icon="el-icon-delete"-->
+                                <!--</el-tooltip>-->
+                            </el-button-group>
+                        </div>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <div align="center">
+                <el-pagination
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                        :current-page="currentPage"
+                        :page-sizes="[10, 20, 30, 40]"
+                        :page-size="pagesize"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="totalCount">
+                </el-pagination>
+            </div>
+    </el-main>
+</el-container>
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let button = ${button};
+    var vue = loadTable({
+            data:{
+                search:{
+                    name:{op:"bw",data:""},
+                    editor:{op:"cn",data:""},
+                    gmtModified:[{op:"ge",data:""},{op:"le",data:""}]
+                },
+                button:button
+            },
+            methods:{
+                formatPlatform: function(row, column) {
+                    return row.platform === 1 ? 'PC端' : row.platform === 2 ? '安卓端' : row.platform === 3 ? '苹果端' : row.platform === 4 ? '微信端' : row.platform === 5 ? '小程序端' : row.platform === 6 ? '后台' :'';
+                },
+                openModuleResource: function (row) {
+                    v.dialogShow(1, {
+                        title: '分配资源权限',
+                        url: '${base}/resource/identityAndModuleResourceEntrance/${iframe}/'+row.id,
+                        width: 400,
+                        height: 400
+                    })
+                }
+                ,
+                openApiResource: function (row) {
+                    v.dialogShow(1, {
+                        title: '分配接口权限',
+                        url: '${base}/resource/identityAndApiResourceEntrance/${iframe}/'+row.id,
+                        width: 400,
+                        height: 400
+                    })
+                }
+            },
+            urlList:"${base}/identity/listByPage",
+            urlDel:"${base}/identity/del/",
+            urlEdit:"${base}/identity/editEntrance/${iframe}",
+            dialogWidth:500,
+            dialogHeight:450,
+            title:'身份'
+        });
+
+</script>
+</body>
+</html>
+
+
+

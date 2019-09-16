@@ -1,0 +1,215 @@
+<#include "/comm/head.html"/>
+<body>
+<style>
+    .el-header .el-input__inner{ width:140px; }
+    .el-date-editor { width:140px !important; }
+    .el-main {
+        padding: 0px;
+        margin: 0px;
+        overflow:visible !important;
+    }
+    .el-dialog__body {
+        padding: 10px 10px;
+        color: #606266;
+        font-size: 14px
+    }
+</style>
+<div id="app">
+<el-container>
+    <el-header>
+
+        <div  style="height:40px;padding-top: 5px;">
+
+            <el-form :inline="true">
+                <el-button-group>
+                    <el-tooltip class="item" effect="dark" content="添加" placement="bottom">
+                        <el-button type="primary" icon="el-icon-circle-plus-outline" @click="handleAdd()"></el-button>
+                    </el-tooltip>
+                   <!-- <el-tooltip class="item" effect="dark" content="批量删除" placement="bottom">
+                        <el-button type="primary" icon="el-icon-delete" @click="handleDelBatch()"></el-button>
+                    </el-tooltip>-->
+
+                </el-button-group>
+                <el-form-item>
+                </el-form-item>
+               <el-form-item label="项目名称">
+                    <el-input style="wdith:60px"  v-model="search.name.data" placeholder="请输入内容"></el-input>
+                </el-form-item>
+                <!--  <el-form-item label="修改人">
+                     <el-input style="wdith:60px"  v-model="search.editor.data" placeholder="请输入内容"></el-input>
+                 </el-form-item>
+                 <el-form-item label="修改时间">
+                     <el-date-picker   style="wdith:80px"
+                             v-model="search.gmtModified[0].data"
+                             type="date"
+                             format="yyyy-MM-dd"
+                             value-format="yyyy-MM-dd"
+                             placeholder="请选择日期">
+                     </el-date-picker> 至 <el-date-picker    style="wdith:80px"
+                         v-model="search.gmtModified[1].data"
+                         type="date"
+                         format="yyyy-MM-dd"
+                         value-format="yyyy-MM-dd 23:59:59.999"
+                         placeholder="请选择日期">
+                     </el-date-picker>
+                 </el-form-item>-->
+                <el-button-group>
+                    <el-tooltip class="item" effect="dark" content="搜索" placement="bottom">
+                        <el-button type="primary" icon="el-icon-search" @click="handleSearch()"></el-button>
+                    </el-tooltip>
+                    <el-tooltip class="item" effect="dark" content="清空" placement="bottom">
+                        <el-button type="primary" icon="fa fa-repeat" @click="handleReset()"></el-button>
+                    </el-tooltip>
+                </el-button-group>
+            </el-form>
+
+        </div>
+    </el-header>
+    <el-main>
+            <el-table
+                    :data="tableData"
+                    style='width:100%;'
+                    :height="tableHeight"
+                    @selection-change="handleSelectionChange"
+                    border>
+                <!--<el-table-column
+                        type="selection"
+                        width="55">
+                </el-table-column>-->
+                <el-table-column
+                        type="index"
+                        label="序号"
+                        width="50">
+                </el-table-column>
+                <el-table-column
+                        prop="name"
+                        label="项目名称"
+                        width="150">
+                </el-table-column>
+                <el-table-column
+                        prop="packName"
+                        label="包名"
+                        width="120">
+                </el-table-column>
+                <el-table-column
+                        prop="version"
+                        label="版本"
+                        width="80">
+                </el-table-column>
+                <el-table-column
+                        prop="versionInside"
+                        label="内部版本"
+                        width="120">
+                </el-table-column>
+                <el-table-column
+                        prop="systemType"
+                        label="类型"
+                        :formatter="systemType"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="downloadPath"
+                        label="下载路径"
+                        width="200">
+                </el-table-column>
+                <!--<el-table-column
+                        prop="sqlChange"
+                        label="sql更新"
+                        width="100">
+                </el-table-column>-->
+                <el-table-column
+                        prop="isMustUpgrade"
+                        label="强制升级"
+                        :formatter="isMustUpgrade"
+                        width="80">
+                </el-table-column>
+                <!--<el-table-column
+                        prop="notes"
+                        label="备注">
+                </el-table-column>-->
+                <el-table-column
+                        prop="gmtModified"
+                        label="修改时间"
+                        width="160">
+                </el-table-column>
+                <!--<el-table-column
+                        prop="editor"
+                        label="修改人">
+                </el-table-column>-->
+
+                <el-table-column
+                        fixed="right"
+                        label="操作">
+                    <template slot-scope="scope">
+
+                        <el-button
+                                size="small"
+                                type="text"
+                                @click="handleDel(scope.$index, scope.row)">删除</el-button>
+
+                        <el-button
+                                size="small"
+                                type="text"
+                                @click="handleEdit(scope.$index, scope.row)">修改</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <div align="center">
+                <el-pagination
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                        :current-page="currentPage"
+                        :page-sizes="[10, 20, 30, 40]"
+                        :page-size="pagesize"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="totalCount">
+                </el-pagination>
+            </div>
+    </el-main>
+</el-container>
+</div>
+
+<#include "/comm/js.html"/>
+
+<script type="text/javascript">
+
+    var vue = loadTable({
+            data:{
+                search:{
+                    name:{op:"cn",data:""},
+                    editor:{op:"cn",data:""},
+                    gmtModified:[{op:"ge",data:""},{op:"le",data:""}]
+                },
+                button:${button}
+            },
+            urlList:"${base}/appversion/listByPage",
+            urlDel:"${base}/appversion/",
+            urlEdit:"${base}/appversion/editEntrance/${iframe}",
+            dialogWidth:800,
+            dialogHeight:450,
+            title:'版本',
+        methods:{
+            isMustUpgrade:function(row, column) {
+                if (row.isMustUpgrade == "1"){
+                    return "是"
+                }else{
+                    return "否"
+                }
+            },
+            systemType:function(row, column) {
+                if (row.systemType == "2"){
+                    return "Android"
+                }else{
+                    return "IOS"
+                }
+            }
+        }
+        });
+
+</script>
+</body>
+</html>
+
+
+

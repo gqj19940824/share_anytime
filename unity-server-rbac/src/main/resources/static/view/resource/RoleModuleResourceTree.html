@@ -1,0 +1,78 @@
+<#include "/comm/head.html">
+<body>
+<style>
+    .el-header .el-input__inner {
+        width: 140px;
+    }
+    .el-dialog__body {
+        padding: 0px 0px!important;
+        color: #606266;
+        font-size: 14px;
+    }
+</style>
+<div id="app">
+    <el-container>
+        <el-header style="height: 30px;padding: 0 0px!important;">
+            <div  style="height:5px;padding: 0px 0px;!important;">
+                <el-button
+                        type="primary"
+                        icon="el-icon-circle-check"
+                        @click="dis()">分配
+                </el-button>
+            </div>
+        </el-header>
+
+        <el-main>
+            <ul id="ztree" class="ztree"></ul>
+        </el-main>
+    </el-container>
+</div>
+<#include "/comm/js.html">
+<#include "/comm/ztree.html">
+
+<script type="text/javascript">
+    var vue = loadTree({
+        setting:{
+            check: {
+                enable: true
+            }
+        },
+        data: {
+            treeName: 'ztree'
+        },
+        methods:{
+            dis: function () {
+                let treeObj = this.tree();
+                let nodes = treeObj.getCheckedNodes();
+                if(nodes==null || nodes.length == 0){
+                    v.$message.error("必须选择一项才能操作");
+                }
+                var nodeArr = [];
+                for(var i in nodes){
+                    nodeArr.push(nodes[i].id);
+                }
+                //调用后台方法
+                axios.post('${base}/role/roleResourceLink',{'id':'${roleId}','relationType':0,'resourceType':1,'moduleCodes':nodeArr})
+                    .then(function (res) {
+                        if (res.data.code === 0) {
+                            v.$message({type: 'success', message: res.data.message});
+                            v.dialogHide(1);
+                            //window.parent.frames["${iframe}"].contentWindow.vue.reload();
+                        } else {
+                            v.$message({type: 'error', message: res.data.message});
+                        }
+                    }).catch(function (err) {
+                        v.$message({type: 'error', message: '网络错误，请稍后重试'});
+                });
+            }
+        },
+        urlList: "${base}/resource/moduleTreeByRole/${roleId}",
+        dialogWidth: 400,
+        dialogHeight: 430,
+        title: '功能资源'
+    })
+
+
+</script>
+</body>
+</html>

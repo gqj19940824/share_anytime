@@ -1,0 +1,191 @@
+
+<#include "/comm/head.html">
+<body>
+<style>
+    .el-header .el-input__inner{ width:140px; }
+    .el-date-editor { width:140px !important; }
+    .el-main {
+        padding: 0px;
+        margin: 0px;
+        overflow:visible !important;
+    }
+</style>
+<div id="app">
+<el-container>
+    <el-header>
+
+        <div  style="height:40px;padding-top: 5px;">
+
+            <el-form :inline="true">
+                <el-button-group>
+                    <el-tooltip v-if="authentication(0)" class="item" effect="dark" content="添加" placement="bottom">
+                        <el-button type="primary" icon="el-icon-circle-plus-outline" @click="handleAdd()"></el-button>
+                    </el-tooltip>
+                    <el-tooltip v-if="authentication(2)" class="item" effect="dark" content="批量删除" placement="bottom">
+                        <el-button type="primary" icon="el-icon-delete" @click="handleDelBatch()"></el-button>
+                    </el-tooltip>
+
+                </el-button-group>
+                <el-form-item>
+                </el-form-item>
+                <el-form-item label="名称">
+                    <el-input style="wdith:60px"  v-model="search.name.data" placeholder="请输入内容"></el-input>
+                </el-form-item>
+                <el-form-item label="修改人">
+                    <el-input style="wdith:60px"  v-model="search.editor.data" placeholder="请输入内容"></el-input>
+                </el-form-item>
+                <el-form-item label="修改时间">
+                    <el-date-picker   style="wdith:80px"
+                            v-model="search.gmtModified[0].data"
+                            type="date"
+                            format="yyyy-MM-dd"
+                            value-format="yyyy-MM-dd"
+                            placeholder="请选择日期">
+                    </el-date-picker> 至 <el-date-picker    style="wdith:80px"
+                        v-model="search.gmtModified[1].data"
+                        type="date"
+                        format="yyyy-MM-dd"
+                        value-format="yyyy-MM-dd 23:59:59.999"
+                        placeholder="请选择日期">
+                    </el-date-picker>
+                </el-form-item>
+               
+               
+               
+               
+                 <el-form-item label="是否系统角色" prop="isSystemRole">        
+                    <el-select v-model="search.isSystemRole.data">
+                        <el-option v-for="(item, index) in flagList" :key="item.value" :value="item.id" :label="item.name"></el-option>
+                    </el-select>
+                 </el-form-item>
+                <el-button-group>
+                    <el-tooltip v-if="authentication(3)" class="item" effect="dark" content="搜索" placement="bottom">
+                        <el-button type="primary" icon="el-icon-search" @click="handleSearch()"></el-button>
+                    </el-tooltip>
+                    <el-tooltip v-if="authentication(3)" class="item" effect="dark" content="清空" placement="bottom">
+                        <el-button type="primary" icon="fa fa-repeat" @click="handleReset()"></el-button>
+                    </el-tooltip>
+                </el-button-group>
+            </el-form>
+
+        </div>
+    </el-header>
+    <el-main>
+            <el-table
+                    :data="tableData"
+                    style='width:100%;'
+                    :height="tableHeight"
+                    @selection-change="handleSelectionChange"
+                    border>
+                <el-table-column
+                        type="selection"
+                        width="55">
+                </el-table-column>
+                <el-table-column
+                        type="index"
+                        label="序号"
+                        width="50">
+                </el-table-column>
+                <el-table-column
+                        prop='idRbacIdentity'
+                        label="编号_身份">
+                </el-table-column>
+                <el-table-column
+                        prop='idRbacRole'
+                        label="编号_角色">
+                </el-table-column>
+                <el-table-column
+                        prop='gmtModified'
+                        label="修改时间">
+                </el-table-column>
+                <el-table-column
+                        prop='notes'
+                        label="备注">
+                </el-table-column>
+                <el-table-column
+                        prop='editor'
+                        label="修改人">
+                </el-table-column>
+                <el-table-column
+                        prop='isSystemRoleTitle'
+                        label="是否系统角色">
+                </el-table-column>
+
+                <el-table-column
+                        fixed="right"
+                        label="操作"
+                        width="100">
+                    <template slot-scope="scope">
+
+                        <el-button v-if="authentication(2)"
+                                size="small"
+                                type="text"
+                                @click="handleDel(scope.$index, scope.row)">删除</el-button>
+
+                        <el-button v-if="authentication(1)"
+                                size="small"
+                                type="text"
+                                @click="handleEdit(scope.$index, scope.row)">修改</el-button>
+                                
+                        <el-button v-if="authentication(7)"
+                                size="small"
+                                type="text"
+                                @click="handleChangeOrder(scope.row.id,0)">上移</el-button>
+
+                        <el-button v-if="authentication(7)"
+                                size="small"
+                                type="text"
+                                @click="handleChangeOrder(scope.row.id,1)">下移</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <div align="center">
+                <el-pagination
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                        :current-page="currentPage"
+                        :page-sizes="[10, 20, 30, 40]"
+                        :page-size="pagesize"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="totalCount">
+                </el-pagination>
+            </div>
+    </el-main>
+</el-container>
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+
+    var vue = loadTable({
+            data:{
+                button:${button},
+                search:{
+                    name:{op:"bw",data:""},
+                    editor:{op:"cn",data:""},
+                    gmtModified:[{op:"ge",data:""},{op:"le",data:""}]
+                    ,isSystemRole:{op:"eq",data:""}
+                }
+                ,flagList[
+                    {id:'',name:'全部'}
+                    ,{id:'1',name:'是'}
+                    ,{id:'0',name:'否'}
+                ]
+            },
+            urlList:"${base}/defaultrole/listByPage",
+            urlDel:"${base}/defaultrole/",
+            urlEdit:"${base}/defaultrole/editEntrance/${iframe}",
+            urlChangeOrder:"${base}/defaultrole/changeOrder",
+            dialogWidth:"800px",
+            dialogHeight:"350px",
+            title:'默认角色'
+        });
+
+
+
+
+</script>
+</body>
+</html>

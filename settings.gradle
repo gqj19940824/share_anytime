@@ -1,0 +1,13 @@
+rootProject.name = 'unity'
+/*公共支持包*/
+include 'unity-cloud-eureka'
+include 'unity-cloud-zuul'
+include 'unity-server-rbac'
+include 'unity-server-system'
+include 'unity-cfg'
+include 'unity-server-resource'
+include 'unity-common'
+include 'unity-server-message'
+include 'unity-server-admin'
+//include 'unity-business-safety'
+

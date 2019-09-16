@@ -1,0 +1,151 @@
+server:
+  port: ${port:10008}
+spring.application.name: unity-cloud-zuul
+spring:
+  security:
+    user:
+      name: admin
+      password: 111111
+      roles: ADMIN
+
+zuul:
+  retryable: true
+  sensitive-headers: "*"
+  host:
+    socket-timeout-millis: 7000
+    connect-timeout-millis: 7000
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 20000
+
+ribbon:
+  ReadTimeout: 10000
+  ConnectTimeout: 10000
+  MaxAutoRetries: 1
+
+
+eureka.client.serviceUrl.defaultZone: http://127.0.0.1:20000/eureka/eureka/
+logging.file: /data/logs/unity/${spring.application.name}/application.log
+
+
+
+---
+spring:
+  profiles: devel
+#  boot:
+#    admin:
+#      client:
+#        url: http://127.0.0.1:20010/server-admin
+#        instance:
+#          service-base-url: http://127.0.0.1:${server.port}
+#        username: "admin"       #These two are needed so that the client
+#        password: "admin"
+  servlet:
+        multipart:
+          maxFileSize: 300MB
+          maxRequestSize: 500MB
+          location: "D:/test_dir/develTemp/"
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: "*"
+#        exclude: env
+#  endpoint:
+#    health:
+#      show-details: always
+#    # 可以关闭制定的端点
+#    shutdown:
+#      enabled: false
+
+---
+
+spring:
+  profiles: test
+  boot:
+    admin:
+      client:
+        url: http://127.0.0.1:20010/server-admin
+        instance:
+          service-base-url: http://127.0.0.1:${server.port}
+        username: "admin"       #These two are needed so that the client
+        password: "admin"
+  servlet:
+      multipart:
+        maxFileSize: 300MB
+        maxRequestSize: 500MB
+        location: /data/upload/testTemp/
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+        exclude: env
+  endpoint:
+    health:
+      show-details: always
+    # 可以关闭制定的端点
+    shutdown:
+      enabled: false
+
+---
+spring:
+  profiles: uat
+  boot:
+    admin:
+      client:
+        url: http://127.0.0.1:20010/server-admin
+        instance:
+          service-base-url: http://127.0.0.1:${server.port}
+        username: "admin"       #These two are needed so that the client
+        password: "admin"
+  servlet:
+        multipart:
+          maxFileSize: 300MB
+          maxRequestSize: 500MB
+          location: /data/upload/uatTemp/
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+        exclude: env
+  endpoint:
+    health:
+      show-details: always
+    # 可以关闭制定的端点
+    shutdown:
+      enabled: false
+---
+spring:
+  profiles: prod
+  boot:
+    admin:
+      client:
+        url: http://127.0.0.1:20010/server-admin
+        instance:
+          service-base-url: http://127.0.0.1:${server.port}
+        username: "admin"       #These two are needed so that the client
+        password: "admin"
+  servlet:
+        multipart:
+          maxFileSize: 300MB
+          maxRequestSize: 500MB
+          location: /data/upload/prodTemp/
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+        exclude: env
+  endpoint:
+    health:
+      show-details: always
+    # 可以关闭制定的端点
+    shutdown:
+      enabled: false

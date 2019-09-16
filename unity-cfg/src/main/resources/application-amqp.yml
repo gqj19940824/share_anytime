@@ -1,0 +1,40 @@
+
+---
+spring.profiles: devel
+spring:
+  rabbitmq:
+    host: 192.168.101.44
+    password: admin
+    listener.simple.retry:
+      enabled: true  #开启重试
+      max-attempts: 5 #重试默认的次数为5
+
+
+---
+spring.profiles: test
+spring:
+  rabbitmq:
+    host:
+    password:
+    listener.simple.retry:
+      enabled: true  #开启重试
+      max-attempts: 5 #重试默认的次数为3
+---
+spring.profiles: uat
+spring:
+  rabbitmq:
+    host:
+    password:
+    listener.simple.retry:
+      enabled: true  #开启重试
+      max-attempts: 5 #重试默认的次数为3
+---
+
+spring.profiles: prod
+spring:
+  rabbitmq:
+    host:
+    password:
+    listener.simple.retry:
+      enabled: true  #开启重试
+      max-attempts: 5 #重试默认的次数为3

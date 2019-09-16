@@ -1,0 +1,140 @@
+<#include "/comm/head.html">
+<body>
+<style>
+    .el-form-item {
+        margin-bottom: 0px!important;
+    }
+    .el-tag + .el-tag {
+        margin-left: 10px;
+    }
+    .button-new-tag {
+        margin-left: 10px;
+        height: 32px;
+        line-height: 30px;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .input-new-tag {
+        width: 90px;
+        margin-left: 10px;
+        vertical-align: bottom;
+    }
+</style>
+<div id="app">
+    <div class="source" style="height:40px;padding-top: 0px;width: 450px!important;">
+        <el-form status-icon :model="formData" :rules="rules" ref="formData">
+            <el-form-item label="名称" prop="name">
+                <el-input v-model="formData.name" placeholder="请输入内容"></el-input>
+            </el-form-item>
+            <el-form-item label="描述" prop="notes">
+                <el-input type="textarea" v-model="formData.notes"></el-input>
+            </el-form-item>
+            <el-form-item label="排序号" prop="sort">
+                <el-input v-model="formData.sort" placeholder="请输入内容"></el-input>
+            </el-form-item>
+
+            <el-form-item label="地址" prop="resourceUrl">
+                <el-input v-model="formData.resourceUrl" placeholder="请输入内容"></el-input>
+            </el-form-item>
+
+            <el-form-item v-if="id != null" label="功能按钮列表" prop="functionListStr">
+                <br/>
+                <div style="float: left;" v-if="tags != null && tags.length > 0">
+                    <el-tag
+                        v-for="tag in tags"
+                        :key="tag.name"
+                        closable
+                        :disable-transitions="false"
+                        @close="handleClose(tag)"
+                        :type="tag.type">
+                    {{tag.name}}
+                    </el-tag>
+                </div>
+                <div style="float: right;">
+                    <el-button type="success" round icon="el-icon-plus" size="small" @click="goDisButton()">新增按钮</el-button>
+                </div>
+            </el-form-item>
+
+            <el-form-item style="margin-top: 10px!important;">
+                <el-button type="primary" icon="el-icon-check" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+                <!--<el-button type="primary" icon="el-icon-close" @click="showDialog()">弹出</el-button>-->
+            </el-form-item>
+        </el-form>
+    </div>
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let {
+        id = null,
+        name = '',
+        notes = '',
+        sort = null,
+        resourceUrl = '',
+        functionList = ''
+    } = entity;
+    let buttonList = ${buttonList};
+    var vue = loadForm(
+        {
+            methods: {
+                goDisButton: function () {
+                    //var url = '${base}/resource/buttonList/${iframe}/'+id;
+                    v.dialogShow(1,
+                        {
+                            title:'分配功能按钮',
+                            url:'${base}/resource/buttonList/${iframe}/'+this.formData.id,
+                            width:600,
+                            height:350
+                        })
+                    //window.open(url);
+                },
+                handleClose: function(tag) {
+                    //console.info("tag----: "+tag.name);
+                    this.tags.splice(this.tags.indexOf(tag), 1);
+                    axios.post('${base}/resource/delButton',{'id':tag.id,'resourceId':vue.formData.id})
+                        .then(function (res) {
+                            if (res.data.code === 0) {
+                                //v.$message({type: 'success', message: res.data.message});
+                                //v.dialogHide(2);
+                                //window.parent.frames["${iframe}"].contentWindow.vue.reload();
+                            } else {
+                                v.$message({type: 'error', message: res.data.message});
+                            }
+                        }).catch(function (err) {
+                        v.$message({type: 'error', message: '网络错误，请稍后重试'});
+                    });
+                },
+                /* showDialog(){
+                     v.dialogShow(1,{title:'新窗口',url:'${base}/tree/moduleEntrance/${iframe}',width:"1000px",height:"300px"})
+                 }*/
+            },
+            formData: {
+                id: id,
+                name: name,
+                idParent: '${idParent}',
+                gradationCode: '${gradationCode}',
+                sort: sort,
+                platform: "1",
+                notes: notes,
+                resourceUrl: resourceUrl,
+                functionList:functionList,
+                buttonList: buttonList
+            },
+            rules: {
+                name: {required: true, message: '请输入资源名称', trigger: 'blur'}
+            },
+            data: {
+                btnAddShow: (entity.id ? false : true),
+                tags: buttonList
+            },
+            urlSave: '${base}/resource/saveModuleResource',
+            iframe: '${iframe}'
+        }
+    );
+
+</script>
+</body>
+</html>

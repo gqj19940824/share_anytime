@@ -1,0 +1,65 @@
+server:
+  port: ${port:20010}
+#  servlet:
+#     context-path:
+spring:
+  application:
+    name: unity-server-admin
+  boot:
+    admin:
+      context-path: /server-admin/
+      client:
+        #127.0.0.1本地ip
+        url: http://127.0.0.1:${server.port}/server-admin
+        instance:
+          service-base-url: http://127.0.0.1:${server.port}
+  profiles:
+    active:
+      - secure
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: ALWAYS
+
+---
+spring:
+  profiles: insecure
+
+---
+spring:
+  profiles: secure
+  security:
+    user:
+      name: "admin"
+      #password: "admin"
+      password: ENC(mzO7ZwsUM84dqh/iiVcXTQ==)
+  boot:
+    admin:
+      client:
+        username: "admin"       #These two are needed so that the client
+        password: ENC(mzO7ZwsUM84dqh/iiVcXTQ==)   #can register at the protected server apisuppliesEquip
+        instance:
+          metadata:
+            user.name: "admin"         #These two are needed so that the server
+            user.password: ENC(mzO7ZwsUM84dqh/iiVcXTQ==) #can access the protected client endpoints
+
+jasypt:
+  encryptor:
+    #这里可以理解成是加解密的时候使用的密钥
+    password: security
+logging:
+  level:
+    root: info
+  file: /data/logs/unity/${spring.application.name}/application.log
+  pattern:
+    file: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"
+
+
+
+
+

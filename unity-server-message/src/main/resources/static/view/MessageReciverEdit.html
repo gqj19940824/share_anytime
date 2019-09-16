@@ -1,0 +1,84 @@
+<#include "/comm/head.html">
+<body>
+<div id="app">
+
+    <div class="demo-form-inline"  style="padding: 5px 20px 0px 0px;width: 100%;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" label-width="80px" style="width: 100%;">
+            <el-row>
+                <el-col :span="12">
+                    <el-form-item label="编号_推送消息记录" prop="idMePushMessageLog">
+                    
+                    <el-input placeholder="请输入内容" type="idMePushMessageLog" v-model.number="formData.idMePushMessageLog" autocomplete="off"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="备注" prop="notes">
+                    
+                    <el-input type="textarea" v-model="formData.notes"></el-input>                  
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="接收人" prop="pbkUserInfoId">
+                    
+                    <el-input placeholder="请输入内容" type="pbkUserInfoId" v-model.number="formData.pbkUserInfoId" autocomplete="off"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-form-item>
+               <el-button type="primary" icon="el-icon-check" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let {id='',idMePushMessageLog='',sort='',notes='',pbkUserInfoId=''} = entity;
+    var vue = loadForm(
+        {
+            methods:{
+            },
+            formData:{
+                id:id
+                  ,idMePushMessageLog:idMePushMessageLog          
+                  ,notes:notes
+                  
+                  ,pbkUserInfoId:pbkUserInfoId          
+            },
+            rules: {
+                idMePushMessageLog:[
+                    { required: true, message: '请输入编号_推送消息记录', trigger: 'blur' },
+                    { type: 'number', message: '编号_推送消息记录必须为数字值',trigger: 'blur' }
+                ],
+                notes:[
+                    { required: true, message: '请输入备注', trigger: 'blur' },
+                    { min: 1, max: 255, message: '长度在 1 到 255 个字符', trigger: 'blur' }
+                ],
+                pbkUserInfoId:[
+                    { required: true, message: '请输入接收人', trigger: 'blur' },
+                    { type: 'number', message: '接收人必须为数字值',trigger: 'blur' }
+                ],
+            },
+            data:{
+                btnAddShow:(entity.id?false:true)
+            },
+            urlSave:'${base}/messagereciver/save',
+            dialogIndex:0,
+            iframe:'${iframe}'
+        }
+    );
+
+
+</script>
+</body>
+</html>
+

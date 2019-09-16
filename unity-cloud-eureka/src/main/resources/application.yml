@@ -1,0 +1,28 @@
+# Server settings
+server:
+  port: 20000
+  #仅允许本机访问
+  address: localhost
+  servlet:
+    context-path: /eureka/
+
+logging.level.com.unity: debug
+logging.file: /data/logs/unity/${spring.application.name}/application.log
+
+eureka:
+  client:
+#    healthcheck:
+#      enabled: true #健康检查
+    register-with-eureka: false
+    fetch-registry: false
+    serviceUrl.defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka
+    eureka-server-read-timeout-seconds: 5000
+  instance:
+    hostname: localhost
+    prefer-ip-address: true
+  server:
+    #清理时间
+    eviction-interval-timer-in-ms: 30000
+#    lease-renewal-interval-in-seconds: 30
+#    lease-expiration-duration-in-seconds: 90
+spring.application.name: unity-cloud-eureka

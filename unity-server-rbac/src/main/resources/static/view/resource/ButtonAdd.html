@@ -1,0 +1,90 @@
+
+<#include "/comm/head.html">
+<body>
+<style>
+    .el-tag + .el-tag {
+        margin-left: 10px;
+    }
+    .button-new-tag {
+        margin-left: 10px;
+        height: 32px;
+        line-height: 30px;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .input-new-tag {
+        width: 90px;
+        margin-left: 10px;
+        vertical-align: bottom;
+    }
+</style>
+<div id="app">
+    <div class="source"><!--/*width:600px; height:120px;border:1px solid #000;*/-->
+        <el-form status-icon :model="formData" :rules="rules" ref="formData">
+            <el-form-item label="按钮编码" prop="id">
+                <el-input v-model="formData.id" type="number" min="0" placeholder="请输入数字编码"></el-input>
+            </el-form-item>
+            <el-form-item label="按钮名称" prop="name">
+                <el-input v-model="formData.name" placeholder="请输入内容"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button v-show="formData.resourceId != null" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加</el-button>
+                <el-button type="primary" icon="el-icon-circle-check-outline" @click="saveButton()">保存</el-button>
+                <el-button type="info" icon="el-icon-circle-close-outline" @click="closeButton()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    //var resourceId = ${resourceId};
+    var vue = loadForm(
+        {
+
+            methods:{
+                /*showDialog(){
+                    v.dialogShow(1,{title:'新窗口',url:'${base}/role/moduleEntrance/${iframe}',width:"1000px",height:"300px"})
+                }*/
+                saveButton: function () {
+                   axios.post('${base}/resource/saveOrUpdateButton',{'id':vue.formData.id,'name':vue.formData.name,'resourceId':vue.formData.resourceId})
+                        .then(function (res) {
+                            if (res.data.code === 0) {
+                                v.$message({type: 'success', message: res.data.message});
+                                v.dialogHide(2);
+                                window.parent.frames["${iframe}"].contentWindow.vue.reload();
+                                //v.dialogShow(0,{title:'修改资源',url:'${base}/resource/editModuleEntrance/${iframe}/${resourceId}',width:750,height:600});
+                            } else {
+                               // v.$message({type: 'error', message: res.data.message});
+                            }
+                        }).catch(function (err) {
+                        //v.$message({type: 'error', message: '网络错误，请稍后重试'});
+                    });
+                },
+                closeButton: function () {
+                    v.dialogHide(2);
+                }
+            },
+            formData:{
+                id:null,
+                name:'',
+                resourceId: ${resourceId}
+            },
+            rules: {
+                id:{ required: true, message: '请输入按钮编码', trigger: 'blur' },
+                name:{ required: true, message: '请输入按钮名称', trigger: 'blur' }
+            },
+            data:{
+                btnAddShow:(${resourceId}?false:true)
+            },
+            urlSave:'${base}/resource/saveOrUpdateButton',
+            iframe:'${iframe}'
+        }
+    );
+
+</script>
+</body>
+</html>

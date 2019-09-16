@@ -1,0 +1,98 @@
+
+<#include "/comm/head.html">
+<body>
+<style>
+    .el-tag + .el-tag {
+        margin-left: 10px;
+    }
+    .button-new-tag {
+        margin-left: 10px;
+        height: 32px;
+        line-height: 30px;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .input-new-tag {
+        width: 90px;
+        margin-left: 10px;
+        vertical-align: bottom;
+    }
+
+    .el-button--primary.is-plain {
+        color: #409EFF;
+        background: #ecf5ff;
+        border-color: #b3d8ff;
+        margin: 10px;!important;
+    }
+</style>
+
+<div id="app">
+    <div class="source"><!--/*width:600px; height:120px;border:1px solid #000;*/-->
+        <div>
+            <p>点击按钮进行分配</p>
+            <el-row>
+                <el-button type="primary" v-show="!authentication(0)" plain @click="add(0,'新增')">新增</el-button>
+                <el-button type="primary" v-show="!authentication(1)" plain @click="add(1,'修改')">修改</el-button>
+                <el-button type="primary" v-show="!authentication(2)" plain @click="add(2,'删除、批量删除')">删除、批量删除</el-button>
+                <el-button type="primary" v-show="!authentication(3)" plain @click="add(3,'搜索、重置')">搜索、重置</el-button>
+                <el-button type="primary" v-show="!authentication(4)" plain @click="add(4,'导入')">导入</el-button>
+                <el-button type="primary" v-show="!authentication(5)" plain @click="add(5,'导出')">导出</el-button>
+                <el-button type="primary" v-show="!authentication(6)" plain @click="add(6,'详情')">详情</el-button>
+                <el-button type="primary" v-show="!authentication(7)" plain @click="add(7,'上移、下移、置顶、置底')">上移、下移、置顶、置底</el-button>
+                <el-button type="primary" v-show="!authentication(8)" plain @click="add(8,'上传、批量上传')">上传、批量上传</el-button>
+                <el-button type="primary" v-show="!authentication(9)" plain @click="add(9,'下载、批量下载')">下载、批量下载</el-button>
+                <el-button type="primary" v-show="!authentication(10)" plain @click="add(10,'发布、撤回')">发布、撤回</el-button>
+                <el-button type="primary" v-show="!authentication(11)" plain @click="add(11,'提交、取消')">提交、取消</el-button>
+                <el-button type="primary" v-show="!authentication(12)" plain @click="add(12,'通过、驳回')">通过、驳回</el-button>
+            </el-row>
+        </div>
+
+
+        <div style="float: right;margin-top: 50px;margin-right: 50px;">
+            <el-button type="success" round icon="el-icon-plus" size="small" @click="goDisButton()">新增个性化按钮</el-button>
+        </div>
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+<script type="text/javascript">
+    let button = ${button};
+    //console.log(button);
+    let resourceId = ${resourceId};
+    var vue = loadTable({
+        methods:{
+            goDisButton: function () {
+                v.dialogShow(2,{title:'分配功能按钮',url:'${base}/resource/buttonAddEntrance/${iframe}/${resourceId}',width:400,height:270})
+            },
+            add: function (id,name) {
+                axios.post('${base}/resource/saveOrUpdateButton',{'id':id,'name':name,'resourceId':resourceId})
+                    .then(function (res) {
+                        if (res.data.code === 0) {
+                            button.push(id);
+                        }
+                    }).catch(function (err) {
+
+                    });
+            },
+            closeButton: function () {
+                v.dialogHide(2);
+            }
+        },
+        data:{
+            id:null,
+            name:'',
+            resourceId: resourceId,
+            button: button
+        },
+        urlList: "${base}/user/listByPage",
+        urlDel: "${base}/user/delUser/",
+        urlEdit: "${base}/user/editEntrance/${iframe}",
+        dialogWidth: 900,
+        dialogHeight: 500,
+        title: '用户'
+    });
+
+</script>
+</body>
+</html>

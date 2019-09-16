@@ -1,0 +1,94 @@
+<#include "/comm/head.html"/>
+<body>
+<div id="app">
+
+    <div class="demo-form-inline" style="padding: 5px 20px 0px 0px;width: 100%;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" label-width="100px" style="width: 100%;">
+            <el-row>
+                <el-col>
+                    <el-form-item label="评分" prop="isThumbsUps">
+                        <el-rate style="padding-top: 9px;"
+                                v-model="formData.isThumbsUps"
+                                show-text
+                                low-threshold="2"
+                                high-threshold="3"
+                                :texts="['一般', '一般', '满意', '满意', '满意']">
+                        </el-rate>
+                    </el-form-item>
+                </el-col>
+                <el-col>
+                    <el-form-item label="评价" prop="notes">
+                        <el-input
+                                type="textarea"
+                                :rows="3"
+                                placeholder="请输入内容"
+                                v-model="formData.notes">
+                        </el-input>
+                    </el-form-item>
+                </el-col>
+
+            </el-row>
+            <el-form-item>
+                <el-button type="primary" icon="el-icon-check" @click="submitForm('formData')">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html"/>
+
+<script type="text/javascript">
+    let id = ${id};
+    let respId = ${respId};
+    let isThumbsUps = 0;
+    var vue = loadForm(
+        {
+            methods: {
+                submitForm: function (formName) {
+                    this.$refs[formName].validate(function (valid) {
+                        if (valid) {
+                            vue.save();
+                        } else {
+                            console.log('评分提交失败');
+                            return false;
+                        }
+                    });
+                },
+                close: function () {
+                    v.dialogHide(1);
+                }
+            },
+            formData: {
+                id: id
+                , respId: respId
+                , isThumbsUps:isThumbsUps
+                , notes: ''
+            },
+            rules: {
+                isThumbsUps: [
+                    {required: true, message: '请选择评分', trigger: 'blur'}
+                ],
+                notes: [
+                    {required: false, message: '请输入评价内容', trigger: 'blur'},
+                    {min: 1, max: 200, message: '长度在 1 到 200 个字符', trigger: 'blur'}
+                ]
+            },
+            data: {
+                btnAddShow: (false),
+                isThumbsUps:isThumbsUps
+            },
+            urlSave: '${base}/enterprisewhistle/saveEvaluate',
+            dialogIndex: 0,
+            iframe: '${iframe}'
+        }
+    );
+
+
+</script>
+</body>
+

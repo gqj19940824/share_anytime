@@ -1,0 +1,24 @@
+server:
+  port: ${port:11020}
+#  servlet:
+#     context-path: /server-system/
+spring.application.name: unity-server-system
+
+#logbook:
+#  write:
+#    level: info
+#  format:
+#    style: http
+
+spring.profiles.include:
+  - db
+  - freemarker
+  - mybatis
+  - common
+  - redis
+
+
+spring:
+  security:
+    model: permit
+    permit:

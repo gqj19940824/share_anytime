@@ -1,0 +1,75 @@
+
+<#include "/comm/head.html">
+<body>
+<div id="app">
+
+    <div class="source">
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" class="el-form" >
+            <el-form-item label="身份名称" prop="name">
+                <el-input v-model="formData.name" placeholder="请输入内容"></el-input>
+            </el-form-item>
+
+            <el-form-item label="平台" prop="platform">
+                <!--1 web,2 android,3 ios,4 微信,5 小程序-->
+                <el-select v-model="formData.platform" placeholder="请选择平台" >
+                    <el-option value="" label="请选择平台"></el-option>
+                    <el-option v-for="(item, index) in platformList" :key="item.value" :value="item.id" :label="item.name"></el-option>
+                </el-select>
+            </el-form-item>
+
+            <el-form-item label="描述" prop="notes">
+                <el-input type="textarea" v-model="formData.notes"></el-input>
+            </el-form-item>
+
+            <el-form-item>
+                <el-button v-show="btnAddShow" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加</el-button>
+                <el-button type="primary" icon="el-icon-circle-check-outline" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-circle-close-outline" @click="close()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let {id=null,notes='',name='',platform=null} = entity;
+    var vue = loadForm(
+        {
+            methods:{
+
+            },
+            formData:{
+                id:id
+               ,notes:notes
+               ,name:name
+               ,platform:platform == null ? '':platform+''
+            },
+            rules: {
+                notes:{ required: true, message: '请输入备注', trigger: 'blur' },
+                name:{ required: true, message: '请输入身份名称', trigger: 'blur' },
+                platform:{ required: true, message: '请选择平台', trigger: 'blur' },
+            },
+            data:{
+                platformList:[
+                    {id:'1',name:'PC端'},
+                    {id:'2',name:'安卓端'},
+                    {id:'3',name:'苹果端'},
+                    {id:'4',name:'微信端'},
+                    {id:'5',name:'小程序端'},
+                    {id:'6',name:'后台'}
+                ],
+                btnAddShow:(entity.id?false:true)
+            },
+            urlSave:'${base}/identity/save',
+            iframe:'${iframe}'
+        }
+    );
+
+</script>
+</body>
+</html>
+

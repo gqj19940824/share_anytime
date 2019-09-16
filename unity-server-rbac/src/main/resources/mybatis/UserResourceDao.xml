@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unity.rbac.dao.UserResourceDao">
+
+  <insert id="insertBatch" parameterType="java.util.List">
+    <selectKey resultType ="java.lang.Long" keyProperty= "id" order= "AFTER">
+          SELECT LAST_INSERT_ID()
+    </selectKey >
+    INSERT INTO `rbac_m_user_resource`
+      (
+         `id_rbac_resource`
+        , `id_rbac_user`
+        , `auth_flag`
+        , `gmt_create`
+        , `gmt_modified`
+        , `is_deleted`
+        , `i_sort`
+        , `notes`
+        , `creator`
+        , `editor`
+      )
+    VALUES
+    <foreach collection ="list" item="userResource" index= "index" separator =",">
+      (
+        #{userResource.idRbacResource}
+        ,#{userResource.idRbacUser}
+        ,#{userResource.authFlag}
+        ,#{userResource.gmtCreate}
+        ,#{userResource.gmtModified}
+        ,#{userResource.isDeleted}
+        ,#{userResource.sort}
+        ,#{userResource.notes}
+        ,#{userResource.creator}
+        ,#{userResource.editor}
+      )
+    </foreach >
+  </insert>
+
+
+</mapper>

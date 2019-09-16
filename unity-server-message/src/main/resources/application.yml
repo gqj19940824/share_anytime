@@ -1,0 +1,67 @@
+server:
+  port: ${port:10050}
+#  servlet:
+#     context-path: /server-system/
+spring.application.name: unity-server-me
+
+#logbook:
+#  write:
+#    level: info
+#  format:
+#    style: http
+
+spring.profiles.include:
+  - db
+  - freemarker
+  - mybatis
+  - amqp
+  - common
+  - redis
+
+
+spring:
+  security:
+    model: permit
+    permit:
+      - /api/login
+      - /api/user/unityUserRegister
+
+
+
+---
+spring.profiles: devel
+#系统配置
+system:
+  config:
+    ueditor-upload-url: D:/test_dir/develTemp/
+    product-model: true #使用模式是否是测试
+    android-appkey: 5c4d23dff1f556b826001384 #android应用唯一标识
+    android-app-master-secret: jqqacs84szglzedrrtcdcsmconuxkcop #android密钥
+    ios-appkey: 5c6a088ab465f5c25600039a   #ios应用唯一标识
+    ios-app-master-secret: qxyizelwpmrwmnt2fexktotuweb1u2d7 #ios密钥
+
+---
+spring.profiles: prod
+#系统配置
+system:
+  config:
+    ueditor-upload-url: /data/upload/prodTemp/ueditor
+    product-model: true #使用模式是否是测试
+    android-appkey: 5c4d23dff1f556b826001384 #android应用唯一标识
+    android-app-master-secret: jqqacs84szglzedrrtcdcsmconuxkcop #android密钥
+    ios-appkey: 5c6a088ab465f5c25600039a   #ios应用唯一标识
+    ios-app-master-secret: qxyizelwpmrwmnt2fexktotuweb1u2d7 #ios密钥
+
+
+
+---
+spring.profiles: test
+#系统配置
+system:
+  config:
+    ueditor-upload-url: /data/upload/testTemp/ueditor
+    product-model: true #使用模式是否是测试
+    android-appkey: 5c4d23dff1f556b826001384 #android应用唯一标识
+    android-app-master-secret: jqqacs84szglzedrrtcdcsmconuxkcop #android密钥jqqacs84szglzedrrtcdcsmconuxkcop
+    ios-appkey: 5c6a088ab465f5c25600039a   #ios应用唯一标识
+    ios-app-master-secret: qxyizelwpmrwmnt2fexktotuweb1u2d7 #ios密钥

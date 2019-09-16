@@ -1,0 +1,553 @@
+<#include "/comm/head.html"/>
+<body>
+<style>
+    .el-dialog {
+        position: relative;
+        margin: 0 auto 50px;
+        border-radius: 2px;
+        -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+        box-sizing: border-box;
+        width: 85%!important;
+        margin-top: 7vh!important;
+    }
+
+    .el-upload-list--picture-card .el-upload-list__item {
+        overflow: hidden;
+        background-color: #fff;
+        border: 1px solid #c0ccda;
+        border-radius: 6px;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        width: 95px;
+        height: 95px;
+        margin: 0 8px 8px 0;
+        display: inline-block;
+    }
+
+    .el-upload--picture-card {
+        background-color: #fbfdff;
+        border: 1px dashed #c0ccda;
+        border-radius: 6px;
+        box-sizing: border-box;
+        width: 95px;
+        height: 95px;
+        line-height: 100px;
+        vertical-align: top;
+    }
+
+    .el-progress-circle {
+        display: table;
+        margin: 0 auto;
+        width: auto !important;
+        height: auto !important;
+
+    }
+    .el-progress-circle svg{
+        width: 95px;
+        height: 95px;
+    }
+
+</style>
+<div id="app">
+
+    <div class="demo-form-inline" style="padding: 5px 20px 0px 0px;width: 100%;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" label-width="100px" style="width: 100%;">
+            <el-row>
+
+                <el-col>
+                    <el-form-item label="需求标题" prop="title">
+
+                        <el-input v-model="formData.title" :disabled="true" placeholder="请输入内容"></el-input>
+
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="需求状态" prop="status">
+
+                        <el-select v-model="formData.status" placeholder="请选择需求状态" :disabled="true">
+                            <el-option value="" label="请选择需求状态"></el-option>
+                            <el-option v-for="(item, index) in statusList" :key="item.id" :value="item.id"
+                                       :label="item.name"></el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="企业党组织" prop="enterpriseName">
+                        <el-input placeholder="请选择企业党组织" type="text" :disabled="true" v-model="formData.enterpriseName">
+                            <!--<template slot="append">
+                                <el-button type="primary" icon="el-icon-edit-outline" @click="selectEnterpriseName()">选择</el-button>
+                            </template>-->
+                        </el-input>
+                        <input type="hidden" value="formData.idEnterprise"/>
+
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="需求类型" prop="whistleTypeId">
+                        <el-select v-model.number="formData.whistleTypeId" :disabled="true" placeholder="请选择">
+                            <el-option value="" label="请选择需求类型"></el-option>
+                            <el-option
+                                    v-for="item in whistleTypeList"
+                                    :key="item.id"
+                                    :label="item.name"
+                                    :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+
+
+                <el-col :span="12">
+                    <el-form-item label="联系人名称" prop="contactName">
+                        <el-input v-model="formData.contactName" :disabled="true" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="限时反馈" prop="limitDate">
+                        <el-date-picker type="date" placeholder="选择日期" :disabled="true" value-format="yyyy-MM-dd"
+                                        v-model="formData.limitDate"></el-date-picker>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12">
+                    <el-form-item label="联系电话" prop="phone">
+                        <el-input v-model="formData.phone" :disabled="true" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                </el-col>
+
+
+
+                <div>
+                    <input type="hidden" v-model="formData.respDepartmentList">
+                    <el-form :model="dynamicValidateForm" ref="dynamicValidateForm" label-width="100px"
+                             class="demo-dynamic">
+                        <el-col :span="24">
+                            <el-form-item
+                                    v-for="(domain, index) in dynamicValidateForm.respDepartmentList"
+                                    label="响应部门"
+                                    :key="domain.id"
+                                    :prop="'respDepartmentList.' + index + '.value'"
+                                    :rules="{required: true, message: '响应部门不能为空', trigger: 'blur'}">
+                                <el-select v-model.number="domain.id" placeholder="请选择" :disabled="true">
+                                    <el-option value="" label="请选择响应部门"></el-option>
+                                    <el-option
+                                            v-for="item in dynamicValidateForm.respDepartmentLists"
+                                            :key="item.id"
+                                            :label="item.name"
+                                            :value="item.id">
+                                    </el-option>
+                                </el-select>
+                                <label style="width: 15%;margin-left: 17%;margin-right: 10px; color: #606266;"><span
+                                        style="color: red">* </span>受理状态</label>
+                                <el-select v-model="domain.statusType" style="width: 20%;" :disabled="true"  placeholder="请选择受理状态">
+                                    <el-option value="" label="请选择受理状态"></el-option>
+                                    <el-option v-for="(item, index) in dynamicValidateForm.typeList" :key="item.statusType"
+                                               :value="item.statusType"
+                                               :label="item.name"></el-option>
+                                </el-select>
+                                <!--<label style="width: 15%;margin-left: 17%;margin-right: 10px; " ><span style="color: red">* </span>责任类型</label>
+                                <el-select v-model="domain.type" placeholder="请选择类型" style="width: 20%;" :disabled="true">
+                                    <el-option value="" label="请选择类型"></el-option>
+                                    <el-option v-for="(item, index) in dynamicValidateForm.typeList" :key="item.type"
+                                               :value="item.type"
+                                               :label="item.name"></el-option>
+                                </el-select>-->
+                                <!--<el-button @click.prevent="removeDomain(domain)" type="info" icon="el-icon-delete"
+                                           style="margin-left: 5px">删除
+                                </el-button>-->
+                            </el-form-item>
+                        </el-col>
+                    </el-form>
+                </div>
+
+                <el-col :span="12" v-if="formData.status=== '30'">
+                    <el-form-item label="受理时间" prop="gmtRelease">
+                        <el-date-picker type="date" placeholder="选择日期" :disabled="true" value-format="yyyy-MM-dd"
+                                        v-model="formData.gmtRelease"></el-date-picker>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="12" v-if="formData.status=== '30'">
+                    <el-form-item label="解决时间" prop="gmtModified">
+                        <el-date-picker type="date" placeholder="选择日期" :disabled="true" value-format="yyyy-MM-dd"
+                                        v-model="formData.gmtModified"></el-date-picker>
+                    </el-form-item>
+                </el-col>
+
+                <el-col :span="24">
+                    <el-form-item label="企业需求" prop="content">
+                        <el-input
+                                type="textarea"
+                                :rows="3"
+                                placeholder="请输入内容"
+                                :disabled="true"
+                                v-model="formData.content">
+                        </el-input>
+                    </el-form-item>
+                </el-col>
+
+                <el-col>
+                    <el-form-item label="企业需求图集" prop="fileList">
+                        <el-upload
+                                :disabled="true"
+                                class="upload-demo"
+                                :multiple="false"
+                                limit="6"
+                                action="${file}/server/upload?flag=true"
+                                accept=".jpg,.png"
+                                :on-remove="handleRemove"
+                                :on-exceed="handExceed"
+                                :on-success="handSuccess"
+                                :on-preview="handlePictureCardPreview"
+                                :before-upload="handBeforeUpload"
+                                :file-list="picList"
+                                list-type="picture-card">
+                            <!--<el-button size="small" type="primary">点击上传</el-button>
+                            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件</div>-->
+                            <i class="el-icon-plus"></i>
+                        </el-upload>
+                        <el-dialog :visible.sync="dialogVisible">
+                            <el-carousel :autoplay="false" arrow="always">
+                                <el-carousel-item>
+                                    <img width="100%" :src="dialogImageUrl" alt="">
+                                </el-carousel-item>
+                            </el-carousel>
+                        </el-dialog>
+                    </el-form-item>
+                </el-col>
+
+                <el-col v-if="formData.status != '40'">
+                    <el-form-item label="办理结果" prop="result">
+
+                        <el-input v-model="formData.result"
+                                  type="textarea"
+                                  :disabled="true"
+                                  :rows="3" placeholder="请输入内容"></el-input>
+
+                    </el-form-item>
+                </el-col>
+
+                <el-col v-if="formData.status === '30'">
+                    <el-form-item label="办理结果图集" prop="fileList2">
+                        <el-upload
+                                class="upload-demo"
+                                :multiple="false"
+                                limit="6"
+                                action="${file}/server/upload?flag=true"
+                                accept=".jpg,.png"
+                                :on-remove="resultHandleRemove"
+                                :on-exceed="resultHandExceed"
+                                :on-success="resultHandSuccess"
+                                :on-preview="resultHandlePictureCardPreview"
+                                :before-upload="resultHandBeforeUpload"
+                                :on-progress="resultHandProgress"
+                                :file-list="resultPicList"
+                                :disabled="true"
+                                list-type="picture-card">
+                            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，最多可上传6张</div>
+                            <i class="el-icon-plus"></i>
+                        </el-upload>
+                        <el-dialog :visible.sync="dialogVisible">
+                            <img width="100%" :src="dialogImageUrl" alt="">
+                        </el-dialog>
+                    </el-form-item>
+                </el-col>
+
+                <el-col v-if="formData.status === '40'">
+                    <el-form-item label="驳回原因" prop="notes">
+                        <el-input v-model="formData.notes" type="textarea" :disabled="true"
+                                  :rows="3" placeholder="请输入内容"></el-input>
+                    </el-form-item>
+                </el-col>
+
+                <el-col v-if="formData.status === '30'">
+                    <el-form-item label="评分" prop="isThumbsUps" >
+                        <el-rate style="padding-top: 9px;"
+                                v-model="formData.isThumbsUps"
+                                show-text
+                                :disabled="true"
+                                low-threshold="2"
+                                high-threshold="3"
+                                :texts="['一般', '一般', '满意', '满意', '满意']">
+                        </el-rate>
+                    </el-form-item>
+                </el-col>
+                <el-col v-if="formData.status === '30'">
+                    <el-form-item label="评价" prop="comment">
+                        <el-input
+                                type="textarea"
+                                :rows="3"
+                                :disabled="true"
+                                placeholder="请输入内容"
+                                v-model="formData.comment">
+                        </el-input>
+                    </el-form-item>
+                </el-col>
+
+            </el-row>
+            <!--<el-form-item>
+                <el-button type="primary" icon="el-icon-check" @click="submitForm('formData')">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>-->
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html"/>
+<script src="${base}/lib/login/js/jquery-2.1.1.min.js"></script>
+<script type="text/javascript">
+    let entity = ${entity};
+    let respDepartmentLists = ${respDepartmentLists};
+    let whistleTypeList = ${whistleTypeList};
+    let {id = '', notes = '',title = '', idEnterprise = '',enterpriseName='', content = '', userId = '', limitDate = '', status = '', result = '',phone='',contactName='',whistleTypeId='',whistleTypeName='', respDepartmentList = [],gmtRelease='',gmtModified='',isThumbsUps='',comment='',isAppoint=''} = entity;
+    let picList = ${picList};
+    let resultPicList = ${resultPicList};
+    var vue = loadForm(
+        {
+            methods: {
+                handleRemove: function(file, fileList) {
+                    axios.get('${file}/server/delete?fileUrl='+file.url)
+                        .then(function (res) {
+
+                        }).catch(function (err) {
+
+                    });
+                    var picList = this.formData.picList;
+                    for (x in picList){
+                        if(picList[x].url == file.url){
+                            this.formData.picList[x].url = '';
+                            var thumbUrl = picList[x].thumbUrl;
+                            this.formData.picList[x].thumbUrl = '';
+                            axios.get('${file}/server/delete?fileUrl='+thumbUrl)
+                                .then(function (res) {
+
+                                }).catch(function (err) {
+
+                            });
+                            break;
+                        }
+                    }
+                },
+                handlePictureCardPreview: function(file) {
+                    this.$data.dialogImageUrl = file.url;
+                    this.$data.dialogVisible = true;
+                },
+                handExceed: function (files, fileList) {
+                    if(files.length > 6 || (files.length + fileList.length) > 6){
+                        v.$message({type: 'error', message: '封面图片数量超过限制'});
+                    }
+                },
+                handSuccess: function (response, file, fileList) {
+                    try {
+                        var fileVo = new Object();
+                        fileVo.name = response.body.fileName;
+                        fileVo.url = response.body.fileUrl;
+                        fileVo.thumbUrl = response.body.thumbUrl;
+                        this.formData.picList.push(fileVo);
+                    } catch (e) {
+
+                    }
+                    console.log('picList',this.formData.picList);
+                },
+                handBeforeUpload: function (file) {
+                    if(file.name.indexOf(".jpg") == -1 && file.name.indexOf(".png") == -1){
+                        v.$message({type: 'error', message: '封面图必须是.jpg或.png格式'});
+                        return false;
+                    }
+                },
+                resultHandleRemove: function (file, fileList) {
+                    /*axios.get('${file}/server/delete?fileUrl=' + file.url)
+                        .then(function (res) {
+
+                        }).catch(function (err) {
+
+                    });*/
+                    var resultPicList = this.formData.resultPicList;
+                    for (x in resultPicList) {
+                        if (resultPicList[x].url == file.url) {
+                            var thumbUrl = resultPicList[x].thumbUrl;
+                            this.formData.resultPicList.splice(x,1);
+                            /*axios.get('${file}/server/delete?fileUrl=' + thumbUrl)
+                                .then(function (res) {
+
+                                }).catch(function (err) {
+
+                            });*/
+                            break;
+                        }
+                    }
+                    //console.log(this.formData.picList);
+                },
+                resultHandExceed: function (files, fileList) {
+                    if (files.length > 6 || (files.length + fileList.length) > 6) {
+                        v.$message({type: 'error', message: '封面图片数量超过限制'});
+                    }
+                },
+                resultHandlePictureCardPreview: function (file) {
+                    this.$data.dialogImageUrl = file.url;
+                    this.$data.dialogVisible = true;
+                },
+                resultHandSuccess: function (response, file, fileList) {
+                    //上传成功后显示上传按钮
+                    $(".el-upload--picture-card").removeAttr("style");
+                    try {
+                        var fileVo = new Object();
+                        fileVo.name = response.body.fileName;
+                        fileVo.url = response.body.fileUrl;
+                        fileVo.thumbUrl = response.body.thumbUrl;
+                        this.formData.resultPicList.push(fileVo);
+                    } catch (e) {
+
+                    }
+                    //console.log('picList', this.formData.picList);
+                },
+                resultHandBeforeUpload: function (file) {
+                    if (file.name.indexOf(".jpg") == -1 && file.name.indexOf(".png") == -1) {
+                        v.$message({type: 'error', message: '封面图必须是.jpg或.png格式'});
+                        return false;
+                    }
+                },
+                resultHandProgress: function(){
+                    //文件上传时移除上传文件的按钮
+                    $(".el-upload--picture-card").attr("style","display: none;");
+                },
+                addDomain: function () {
+                    this.dynamicValidateForm.respDepartmentList.push({
+                        id: '', type: ''
+                    });
+                }, removeDomain: function (item) {
+                    var index = this.dynamicValidateForm.respDepartmentList.indexOf(item);
+                    if (index !== -1) {
+                        this.dynamicValidateForm.respDepartmentList.splice(index, 1)
+                    }
+                }, submitForm: function (formName) {
+                    this.$refs[formName].validate(function (valid) {
+                        if (valid) {
+                            vue.formData.respDepartmentList = vue.dynamicValidateForm.respDepartmentList;
+                            var gmtRelease = new Date(vue.formData.gmtRelease);
+                            vue.formData.gmtRelease = gmtRelease.getTime();
+                            var gmtModified = new Date(vue.formData.gmtModified);
+                            vue.formData.gmtModified = gmtModified.getTime();
+                            console.log(vue.formData);
+                            vue.save();
+                        } else {
+                            console.log('error submit!!');
+                            return false;
+                        }
+                    });
+                }
+                , resetForm: function (formName) {
+                    this.$refs[formName].resetFields();
+                },
+                selectEnterpriseName: function () {
+                    var wid = this.formData.idEnterprise == '' ? 0 : this.formData.idEnterprise;
+                    var getOutpostUrl = '${base}/company/view/userSelectCompanyEntrance/dialog0/bak_method_company/'+ wid;
+                    v.dialogShow(2, {
+                        title: '需求类型列表',
+                        url: getOutpostUrl,
+                        width: 900,
+                        height: 500
+                    });
+                },
+                bak_method_company: function (data) {
+                    this.formData.idEnterprise = data.id;
+                    this.formData.enterpriseName = data.name;
+                }
+            },
+            formData: {
+                id: id
+                , notes: notes
+                , idEnterprise: idEnterprise
+                , enterpriseName: enterpriseName
+                , content: content
+                , title:title
+                , userId: userId
+                , respDepartmentList: respDepartmentList
+                , limitDate: limitDate
+                , status: status.toString()
+                , result: result
+                , contactName: contactName
+                , phone: phone
+                , whistleTypeId: whistleTypeId
+                , whistleTypeName: whistleTypeName
+                , picList: picList
+                , gmtRelease:gmtRelease
+                , gmtModified:gmtModified
+                , isThumbsUps:isThumbsUps
+                , comment:comment
+                , resultPicList:resultPicList
+
+            },
+            rules: {
+                enterpriseName: [
+                    {required: true, message: '请选择企业', trigger: 'blur'}
+                ],
+                whistleTypeId: [
+                    {required: true, message: '请选择需求类型', trigger: 'blur'}
+                ],
+                title: [
+                    {required: true, message: '请输入需求标题', trigger: 'blur'},
+                    {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                ],
+                content: [
+                    {required: true, message: '请输入企业需求', trigger: 'blur'},
+                    {min: 1, max: 2000, message: '长度在 1 到 2000 个字符', trigger: 'blur'}
+                ],
+                limitDate: [
+                    {required: true, message: '请选择日期', trigger: 'change'}
+                ],
+                status: [
+                    {required: true, message: '请选择需求状态', trigger: 'change'}
+                ],
+                whistleTypeName: [
+                    {required: true, message: '请选择需求类型', trigger: 'blur'}
+                ],
+                contactName: [
+                    {required: true, message: '请输入联系人', trigger: 'blur'}
+                ],
+                phone: [
+                    {required: true, message: '请输入联系电话', trigger: 'blur'},
+                    {min: 1, max: 11, message: '联系电话长度在 1 到 11 个字符', trigger: 'blur'}
+                ]
+            },
+            data: {
+                btnAddShow: (entity.id ? false : true)
+                , statusList: [
+                    {id: '10', name: '待受理'},
+                    {id: '20', name: '受理中'},
+                    {id: '30', name: '已解决'},
+                    {id: '40', name: '驳回'}
+                ]
+                , whistleTypeList:whistleTypeList
+                , dynamicValidateForm: {
+                    respDepartmentList: (entity.id ? entity.respDepartmentList : [{id: '', statusType: ''}])
+                    , respDepartmentLists: respDepartmentLists
+                    , typeList: [
+                        {statusType: 1, name: '接受'}
+                        , {statusType: 0, name: '拒绝'}
+                    ]
+                }
+                , picList: picList
+                , dialogImageUrl: ''
+                , dialogVisible: false
+                , resultPicList:resultPicList
+            },
+            urlSave: '${base}/enterprisewhistle/save',
+            dialogIndex: 0,
+            iframe: '${iframe}'
+        }
+    );
+
+
+</script>
+</body>
+

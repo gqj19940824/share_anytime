@@ -1,0 +1,245 @@
+
+<#include "/comm/head.html">
+<body>
+<style>
+    .el-textarea {
+        display: inline-block;
+        width: 90%;
+        vertical-align: bottom;
+        font-size: 14px;
+    }
+    /*.el-input {
+        position: relative;
+        font-size: 14px;
+        display: inline-block;
+        width: 80%;
+    }*/
+
+</style>
+<div id="app">
+
+    <div class="demo-form-inline" style="padding: 5px 20px 0px 0px;width: 100%;">
+        <el-form :model="formData" :rules="rules" ref="formData" label-width="100px" class="el-form">
+            <el-col :span="12">
+                <el-form-item v-if="formData.id == null" label="登录账号" prop="loginName">
+                    <el-input v-model="formData.loginName"></el-input>
+                </el-form-item>
+                <el-form-item v-if="formData.id != null" label="登录账号" prop="loginName">
+                    <el-input disabled v-model="formData.loginName"></el-input>
+                </el-form-item>
+            </el-col>
+           <el-col :span="12">
+                <el-form-item v-if="formData.id == null" label="登录密码" prop="pwd">
+                    <el-input v-model="formData.pwd"></el-input>
+                </el-form-item>
+            </el-col>
+
+            <el-col :span="12">
+                <el-form-item label="手机号" prop="phone">
+                    <el-input v-model="formData.phone"></el-input>
+                </el-form-item>
+            </el-col>
+
+            <el-col :span="12">
+                <el-form-item label="人员姓名" prop="name">
+                    <el-input v-model="formData.name"></el-input>
+                </el-form-item>
+            </el-col>
+
+            <el-col :span="12">
+                <el-form-item label="用户类型" prop="userType">
+                    <el-select v-model="formData.userType" placeholder="请选择用户类型" >
+                        <el-option value="" label="请选择用户类型"></el-option>
+                        <el-option v-for="(item, index) in userTypeList" :key="item.value" :value="item.id" :label="item.name"></el-option>
+                    </el-select>
+                </el-form-item>
+            </el-col>
+
+            <el-col>
+                <!--<el-form-item label="单位名称" prop="idRbacDepartment">
+                    <el-select v-model="formData.idRbacDepartment" placeholder="请选择单位" style="width: 100%">
+                        <el-option value="" label="请选择单位" style="width: 230px"></el-option>
+                        <el-option style="width: 230px" v-for="(item, index) in companyList" :key="item.id" :value="item.id" :label="item.name"></el-option>
+                    </el-select>
+                </el-form-item>-->
+
+                <el-form-item v-if="formData.userType ==='1'" label="企业党组织" prop="company">
+                    <el-input placeholder="请选择所属的企业党组织" type="text" readonly="true" v-model="formData.company">
+                        <template slot="append">
+                            <el-button type="primary" icon="el-icon-edit-outline" @click="selectCompany()">选择</el-button>
+                        </template>
+                    </el-input>
+                </el-form-item>
+
+                <el-form-item v-if="formData.userType ==='2'" label="响应部门" prop="department">
+                    <el-input placeholder="请选择所属响应部门" type="text" readonly="true" v-model="formData.department">
+                        <template slot="append">
+                            <el-button type="primary" icon="el-icon-edit-outline" @click="selectDepartment()">选择</el-button>
+                        </template>
+                    </el-input>
+                </el-form-item>
+            </el-col>
+
+            <el-col :span="12">
+                <el-form-item label="邮箱" prop="email">
+                    <el-input v-model="formData.email"></el-input>
+                </el-form-item>
+            </el-col>
+
+            <el-col :span="12">
+                <el-form-item label="职位" prop="position">
+                    <el-input v-model="formData.position"></el-input>
+                </el-form-item>
+            </el-col>
+
+           <!-- <el-col :span="12">
+                <el-form-item label="人员昵称" prop="nickName">
+                    <el-input v-model="formData.nickName"></el-input>
+                </el-form-item>
+            </el-col>-->
+
+            <!--<el-col :span="12">
+                <el-form-item label="是否禁言" prop="isAllowedSpeaking">
+                    <el-select v-model="formData.isAllowedSpeaking" placeholder="请选择是否禁言" >
+                        <el-option value="" label="请选择是否禁言"></el-option>
+                        <el-option v-for="(item, index) in flagList" :key="item.value" :value="item.id" :label="item.name"></el-option>
+                    </el-select>
+                </el-form-item>
+            </el-col>-->
+
+
+            <!--<el-col :span="12">
+                <el-form-item label="支部名称" prop="idRbacDepartment">
+                    <el-select v-model="formData.idRbacDepartment">
+                        <el-option value="" label="请选择支部"></el-option>
+                        <el-option v-for="(item, index) in formData.partyBranchList" :key="item.id" :value="item.id" :label="item.name"></el-option>
+                    </el-select>
+                </el-form-item>
+            </el-col>-->
+
+            <el-col>
+                <el-form-item label="描述" prop="notes">
+                    <el-input type="textarea" v-model="formData.notes"></el-input>
+                </el-form-item>
+            </el-col>
+
+
+
+            <el-col>
+                <el-form-item>
+                    <el-button v-show="btnAddShow" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加</el-button>
+                    <el-button type="primary" icon="el-icon-circle-check-outline" @click="save()">保存</el-button>
+                    <el-button type="info" icon="el-icon-circle-close-outline" @click="close()">关闭</el-button>
+                </el-form-item>
+            </el-col>
+        </el-form>
+    </div>
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let { id=null,loginName='',pwd='',phone='',position='',email='',name='',idRbacDepartment=null,nickName='',notes='',idRbacCompany=null,company='',userType='',department=''} = entity;
+    var vue = loadForm(
+        {
+            methods:{
+                beforeSave: function(){
+                    var phoneReg = new RegExp("^1([38][0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|9[89])\\d{8}$");
+                    if(!phoneReg.test(this.formData.phone)){
+                        v.$message.error('手机号格式不正确');
+                        return false;
+                    }
+                    if(this.formData.pwd != '' && this.formData.pwd != null){
+                        var pwdReg = new RegExp("^(?!([a-zA-Z]+|\\d+)$)[a-zA-Z\\d]{6,12}$");
+                        if(!pwdReg.test(this.formData.pwd)){
+                            v.$message.error('密码以字母及数字组成');
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+                selectCompany: function () {
+                    var idRbacCompany = this.formData.idRbacCompany == null ? 0 : this.formData.idRbacCompany;
+                    var getCompanyUrl = '${base}/company/view/userSelectCompanyEntrance/dialog0/bak_method_getCompany/'+ idRbacCompany;
+                    v.dialogShow(2, {
+                        title: '企业列表',
+                        url: getCompanyUrl,
+                        width: 900,
+                        height: 500
+                    });
+                },
+                bak_method_getCompany: function (data) {
+                    this.formData.idRbacCompany = data.id;
+                    this.formData.company = data.name;
+                },
+                bak_method_getDepartment: function (data) {
+                    this.formData.idRbacDepartment = data.id;
+                    this.formData.department = data.name;
+                },
+                selectDepartment: function () {
+                    var idRbacCompany = this.formData.idRbacDepartment == null ? 0 : this.formData.idRbacDepartment;
+                    var getCompanyUrl = '${base}/respdepartment/view/userSelectRespdepartmentEntrance/dialog0/bak_method_getDepartment/'+ idRbacCompany;
+                    v.dialogShow(2, {
+                        title: '响应部门列表',
+                        url: getCompanyUrl,
+                        width: 900,
+                        height: 500
+                    });
+                }
+            },
+            mounted: function () {
+            },
+            formData:{
+                id:id,
+                loginName:loginName,
+                pwd:'kfq1992',
+                phone:phone,
+                position:position,
+                email:email,
+                name:name,
+                nickName:nickName,
+                idRbacDepartment:idRbacDepartment,
+                notes:notes,
+                idRbacCompany:idRbacCompany,
+                company:company,
+                userType:userType == null ? '' : userType+'',
+                department:department,
+                os:6
+            },
+            rules: {
+                loginName:{required: true, message: '请输入登录名', trigger: 'blur' },
+                /*pwd:[
+                        {required: true, message: '请输入登录密码', trigger: 'blur' },
+                        { min: 6, max: 12, message: '密码长度为6到12位', trigger: 'blur' }
+                    ],*/
+                phone: [
+                    { required: true, message: '请输入手机号', trigger: 'blur' },
+                    { min: 11, max: 11, message: '手机号长度为11位', trigger: 'blur' }
+                ],
+                userType: [
+                    {required: true, message: '请选择用户类型', trigger: 'change'}
+                ],
+                name:{ required: true, message: '请输入用户姓名', trigger: 'blur' },
+                company:{ required: true, message: '请输入所属企业', trigger: 'blur' },
+                department:{ required: true, message: '请输入所属响应部门', trigger: 'blur' }
+            },
+            data:{
+                btnAddShow:(entity.id?false:true),
+                flagList:[
+                    {id:'1',name:'是'}
+                    ,{id:'0',name:'否'}
+                ],
+                userTypeList:[
+                    {id:'1',name:'企业用户'}
+                    ,{id:'2',name:'响应部门用户'}
+                ]
+            },
+            urlSave:'${base}/user/saveOrUpdateUserInfo',
+            iframe:'${iframe}'
+        }
+    );
+
+</script>
+</body>
+</html>

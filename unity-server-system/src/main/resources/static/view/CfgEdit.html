@@ -1,0 +1,65 @@
+
+<#include "/comm/head.html">
+<style>
+    .el-input__inner {
+        width: 400px;
+    }
+</style>
+<body>
+<div id="app">
+
+    <div class="demo-form-inline" style="height:40px;padding-top: 5px;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" label-width="80px">
+            <el-form-item label="类型" prop="cfgType" >
+                <el-input v-model="formData.cfgType" placeholder="请输入内容"></el-input>
+            </el-form-item>
+            <el-form-item label="值" prop="cfgVal">
+                <el-input v-model="formData.cfgVal" placeholder="请输入内容"></el-input>
+            </el-form-item>
+            <el-form-item label="备注" prop="notes">
+                <el-input v-model="formData.notes" placeholder="请输入内容"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button v-show="btnAddShow" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加</el-button>
+                <el-button type="primary" icon="el-icon-check" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let {id='',notes='',cfgType='',cfgVal=''} = entity;
+    var vue = loadForm(
+        {
+            methods:{},
+            formData:{
+                id:id
+               ,notes:notes
+               ,cfgType:cfgType
+               ,cfgVal:cfgVal
+            },
+            rules: {
+                notes:{ required: true, message: '请输入备注:textarea:', trigger: 'blur' },
+                cfgType:{ required: true, message: '请输入类型', trigger: 'blur' },
+                cfgVal:{ required: true, message: '请输入值', trigger: 'blur' },
+            },
+            data:{
+                btnAddShow:(entity.id?false:true)
+            },
+            urlSave:'${base}/cfg/save',
+            iframe:'${iframe}'
+        }
+    );
+
+</script>
+</body>
+</html>
+

@@ -1,0 +1,152 @@
+<#include "/comm/head.html">
+<body>
+<div id="app">
+
+    <div class="demo-form-inline"  style="padding: 5px 20px 0px 0px;width: 100%;">
+
+
+        <el-form status-icon :model="formData" :rules="rules" ref="formData" label-width="80px" style="width: 100%;">
+            <el-row>
+                <el-col :span="12">
+                    <el-form-item label="备注" prop="notes">
+                    
+                    <el-input type="textarea" v-model="formData.notes"></el-input>                  
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="发送人" prop="sender">
+                    
+                    <el-input placeholder="请输入内容" type="sender" v-model.number="formData.sender" autocomplete="off"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="接收人" prop="receiver">
+                    
+                    <el-input placeholder="请输入内容" type="receiver" v-model.number="formData.receiver" autocomplete="off"></el-input>
+                    
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="内容" prop="content">
+                    
+                    <el-input type="textarea" v-model="formData.content"></el-input>                  
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="聊天内容类型" prop="msgType">
+                    
+                    <el-select v-model="formData.msgType" placeholder="请选择聊天内容类型" >
+                        <el-option value="" label="请选择聊天内容类型"></el-option>
+                        <el-option v-for="(item, index) in msgTypeList" :key="item.id" :value="item.id" :label="item.name"></el-option>
+                    </el-select>                    
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="是否已读" prop="isRead">
+                    
+                    <el-select v-model="formData.isRead" placeholder="请选择是否已读" >
+                        <el-option value="" label="请选择是否已读"></el-option>
+                        <el-option v-for="(item, index) in flagList" :key="item.value" :value="item.id" :label="item.name"></el-option>
+                    </el-select>                    
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="聊天方式" prop="way">
+                    
+                    <el-select v-model="formData.way" placeholder="请选择聊天方式" >
+                        <el-option value="" label="请选择聊天方式"></el-option>
+                        <el-option v-for="(item, index) in wayList" :key="item.id" :value="item.id" :label="item.name"></el-option>
+                    </el-select>                    
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-form-item>
+                <el-button v-show="btnAddShow" type="success" icon="el-icon-circle-check-outline" @click="add()">继续添加</el-button>
+               <el-button type="primary" icon="el-icon-check" @click="save()">保存</el-button>
+                <el-button type="info" icon="el-icon-close" @click="close()">关闭</el-button>
+            </el-form-item>
+        </el-form>
+
+    </div>
+
+</div>
+
+<#include "/comm/js.html">
+
+<script type="text/javascript">
+    let entity = ${entity};
+    let {id='',sort='',notes='',sender='',receiver='',content='',msgType='',isRead='',way=''} = entity;
+    var vue = loadForm(
+        {
+            methods:{
+            },
+            formData:{
+                id:id
+                  ,notes:notes
+                  
+                  ,sender:sender          
+                  ,receiver:receiver          
+                  ,content:content
+                  
+                  ,msgType:msgType.toString()
+                  
+                  ,isRead:isRead.toString()
+                  
+                  ,way:way.toString()
+                  
+            },
+            rules: {
+                notes:[
+                    { required: true, message: '请输入备注', trigger: 'blur' },
+                    { min: 1, max: 255, message: '长度在 1 到 255 个字符', trigger: 'blur' }
+                ],
+                sender:[
+                    { required: true, message: '请输入发送人', trigger: 'blur' },
+                    { type: 'number', message: '发送人必须为数字值',trigger: 'blur' }
+                ],
+                receiver:[
+                    { required: true, message: '请输入接收人', trigger: 'blur' },
+                    { type: 'number', message: '接收人必须为数字值',trigger: 'blur' }
+                ],
+                content:[
+                    { required: true, message: '请输入内容', trigger: 'blur' },
+                    { min: 1, max: 500, message: '长度在 1 到 500 个字符', trigger: 'blur' }
+                ],
+                msgType:[
+                    { required: true, message: '请选择聊天内容类型', trigger: 'change' }
+                ],
+                isRead:[
+                    { required: true, message: '请选择是否已读', trigger: 'change' }
+                ],
+                way:[
+                    { required: true, message: '请选择聊天方式', trigger: 'change' }
+                ],
+            },
+            data:{
+                btnAddShow:(entity.id?false:true)
+                ,msgTypeList:[
+                    {id:'1',name:'文字'},
+                    {id:'2',name:'音频'},
+                    {id:'3',name:'图片'},
+                ]
+                ,wayList:[
+                    {id:'1',name:'单聊'},
+                    {id:'2',name:'群聊'},
+                ]
+                ,flagList:[
+                    {id:'1',name:'是'}
+                    ,{id:'0',name:'否'}
+                ]
+            },
+            urlSave:'${base}/chatlog/save',
+            dialogIndex:0,
+            iframe:'${iframe}'
+        }
+    );
+
+
+</script>
+</body>
+</html>
+

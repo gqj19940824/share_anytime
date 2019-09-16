@@ -1,0 +1,103 @@
+
+<#include "/comm/head.html">
+<body>
+<style>
+    .el-header .el-input__inner{ width:140px; }
+    .el-date-editor { width:140px !important; }
+    .el-main {
+        padding: 0px;
+        margin: 0px;
+        overflow:visible !important;
+    }
+</style>
+<div id="app">
+<el-container>
+    <el-header>
+    </el-header>
+    <el-main>
+        <el-select v-model="value" @change="obtainValue" filterable placeholder="请选择">
+            <el-option
+                    v-for="item in options"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id">
+            </el-option>
+        </el-select>
+        <el-form ref="form" :model="form" label-width="80px">
+            <el-form-item label="字典项获取类型">
+                <el-select v-model="form.reqType" placeholder="请选择">
+                    <el-option label="只取叶子节点" value="1"></el-option>
+                    <el-option label="取半选中状态节点" value="2"></el-option>
+                    <el-option label="不取半选中状态节点" value="3"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="字典项选择类型">
+                <el-select v-model="form.multiple" placeholder="请选择">
+                    <el-option label="单选" value="0"></el-option>
+                    <el-option label="多选" value="1"></el-option>
+                </el-select>
+            </el-form-item>
+        </el-form>
+        <el-button type="primary" icon="el-icon-search" @click="showDialog()">字典搜索</el-button>
+        <ul id="ztree" class="ztree"></ul>
+    </el-main>
+</el-container>
+</div>
+<#include "/comm/js.html">
+<#include "/comm/ztree.html">
+
+<script type="text/javascript">
+    console.log("start");
+    var vue = new Vue({
+        el: '#app',
+        data:{
+            form:{
+                reqType:''
+                ,multiple:''
+            },
+            options:[],
+            value: '',
+            selected:''
+        },
+        mounted: function() {
+            this.loadData();
+        },
+        methods:{
+            //从服务器读取数据
+            async loadData() {
+                let {data} = await
+                    axios.post("${base}/dictionary/listByPage", {
+                        "pageable": {
+                            'current': 1,
+                            'size': 25500
+                        },
+                        "cond": search2Cond(this.search, "AND")
+                    });
+
+                if (data.code == 0) {
+                    this.options = data.body.items;
+                }
+                else {
+                    //v.$message.error(data.message);
+                }
+            },
+            showDialog(){
+                v.dialogShow(1,{title:"字典项选择",url:'${base}/view/dic/sel/${iframe}/'+selected+'/1/'+this.form.multiple+'/dicSeleded'
+                    ,width:350,height:800})
+            },
+            dicSeleded(id,nodes){
+                alert(JSON.stringify(nodes));
+                v.dialogHide(1);
+            },
+            obtainValue(){
+                selected = this.value;
+            }
+        }
+    });
+
+
+
+
+</script>
+</body>
+</html>
