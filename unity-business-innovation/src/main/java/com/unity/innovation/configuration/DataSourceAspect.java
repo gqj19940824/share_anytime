@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 public class DataSourceAspect extends BaseDataSourceAspect {
 
     @Override
-    @Pointcut("execution(* com.unity.rbac.service.*.*(..))")
+    @Pointcut("execution(* com.unity.innovation.service.*.*(..))")
     public void allService() {
     }
 
