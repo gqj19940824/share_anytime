@@ -15,7 +15,7 @@ jar {
 }
 dependencies {
 //    compile project(':unity-common')
-    compile "com.unity:unity-common:1.0.796.bdasafety.RELEASE"
+    compile "com.unity:unity-common:1.0.0.IPA.RELEASE"
 //
 //    compile "com.baomidou:mybatis-plus-boot-starter:3.0.6"
 //    compile "org.projectlombok:lombok:${rootProject.ext.version.lombok}"
