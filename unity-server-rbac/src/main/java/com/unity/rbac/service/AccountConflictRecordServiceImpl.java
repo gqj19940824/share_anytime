@@ -133,7 +133,6 @@ public class AccountConflictRecordServiceImpl extends BaseServiceImpl<AccountCon
             return;
         }
         User user = userHelpService.getById(record.getLocalId());
-        user.setIdUcsUser(record.getUcsId());
         if (dto.getConflictFlag().equals(YesOrNoEnum.YES.getType())) {
             //保留用户中心账号
             user.setSource(record.getUcsSource());
@@ -159,12 +158,9 @@ public class AccountConflictRecordServiceImpl extends BaseServiceImpl<AccountCon
         if (user == null) {
             //账号未冲突 保存至用户信息表 但信息待完善
             user = new User();
-            user.setIdUcsUser(dto.getIdUcsUser());
-            user.setPerfectStatus(YesOrNoEnum.NO.getType());
             user.setLoginName(dto.getLoginName());
             user.setPwd(dto.getPwd());
             user.setSource(dto.getSource());
-            user.setDepartNameUcsUser(dto.getDepartName());
             user.setNotes(dto.getDepartName());
             user.setName(dto.getName());
             user.setIsAdmin(YesOrNoEnum.NO.getType());
@@ -184,27 +180,6 @@ public class AccountConflictRecordServiceImpl extends BaseServiceImpl<AccountCon
                 title = title.replace(SysReminderConstants.NAME,dto.getName());
             }
             userHelpService.saveSysReminder(user.getId(), title, SysReminderDataSourceEnum.ACCOUNT_SYNC_DEP.getId(), department.getId());
-        } else if (!user.getIdUcsUser().equals(dto.getIdUcsUser())) {
-            //账号一致，用户中心id不一致 认为是不同账号 记录冲突
-            AccountConflictRecord record = new AccountConflictRecord();
-            record.setLocalId(user.getId());
-            record.setLoginName(user.getLoginName());
-            record.setUcsId(dto.getIdUcsUser());
-            record.setDepartNameUcsUser(dto.getDepartName());
-            record.setUcsPwd(dto.getPwd());
-            record.setUcsSource(dto.getSource());
-            record.setDepartNameUcsUser(dto.getDepartName());
-            record.setName(dto.getName());
-            this.save(record);
-            //增加系统提醒
-            Department department = departmentService.getOne(new LambdaQueryWrapper<Department>().eq(Department::getLevel, UserAccountLevelEnum.GROUP.getId()));
-            String title = SysReminderConstants.ACCOUNT_CONFLICT_TITLE.replace(SysReminderConstants.ACCOUNT_KEY, user.getLoginName());
-            if(StringUtils.isNotBlank(dto.getName())){
-                title = title.replace(SysReminderConstants.NAME,dto.getName());
-            } else {
-                title = title.replace(SysReminderConstants.NAME_OF_RE,"");
-            }
-            userHelpService.saveSysReminder(user.getId(), title, SysReminderDataSourceEnum.ACCOUNT_CONFLICT.getId(), department.getId());
         }
         //账号一致，用户中心id一致 认为是同一账号 不处理
     }

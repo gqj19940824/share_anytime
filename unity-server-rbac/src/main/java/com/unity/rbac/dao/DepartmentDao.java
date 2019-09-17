@@ -95,7 +95,7 @@ public interface DepartmentDao extends BaseDao<Department> {
      * @date 2019/7/9 14:51
      */
     @Select("<script>" +
-            " select id, name from rbac_department where is_deleted = 0   order by CONVERT(name USING gbk) " +
+            " select id, name from rbac_department where is_deleted = 0 order by CONVERT(name USING gbk) " +
             "</script>")
     @Results({
             @Result(id = true, column = "id", property = "id"),

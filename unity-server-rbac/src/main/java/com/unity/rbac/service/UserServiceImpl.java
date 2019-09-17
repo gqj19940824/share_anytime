@@ -157,7 +157,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         user.setNotes(dto.getNotes());
         user.setLoginName(dto.getLoginName());
         user.setPwd(Encryption.getEncryption(dto.getPwd(), user.getLoginName()));
-        user.setJobNumber(dto.getJobNumber());
         user.setPhone(dto.getPhone());
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
@@ -167,7 +166,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         user.setWxxOpenId(dto.getWxxOpenId());
         user.setIdRbacDepartment(dto.getIdRbacDepartment());
         user.setAccountLevel(dto.getAccountLevel());
-        user.setCompany(dto.getCompany());
         user.setPosition(dto.getPosition());
         super.save(user);
         //分配默认权限
@@ -220,12 +218,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
             exception.setMessage("请选择单位");
             throw exception;
         }
-        if (new Integer(4).equals(dto.getAccountLevel())) {
-            if (dto.getIdInfoProject() == null) {
-                exception.setMessage("请选择基层项目");
-                throw exception;
-            }
-        }
+
         if (StringUtils.isEmpty(dto.getLoginName())) {
             exception.setMessage("请输入账号");
             throw exception;
@@ -343,8 +336,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         return JsonUtil.ObjectToList(list,
                 (m, u) -> adapterFieldByList(m, u, customer, roleIdListOfUserId, isQueryByRoleId, groupConcatRoleNameMap),
                 User::getId, User::getDepartment, User::getLoginName, User::getNameInfoProject, User::getName, User::getIdRbacDepartment,
-                User::getPhone, User::getPosition, User::getCompany, User::getIsAdmin, User::getIsLock, User::getGroupConcatRoleName, User::getSource,
-                User::getAccountLevel, User::getIdInfoProject, User::getNotes
+                User::getPhone, User::getPosition, User::getIsAdmin, User::getIsLock, User::getGroupConcatRoleName, User::getSource,
+                User::getAccountLevel, User::getNotes
         );
     }
 
@@ -393,7 +386,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         m.put("accountLevelTitle", entity.getAccountLevel() != null ? UserAccountLevelEnum.of(entity.getAccountLevel()).getName() : "");
         m.put("sourceTitle", entity.getSource() != null ? UcsSourceEnum.of(entity.getSource()).getName() : "");
         m.put("groupConcatRoleName", entity.getGroupConcatRoleName() != null ? entity.getGroupConcatRoleName() : "");
-        m.put("departNameUcsUser", entity.getDepartNameUcsUser());
     }
 
     /**
@@ -414,16 +406,11 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         }
         Map<String, Object> map = JsonUtil.ObjectToMap(user,
                 this::adapterField,
-                User::getId, User::getDepartment, User::getLoginName, User::getName, User::getPhone, User::getAccountLevel, User::getIdInfoProject,
-                User::getPosition, User::getCompany, User::getGroupConcatRoleName, User::getSource, User::getNotes, User::getIsAdmin,
-                User::getIdRbacDepartment, User::getDepartNameUcsUser
+                User::getId, User::getDepartment, User::getLoginName, User::getName, User::getPhone, User::getAccountLevel,
+                User::getPosition,User::getGroupConcatRoleName, User::getSource, User::getNotes, User::getIsAdmin,
+                User::getIdRbacDepartment
         );
-        //如果用户存在项目id,获取项目名称
-        if (user.getIdInfoProject() != null) {
-            //查询项目名称，现在暂时不写
-            String name = hashRedisUtils.getFieldValueByFieldName(RedisConstants.PROJECT.concat(user.getIdInfoProject().toString()), UserConstants.NAME);
-            map.put("nameInfoProject", name);
-        }
+
         return map;
     }
 
@@ -577,13 +564,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
      */
     private User callbackRegistration(String loginName, String pwd, Long idUcsUser, Integer source, String departName, String name) {
         User user = new User();
-        user.setIdUcsUser(idUcsUser);
-        user.setPerfectStatus(YesOrNoEnum.NO.getType());
         user.setLoginName(loginName);
         user.setPwd(pwd);
         user.setSource(source);
         user.setName(name);
-        user.setDepartNameUcsUser(departName);
         user.setIsLock(YesOrNoEnum.NO.getType());
         this.save(user);
         //默认分配一个身份
@@ -686,7 +670,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                 saveToUcs(dto);
             }
             //完善信息标识
-            dto.setPerfectStatus(YesOrNoEnum.YES.getType());
             dto.setSource(UcsSourceEnum.SAFE.getId());
             dto.setIsLock(YesOrNoEnum.NO.getType());
             super.save(dto);
@@ -700,19 +683,15 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
             if (user == null) {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("未查询到对应的用户信息").build();
             }
-            Integer perfectStatus = user.getPerfectStatus();
-            user.setPerfectStatus(UserPerfectStatusEnum.PROCESSED.getId());
             user.setNotes(dto.getNotes());
             user.setPhone(dto.getPhone());
             user.setName(dto.getName());
-            user.setCompany(dto.getCompany());
             user.setPosition(dto.getPosition());
             if (!UcsSourceEnum.SAFE.getId().equals(user.getSource())) {
                 user.setAccountLevel(dto.getAccountLevel());
                 user.setIsAdmin(YesOrNoEnum.NO.getType());
                 user.setIdRbacDepartment(dto.getIdRbacDepartment());
                 user.setIsLock(YesOrNoEnum.NO.getType());
-                user.setIdInfoProject(dto.getIdInfoProject());
             }
             super.updateById(user);
             //如果用户登录过 //生成保存token的key
@@ -727,13 +706,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                     redisUtils.removeCurrentUserByToken(token);
                     stringRedisTemplate.delete(key);
                 }
-            }
-            if (UserPerfectStatusEnum.UNPROCESSED.getId().equals(perfectStatus)) {
-                //信息本是待完善 增加系统提醒
-                String title = SysReminderConstants.ACCOUNT_AGAIN_SYNC_TITLE.replace(SysReminderConstants.ACCOUNT_KEY, user.getLoginName());
-                //用户修改 名称是必填项 所以此处名称不为空
-                title = title.replace(SysReminderConstants.NAME, user.getName());
-                userHelpService.saveSysReminder(user.getId(), title, SysReminderDataSourceEnum.ACCOUNT_SYNC_ROLE.getId(), user.getIdRbacDepartment());
             }
             //用户信息保存到redis
             userHelpService.saveOrUpdateUserToRedis(user);
@@ -776,8 +748,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         } else if (response.getCode().equals(SystemResponse.FormalErrorCode.SUCCESS.getValue())
                 || response.getCode().equals(SystemResponse.FormalErrorCode.MODIFY_DATA_REPEAT_OPERATION.getValue())) {
             //用户中心返回成功或用户中心存在该账号 本地保存信息
-            Map<String, Object> body = GsonUtils.map(response.getBody().toString());
-            dto.setIdUcsUser(Long.parseLong(body.get(UserConstants.ID).toString()));
         } else {
             //用户中心异常
             throw UnityRuntimeException.newInstance()
