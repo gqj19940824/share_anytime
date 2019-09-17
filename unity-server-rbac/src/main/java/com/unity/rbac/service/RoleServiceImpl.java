@@ -8,19 +8,15 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
-import com.unity.common.constant.DicConstants;
 import com.unity.common.constants.ConstString;
-import com.unity.common.enums.UserAccountLevelEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
-import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.XyDates;
-import com.unity.common.utils.DicUtils;
 import com.unity.rbac.dao.RoleDao;
 import com.unity.rbac.entity.Role;
 import com.unity.rbac.entity.RoleResource;
@@ -30,12 +26,13 @@ import com.unity.rbac.pojos.Relation;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
@@ -54,14 +51,12 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
     private final UserRoleServiceImpl userRoleService;
     private final RoleResourceServiceImpl roleResourceService;
     private final UserHelpServiceImpl userHelpService;
-    private final DicUtils dicUtils;
 
     public RoleServiceImpl(UserRoleServiceImpl userRoleService, RoleResourceServiceImpl roleResourceService,
-                           UserHelpServiceImpl userHelpService, DicUtils dicUtils) {
+                           UserHelpServiceImpl userHelpService) {
         this.userRoleService = userRoleService;
         this.roleResourceService = roleResourceService;
         this.userHelpService = userHelpService;
-        this.dicUtils = dicUtils;
     }
 
     /**
@@ -213,22 +208,6 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
     }
 
     /**
-     * pbk 查询指定用户已有的角色列表
-     *
-     * @param userId 指定用户id
-     * @return 身份列表
-     * @author gengjiajia
-     * @since 2018/12/25 17:18
-     */
-    public List<Role> getUserRoleListByUserId(Long userId) {
-        List<Long> roleIds = userRoleService.selectRoleIdsByUserId(userId);
-        if (CollectionUtils.isEmpty(roleIds)) {
-            return Lists.newArrayList();
-        }
-        return super.list(new QueryWrapper<Role>().lambda().in(Role::getId, roleIds.toArray()));
-    }
-
-    /**
      * 用户分配角色 （包含解除关系）
      *
      * @param relation 包含用户id及角色id集
@@ -320,7 +299,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
         //1、指定用户的角色数量多于当前管理员，禁止当前管理员处理  2、判断管理员拥有的角色是否完全包含用户拥有的角色
         User user = userHelpService.getById(userId);
         //非管理员不能分配角色 指定用户基本信息不完整不能分配角色
-        if (!customer.getIsAdmin().equals(YesOrNoEnum.YES.getType()) || user == null || user.getAccountLevel() == null) {
+        if (!customer.getIsAdmin().equals(YesOrNoEnum.YES.getType()) || user == null) {
             data.put("roleList", Lists.newArrayList());
             data.put("userBindRoleIdList", Lists.newArrayList());
             return data;
@@ -337,23 +316,6 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
         } else {
             roleList = customer.getRoleList();
         }
-        if (UserAccountLevelEnum.PROJECT.getId().equals(user.getAccountLevel())) {
-            //不能给项目账号分配集团或二三级账号专属角色(3,4,5,6,7,8,9,10)
-            screenUserRoleIds(roleList, DicConstants.NO_DIST_TO_PJ_OF_ROLE_IDS);
-        } else if (UserAccountLevelEnum.GROUP.getId().equals(user.getAccountLevel()) && user.getIsAdmin().equals(YesOrNoEnum.NO.getType())) {
-            //不能给集团非管理员账号分配角色(3,6,9,10)
-            screenUserRoleIds(roleList, DicConstants.NO_ALLOWED_DIST_1_OF_ROLE_IDS);
-        } else if (UserAccountLevelEnum.SECOND_COMPANY.getId().equals(user.getAccountLevel())) {
-            //不能给二级账号分配集团角色（4,5,7,8）
-            if(YesOrNoEnum.YES.getType() == user.getIsAdmin()){
-                screenUserRoleIds(roleList, DicConstants.NO_ALLOWED_DIST_2_ADMIN_OF_ROLE_IDS);
-            }else {
-                screenUserRoleIds(roleList, DicConstants.NO_ALLOWED_DIST_2_OF_ROLE_IDS);
-            }
-        } else if (UserAccountLevelEnum.THIRD_COMPANY.getId().equals(user.getAccountLevel())) {
-            //不能给三级账号分配集团角色（4,5,7,8）
-            screenUserRoleIds(roleList, DicConstants.NO_ALLOWED_DIST_3_OF_ROLE_IDS);
-        }
         wrapper.in(Role::getId, roleList.toArray());
         List<Map<String, Object>> allRoleList = JsonUtil.ObjectToList(super.list(wrapper), new String[]{"id", "name"},
                 (m, entity) -> m.put("disabled", false));
@@ -362,34 +324,6 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
         data.put("roleList", allRoleList);
         data.put("userBindRoleIdList", userBindRoleIdList);
         return data;
-    }
-
-    /**
-     * 筛选角色信息
-     *
-     * @param roleList 角色列表
-     * @param dicKey   字典key
-     * @author zhangxiaogang
-     * @since 2019/8/21 19:01
-     */
-    public void screenUserRoleIds(List<Long> roleList, String dicKey) {
-        String allowedDistTo2Or3OfRoleIds = getDicByCode(DicConstants.ACCOUNT, dicKey);
-        if (allowedDistTo2Or3OfRoleIds != null) {
-            String[] roleIds = allowedDistTo2Or3OfRoleIds.split(ConstString.SPLIT_COMMA);
-            //从当前管理员拥有的角色中移除不可分配的角色
-            roleList.removeAll(Arrays.stream(roleIds).map(Long::parseLong).collect(toList()));
-        }
-    }
-
-    /**
-     * @desc: 根据角色ID查询该角色下所有的用户ID
-     * @param: [roleId]
-     * @return: java.util.List<java.lang.Long>
-     * @author: vv
-     * @date: 2019/7/15 14:59
-     **/
-    public Set<Long> getUserIdsByRoleId(Long roleId) {
-        return userRoleService.list(new LambdaQueryWrapper<UserRole>().eq(UserRole::getIdRbacRole, roleId)).stream().map(UserRole::getIdRbacUser).collect(Collectors.toSet());
     }
 
     /**
@@ -433,20 +367,4 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
         this.updateById(entityb);
     }
 
-    /**
-     * 根据字典组及字典项获取配置
-     *
-     * @param groupName 组名称
-     * @param itemName  项名称
-     * @return 配置
-     * @author gengjiajia
-     * @since 2019/08/20 14:19
-     */
-    public String getDicByCode(String groupName, String itemName) {
-        Dic dicByCode = dicUtils.getDicByCode(groupName, itemName);
-        if (dicByCode != null && StringUtils.isNotBlank(dicByCode.getDicValue())) {
-            return dicByCode.getDicValue();
-        }
-        return null;
-    }
 }

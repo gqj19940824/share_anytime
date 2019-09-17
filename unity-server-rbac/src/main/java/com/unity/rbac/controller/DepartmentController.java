@@ -315,7 +315,7 @@ public class DepartmentController extends BaseWebController {
             departNode.setId("Department:"+department.getId());
             departNode.setText(department.getName());
             departNode.setIsParent(true);
-            List<User> userList = userService.list(new LambdaQueryWrapper<User>().eq(User::getIdRbacDepartment, department.getId()).ne(User::getId,userId).ne(User::getAccountLevel,UserAccountLevelEnum.PROJECT.getId()));
+            List<User> userList = userService.list(new LambdaQueryWrapper<User>().eq(User::getIdRbacDepartment, department.getId()).ne(User::getId,userId));
             if(CollectionUtils.isNotEmpty(userList)) {
                 List<TNode> userNodeList = Lists.newArrayList();
                 for (User user :userList) {
