@@ -52,10 +52,8 @@ public interface UserDepartmentDao extends BaseDao<UserDepartment> {
             " DISTINCT c.id " +
             "FROM " +
             " rbac_department c " +
-            "INNER JOIN rbac_department p ON c.gradation_code LIKE CONCAT(p.gradation_code, '%') " +
-            "INNER JOIN rbac_user u ON u.id_rbac_department = p.id " +
+            "INNER JOIN rbac_user u ON u.id_rbac_department = c.id " +
             "WHERE u.is_deleted = 0 " +
-            "AND p.is_deleted = 0 " +
             "AND c.is_deleted = 0 " +
             "AND u.id = #{userId}")
     List<Long> findDataPermissionIdListByUserId(Long userId);
