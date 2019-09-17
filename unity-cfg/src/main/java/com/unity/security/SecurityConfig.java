@@ -76,7 +76,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         log.info("======《SecurityConfiguration》======初始化配置=====");
         // 基于token，所以不需要session
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        //http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry
                 expressionInterceptUrlRegistry =
                 http.addFilterBefore(corsFilter(), ChannelProcessingFilter.class)
@@ -87,7 +87,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .authenticationEntryPoint(customAuthenticationEntryPoint).and().authorizeRequests()
                         .antMatchers("/**").permitAll()
                         .antMatchers(HttpMethod.OPTIONS).permitAll();
-        //expressionInterceptUrlRegistry.and().httpBasic().disable();
 
         requestMappingHandlerMapping
                 .getHandlerMethods()
@@ -133,7 +132,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         }
 
         expressionInterceptUrlRegistry
-                .antMatchers("/**").authenticated()
+                .antMatchers("/**/**").authenticated()
                 .and().addFilterBefore(authenticationTokenFilter, org.springframework.security
                 .web.authentication.UsernamePasswordAuthenticationFilter.class)
         ;

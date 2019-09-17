@@ -8,16 +8,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.base.SessionHolder;
-import com.unity.common.client.UcsClient;
-import com.unity.common.client.vo.UcsUser;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
-import com.unity.common.constant.SafetyConstant;
-import com.unity.common.constant.SysReminderConstants;
 import com.unity.common.constants.ConstString;
-import com.unity.common.constants.Constants;
 import com.unity.common.constants.RedisKeys;
-import com.unity.common.enums.SysReminderDataSourceEnum;
 import com.unity.common.enums.UserAccountLevelEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
@@ -34,8 +28,6 @@ import com.unity.rbac.dao.UserDao;
 import com.unity.rbac.entity.*;
 import com.unity.rbac.enums.ResourceTypeEnum;
 import com.unity.rbac.enums.UcsSourceEnum;
-import com.unity.rbac.enums.UserPerfectStatusEnum;
-import com.unity.rbac.enums.UserSourceEnum;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -46,7 +38,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
@@ -68,205 +62,25 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
     private final StringRedisTemplate stringRedisTemplate;
     private final UserResourceServiceImpl userResourceService;
     private final UserIdentityServiceImpl userIdentityService;
-    private final UserDepartmentServiceImpl userDepartmentService;
     private final UserRoleServiceImpl userRoleService;
     private final ResourceServiceImpl resourceService;
     private final HashRedisUtils hashRedisUtils;
     private final UserHelpServiceImpl userHelpService;
-    @javax.annotation.Resource
-    private UcsClient ucsClient;
     private final DicUtils dicUtils;
 
     public UserServiceImpl(RedisUtils redisUtils, StringRedisTemplate stringRedisTemplate, UserResourceServiceImpl userResourceService,
-                           UserIdentityServiceImpl userIdentityService, UserDepartmentServiceImpl userDepartmentService,
+                           UserIdentityServiceImpl userIdentityService,
                            UserRoleServiceImpl userRoleService, ResourceServiceImpl resourceService, HashRedisUtils hashRedisUtils,
                            UserHelpServiceImpl userHelpService, DicUtils dicUtils) {
         this.redisUtils = redisUtils;
         this.stringRedisTemplate = stringRedisTemplate;
         this.userResourceService = userResourceService;
         this.userIdentityService = userIdentityService;
-        this.userDepartmentService = userDepartmentService;
         this.userRoleService = userRoleService;
         this.resourceService = resourceService;
         this.hashRedisUtils = hashRedisUtils;
         this.userHelpService = userHelpService;
         this.dicUtils = dicUtils;
-    }
-
-
-    /**
-     * 查询所有用户
-     *
-     * @return 用户信息列表
-     * @author 郭振洋
-     * @date 2019/7/18 9:29
-     **/
-    public List<Map<String, Object>> listUser() {
-        List<User> userAndDepartmentList = baseMapper.findUserAndDepartmentList();
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        List<User> collect = userAndDepartmentList.stream().filter(n -> !n.getId().equals(customer.getId())).collect(Collectors.toList());
-        return JsonUtil.ObjectToList(collect, null, User::getId, User::getDepartment, User::getName, User::getLoginName);
-    }
-
-
-    /**
-     * 查询属于某几个单位的用户，无论isDeleted是0还是1都返回
-     *
-     * @param idDepartments 单位id的集合，null时为查询所有的用户
-     * @return java.util.List<java.lang.Long> 返回符合条件的用户的id，name集合
-     * @author lifeihong
-     * @date 2019/7/10 16:38
-     */
-    public Map<Long, String> listAllInDepartment(List<Long> idDepartments) {
-        Map<String, Object> map = new HashMap<>(SafetyConstant.HASHMAP_DEFAULT_LENGTH);
-        if (CollectionUtils.isNotEmpty(idDepartments)) {
-            map.put("ids", idDepartments);
-        }
-        return baseMapper.listAllInDepartment(map).stream().collect(Collectors.toMap(User::getId, User::getName));
-    }
-
-    /**
-     * 查询属于某几个单位的用户，得到{用户id，单位id}集合
-     *
-     * @param idDepartments 单位id的集合，null时为查询所有的用户
-     * @return java.util.Map<java.lang.Long               ,                               java.lang.Long>返回符合条件的用户的{用户id，单位id}集合
-     * @author lifeihong
-     * @date 2019/7/10 17:19
-     */
-    public Map<Long, Long> listUserInDepartment(List<Long> idDepartments) {
-        Map<String, Object> map = new HashMap<>(SafetyConstant.HASHMAP_DEFAULT_LENGTH);
-        if (CollectionUtils.isNotEmpty(idDepartments)) {
-            map.put("ids", idDepartments);
-        }
-        return baseMapper.listUserInDepartment(map).stream()
-                .collect(Collectors.toMap(User::getId, User::getIdRbacDepartment));
-    }
-
-    /**
-     * 用户统一注册（api、system）
-     *
-     * @param dto 包含用户注册必要信息
-     * @author gengjiajia
-     * @since 2018/12/05 15:11
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public Long unityUserRegister(User dto) {
-        checkMainField(dto);
-        //注册开始
-        User user = new User();
-        user.setNotes(dto.getNotes());
-        user.setLoginName(dto.getLoginName());
-        user.setPwd(Encryption.getEncryption(dto.getPwd(), user.getLoginName()));
-        user.setJobNumber(dto.getJobNumber());
-        user.setPhone(dto.getPhone());
-        user.setName(dto.getName());
-        user.setEmail(dto.getEmail());
-        user.setNickName(dto.getNickName());
-        user.setHeadPic(dto.getHeadPic());
-        user.setWxOpenId(dto.getWxOpenId());
-        user.setWxxOpenId(dto.getWxxOpenId());
-        user.setIdRbacDepartment(dto.getIdRbacDepartment());
-        user.setAccountLevel(dto.getAccountLevel());
-        user.setCompany(dto.getCompany());
-        user.setPosition(dto.getPosition());
-        super.save(user);
-        //分配默认权限
-        userHelpService.allocationPermission(user);
-        return user.getId();
-    }
-
-    /**
-     * 统一密码修改（api、system）
-     *
-     * @param pwd 密码
-     * @author gengjiajia
-     * @since 2018/12/07 08:59
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public void unityUpdatePwd(String oldPwd, String pwd) {
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        User user = super.getById(customer.getId());
-        if (user == null) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
-                    .message("用户信息不存在")
-                    .build();
-        }
-        //校验旧密码
-        if (StringUtils.isNotEmpty(oldPwd) &&
-                !Encryption.getEncryption(oldPwd, user.getLoginName()).equalsIgnoreCase(user.getPwd())) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.USERNAME_OR_PASSWORD_ERROR)
-                    .message("原密码错误")
-                    .build();
-        }
-        pwd = Encryption.getEncryption(pwd, user.getLoginName());
-        user.setPwd(pwd);
-        //修改缓存中的密码
-        customer.setPwd(pwd);
-        redisUtils.putCurrentUserByToken(SessionHolder.getToken(), customer, Constants.APP_TOKEN_EXPIRE_DAY);
-        super.updateById(user);
-    }
-
-    private void checkMainField(User dto) {
-        UnityRuntimeException exception = UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.MODIFY_DATA_ALREADY_EXISTS).build();
-        if (dto.getAccountLevel() == null) {
-            exception.setCode(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM);
-            exception.setMessage("请选择项目级别");
-            throw exception;
-        }
-        if (dto.getIdRbacDepartment() == null) {
-            exception.setCode(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM);
-            exception.setMessage("请选择单位");
-            throw exception;
-        }
-        if (new Integer(4).equals(dto.getAccountLevel())) {
-            if (dto.getIdInfoProject() == null) {
-                exception.setMessage("请选择基层项目");
-                throw exception;
-            }
-        }
-        if (StringUtils.isEmpty(dto.getLoginName())) {
-            exception.setMessage("请输入账号");
-            throw exception;
-        } else {
-            LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            userLambdaQueryWrapper.eq(User::getLoginName, dto.getLoginName())
-                    .eq(User::getIsDeleted, YesOrNoEnum.NO.getType());
-            if (dto.getId() != null) {
-                userLambdaQueryWrapper.ne(User::getId, dto.getId());
-            }
-            int loginNameCount = super.count(userLambdaQueryWrapper);
-            if (loginNameCount > 0) {
-                exception.setMessage("登录账号已存在");
-                throw exception;
-            }
-        }
-        if (StringUtils.isEmpty(dto.getName())) {
-            exception.setMessage("请输入用户名称");
-            throw exception;
-        }
-        String phone = dto.getPhone();
-        if (StringUtils.isNotEmpty(phone)) {
-            LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<User>()
-                    .eq(User::getPhone, phone).eq(User::getIsDeleted, YesOrNoEnum.NO.getType());
-            if (dto.getId() != null) {
-                userLambdaQueryWrapper.ne(User::getId, dto.getId());
-            }
-            if (0 < super.count(userLambdaQueryWrapper)) {
-                exception.setMessage("手机号已存在");
-                throw exception;
-            }
-        }
-        if (StringUtils.isNotEmpty(dto.getEmail())) {
-            int emailCount = super.count(new QueryWrapper<User>().lambda()
-                    .eq(User::getEmail, dto.getEmail())
-                    .eq(User::getIsDeleted, YesOrNoEnum.NO.getType()));
-            if (emailCount > 0) {
-                exception.setMessage("邮箱已存在");
-                throw exception;
-            }
-        }
     }
 
     /**
@@ -287,13 +101,13 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         data.put("idRbacDepartment", user.getIdRbacDepartment());
         data.put("loginName", StringUtils.isNotBlank(user.getLoginName()) ? user.getLoginName().trim() : null);
         boolean isQueryByRoleId = false;
-        if(user.getRoleId() == null){
+        if (user.getRoleId() == null) {
             //不查询
             data.put("roleId", null);
         } else if (user.getRoleId().equals(0L)) {
             //查询无角色的用户
             data.put("roleId", 0);
-        }else {
+        } else {
             //查询指定角色的用户
             data.put("roleId", user.getRoleId());
             isQueryByRoleId = true;
@@ -312,7 +126,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         long total = baseMapper.countUserTotalNum(data);
         if (total > 0) {
             List<User> userList = baseMapper.findUserListByPage(data);
-            grid.setItems(convert2List(userList,customer,isQueryByRoleId));
+            grid.setItems(convert2List(userList, customer, isQueryByRoleId));
         } else {
             grid.setItems(Lists.newArrayList());
         }
@@ -326,7 +140,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
      * @param list 实体列表
      * @return List Map
      */
-    private List<Map<String, Object>> convert2List(List<User> list,Customer customer,boolean isQueryByRoleId) {
+    private List<Map<String, Object>> convert2List(List<User> list, Customer customer, boolean isQueryByRoleId) {
         //查询所有用户关联的角色
         List<Long> userIdList = list.stream().map(User::getId).collect(Collectors.toList());
         List<UserRole> userRoleList = userRoleService.list(new LambdaQueryWrapper<UserRole>().in(UserRole::getIdRbacUser, userIdList.toArray()));
@@ -334,17 +148,16 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                 .collect(groupingBy(UserRole::getIdRbacUser, mapping(UserRole::getIdRbacRole, toList())));
         //判断页面是否使用角色进行查询
         Map<Long, String> groupConcatRoleNameMap = Maps.newHashMap();
-        if(isQueryByRoleId && CollectionUtils.isNotEmpty(userIdList)){
+        if (isQueryByRoleId && CollectionUtils.isNotEmpty(userIdList)) {
             //批量获取用户所关联的角色名称串
             List<User> groupConcatRoleNameList = userRoleService.getGroupConcatRoleNameListByUserIdIn(userIdList);
             Map<Long, String> map = groupConcatRoleNameList.stream().collect(groupingBy(User::getId, mapping(User::getGroupConcatRoleName, joining())));
             groupConcatRoleNameMap.putAll(map);
         }
         return JsonUtil.ObjectToList(list,
-                (m,u) ->adapterFieldByList(m,u,customer,roleIdListOfUserId,isQueryByRoleId,groupConcatRoleNameMap),
+                (m, u) -> adapterFieldByList(m, u, customer, roleIdListOfUserId, isQueryByRoleId, groupConcatRoleNameMap),
                 User::getId, User::getDepartment, User::getLoginName, User::getNameInfoProject, User::getName, User::getIdRbacDepartment,
-                User::getPhone,User::getPosition, User::getCompany,User::getIsAdmin,User::getIsLock, User::getGroupConcatRoleName, User::getSource,
-                User::getAccountLevel, User::getIdInfoProject,User::getNotes
+                User::getPhone, User::getPosition, User::getIsAdmin, User::getIsLock, User::getGroupConcatRoleName, User::getNotes
         );
     }
 
@@ -354,30 +167,30 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
      * @param m      适配的结果
      * @param entity 需要适配的实体
      */
-    private void adapterFieldByList(Map<String, Object> m, User entity,Customer customer,Map<Long,
-            List<Long>> roleIdListOfUserIdMap,boolean isQueryByRoleId,Map<Long, String> groupConcatRoleNameMap) {
-        adapterField(m,entity);
+    private void adapterFieldByList(Map<String, Object> m, User entity, Customer customer, Map<Long,
+            List<Long>> roleIdListOfUserIdMap, boolean isQueryByRoleId, Map<Long, String> groupConcatRoleNameMap) {
+        adapterField(m, entity);
         List<Long> roleIdListOfUserId = roleIdListOfUserIdMap.get(entity.getId());
-        if(customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())){
+        if (customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())) {
             //超管可分配所有角色
-            m.put("isDist",YesOrNoEnum.YES.getType());
-        } else if(customer.getIsAdmin().equals(YesOrNoEnum.NO.getType()) || CollectionUtils.isEmpty(customer.getRoleList())){
+            m.put("isDist", YesOrNoEnum.YES.getType());
+        } else if (customer.getIsAdmin().equals(YesOrNoEnum.NO.getType()) || CollectionUtils.isEmpty(customer.getRoleList())) {
             //当前用户非管理员 或管理员没有可分配的角色
-            m.put("isDist",YesOrNoEnum.NO.getType());
-        } else if(CollectionUtils.isEmpty(roleIdListOfUserId)){
+            m.put("isDist", YesOrNoEnum.NO.getType());
+        } else if (CollectionUtils.isEmpty(roleIdListOfUserId)) {
             //当前指定的账号未分配角色
-            m.put("isDist",YesOrNoEnum.YES.getType());
-        } else if(customer.getRoleList().containsAll(roleIdListOfUserId)){
+            m.put("isDist", YesOrNoEnum.YES.getType());
+        } else if (customer.getRoleList().containsAll(roleIdListOfUserId)) {
             //当前管理员拥有的角色完全包含指定账号的角色
-            m.put("isDist",YesOrNoEnum.YES.getType());
+            m.put("isDist", YesOrNoEnum.YES.getType());
         } else {
             //其他情况不可分配
-            m.put("isDist",YesOrNoEnum.NO.getType());
+            m.put("isDist", YesOrNoEnum.NO.getType());
         }
-        if(isQueryByRoleId && MapUtils.isNotEmpty(groupConcatRoleNameMap)){
+        if (isQueryByRoleId && MapUtils.isNotEmpty(groupConcatRoleNameMap)) {
             //组装当前用户所有角色名称
             String groupConcatRoleName = groupConcatRoleNameMap.get(entity.getId());
-            m.put("groupConcatRoleName",groupConcatRoleName == null ? "" : groupConcatRoleName);
+            m.put("groupConcatRoleName", groupConcatRoleName == null ? "" : groupConcatRoleName);
         }
     }
 
@@ -390,10 +203,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
     private void adapterField(Map<String, Object> m, User entity) {
         m.put("creator", entity.getCreator().contains(ConstString.SEPARATOR_POINT) ? entity.getCreator().split(ConstString.SPLIT_POINT)[1] : entity.getCreator());
         m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
-        m.put("accountLevelTitle", entity.getAccountLevel() != null ? UserAccountLevelEnum.of(entity.getAccountLevel()).getName() : "");
-        m.put("sourceTitle", entity.getSource() != null ? UcsSourceEnum.of(entity.getSource()).getName() : "");
         m.put("groupConcatRoleName", entity.getGroupConcatRoleName() != null ? entity.getGroupConcatRoleName() : "");
-        m.put("departNameUcsUser", entity.getDepartNameUcsUser());
     }
 
     /**
@@ -412,19 +222,12 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                     .message("用户信息不存在")
                     .build();
         }
-        Map<String, Object> map = JsonUtil.ObjectToMap(user,
+        return JsonUtil.ObjectToMap(user,
                 this::adapterField,
-                User::getId, User::getDepartment, User::getLoginName, User::getName, User::getPhone, User::getAccountLevel, User::getIdInfoProject,
-                User::getPosition, User::getCompany, User::getGroupConcatRoleName, User::getSource, User::getNotes,User::getIsAdmin,
-                User::getIdRbacDepartment, User::getDepartNameUcsUser
+                User::getId, User::getDepartment, User::getLoginName, User::getName, User::getPhone,
+                User::getPosition, User::getGroupConcatRoleName, User::getSource, User::getNotes, User::getIsAdmin,
+                User::getIdRbacDepartment
         );
-        //如果用户存在项目id,获取项目名称
-        if (user.getIdInfoProject() != null) {
-            //查询项目名称，现在暂时不写
-            String name = hashRedisUtils.getFieldValueByFieldName(RedisConstants.PROJECT.concat(user.getIdInfoProject().toString()), UserConstants.NAME);
-            map.put("nameInfoProject", name);
-        }
-        return map;
     }
 
     /**
@@ -466,36 +269,33 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         //1.通过账号获取用户信息
         User user = baseMapper.getUserInfoByLoginName(loginName);
         if (user != null) {
-            if(user.getIsLock().equals(YesOrNoEnum.YES.getType())){
+            if (user.getIsLock().equals(YesOrNoEnum.YES.getType())) {
                 //账号已锁定
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.LOGIN_DATA_SATUS_ERR)
                         .message("账号已锁定，如有疑问请联系管理员")
                         .build();
             }
-            if(user.getIdRbacDepartment() == null){
+            if (user.getIdRbacDepartment() == null) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.LOGIN_DATA_SATUS_ERR)
                         .message("暂未分配所属单位，请联系管理员")
                         .build();
             }
             user.setSuperAdmin(isSuperAdmin(user.getId()));
-            if (UserAccountLevelEnum.PROJECT.getId().equals(user.getAccountLevel())
-                    || user.getSuperAdmin().equals(YesOrNoEnum.YES.getType()) || user.getIsAdmin().equals(YesOrNoEnum.YES.getType())) {
-                //本地账号 或超管 或管理员
-                if (!Encryption.getEncryption(pwd, user.getLoginName()).equalsIgnoreCase(user.getPwd())) {
-                    throw UnityRuntimeException.newInstance()
-                            .code(SystemResponse.FormalErrorCode.USERNAME_OR_PASSWORD_ERROR)
-                            .message("用户名或密码错误")
-                            .build();
-                }
-            } else {
-                //用户非本地账号 调用用户中心接口校验账号
-                user = goUcsInfoCheck(user, loginName, pwd);
+            //密码校验
+            if (!Encryption.getEncryption(pwd, user.getLoginName()).equalsIgnoreCase(user.getPwd())) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.USERNAME_OR_PASSWORD_ERROR)
+                        .message("用户名或密码错误")
+                        .build();
             }
         } else {
             //用户为空 调用用户中心接口校验账号是否存在
-            user = goUcsInfoCheck(user, loginName, pwd);
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.USERNAME_OR_PASSWORD_ERROR)
+                    .message("用户不存在")
+                    .build();
         }
         //返回数据总载体
         Map<String, Object> info = Maps.newHashMap();
@@ -508,8 +308,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         //用户信息存入redis
         userHelpService.saveCustomer(user, os, tokenStr, customer);
         Map userMap = JsonUtil.ObjectToMap(user,
-                new String[]{"id", "loginName", "phone", "name", "notes", "accountLevel", "idRbacDepartment", "department",
-                        "isAdmin", "idInfoProject"},
+                new String[]{"id", "loginName", "phone", "name", "notes", "idRbacDepartment", "department",
+                        "isAdmin"},
                 (m, u) -> {
                     m.put("gmtCreate", DateUtils.timeStamp2Date(u.getGmtCreate()));
                     m.put("roleList", userRoleService.selectRoleIdsByUserId(u.getId()));
@@ -517,82 +317,12 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                 });
         info.put("user", userMap);
         //维护登录信息
-        userHelpService.updateLoginInfo(user, os, now,SessionHolder.getRequest());
+        userHelpService.updateLoginInfo(user, os, now, SessionHolder.getRequest());
         return info;
     }
 
-    /**
-     * 调用用户中心接口校验用户信息
-     *
-     * @param user 用户信息
-     * @return 用户信息
-     * @author gengjiajia
-     * @since 2019/07/27 16:19
-     */
-    private User goUcsInfoCheck(User user, String loginName, String pwd) {
-        SystemResponse response = null;
-        try {
-            response = ucsClient.checkLoginInfo(UcsUser.newInstance()
-                    .loginName(loginName)
-                    .pwd(Encryption.getEncryption(pwd, loginName))
-                    .source(UcsSourceEnum.SAFE.getId())
-                    .build());
-            log.info("===== 《unityLogin》 调用用户中心接口校验用户信息 ===== 接口出参 {}", GsonUtils.format(response));
-        } catch (Exception e) {
-            log.info("===== 《unityLogin》 用户中心服务不可用 ===== 异常 {}", e.getMessage());
-        }
-        if (response != null && response.getCode().equals(SystemResponse.FormalErrorCode.SUCCESS.getValue())) {
-            //校验通过 本地用户如果为空则需要二次注册
-            if (user == null) {
-                Map<String, Object> body = GsonUtils.map(GsonUtils.format(response.getBody()));
-                //二次注册
-                user = callbackRegistration(loginName, Encryption.getEncryption(pwd, loginName),
-                        Long.parseLong(body.get(UserConstants.ID).toString()),
-                        Integer.parseInt(body.get(UserConstants.SOURCE).toString()),
-                        body.get(UserConstants.DEPARTNAME).toString(),
-                        body.get(UserConstants.NAME) != null ? body.get(UserConstants.NAME).toString() : ""
-                );
-            }
-        } else {
-            //用户中心异常
-            throw UnityRuntimeException.newInstance()
-                    .code(response != null ? SystemResponse.FormalErrorCode.of(response.getCode()) : SystemResponse.FormalErrorCode.SERVER_ERROR)
-                    .message(response != null ? response.getMessage() : "远程服务不可用")
-                    .build();
-        }
-        if (user == null) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.USERNAME_OR_PASSWORD_ERROR)
-                    .message("用户名或密码错误")
-                    .build();
-        }
-        return user;
-    }
 
-    /**
-     * 二次注册
-     * 用户登录时检测到用户中心存在而本地不存在
-     *
-     * @param loginName 账号
-     * @return 用户信息
-     * @author gengjiajia
-     * @since 2019/07/27 16:21
-     */
-    private User callbackRegistration(String loginName, String pwd, Long idUcsUser, Integer source, String departName,String name) {
-        User user = new User();
-        user.setIdUcsUser(idUcsUser);
-        user.setPerfectStatus(YesOrNoEnum.NO.getType());
-        user.setLoginName(loginName);
-        user.setPwd(pwd);
-        user.setSource(source);
-        user.setName(name);
-        user.setDepartNameUcsUser(departName);
-        user.setIsLock(YesOrNoEnum.NO.getType());
-        this.save(user);
-        //默认分配一个身份
-        userHelpService.distributionDefaultIdentity(user.getId());
-        return user;
-    }
+
 
     /**
      * 获取用户授权的资源
@@ -607,10 +337,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
     private void getUserAuthResource(Long userId, long os, Customer customer, Map<String, Object> info) {
         List<Resource> userAuthResourceList = resourceService.getUserAuthResourceListByUserId(userId, os);
         if (CollectionUtils.isEmpty(userAuthResourceList)) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                    .message("暂未分配权限，请联系管理员")
-                    .build();
+            return;
         }
         //获取用户拥有的接口列表
         List<String> authApiList = userAuthResourceList.stream().filter(resource -> resource.getResourceType().equals(ResourceTypeEnum.API.getType()))
@@ -683,13 +410,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         // 新增
         if (dto.getId() == null) {
             dto.setPwd(Encryption.getEncryption(UserConstants.RESET_PWD, dto.getLoginName()));
-            //非本地账号 注册到用户中心
-            if (!UserAccountLevelEnum.PROJECT.getId().equals(dto.getAccountLevel()) && !dto.getIsAdmin().equals(YesOrNoEnum.YES.getType())) {
-                saveToUcs(dto);
-            }
             //完善信息标识
-            dto.setPerfectStatus(YesOrNoEnum.YES.getType());
-            dto.setSource(UcsSourceEnum.SAFE.getId());
+            dto.setSource(UcsSourceEnum.INNOVATION.getId());
             dto.setIsLock(YesOrNoEnum.NO.getType());
             super.save(dto);
             //默认分配一个身份
@@ -702,20 +424,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
             if (user == null) {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("未查询到对应的用户信息").build();
             }
-            Integer perfectStatus = user.getPerfectStatus();
-            user.setPerfectStatus(UserPerfectStatusEnum.PROCESSED.getId());
             user.setNotes(dto.getNotes());
             user.setPhone(dto.getPhone());
             user.setName(dto.getName());
-            user.setCompany(dto.getCompany());
             user.setPosition(dto.getPosition());
-            if(!UcsSourceEnum.SAFE.getId().equals(user.getSource())){
-                user.setAccountLevel(dto.getAccountLevel());
-                user.setIsAdmin(YesOrNoEnum.NO.getType());
-                user.setIdRbacDepartment(dto.getIdRbacDepartment());
-                user.setIsLock(YesOrNoEnum.NO.getType());
-                user.setIdInfoProject(dto.getIdInfoProject());
-            }
             super.updateById(user);
             //如果用户登录过 //生成保存token的key
             if (user.getLastLoginPlatform() != null) {
@@ -730,85 +442,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                     stringRedisTemplate.delete(key);
                 }
             }
-            if (UserPerfectStatusEnum.UNPROCESSED.getId().equals(perfectStatus)) {
-                //信息本是待完善 增加系统提醒
-                String title = SysReminderConstants.ACCOUNT_AGAIN_SYNC_TITLE.replace(SysReminderConstants.ACCOUNT_KEY, user.getLoginName());
-                //用户修改 名称是必填项 所以此处名称不为空
-                title = title.replace(SysReminderConstants.NAME,user.getName());
-                userHelpService.saveSysReminder(user.getId(),title, SysReminderDataSourceEnum.ACCOUNT_SYNC_ROLE.getId(),user.getIdRbacDepartment());
-            }
             //用户信息保存到redis
             userHelpService.saveOrUpdateUserToRedis(user);
         }
     }
-
-    /**
-     * 账号注册到用户中心
-     *
-     * @param dto 用户信息
-     * @author gengjiajia
-     * @since 2019/08/01 15:34
-     */
-    private void saveToUcs(User dto) {
-        //调用UcsFeignClient向用户中心注册
-        //获取当前用户单位名称及所有直属上层单位名称
-        String departName = userDepartmentService.getImmediateSupervisorName(dto.getIdRbacDepartment());
-        if (StringUtils.isEmpty(departName)) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("单位信息不存在").build();
-        }
-        SystemResponse response = null;
-        try {
-            response = ucsClient.pushUserToUcs(UcsUser.newInstance()
-                    .loginName(dto.getLoginName())
-                    .name(dto.getName())
-                    .pwd(dto.getPwd())
-                    .departName(departName)
-                    .source(UcsSourceEnum.SAFE.getId())
-                    .build());
-            log.info("===== 《后台新增用户注册到UCS》 ===== 返回数据 {}", GsonUtils.format(response));
-        } catch (Exception e) {
-            log.info("===== 《后台新增用户注册到UCS》 ===== 异常 {}", e.getMessage());
-        }
-        if (response == null) {
-            //用户中心异常
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.SERVER_ERROR)
-                    .message("远程服务不可用")
-                    .build();
-        } else if (response.getCode().equals(SystemResponse.FormalErrorCode.SUCCESS.getValue())
-                || response.getCode().equals(SystemResponse.FormalErrorCode.MODIFY_DATA_REPEAT_OPERATION.getValue())) {
-            //用户中心返回成功或用户中心存在该账号 本地保存信息
-            Map<String, Object> body = GsonUtils.map(response.getBody().toString());
-            dto.setIdUcsUser(Long.parseLong(body.get(UserConstants.ID).toString()));
-        } else {
-            //用户中心异常
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.of(response.getCode()))
-                    .message(response.getMessage())
-                    .build();
-        }
-    }
-
-
-    /**
-     * 通过userId集获取对应数据
-     *
-     * @param userIds 用户id集
-     * @return Map key:id value:user
-     * @author gengjiajia
-     * @since 2019/01/09 16:01
-     */
-    public Map<String, Map<String, Object>> findUserInfoByIdIn(List<Long> userIds) {
-        Map<String, Map<String, Object>> map = Maps.newHashMap();
-        List<Map<String, Object>> mapList = JsonUtil.ObjectToList(
-                super.list(new QueryWrapper<User>().lambda().in(User::getId, userIds.toArray())),
-                new String[]{"id", "loginName", "position", "phone", "email", "name", "nickName",
-                        "headPic", "notes", "gmtCreate", "wxOpenId", "idRbacDepartment"},
-                (m, u) -> m.put("gmtCreate", DateUtils.timeStamp2Date(u.getGmtCreate())));
-        mapList.forEach(m -> map.put(m.get("id").toString(), m));
-        return map;
-    }
-
 
     /**
      * 忘记密码
@@ -856,33 +493,9 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                     .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
                     .message("用户信息不存在")
                     .build();
-        } else if (UserSourceEnum.OA.getId().equals(user.getSource())) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                    .message("OA账号不允许重置密码")
-                    .build();
-        } else if (UserAccountLevelEnum.PROJECT.getId().equals(user.getAccountLevel()) || user.getIsAdmin().equals(YesOrNoEnum.YES.getType())) {
-            //本地账号本地重置
-            user.setPwd(Encryption.getEncryption(UserConstants.RESET_PWD, user.getLoginName()));
-            this.updateById(user);
-        } else {
-            SystemResponse response = null;
-            try {
-                response = ucsClient.resetPassword(UcsUser.newInstance().loginName(user.getLoginName()).build());
-            } catch (Exception e) {
-                log.error("===== 《重置密码同步到UCS》 ===== 异常 {}", e.getMessage());
-            }
-            if (response != null && response.getCode().equals(SystemResponse.FormalErrorCode.SUCCESS.getValue())) {
-                user.setPwd(Encryption.getEncryption(UserConstants.RESET_PWD, user.getLoginName()));
-                this.updateById(user);
-            } else {
-                //用户中心异常
-                throw UnityRuntimeException.newInstance()
-                        .code(response != null ? SystemResponse.FormalErrorCode.of(response.getCode()) : SystemResponse.FormalErrorCode.SERVER_ERROR)
-                        .message(response != null ? response.getMessage() : "远程服务不可用")
-                        .build();
-            }
         }
+        user.setPwd(Encryption.getEncryption(UserConstants.RESET_PWD, user.getLoginName()));
+        this.updateById(user);
     }
 
     /**
@@ -896,122 +509,44 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         Customer customer = LoginContextHolder.getRequestAttributes();
         User byUser = this.getById(customer.getId());
         if (byUser != null) {
-            if (UserAccountLevelEnum.PROJECT.getId().equals(byUser.getAccountLevel()) || byUser.getIsAdmin().equals(YesOrNoEnum.YES.getType())) {
-                //本地账户本地创建
-                if (!byUser.getPwd().equals(Encryption.getEncryption(user.getOldPwd(), byUser.getLoginName()))) {
-                    throw UnityRuntimeException.newInstance()
-                            .code(SystemResponse.FormalErrorCode.USERNAME_OR_PASSWORD_ERROR)
-                            .message("原密码错误")
-                            .build();
-                }
-                byUser.setPwd(Encryption.getEncryption(user.getPwd(), byUser.getLoginName()));
-                this.updateById(byUser);
-            } else {
-                SystemResponse response = null;
-                try {
-                    response = ucsClient.updatePassword(UcsUser.newInstance()
-                            .loginName(byUser.getLoginName())
-                            .pwd(Encryption.getEncryption(user.getPwd(), byUser.getLoginName()))
-                            .oldPwd(Encryption.getEncryption(user.getOldPwd(), byUser.getLoginName()))
-                            .build());
-                } catch (Exception e) {
-                    log.error("===== 《修改密码同步到UCS》 ===== 异常 {}", e.getMessage());
-                }
-                if (response != null && SystemResponse.FormalErrorCode.SUCCESS.getValue().equals(response.getCode())) {
-                    byUser.setPwd(Encryption.getEncryption(user.getPwd(), byUser.getLoginName()));
-                    this.updateById(byUser);
-                } else {
-                    //用户中心异常
-                    throw UnityRuntimeException.newInstance()
-                            .code(response != null ? SystemResponse.FormalErrorCode.of(response.getCode()) : SystemResponse.FormalErrorCode.SERVER_ERROR)
-                            .message(response != null ? response.getMessage() : "远程服务不可用")
-                            .build();
-                }
+            //本地账户本地创建
+            if (!byUser.getPwd().equals(Encryption.getEncryption(user.getOldPwd(), byUser.getLoginName()))) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.USERNAME_OR_PASSWORD_ERROR)
+                        .message("原密码错误")
+                        .build();
             }
+            byUser.setPwd(Encryption.getEncryption(user.getPwd(), byUser.getLoginName()));
+            this.updateById(byUser);
         }
     }
 
     /**
      * 账号锁定/解锁
      *
-     * @param  dto 包含锁定信息
+     * @param dto 包含锁定信息
      * @author gengjiajia
      * @since 2019/08/06 09:55
      */
     public void lock(User dto) {
         Customer customer = LoginContextHolder.getRequestAttributes();
-        if(!customer.getIsAdmin().equals(YesOrNoEnum.YES.getType())){
+        if (!customer.getIsAdmin().equals(YesOrNoEnum.YES.getType())) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
                     .message("非管理员不允许该操作")
                     .build();
         }
         User user = this.getById(dto.getId());
-        if(user == null){
+        if (user == null) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
                     .message("用户信息不存在")
                     .build();
         }
-        if(!dto.getIsLock().equals(user.getIsLock())){
+        if (!dto.getIsLock().equals(user.getIsLock())) {
             user.setIsLock(dto.getIsLock());
             this.updateById(user);
         }
         //else 则是 无效操作 不理会
     }
-
-
-    /**
-    * 返回当前登录账号，发送时可选择的账号
-    *
-    * @return java.util.List<java.util.Map<java.lang.String,java.lang.Object>>
-    * @author JH
-    * @date 2019/8/8 9:00
-    */
-    public List<Map<String, Object>> getUserList() {
-
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        int level = customer.getAccountLevel();
-        List<User> list;
-        //集团可选系统中所有账号
-        if(level == 1) {
-            list = baseMapper.selectList(null);
-
-        //本单位所有账号
-        }else if(level == 4){
-            list = baseMapper.selectList(new LambdaQueryWrapper<User>().eq(User::getId,customer.getId()).eq(User::getIdRbacDepartment,customer.getIdRbacDepartment()));
-        }else {
-            list = baseMapper.selectList(new LambdaQueryWrapper<User>().eq(User::getIdRbacDepartment,customer.getIdRbacDepartment()));
-        }
-        return JsonUtil.ObjectToList(list,null,User::getId,User::getName);
-
-    }
-
-    /**
-     * 根据角色、单位集合获取用户id集合
-     *
-     * @param map 参数map
-     * @return java.util.Map<Long, List<Long>>
-     * @author JH
-     * @date 2019/8/8 18:11
-     */
-    public  Map<Long, List<Long>> getUserIdsByRoleIdAndDepartmentIds(Map<String,Object> map) {
-        return baseMapper.getUserIdsByRoleIdAndDepartmentIds(map).stream().collect(groupingBy(User::getIdRbacDepartment, Collectors.mapping(User::getId, Collectors.toList())));
-    }
-
-    /**
-     * 获取某单位某角色的用户
-     *
-     * @param map 参数map
-     * @return java.util.List<java.lang.Long>
-     * @author JH
-     * @date 2019/8/8 18:11
-     */
-    public  List<Long> getUserIdsByRoleIdAndDepartmentId(Map<String,Object> map) {
-        return baseMapper.getUserIdsByRoleIdAndDepartmentIds(map).stream().map(User::getId).collect(Collectors.toList());
-    }
-
-
-
-
 }
