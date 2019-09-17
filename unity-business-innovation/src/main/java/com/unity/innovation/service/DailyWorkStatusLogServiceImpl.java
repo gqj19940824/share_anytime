@@ -1,12 +1,14 @@
 
 package com.unity.innovation.service;
 
+
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.innovation.dao.DailyWorkStatusLogDao;
+import com.unity.innovation.entity.DailyWorkStatusLog;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unity.entity.DailyWorkStatusLog;
-import com.unity.dao.DailyWorkStatusLogDao;
+
 
  /**
  * 
@@ -21,7 +23,7 @@ import com.unity.dao.DailyWorkStatusLogDao;
  */
 @Service
 @Transactional(rollbackFor = Exception.class)
-public class DailyWorkStatusLogServiceImpl extends BaseServiceImpl<DailyWorkStatusLogDao,DailyWorkStatusLog>{
+public class DailyWorkStatusLogServiceImpl extends BaseServiceImpl<DailyWorkStatusLogDao, DailyWorkStatusLog> {
 
      
 }

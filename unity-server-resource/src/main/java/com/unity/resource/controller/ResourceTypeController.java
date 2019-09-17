@@ -54,18 +54,7 @@ public class ResourceTypeController extends BaseWebController {
     @Autowired
     SystemClient systemClient;
 
-    /**
-     * 模块入口
-     * @param model MVC模型
-     * @param iframe 用于刷新或调用iframe内容
-     * @return 返回视图
-     */
-    @RequestMapping("/view/moduleEntrance/{iframe}")
-    public String moduleEntrance(Model model,@PathVariable("iframe") String iframe) {
-        model.addAttribute("iframe", iframe);
-        model.addAttribute("button", JSON.toJSONString(rbacClient.getMenuButton(iframe)));
-        return "ResourceTypeList";
-    }
+
 
     /**
      * 添加或修改表达入口

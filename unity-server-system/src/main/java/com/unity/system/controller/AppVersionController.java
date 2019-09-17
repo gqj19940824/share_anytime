@@ -40,21 +40,7 @@ public class AppVersionController extends BaseWebController {
     @Autowired
     RbacClient rbacClient;
 
-    /**
-     * 模块入口
-     * @param model MVC模型
-     * @param iframe 用于刷新或调用iframe内容
-     * @return 返回视图
-     */
-    @RequestMapping("/moduleEntrance/{iframe}")
-    public String moduleEntrance(Model model,@PathVariable("iframe") String iframe) {
-        model.addAttribute("iframe", iframe);
-        List<Integer> btns = rbacClient.getMenuButton(iframe);
-        System.out.println("appversion==============1");
-        model.addAttribute("button", JSON.toJSONString(btns));
-        System.out.println("appversion==============2");
-        return "AppVersionList";
-    }
+
 
     /**
      * 添加或修改表达入口

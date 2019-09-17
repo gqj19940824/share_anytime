@@ -765,5 +765,26 @@ public class DepartmentController extends BaseWebController {
         return success(service.list(new LambdaQueryWrapper<Department>(null)));
     }
 
+
+    /**
+    * 获取适用范围下拉框数据
+    *
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/9/17 15:55
+    */
+    @PostMapping("listAllDepartmentList")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listAllDepartmentList() {
+        List<Department> list = service.list(new LambdaQueryWrapper<Department>(null).eq(Department::getUseStatus,YesOrNoEnum.YES.getType()));
+        Department department = new Department();
+        department.setName("全部");
+        department.setId(0L);
+        list.add(department);
+        return success(JsonUtil.ObjectToList(list,
+                null
+                , Department::getId,Department::getName
+        ));
+    }
+
 }
 

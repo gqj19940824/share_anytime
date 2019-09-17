@@ -38,19 +38,7 @@ public class SerialController extends BaseWebController {
     SerialServiceImpl service;
     @Autowired
     RbacClient rbacClient;
-    /**
-     * 模块入口
-     * @param model MVC模型
-     * @param iframe 用于刷新或调用iframe内容
-     * @return 返回视图
-     */
-    @RequestMapping("/moduleEntrance/{iframe}")
-    public String moduleEntrance(Model model,@PathVariable("iframe") String iframe) {
-        model.addAttribute("iframe", iframe);
-        List<Integer> btns = rbacClient.getMenuButton(iframe);
-        model.addAttribute("button", JSON.toJSONString(btns));
-        return "SerialList";
-    }
+
 
     /**
      * 添加或修改表达入口

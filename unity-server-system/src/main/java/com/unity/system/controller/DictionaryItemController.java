@@ -44,21 +44,7 @@ public class DictionaryItemController extends BaseWebController {
     DictionaryItemServiceImpl service;
     @Autowired
     RbacClient rbacClient;
-    /**
-     * 模块入口
-     * @param model MVC模型
-     * @param iframe 用于刷新或调用iframe内容
-     * @return 返回视图
-     */
-    @RequestMapping("/moduleEntrance/{iframe}/{idSysDictionary}")
-    public String moduleEntrance(Model model,@PathVariable("iframe") String iframe,@PathVariable("idSysDictionary")String idSysDictionary ) {
-        model.addAttribute("iframe", iframe);
-        //传入 编号_数据字典
-        model.addAttribute("idSysDictionary",idSysDictionary);
-        List<Integer> btns = rbacClient.getMenuButton(iframe);
-        model.addAttribute("button", JSON.toJSONString(btns));
-        return "DictionaryItemList";
-    }
+
 
     /**
      * 添加或修改表达入口
