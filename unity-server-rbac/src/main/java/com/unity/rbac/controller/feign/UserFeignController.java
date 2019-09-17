@@ -178,7 +178,7 @@ public class UserFeignController {
     */
     @PostMapping("getIdProjectById/{id}")
     public Long getIdProjectById(@PathVariable("id") Long id) {
-        return userService.getById(id).getIdInfoProject();
+        return id;
     }
 
 

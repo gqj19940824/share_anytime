@@ -712,11 +712,6 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
             String[][] param = {
                     {"单位名称", department.getName()},
                     {"注册地址", department.getAddress() == null ? "" : department.getAddress()},
-                    {"企业生产经营范围", department.getBusinessScope() == null ? "" : department.getBusinessScope()},
-                    {"从业人数", department.getEmployeeNum() == null ? "" : department.getEmployeeNum().toString()},
-                    {"企业负责人", (department.getDeptDirector() == null ? "" : department.getDeptDirector()) + "    " + (department.getDeptDirectorContact() == null ? "" : department.getDeptDirectorContact())},
-                    {"安全负责人", (department.getSafeDirector() == null ? "" : department.getSafeDirector()) + "    " + (department.getSafeDirectorContact() == null ? "" : department.getSafeDirectorContact())},
-                    {"主管部门", department.getDept() == null ? "" : department.getDept()},
                     {"提交日期", department.getGmtModified() == null ? "" : DateUtils.timeStamp2Date(department.getGmtModified())}
             };
             Map<String, CellStyle> styleMap = ExcelStyleUtil.createProjectStyles(wb);

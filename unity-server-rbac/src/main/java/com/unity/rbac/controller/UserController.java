@@ -340,25 +340,6 @@ public class UserController extends BaseWebController {
         if (user.getId() == null && userService.count(new LambdaQueryWrapper<User>().eq(User::getLoginName, user.getLoginName())) > 0) {
             return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.MODIFY_DATA_ALREADY_EXISTS).message("登录账号已存在！").build();
         }
-
-        if (UserAccountLevelEnum.PROJECT.getId().equals(user.getAccountLevel())) {
-            if (user.getIdInfoProject() == null || StringUtils.isBlank(user.getNameInfoProject())) {
-                return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择基层项目").build();
-            } else if (user.getId() == null && userService.count(new LambdaQueryWrapper<User>().eq(User::getIdInfoProject,user.getIdInfoProject())
-                    .eq(User::getIdRbacDepartment,user.getIdRbacDepartment())) > 0){
-                //当账号级别为项目账号，校验唯一性，一个项目同一单位只能有一个项目账号
-                return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.MODIFY_DATA_REPEAT_OPERATION)
-                        .message("当前选择的基层项目已有账号，不可再次新增").build();
-            }
-            //项目账号 名称为项目名称
-            user.setName(user.getNameInfoProject());
-        }
-
-        if (!user.getAccountLevel().equals(UserAccountLevelEnum.PROJECT.getId())
-                && user.getIdInfoProject() != null) {
-            //不能传入该参数
-            user.setIdInfoProject(null);
-        }
         return null;
     }
 
@@ -393,10 +374,7 @@ public class UserController extends BaseWebController {
                 return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.MODIFY_DATA_ALREADY_EXISTS).message("联系电话已存在！").build();
             }
         }
-        if (StringUtils.isNotBlank(user.getCompany())
-                && user.getCompany().length() > UserConstants.USER_NAME_COMPANY_POSITION_MAX_LENGTH) {
-            return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("部门限制长度不得超过20字！").build();
-        }
+
 
         if (StringUtils.isNotBlank(user.getPosition())
                 && user.getPosition().length() > UserConstants.USER_NAME_COMPANY_POSITION_MAX_LENGTH) {
