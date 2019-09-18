@@ -6,7 +6,6 @@ import lombok.*;
 
 @Builder(builderMethodName = "newInstance")
 @AllArgsConstructor
-@NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper=false)
 @TableName(value = "sys_attachment")

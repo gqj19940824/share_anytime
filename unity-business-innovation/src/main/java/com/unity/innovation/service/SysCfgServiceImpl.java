@@ -1,21 +1,19 @@
 
 package com.unity.innovation.service;
 
-
 import com.unity.common.base.BaseServiceImpl;
-import com.unity.innovation.dao.DailyWorkStatusLogDao;
-import com.unity.innovation.entity.DailyWorkStatusLog;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
+import com.unity.innovation.entity.SysCfg;
+import com.unity.innovation.dao.SysCfgDao;
 
  /**
  * 
- * ClassName: DailyWorkStatusLogService
+ * ClassName: SysCfgService
  * Function: TODO ADD FUNCTION
  * Reason: TODO ADD REASON(可选)
- * date: 2019-09-17 11:17:01
+ * date: 2019-09-17 14:53:55
  * 
  * @author zhang 
  * @version  
@@ -23,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional(rollbackFor = Exception.class)
-public class DailyWorkStatusLogServiceImpl extends BaseServiceImpl<DailyWorkStatusLogDao, DailyWorkStatusLog> {
+public class SysCfgServiceImpl extends BaseServiceImpl<SysCfgDao,SysCfg>{
 
      
 }

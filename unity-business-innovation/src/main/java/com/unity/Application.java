@@ -24,7 +24,7 @@ import org.springframework.web.context.request.RequestContextListener;
 @EnableScheduling
 @EnableDiscoveryClient
 @EnableAsync
-@MapperScan("com.unity.ipa.dao")
+@MapperScan("com.unity.innovation.dao")
 public class Application {
 
     public static void main(String[] args) {

@@ -44,7 +44,7 @@ public interface UserDao extends BaseDao<User> {
      * @author gengjiajia
      * @since 2019/07/04 18:48
      */
-    @Select(" SELECT u.*, d.name as department,d.gradation_code as gradationCodeRbacDepartment" +
+    @Select(" SELECT u.*, d.name as department" +
             " FROM rbac_user u " +
             " LEFT JOIN rbac_department d ON u.id_rbac_department = d.id " +
             " AND d.is_deleted = 0 " +
