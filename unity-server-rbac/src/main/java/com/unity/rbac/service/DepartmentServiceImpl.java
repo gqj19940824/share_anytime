@@ -89,6 +89,7 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
             department.setDepType(dto.getDepType());
             department.setAddress(dto.getAddress());
             department.setPhone(dto.getPhone());
+            department.setNotes(dto.getNotes());
             super.updateById(department);
             //保存公司到redis
             saveOrUpdateDepartmentToRedis(department);
@@ -240,8 +241,8 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
         Long idBySortDesc = baseMapper.getTheFirstDepartmentBySortDesc(ids);
         return JsonUtil.ObjectToList(list,
                 (m,entity) -> adapterField(m,entity,idBySortAsc,idBySortDesc)
-                , Department::getId, Department::getGmtModified, Department::getName,
-                Department::getAddress,Department::getSort
+                , Department::getId, Department::getGmtModified, Department::getName,Department::getPhone,
+                Department::getAddress,Department::getNotes
         );
     }
 
