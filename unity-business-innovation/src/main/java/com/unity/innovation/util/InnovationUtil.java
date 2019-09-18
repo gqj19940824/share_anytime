@@ -1,10 +1,14 @@
 package com.unity.innovation.util;
 
+import com.unity.common.constant.RedisConstants;
 import com.unity.common.util.XyDates;
+import com.unity.common.utils.HashRedisUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.time.Year;
 import java.util.Calendar;
 
@@ -16,6 +20,17 @@ import java.util.Calendar;
 @Slf4j
 @Data
 public class InnovationUtil {
+
+    @Resource
+    private  HashRedisUtils hashRedisUtils;
+
+    private static InnovationUtil innovationUtil;
+
+    @PostConstruct
+    public void init() {
+        innovationUtil = this;
+        innovationUtil.hashRedisUtils = this.hashRedisUtils;
+    }
 
     /**
      * 功能描述
@@ -49,4 +64,17 @@ public class InnovationUtil {
         System.out.println(calendar.getTimeInMillis());
         return calendar.getTimeInMillis();
     }
+
+    /**
+    * 根据单位id返回单位名称
+    *
+    * @param deptId 单位id
+    * @return 单位名称
+    * @author JH
+    * @date 2019/9/18 14:13
+    */
+    public static String getDeptNameById(Long deptId) {
+        return  innovationUtil.hashRedisUtils.getFieldValueByFieldName(RedisConstants.DEPARTMENT.concat(deptId.toString()), RedisConstants.NAME);
+    }
+
 }

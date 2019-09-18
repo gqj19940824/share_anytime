@@ -178,7 +178,7 @@ public class DepartmentController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> listAllDepartmentList(@PathVariable Integer type) {
         List<Department> list = service.list(new LambdaQueryWrapper<Department>().eq(Department::getUseStatus,YesOrNoEnum.YES.getType()));
         Department department = new Department();
-        department.setName("全部");
+        department.setName("共用");
         department.setId(0L);
         list.add(department);
         return success(JsonUtil.ObjectToList(list,
