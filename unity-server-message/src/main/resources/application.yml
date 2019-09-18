@@ -1,5 +1,5 @@
 server:
-  port: ${port:10050}
+  port: ${port:10080}
 #  servlet:
 #     context-path: /server-system/
 spring.application.name: unity-server-me
