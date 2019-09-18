@@ -4,9 +4,14 @@ package com.unity.innovation.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.unity.common.client.RbacClient;
 import com.unity.common.enums.YesOrNoEnum;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.util.ValidFieldFactory;
+import com.unity.common.util.ValidFieldUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
@@ -50,7 +55,7 @@ public class SysCfgController extends BaseWebController {
 
         LambdaQueryWrapper<SysCfg> ew = new LambdaQueryWrapper<>();
         SysCfg cfg = pageEntity.getEntity();
-        if(StringUtils.isEmpty(cfg.getCfgType())) {
+        if(cfg.getCfgType() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"缺少必要参数");
         }
         ew.eq(SysCfg::getCfgType,cfg.getCfgType());
@@ -79,16 +84,49 @@ public class SysCfgController extends BaseWebController {
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> save(@RequestBody SysCfg entity) {
         //参数校验
-        if(entity.getUseStatus() == null) {
-            entity.setUseStatus(YesOrNoEnum.YES.getType());
-        }
-        if(entity.getScope() == null) {
-            entity.setScope(0L);
-        }
-        service.saveOrUpdate(entity);
-        return success(null);
+        validate(entity);
+        return success( service.saveOrUpdate(entity));
     }
 
+    /**
+    * 参数校验
+    *
+    * @param entity 待校验参数
+    * @author JH
+    * @date 2019/9/18 10:57
+    */
+    private void validate(SysCfg entity) {
+        if(entity == null) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("缺少参数").build();
+        }
+        //非空校验
+        String result = ValidFieldUtil.checkEmptyStr(entity
+                , ValidFieldFactory.emptyReg("模块类别不能为空! ",SysCfg::getCfgType)
+                , ValidFieldFactory.emptyReg("类别名称不能为空! ",SysCfg::getCfgVal)
+                , ValidFieldFactory.emptyReg("启用状态不能为空! ",SysCfg::getUseStatus)
+                , ValidFieldFactory.emptyReg("适用范围不能为空! ",SysCfg::getScope));
+
+        if(StringUtils.isNotEmpty(result)) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message(result).build();
+        }
+        //类别名称去空格
+        entity.setCfgVal(entity.getCfgVal().trim());
+        ValidFieldUtil.checkReg(entity,ValidFieldFactory.lengthReg(1,20,"类别名称不能超过20字符!",SysCfg::getCfgVal));
+        List<SysCfg> list;
+        //新增
+        if(entity.getId() == null) {
+            list = service.list(new LambdaUpdateWrapper<SysCfg>().eq(SysCfg::getCfgVal, entity.getCfgVal()));
+
+        } else {
+            list = service.list(new LambdaUpdateWrapper<SysCfg>().eq(SysCfg::getCfgVal, entity.getCfgVal()).ne(SysCfg::getId,entity.getId()));
+        }
+        if(CollectionUtils.isNotEmpty(list)) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("名称已存在!").build();
+        }
+    }
 
     /**
     * 修改禁用/启用状态
@@ -134,7 +172,6 @@ public class SysCfgController extends BaseWebController {
     private void adapterField(Map<String, Object> m,SysCfg entity){
 
     }
-    
 
 
 }
