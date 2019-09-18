@@ -29,7 +29,7 @@ public interface UserDao extends BaseDao<User> {
      * @since 2019/03/21 14:42
      */
     @Select("SELECT " +
-            " u.*, d. NAME AS department,d.gradation_code as gradationCodeRbacDepartment " +
+            " u.*, d. NAME AS department " +
             "FROM " +
             " rbac_user u " +
             "INNER JOIN rbac_department d ON u.id_rbac_department = d.id " +
