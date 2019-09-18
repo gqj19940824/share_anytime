@@ -1,7 +1,7 @@
 dependencies {
  compile project(':unity-cfg')
 }
-archivesBaseName="unity-business-ipa"
+archivesBaseName="unity-business-innovation"
 //sourceSets {
 //    main {
 //        java {
