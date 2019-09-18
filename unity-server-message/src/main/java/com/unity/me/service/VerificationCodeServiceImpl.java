@@ -13,7 +13,7 @@ import com.unity.me.enums.MessageTypeEnum;
 import com.unity.me.util.MessageConstants;
 import com.unity.me.util.SMSUtil;
 import com.unity.me.util.ValidationCodeUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

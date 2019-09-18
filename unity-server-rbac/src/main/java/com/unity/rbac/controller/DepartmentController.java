@@ -315,7 +315,7 @@ public class DepartmentController extends BaseWebController {
             departNode.setId("Department:"+department.getId());
             departNode.setText(department.getName());
             departNode.setIsParent(true);
-            List<User> userList = userService.list(new LambdaQueryWrapper<User>().eq(User::getIdRbacDepartment, department.getId()).ne(User::getId,userId).ne(User::getAccountLevel,UserAccountLevelEnum.PROJECT.getId()));
+            List<User> userList = userService.list(new LambdaQueryWrapper<User>().eq(User::getIdRbacDepartment, department.getId()).ne(User::getId,userId));
             if(CollectionUtils.isNotEmpty(userList)) {
                 List<TNode> userNodeList = Lists.newArrayList();
                 for (User user :userList) {
@@ -613,9 +613,7 @@ public class DepartmentController extends BaseWebController {
         return JsonUtil.ObjectToList(list,
                 this::adapterField
                 , Department::getId, Department::getGmtModified, Department::getName,
-                Department::getEmployeeNum, Department::getSafeDirector ,Department::getDeptDirector,
-                Department::getSafeDirectorContact,Department::getDeptDirectorContact,Department::getDept,
-                Department::getAddress,Department::getBusinessScope,Department::getSort,Department::getOperationButton,Department::getLevel
+                Department::getAddress,Department::getSort,Department::getOperationButton,Department::getLevel
         );
     }
 
@@ -711,71 +709,10 @@ public class DepartmentController extends BaseWebController {
                     .message("注册地址不能为空").build();
         }
 
-        if (StringUtils.isEmpty(entity.getBusinessScope())) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                    .message("企业生产经营范围").build();
-        }
-
-        if (entity.getEmployeeNum() == null) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                    .message("从业人数不能为空").build();
-        }
-
-        if (StringUtils.isEmpty(entity.getDept())) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                    .message("主管部门不能为空").build();
-        }
-        if (StringUtils.isEmpty(entity.getDeptDirector())) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                    .message("企业负责人不能为空").build();
-        }
-        if (StringUtils.isEmpty(entity.getSafeDirector())) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                    .message("安全负责人不能为空").build();
-        }
-
         if (entity.getAddress().length() > ADDRESS_MAX_LENGTH) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("注册地址长度不能超过255").build();
         }
-
-        if (entity.getBusinessScope().length() > BUSINESS_SCOPE_MAX_LENGTH) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("企业生产经营范围长度不能超过500").build();
-        }
-
-        if (entity.getEmployeeNum().toString().length() > 10) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("从业人数不能超过10个字符").build();
-        }
-
-        if (entity.getDept().length() > DEPT_MAX_LENGTH) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("主管部门长度不能超过50").build();
-        }
-
-        if (entity.getDeptDirector().length() > DEPT_DIRECTOR_MAX_LENGTH) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("企业负责人长度不能超过20").build();
-        }
-
-        if (entity.getSafeDirector().length() > SAFE_DIRECTOR_MAX_LENGTH) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("安全负责人长度不能超过20").build();
-        }
-
-
-        if (entity.getDeptDirectorContact() != null && entity.getDeptDirectorContact().length() > DEPT_DIRECTOR_CONTACT_MAX_LENGTH) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("企业负责人联系方式长度不能超过50").build();
-        }
-
-        if (entity.getSafeDirectorContact() != null && entity.getSafeDirectorContact().length() > SAFE_DIRECTOR_CONTACT_MAX_LENGTH) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("安全负责人联系方式长度不能超过50").build();
-        }
-
-
     }
 
     /**
@@ -826,6 +763,27 @@ public class DepartmentController extends BaseWebController {
     @PostMapping("getAllDepartmentList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getAllDepartmentList() {
         return success(service.list(new LambdaQueryWrapper<Department>(null)));
+    }
+
+
+    /**
+    * 获取适用范围下拉框数据
+    *
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/9/17 15:55
+    */
+    @PostMapping("listAllDepartmentList")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listAllDepartmentList() {
+        List<Department> list = service.list(new LambdaQueryWrapper<Department>(null).eq(Department::getUseStatus,YesOrNoEnum.YES.getType()));
+        Department department = new Department();
+        department.setName("全部");
+        department.setId(0L);
+        list.add(department);
+        return success(JsonUtil.ObjectToList(list,
+                null
+                , Department::getId,Department::getName
+        ));
     }
 
 }

@@ -177,10 +177,10 @@ public class HashRedisUtils {
         Long id;
         if (key.contains(RedisConstants.USER)) {
             id = Long.parseLong(key.replace(RedisConstants.USER, ""));
-            return rbacClient.getUserById(id);
+//            return rbacClient.getUserById(id);
         } else if (key.contains(RedisConstants.DEPARTMENT)) {
             id = Long.parseLong(key.replace(RedisConstants.DEPARTMENT, ""));
-            return rbacClient.getDepartmentById(id);
+//            return rbacClient.getDepartmentById(id);
         } else if(key.contains(RedisConstants.PROJECT))  {
             id = Long.parseLong(key.replace(RedisConstants.PROJECT, ""));
             return safetyClient.getProjectById(id);

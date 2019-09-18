@@ -1,9 +1,7 @@
 package com.unity.me.umeng;
 
-import com.unity.common.exception.UnityRuntimeException;
-import com.unity.common.pojos.SystemResponse;
 import com.unity.common.pojos.UmengMessageDTO;
-import com.unity.common.util.GsonUtils;
+import com.unity.common.util.SpringUtils;
 import com.unity.me.entity.SystemConfig;
 import com.unity.me.umeng.android.AndroidBroadcast;
 import com.unity.me.umeng.android.AndroidCustomizedcast;
@@ -11,7 +9,6 @@ import com.unity.me.umeng.android.AndroidUnicast;
 import com.unity.me.umeng.ios.IOSBroadcast;
 import com.unity.me.umeng.ios.IOSCustomizedcast;
 import com.unity.me.umeng.ios.IOSUnicast;
-import com.unity.springboot.support.utils.SpringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 /**

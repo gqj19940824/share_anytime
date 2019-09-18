@@ -1,7 +1,7 @@
 package com.unity.me.umeng;
 
 import com.google.common.collect.Maps;
-import com.unity.common.util.HttpsUtil;
+import com.unity.common.utils.HttpsUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpResponse;
@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
+/**s
  * @author wangbin
  * @since 2018/11/6
  */

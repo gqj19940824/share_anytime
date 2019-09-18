@@ -5,12 +5,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.unity.common.client.MessageClient;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.util.IPUtils;
 import com.unity.common.util.RedisUtils;
+import com.unity.common.util.VerifyCodeUtils;
 import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.entity.User;
 import com.unity.rbac.enums.MessageTypeEnum;
-import com.unity.springboot.support.utils.IPUtil;
-import com.unity.springboot.support.utils.VerifyCodeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -94,7 +94,7 @@ public class SMSServiceImpl{
      */
     public String createVerifyCode(String oldCode,HttpServletRequest req){
         String verifyCode = VerifyCodeUtils.generateVerifyCode(4);
-        String ipAddress = IPUtil.getIPAddress(req);
+        String ipAddress = IPUtils.getIPAddress(req);
         if(StringUtils.isNotEmpty(oldCode)){
             redisUtils.removeCurrentVerifyCodeByCode(oldCode.toLowerCase());
         }
@@ -117,7 +117,7 @@ public class SMSServiceImpl{
                     .message("未获取到4位校验码")
                     .build();
         }
-        String ipAddress = IPUtil.getIPAddress(req);
+        String ipAddress = IPUtils.getIPAddress(req);
         String currentVerifyCodeByCode = (String)redisUtils.getCurrentVerifyCodeByCode(code.toLowerCase());
         if (ipAddress.equalsIgnoreCase(currentVerifyCodeByCode)){
             redisUtils.removeCurrentVerifyCodeByCode(code);

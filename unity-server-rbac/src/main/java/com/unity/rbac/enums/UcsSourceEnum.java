@@ -14,7 +14,8 @@ public enum UcsSourceEnum {
     OA(10, "OA"),
     ASSETS(20, "资产"),
     SAFE(30, "安全"),
-    PROJECT(40, "工程");
+    PROJECT(40, "工程"),
+    INNOVATION(50,"创新");
 
 
     public static UcsSourceEnum of(Integer id) {
@@ -27,6 +28,8 @@ public enum UcsSourceEnum {
                 return SAFE;
             case 40:
                 return PROJECT;
+            case 50:
+                return INNOVATION;
             default:
                 return null;
         }

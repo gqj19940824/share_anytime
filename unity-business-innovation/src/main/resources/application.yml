@@ -1,0 +1,31 @@
+
+server:
+  port: ${port:10060}
+#  servlet:
+#     context-path: /ipa/
+spring.application.name: unity-business-innovation
+
+#logbook:
+#  write:
+#    level: info
+#  format:
+#    style: http
+
+spring.profiles.include:
+  - db
+  - freemarker
+  - mybatis
+  - amqp
+  - common
+  - redis
+
+
+spring:
+  security:
+    model: permit
+    permit:
+      - /sys/login
+      - /sys/logout
+      - /identity/saveUserIdentiryList/*
+      - /api/user/pushUcsUserToSecurity
+      - /resource/saveRoleResource

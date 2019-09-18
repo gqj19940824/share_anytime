@@ -16,11 +16,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 @EqualsAndHashCode(callSuper=false)
 public class mUser extends BaseEntity{
 
-        /**
-         * 用户中心id
-         **/
-        @TableField("id_ucs_user")
-        private Long idUcsUser ;
         
         /**
         * 登录名
@@ -35,13 +30,6 @@ public class mUser extends BaseEntity{
         **/
         @TableField("pwd")
         private String pwd ;
-
-        
-        /**
-        * 工号
-        **/
-        @TableField("job_number")
-        private String jobNumber ;
         
         
         
@@ -106,23 +94,6 @@ public class mUser extends BaseEntity{
         private String wxxOpenId ;
         
         
-        
-        /**
-        * ios设备标识
-        **/
-        @TableField("ios_device_token")
-        private String iosDeviceToken ;
-        
-        
-        
-        /**
-        * android设备标识
-        **/
-        @TableField("android_device_token")
-        private String androidDeviceToken ;
-        
-        
-        
         /**
         * 最后登录Ip
         **/
@@ -175,30 +146,6 @@ public class mUser extends BaseEntity{
          **/
         @TableField("source")
         private Integer source ;
-
-        /**
-         * 基层项目
-         **/
-        @TableField("id_info_project")
-        private Long idInfoProject ;
-
-        /**
-         * 部门
-         **/
-        @TableField("company")
-        private String company ;
-
-        /**
-         * 信息完善状态 0 待完善 1 已完善
-         **/
-        @TableField("perfect_status")
-        private Integer perfectStatus ;
-
-        /**
-         * 用户中心账号所属组织名称
-         **/
-        @TableField("depart_name_ucs_user")
-        private String departNameUcsUser ;
 
         /**
          * 是否管理员 0 否  1 是

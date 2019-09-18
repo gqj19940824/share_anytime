@@ -1,4 +1,4 @@
-package com.unity.security.security;
+package com.unity.security;
 
 import com.unity.common.base.SessionHolder;
 import com.unity.common.pojos.AuthUser;

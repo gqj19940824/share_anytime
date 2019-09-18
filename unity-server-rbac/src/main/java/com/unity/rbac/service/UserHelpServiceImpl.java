@@ -11,6 +11,7 @@ import com.unity.common.enums.PlatformTypeEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.pojos.Customer;
 import com.unity.common.util.GsonUtils;
+import com.unity.common.util.IpAdrressUtil;
 import com.unity.common.util.RedisUtils;
 import com.unity.common.utils.HashRedisUtils;
 import com.unity.rbac.constants.UserConstants;
@@ -18,7 +19,6 @@ import com.unity.rbac.dao.UserDao;
 import com.unity.rbac.entity.User;
 import com.unity.rbac.entity.UserIdentity;
 import com.unity.rbac.entity.UserRole;
-import com.unity.springboot.support.utils.IpAdrressUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -90,7 +90,6 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
      * @author gengjiajia
      * @since 2019/07/03 16:57
      */
-    //@Async
     void saveCustomer(User user, Integer os, String tokenStr, Customer customer) {
         //token存入redis 生成key 规则 —> 固定头:登录终端:登录账号
         String key = RedisConstants.LOGINNAME2TOKEN.concat(RedisConstants.KEY_JOINER)
@@ -113,7 +112,6 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
         customer.setRoleList(roleIds);
         // redis缓存用户信息
         customer.setId(user.getId());
-        customer.setIdInfoProject(user.getIdInfoProject());
         customer.setLoginName(user.getLoginName());
         customer.setEmail(user.getEmail());
         customer.setPhone(user.getPhone());
@@ -122,8 +120,6 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
         customer.setName(user.getName());
         customer.setIdRbacDepartment(user.getIdRbacDepartment());
         customer.setNameRbacDepartment(user.getDepartment());
-        customer.setGradationCodeRbacDepartment(user.getGradationCodeRbacDepartment());
-        customer.setAccountLevel(user.getAccountLevel());
         customer.setDataPermissionIdList(dataPermissionIdList);
         customer.setIsSuperAdmin(user.getSuperAdmin());
         customer.setIsAdmin(user.getSuperAdmin().equals(YesOrNoEnum.YES.getType()) ? YesOrNoEnum.YES.getType() : user.getIsAdmin());
