@@ -1,5 +1,6 @@
 package com.unity.innovation.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.innovation.entity.generated.mDailyWorkKeyword;
 import lombok.AllArgsConstructor;
@@ -8,16 +9,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
 
 @Builder(builderMethodName = "newInstance")
 @AllArgsConstructor
@@ -26,16 +17,14 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper=false)
 @TableName(value = "daily_m_work_keyword")
 public class DailyWorkKeyword extends mDailyWorkKeyword {
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
+
+    /**
+     * 关键词名称
+     */
+    @TableField(exist = false)
+    private String keyName;
+
   
 }
 

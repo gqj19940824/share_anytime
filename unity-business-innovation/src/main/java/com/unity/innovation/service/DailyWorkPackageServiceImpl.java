@@ -1,7 +1,9 @@
 
 package com.unity.innovation.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.ui.PageEntity;
 import com.unity.innovation.dao.DailyWorkPackageDao;
 import com.unity.innovation.entity.DailyWorkPackage;
 import org.springframework.stereotype.Service;
@@ -22,5 +24,4 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(rollbackFor = Exception.class)
 public class DailyWorkPackageServiceImpl extends BaseServiceImpl<DailyWorkPackageDao,DailyWorkPackage>{
 
-     
-}
+ }

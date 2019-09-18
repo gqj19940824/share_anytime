@@ -52,7 +52,13 @@ public class mDailyWorkStatusPackage extends BaseEntity{
         **/
         @TableField("id_rbac_department")
         private Long idRbacDepartment ;
-        
+
+
+        /**
+         * 提请时间
+         **/
+        @TableField("gmt_submit")
+        private Long gmtSubmit ;
         
 
 }

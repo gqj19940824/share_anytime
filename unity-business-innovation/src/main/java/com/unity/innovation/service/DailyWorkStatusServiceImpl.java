@@ -4,21 +4,34 @@ package com.unity.innovation.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
+import com.sun.org.apache.bcel.internal.generic.I2F;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.enums.YesOrNoEnum;
+import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.DailyWorkStatusDao;
+import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.DailyWorkKeyword;
 import com.unity.innovation.entity.DailyWorkStatus;
+import com.unity.innovation.entity.SysCfg;
+import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * ClassName: DailyWorkStatusService
@@ -30,12 +43,16 @@ import java.util.stream.Collectors;
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusDao, DailyWorkStatus> {
 
     @Resource
     private DailyWorkKeywordServiceImpl keywordService;
 
+    @Resource
+    private AttachmentServiceImpl attachmentService;
+
+    @Resource
+    private SysCfgServiceImpl sysCfgService;
     /**
      * 功能描述 分页列表查询
      *
@@ -46,6 +63,7 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
      */
     public IPage<DailyWorkStatus> listByPage(PageEntity<DailyWorkStatus> search) {
         LambdaQueryWrapper<DailyWorkStatus> lqw = new LambdaQueryWrapper<>();
+
         //标题
         if (StringUtils.isNotBlank(search.getEntity().getTitle())) {
             lqw.like(DailyWorkStatus::getTitle, search.getEntity().getTitle());
@@ -70,39 +88,151 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
         if (search.getEntity().getState() != null) {
             lqw.eq(DailyWorkStatus::getState, search.getEntity().getState());
         }
-        //创建时间
-        if (StringUtils.isNotBlank(search.getEntity().getCreateTime())) {
-            long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), true);
-            long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), false);
+        //更新时间
+        if (StringUtils.isNotBlank(search.getEntity().getModifiedTime())) {
+            long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getModifiedTime(), true);
+            long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getModifiedTime(), false);
             //gt 大于 lt 小于
-            lqw.gt(DailyWorkStatus::getGmtCreate, begin);
-            lqw.lt(DailyWorkStatus::getGmtCreate, end);
+            lqw.gt(DailyWorkStatus::getGmtModified, begin);
+            lqw.lt(DailyWorkStatus::getGmtModified, end);
         }
-        //创建时间
-        if (StringUtils.isNotBlank(search.getEntity().getSubmitTime())) {
-            long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), true);
-            long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), false);
-            lqw.gt(DailyWorkStatus::getGmtSubmit, begin);
-            lqw.lt(DailyWorkStatus::getGmtSubmit, end);
+        //本单位数据
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (customer.getIdRbacDepartment() != null) {
+            lqw.eq(DailyWorkStatus::getIdRbacDepartment, customer.getIdRbacDepartment());
         }
+        //排序规则      未提请发布在前，已提请发布在后；未提请发布按创建时间倒序，已提请发布按提请时间倒序
+        lqw.last(" ORDER BY state ASC , gmt_modified desc ");
         IPage<DailyWorkStatus> list = page(search.getPageable(), lqw);
+        if (CollectionUtils.isEmpty(list.getRecords())) {
+            return list;
+        }
         List<Long> ids = list.getRecords().stream().map(DailyWorkStatus::getId).collect(Collectors.toList());
         //工作类别
-        Map<Long, String> typeList = getTypeList();
-
+        List<Long> sysList = Lists.newArrayList();
+        sysList.add(0L);
+        if (customer.getIdRbacDepartment() != null) {
+            sysList.add(customer.getIdRbacDepartment());
+        }
+        //工作类别
+        List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
+                .eq(SysCfg::getCfgType, SysCfgEnum.ONE.getId()).in(SysCfg::getScope, sysList));
+        Map<Long, String> typeNames = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
         //关键字
         List<DailyWorkKeyword> keys = keywordService.list(new LambdaQueryWrapper<DailyWorkKeyword>()
-                .eq(DailyWorkKeyword::getIdDailyWorkStatus, ids));
+                .in(DailyWorkKeyword::getIdDailyWorkStatus, ids));
+        List<SysCfg> keyList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
+                .eq(SysCfg::getCfgType, SysCfgEnum.TWO.getId()).in(SysCfg::getScope, sysList));
+        Map<Long, String> keyNames = keyList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
+        keys.forEach(k->k.setKeyName(keyNames.get(k.getIdKeyword())));
         Map<Long, List<DailyWorkKeyword>> keyStr = keys.stream().collect(Collectors.groupingBy(DailyWorkKeyword::getIdDailyWorkStatus));
-
+        list.getRecords().forEach(dwk -> {
+            //工作类别
+            dwk.setTypeName(typeNames.get(dwk.getType()));
+            //关键字
+            List<DailyWorkKeyword> keyList1 = keyStr.get((dwk.getId()));
+            String keysStr=keyList1.stream().map(DailyWorkKeyword::getKeyName).collect(joining(" "));
+            dwk.setKeyWordStr(keysStr);
+        });
         return list;
     }
 
-    Map<Long, String> getTypeList() {
-        Map<Long, String> m = new HashMap<>();
-        m.put(1L, "类型1");
-        m.put(2L, "类型2");
-        m.put(3L, "类型3");
-        return m;
+
+
+
+    /**
+     * 功能描述 新增编辑接口
+     * @param entity 实体对象
+     * @author gengzhiqiang
+     * @date 2019/9/17 15:49
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void saveEntity(DailyWorkStatus entity) {
+        if (entity.getId() == null) {
+            Customer customer = LoginContextHolder.getRequestAttributes();
+            if (customer.getIdRbacDepartment() != null) {
+                entity.setIdRbacDepartment(customer.getIdRbacDepartment());
+            }
+            //新增
+            List<Long> keys = entity.getKeyWordList();
+            entity.setAttachmentCode(UUIDUtil.getUUID().replace("-", ""));
+            attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
+            save(entity);
+            //处理关键字
+            keywordService.updateKeyWord(entity.getId(), keys);
+        } else {
+            //编辑
+            DailyWorkStatus vo = getById(entity.getId());
+            if (vo == null) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                        .message("未获取到对象").build();
+            }
+            if (YesOrNoEnum.YES.getType()==vo.getState()) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("已提请发布状态下数据不可编辑").build();
+            }
+            List<Long> keys = entity.getKeyWordList();
+            keywordService.updateKeyWord(entity.getId(), keys);
+            attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
+            updateById(entity);
+        }
+    }
+
+    /**
+     * 功能描述 详情接口
+     * @param entity 对象
+     * @return com.unity.innovation.entity.DailyWorkStatus 对象
+     * @author gengzhiqiang
+     * @date 2019/9/17 16:03
+     */
+    public DailyWorkStatus detailById(DailyWorkStatus entity) {
+        DailyWorkStatus vo = getById(entity.getId());
+        if (vo == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
+        List<Long> ids = Lists.newArrayList();
+        ids.add(vo.getType());
+        List<DailyWorkKeyword> list = keywordService.list(new LambdaQueryWrapper<DailyWorkKeyword>()
+                .eq(DailyWorkKeyword::getIdDailyWorkStatus, vo.getId()));
+        ids.addAll(list.stream().map(DailyWorkKeyword::getIdKeyword).collect(Collectors.toList()));
+        List<SysCfg> allList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
+                .in(SysCfg::getId, ids));
+        List<SysCfg> one = allList.stream().filter(i -> SysCfgEnum.ONE.getId().equals(i.getCfgType())).collect(Collectors.toList());
+        List<SysCfg> two = allList.stream().filter(i -> SysCfgEnum.TWO.getId().equals(i.getCfgType())).collect(Collectors.toList());
+        String typeName = one.stream().map(SysCfg::getCfgVal).collect(joining());
+        String keyName = two.stream().map(SysCfg::getCfgVal).collect(joining(" "));
+        vo.setTypeName(typeName);
+        vo.setKeyWordStr(keyName);
+        vo.setKeyWordList(list.stream().map(DailyWorkKeyword::getIdKeyword).collect(Collectors.toList()));
+        return vo;
+    }
+
+    /**
+     * 功能描述 批量删除
+     * @param ids id集合
+     * @author gengzhiqiang
+     * @date 2019/9/17 16:14
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void removeById(List<Long> ids) {
+        List<DailyWorkStatus> list1 = list(new LambdaQueryWrapper<DailyWorkStatus>()
+                .eq(DailyWorkStatus::getState, YesOrNoEnum.YES.getType()).in(DailyWorkStatus::getId, ids));
+        if (CollectionUtils.isNotEmpty(list1)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("已提请发布状态下数据不可删除").build();
+        }
+        Collection<DailyWorkStatus> list = listByIds(ids);
+        List<String> codes = list.stream().map(DailyWorkStatus::getAttachmentCode).collect(Collectors.toList());
+        //附件表
+        attachmentService.remove(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, codes));
+        //关键字表
+        keywordService.remove(new LambdaQueryWrapper<DailyWorkKeyword>().in(DailyWorkKeyword::getIdDailyWorkStatus, ids));
+        removeByIds(ids);
+
     }
 }
