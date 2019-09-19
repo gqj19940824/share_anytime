@@ -4,13 +4,10 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
-import com.unity.common.pojos.ValidField;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.JsonUtil;
-import com.unity.common.util.ValidFieldFactory;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.DailyWorkStatus;
@@ -74,7 +71,7 @@ public class DailyWorkStatusController extends BaseWebController {
                 (m, entity) -> {
                 }, DailyWorkStatus::getId, DailyWorkStatus::getTypeName, DailyWorkStatus::getKeyWordStr, DailyWorkStatus::getTheme,
                 DailyWorkStatus::getDescription, DailyWorkStatus::getNotes, DailyWorkStatus::getState, DailyWorkStatus::getGmtCreate,
-                DailyWorkStatus::getGmtModified, DailyWorkStatus::getTitle);
+                DailyWorkStatus::getGmtModified, DailyWorkStatus::getTitle,DailyWorkStatus::getDeptName);
     }
 
     /**
