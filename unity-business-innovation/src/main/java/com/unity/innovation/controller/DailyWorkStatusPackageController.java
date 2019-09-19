@@ -58,6 +58,22 @@ public class DailyWorkStatusPackageController extends BaseWebController {
     }
 
     /**
+     * 功能描述 审核角色分页列表查询
+     * @param search 查询条件
+     * @return 分页数据
+     * @author gengzhiqiang
+     * @date 2019/9/17 13:36
+     */
+    @PostMapping("/listByPageForAll")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listByPageForAll(@RequestBody PageEntity<DailyWorkStatusPackage> search) {
+        IPage<DailyWorkStatusPackage> list = service.listByPageForAll(search);
+        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
+                .total(list.getTotal())
+                .items(convert2List(list.getRecords())).build();
+        return success(result);
+    }
+
+    /**
      * 功能描述 数据整理
      *
      * @param list 集合
@@ -124,7 +140,10 @@ public class DailyWorkStatusPackageController extends BaseWebController {
      */
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody DailyWorkStatusPackage entity) {
-        DailyWorkStatusPackage a=service.detailById(entity);
+        String msg = ValidFieldUtil.checkEmptyStr(entity,DailyWorkStatusPackage::getId);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
         return success(service.detailById(entity));
     }
 
@@ -155,6 +174,10 @@ public class DailyWorkStatusPackageController extends BaseWebController {
      */
     @PostMapping("/submit")
     public Mono<ResponseEntity<SystemResponse<Object>>> submit(@RequestBody DailyWorkStatusPackage entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity,DailyWorkStatusPackage::getId);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
         service.submit(entity);
         return success("操作成功");
     }
@@ -169,9 +192,12 @@ public class DailyWorkStatusPackageController extends BaseWebController {
      */
     @PostMapping("/passOrReject")
     public Mono<ResponseEntity<SystemResponse<Object>>> passOrReject(@RequestBody DailyWorkStatusPackage entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, DailyWorkStatusPackage::getComment);
+        String msg = ValidFieldUtil.checkEmptyStr(entity, DailyWorkStatusPackage::getComment,DailyWorkStatusPackage::getFlag,DailyWorkStatusPackage::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        if (entity.getComment().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "审核意见限制500字");
         }
         service.passOrReject(entity);
         return success("操作成功");
@@ -187,14 +213,14 @@ public class DailyWorkStatusPackageController extends BaseWebController {
     @GetMapping({"/export/excel"})
     public Mono<ResponseEntity<byte[]>> exportExcel(@RequestParam("id") Long id) {
 
-        String filename="工作动态"+DateUtils.timeStamp2Date(System.currentTimeMillis());
+        String filename="工作动态详情"+DateUtils.timeStamp2Date(System.currentTimeMillis(),"yyyy-MM-dd");
         byte[] content;
         HttpHeaders headers = new HttpHeaders();
         try {
             //根据flag 判断导出类型
             content = service.export(id);
             //处理乱码
-            headers.setContentDispositionFormData("工作动态", new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1) + ".xls");
+            headers.setContentDispositionFormData("工作动态详情", new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1) + ".xls");
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         } catch (Exception e) {
             throw UnityRuntimeException.newInstance()

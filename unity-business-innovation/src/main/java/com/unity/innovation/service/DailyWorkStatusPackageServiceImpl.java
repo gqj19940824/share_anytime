@@ -13,6 +13,7 @@ import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.util.DateUtils;
 import com.unity.common.util.FileReaderUtil;
 import com.unity.common.utils.ExcelStyleUtil;
 import com.unity.common.utils.HashRedisUtils;
@@ -21,16 +22,21 @@ import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.DailyWorkStatusPackageDao;
 import com.unity.innovation.entity.*;
 import com.unity.innovation.enums.SysCfgEnum;
+import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.RegionUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,7 +94,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
      */
     public IPage<DailyWorkStatusPackage> listByPageForBase(PageEntity<DailyWorkStatusPackage> search) {
         LambdaQueryWrapper<DailyWorkStatusPackage> lqw = new LambdaQueryWrapper<>();
-        //更新时间
+        //提交时间
         if (StringUtils.isNotBlank(search.getEntity().getSubmitTime())) {
             long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), true);
             long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), false);
@@ -132,6 +138,60 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         }
         return list;
     }
+
+    /**
+     * 功能描述 分页接口
+     * @param search 查询条件
+     * @return  分页数据
+     * @author gengzhiqiang
+     * @date 2019/9/18 14:55
+     */
+    public IPage<DailyWorkStatusPackage> listByPageForAll(PageEntity<DailyWorkStatusPackage> search) {
+        LambdaQueryWrapper<DailyWorkStatusPackage> lqw = new LambdaQueryWrapper<>();
+        //提交时间
+        if (StringUtils.isNotBlank(search.getEntity().getSubmitTime())) {
+            long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), false);
+            long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), true);
+            //gt 大于 lt 小于
+            lqw.gt(DailyWorkStatusPackage::getGmtSubmit, begin);
+            lqw.lt(DailyWorkStatusPackage::getGmtSubmit, end);
+        }
+        //状态
+        if (search.getEntity().getState() != null) {
+            lqw.eq(DailyWorkStatusPackage::getState, search.getEntity().getState());
+        }
+        //审核角色可按照单位查询 单位数据
+        if (search.getEntity().getIdRbacDepartment() != null) {
+            lqw.eq(DailyWorkStatusPackage::getIdRbacDepartment, search.getEntity().getIdRbacDepartment());
+        }
+        //审核角色查看四种状态的数据
+        List<Integer> states=Lists.newArrayList();
+        states.add(WorkStatusAuditingStatusEnum.TWENTY.getId());
+        states.add(WorkStatusAuditingStatusEnum.THIRTY.getId());
+        states.add(WorkStatusAuditingStatusEnum.FIFTY.getId());
+        states.add(WorkStatusAuditingStatusEnum.SIXTY.getId());
+        lqw.in(DailyWorkStatusPackage::getState,states);
+        lqw.orderByDesc(DailyWorkStatusPackage::getGmtSubmit);
+        IPage<DailyWorkStatusPackage> list = page(search.getPageable(), lqw);
+        if (CollectionUtils.isNotEmpty(list.getRecords())){
+            list.getRecords().forEach(p -> {
+                //redis获取单位名称
+                if (hashRedisUtils.getFieldValueByFieldName
+                        (RedisConstants.DEPARTMENT + p.getIdRbacDepartment(), "name") != null) {
+                    p.setDeptName(hashRedisUtils.getFieldValueByFieldName
+                            (RedisConstants.DEPARTMENT + p.getIdRbacDepartment(), "name")
+                    );
+                }
+                if (p.getState() != null) {
+                    if (WorkStatusAuditingStatusEnum.exist(p.getState())) {
+                        p.setStateName(WorkStatusAuditingStatusEnum.of(p.getState()).getName());
+                    }
+                }
+            });
+        }
+        return list;
+    }
+
 
     /**
      * 功能描述 新增编辑
@@ -226,6 +286,12 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             List<DailyWorkKeyword> keyList1 = keyStr.get((dwk.getId()));
             String keysStr=keyList1.stream().map(DailyWorkKeyword::getKeyName).collect(joining(" "));
             dwk.setKeyWordStr(keysStr);
+            //附件
+            List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
+                    .eq(Attachment::getAttachmentCode,dwk.getAttachmentCode()));
+            if (CollectionUtils.isNotEmpty(attachmentList)){
+                dwk.setAttachmentList(attachmentList);
+            }
         });
         vo.setDataList(dateList);
         //日志集合
@@ -234,9 +300,16 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                 .orderByDesc(DailyWorkStatusLog::getGmtCreate));
         logList.forEach(log -> {
             if (log.getState() != null) {
-                if (WorkStatusAuditingStatusEnum.exist(log.getState())) {
-                    log.setLogName(WorkStatusAuditingStatusEnum.of(log.getState()).getName());
+                if (WorkStatusAuditingProcessEnum.exist(log.getState())) {
+                    log.setLogName(WorkStatusAuditingProcessEnum.of(log.getState()).getName());
                 }
+            }
+            //redis获取单位名称
+            if (hashRedisUtils.getFieldValueByFieldName
+                    (RedisConstants.DEPARTMENT + log.getIdRbacDepartment(), "name") != null) {
+                log.setDeptName(hashRedisUtils.getFieldValueByFieldName
+                        (RedisConstants.DEPARTMENT + log.getIdRbacDepartment(), "name")
+                );
             }
         });
         vo.setLogList(logList);
@@ -246,6 +319,12 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                         Collectors.collectingAndThen(Collectors
                                 .maxBy(Comparator.comparingLong(DailyWorkStatusLog::getGmtCreate)), Optional::get)));
         vo.setProcessNode(processNode);
+        //附件
+        List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
+                .eq(Attachment::getAttachmentCode,entity.getAttachmentCode()));
+        if (CollectionUtils.isNotEmpty(attachmentList)){
+            vo.setAttachmentList(attachmentList);
+        }
         return vo;
     }
 
@@ -306,7 +385,14 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                     .message("未上传领导签字文件").build();
         }
+        if (!(WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getState())
+                || WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getState()))) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("该状态下不可提交").build();
+        }
         //待提交>>>>>待审核
+        vo.setGmtSubmit(System.currentTimeMillis());
         vo.setState(WorkStatusAuditingStatusEnum.TWENTY.getId());
         updateById(vo);
         //日志记录
@@ -331,6 +417,11 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                     .message("未获取到对象").build();
+        }
+        if (!WorkStatusAuditingStatusEnum.TWENTY.getId().equals(vo.getState())) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("该状态下不可操作").build();
         }
         //0：驳回 1：通过
         if ( entity.getFlag() == YesOrNoEnum.YES.getType()) {
@@ -384,9 +475,19 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             HSSFSheet sheet = workbook.createSheet();
             HSSFRow row;
             //表头
-            row = sheet.createRow(0);
-            String[] title = {"序号", "标题", "工作类别", "关键字", "主题", "内容描述","备注","附件","创建时间"};
+            DailyWorkStatusPackage entity = DailyWorkStatusPackage.newInstance().build();
+            entity.setId(id);
+            entity = detailById(entity);
+            String top=entity.getTitle();
             Map<String, CellStyle> styleMap = ExcelStyleUtil.createProjectStyles(workbook);
+            workbook.createCellStyle();
+            Row titleRow = sheet.createRow(0);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellStyle(styleMap.get("title"));
+            titleCell.setCellValue(top);
+            row = sheet.createRow(1);
+            String[] title = { "标题", "工作类别", "关键字", "主题", "内容描述","备注","附件","创建时间"};
+            sheet.addMergedRegion(new CellRangeAddress(0,0, 0, title.length-1));
             for (int j = 0; j < title.length; j++) {
                 //创建每列
                 Cell cell = row.createCell(j);
@@ -396,8 +497,8 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                 sheet.autoSizeColumn(j, true);
                 cell.setCellValue(title[j]);
             }
-            //先填充数据
-           // addData(sheet, emergencyTeams, styleMap);
+            //填充数据
+            addData(sheet, entity, styleMap);
             out = new FileOutputStream(templateFile);
             // 输出excel
             workbook.write(out);
@@ -420,6 +521,67 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         }
         return content;
     }
+
+    private void addData(HSSFSheet sheet, DailyWorkStatusPackage entity, Map<String,CellStyle> styleMap) {
+
+        CellStyle sty = styleMap.get("data");
+        int rowNum = 2;
+        for (int j = 0; j < entity.getDataList().size(); j++) {
+            HSSFRow row = sheet.createRow(rowNum++);
+            HSSFCell cell0 = row.createCell(0);
+            HSSFCell cell1 = row.createCell(1);
+            HSSFCell cell2 = row.createCell(2);
+            HSSFCell cell3 = row.createCell(3);
+            HSSFCell cell4 = row.createCell(4);
+            HSSFCell cell5 = row.createCell(5);
+            HSSFCell cell6 = row.createCell(6);
+            HSSFCell cell7 = row.createCell(7);
+            cell0.setCellStyle(sty);
+            sheet.setColumnWidth(0, 15*256);
+            cell1.setCellStyle(sty);
+            sheet.setColumnWidth(1, 15*256);
+            cell2.setCellStyle(sty);
+            sheet.setColumnWidth(2, 15*256);
+            cell3.setCellStyle(sty);
+            sheet.setColumnWidth(3, 15*256);
+            cell4.setCellStyle(sty);
+            sheet.setColumnWidth(4, 30*256);
+            cell5.setCellStyle(sty);
+            sheet.setColumnWidth(5, 30*256);
+            cell6.setCellStyle(sty);
+            sheet.setColumnWidth(6, 60*256);
+            cell7.setCellStyle(sty);
+            sheet.setColumnWidth(7, 18*256);
+            cell0.setCellValue(entity.getDataList().get(j).getTitle());
+            cell1.setCellValue(entity.getDataList().get(j).getTypeName());
+            cell2.setCellValue(entity.getDataList().get(j).getKeyWordStr());
+            cell3.setCellValue(entity.getDataList().get(j).getTheme());
+            cell4.setCellValue(entity.getDataList().get(j).getDescription());
+            if (StringUtils.isNotBlank(entity.getDataList().get(j).getNotes())){
+                cell5.setCellValue(entity.getDataList().get(j).getNotes());
+            }
+            if (CollectionUtils.isNotEmpty(entity.getDataList().get(j).getAttachmentList())){
+                String url = entity.getDataList().get(j).getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"));
+                cell6.setCellValue(url);
+
+            }
+            cell7.setCellValue(DateUtils.timeStamp2Date(entity.getDataList().get(j).getGmtCreate()));
+        }
+        Row titleRow = sheet.createRow(entity.getDataList().size() + 2);
+        Cell titleCell = titleRow.createCell(0);
+        titleCell.setCellStyle(styleMap.get("data"));
+        if (StringUtils.isNotBlank(entity.getNotes())) {
+            titleCell.setCellValue("备注："+entity.getNotes());
+        }
+        CellRangeAddress range = new CellRangeAddress(entity.getDataList().size() + 2, entity.getDataList().size() + 2, 0, 7);
+        sheet.addMergedRegion(range);
+        RegionUtil.setBorderLeft(1, range, sheet);
+        RegionUtil.setBorderBottom(1, range, sheet);
+        RegionUtil.setBorderRight(1, range, sheet);
+        RegionUtil.setBorderTop(1, range, sheet);
+    }
+
+
 
 
 }
