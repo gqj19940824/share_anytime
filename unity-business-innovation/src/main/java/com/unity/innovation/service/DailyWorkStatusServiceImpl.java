@@ -4,13 +4,14 @@ package com.unity.innovation.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
-import com.sun.org.apache.bcel.internal.generic.I2F;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.RedisConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.utils.HashRedisUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.DailyWorkStatusDao;
 import com.unity.innovation.entity.Attachment;
@@ -53,6 +54,9 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
 
     @Resource
     private SysCfgServiceImpl sysCfgService;
+
+    @Resource
+    private HashRedisUtils hashRedisUtils;
     /**
      * 功能描述 分页列表查询
      *
@@ -96,10 +100,16 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
             lqw.gt(DailyWorkStatus::getGmtModified, begin);
             lqw.lt(DailyWorkStatus::getGmtModified, end);
         }
-        //本单位数据
+        //本单位数据 管理员 列表数据都要显示
         Customer customer = LoginContextHolder.getRequestAttributes();
-        if (customer.getIdRbacDepartment() != null) {
-            lqw.eq(DailyWorkStatus::getIdRbacDepartment, customer.getIdRbacDepartment());
+        if (customer.getIdRbacDepartment() != null && customer.isAdmin != null) {
+            if (YesOrNoEnum.NO.getType() == customer.isAdmin) {
+                lqw.eq(DailyWorkStatus::getIdRbacDepartment, customer.getIdRbacDepartment());
+            }
+        }
+        //管理员 单位数据
+        if (search.getEntity().getIdRbacDepartment() != null) {
+            lqw.eq(DailyWorkStatus::getIdRbacDepartment, search.getEntity().getIdRbacDepartment());
         }
         //排序规则      未提请发布在前，已提请发布在后；未提请发布按创建时间倒序，已提请发布按提请时间倒序
         lqw.last(" ORDER BY state ASC , gmt_modified desc ");
@@ -109,20 +119,14 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
         }
         List<Long> ids = list.getRecords().stream().map(DailyWorkStatus::getId).collect(Collectors.toList());
         //工作类别
-        List<Long> sysList = Lists.newArrayList();
-        sysList.add(0L);
-        if (customer.getIdRbacDepartment() != null) {
-            sysList.add(customer.getIdRbacDepartment());
-        }
-        //工作类别
         List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
-                .eq(SysCfg::getCfgType, SysCfgEnum.ONE.getId()).in(SysCfg::getScope, sysList));
+                .eq(SysCfg::getCfgType, SysCfgEnum.ONE.getId()));
         Map<Long, String> typeNames = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
         //关键字
         List<DailyWorkKeyword> keys = keywordService.list(new LambdaQueryWrapper<DailyWorkKeyword>()
                 .in(DailyWorkKeyword::getIdDailyWorkStatus, ids));
         List<SysCfg> keyList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
-                .eq(SysCfg::getCfgType, SysCfgEnum.TWO.getId()).in(SysCfg::getScope, sysList));
+                .eq(SysCfg::getCfgType, SysCfgEnum.TWO.getId()));
         Map<Long, String> keyNames = keyList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
         keys.forEach(k->k.setKeyName(keyNames.get(k.getIdKeyword())));
         Map<Long, List<DailyWorkKeyword>> keyStr = keys.stream().collect(Collectors.groupingBy(DailyWorkKeyword::getIdDailyWorkStatus));
@@ -133,6 +137,13 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
             List<DailyWorkKeyword> keyList1 = keyStr.get((dwk.getId()));
             String keysStr=keyList1.stream().map(DailyWorkKeyword::getKeyName).collect(joining(" "));
             dwk.setKeyWordStr(keysStr);
+            //redis获取单位名称
+            if (hashRedisUtils.getFieldValueByFieldName
+                    (RedisConstants.DEPARTMENT + dwk.getIdRbacDepartment(), "name") != null) {
+                dwk.setDeptName(hashRedisUtils.getFieldValueByFieldName
+                        (RedisConstants.DEPARTMENT + dwk.getIdRbacDepartment(), "name")
+                );
+            }
         });
         return list;
     }

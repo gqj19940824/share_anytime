@@ -1,15 +1,12 @@
 package com.unity.innovation.entity.generated;
 
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.unity.common.base.BaseEntity;
+import com.unity.common.base.CommentTarget;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
-import com.baomidou.mybatisplus.annotation.TableField;
-
-import com.unity.common.base.BaseEntity;
 
 /**
  * 创新日常工作管理-工作动态需求表
@@ -26,6 +23,7 @@ public class mDailyWorkStatusPackage extends BaseEntity{
         /**
         * 标题
         **/
+        @CommentTarget("标题")
         @TableField("title")
         private String title ;
         

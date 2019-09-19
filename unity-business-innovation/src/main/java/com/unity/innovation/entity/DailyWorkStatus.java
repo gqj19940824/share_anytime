@@ -55,6 +55,12 @@ public class DailyWorkStatus extends mDailyWorkStatus {
     @TableField(exist = false)
     private List<Long> keyWordList;
 
+    /**
+     * 单位名称
+     */
+    @TableField(exist = false)
+    private String deptName;
+
 }
 
 

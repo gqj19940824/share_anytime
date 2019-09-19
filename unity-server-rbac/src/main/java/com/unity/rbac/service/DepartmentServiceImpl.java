@@ -13,6 +13,7 @@ import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.util.BeanUtils;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.GsonUtils;
 import com.unity.common.util.JsonUtil;
@@ -67,8 +68,9 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
         dto.setName(dto.getName().trim());
         if (dto.getId() == null) {
             Department department = new Department();
-            department.setName(dto.getName());
+            BeanUtils.copyProperties(dto,department);
             department.setIsDeleted(YesOrNoEnum.NO.getType());
+            department.setUseStatus(YesOrNoEnum.YES.getType());
             super.save(department);
             //保存公司到redis
             saveOrUpdateDepartmentToRedis(department);
@@ -84,6 +86,10 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
                         .build();
             }
             department.setName(dto.getName());
+            department.setDepType(dto.getDepType());
+            department.setAddress(dto.getAddress());
+            department.setPhone(dto.getPhone());
+            department.setNotes(dto.getNotes());
             super.updateById(department);
             //保存公司到redis
             saveOrUpdateDepartmentToRedis(department);
@@ -130,14 +136,14 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
     /**
      * 上移/下移
      *
-     * @param department 需要移动的实体
+     * @param department 需要移动的实体 up 1 上移  0 下移
      * @author JH
      * @date 2019/7/24 11:35
      */
     @Transactional(rollbackFor = Exception.class)
     public void changeOrder(Department department) {
         Department entity = this.getById(department.getId());
-        Integer up = department.getUpOrDown();
+        Integer up = department.getUp();
         Long sort = entity.getSort();
         LambdaQueryWrapper<Department> wrapper = new LambdaQueryWrapper<>();
         String msg;
@@ -187,7 +193,7 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
     }
 
     /**
-     * 分页获取单位信息
+     * 获取单位列表
      *
      * @param pageEntity 分页参数
      * @return 单位列表
@@ -195,7 +201,7 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
      * @since 2019/09/17 17:20
      */
     public PageElementGrid<Map<String, Object>> listByPage(PageEntity<Department> pageEntity) {
-        IPage<Department> page = super.page(pageEntity.getPageable(),new LambdaQueryWrapper<Department>().orderByDesc(Department::getSort));
+        IPage<Department> page = super.page(pageEntity.getPageable(),new LambdaQueryWrapper<Department>().eq(Department::getUseStatus,YesOrNoEnum.YES.getType()).orderByDesc(Department::getSort));
         return PageElementGrid.<Map<String, Object>>newInstance()
                 .total(page.getTotal())
                 .items(convert2List(page.getRecords()))
@@ -235,8 +241,8 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
         Long idBySortDesc = baseMapper.getTheFirstDepartmentBySortDesc(ids);
         return JsonUtil.ObjectToList(list,
                 (m,entity) -> adapterField(m,entity,idBySortAsc,idBySortDesc)
-                , Department::getId, Department::getGmtModified, Department::getName,
-                Department::getAddress,Department::getSort
+                , Department::getId, Department::getGmtModified, Department::getName,Department::getPhone,
+                Department::getAddress,Department::getNotes
         );
     }
 

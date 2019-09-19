@@ -24,12 +24,6 @@ public class mDepartment extends BaseEntity {
     private String name;
 
     /**
-     * 树层次
-     **/
-    @TableField("i_level")
-    private Integer level;
-
-    /**
      * 类型:status:1 公司 company,2 党委 partyCommittee,3 支部 branch
      */
     @TableField("dep_type")
@@ -47,6 +41,11 @@ public class mDepartment extends BaseEntity {
     @TableField("use_status")
     private Integer useStatus;
 
+    /**
+     * 联系电话
+     **/
+    @TableField("phone")
+    private String phone;
     public mDepartment() {
     }
 }
