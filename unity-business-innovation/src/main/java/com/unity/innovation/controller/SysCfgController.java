@@ -60,7 +60,8 @@ public class SysCfgController extends BaseWebController {
         if(scope != null) {
             ew.eq(SysCfg::getScope,scope);
         }
-        ew.last("ORDER BY CONVERT(cfg_val USING gbk)");
+        ew.orderByDesc(SysCfg::getUseStatus);
+        ew.last(", CONVERT(cfg_val USING gbk)");
         IPage<SysCfg> p = service.page(pageEntity.getPageable(),ew);
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
                 .total(p.getTotal())
