@@ -9,19 +9,19 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public enum UserTypeEnum {
-
-    ROOT(0,"超级管理员"),
-    COMPANY(1, "企业用户"),
-    GOVERNMENT(2, "响应部门用户"),
-    COMPLEX(3,"综合处理中心");
+    /**
+     * 用户类型
+     */
+    ADMIN(1,"管理员账号"),
+    LEADER(2, "领导账号"),
+    ORDINARY(3, "普通账号");
     
     
     public static UserTypeEnum of(Integer id) {
         switch (id){
-            case 0:return ROOT;
-            case 1:return COMPANY;
-            case 2:return GOVERNMENT;
-            case 3:return COMPLEX;
+            case 1:return ADMIN;
+            case 2:return LEADER;
+            case 3:return ORDINARY;
             default:return null;
         }
     }

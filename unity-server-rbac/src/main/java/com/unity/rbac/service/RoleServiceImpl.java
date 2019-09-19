@@ -112,7 +112,9 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
                         .message("系统默认角色不可编辑")
                         .build();
             }
-            super.updateById(dto);
+            role.setName(dto.getName());
+            role.setNotes(dto.getNotes());
+            super.updateById(role);
         }
     }
 

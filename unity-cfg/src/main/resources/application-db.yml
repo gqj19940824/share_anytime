@@ -2,12 +2,12 @@ spring:
   profiles: devel
   datasource:
     master:
-      url: jdbc:mysql://172.19.1.96:3306/${spring.application.name}?useSSL=false&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+      url: jdbc:mysql://172.19.1.97:3306/${spring.application.name}?useSSL=false&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
       username: root
       password: ZhenMeiYouMiMa!123
       driver-class-name: com.mysql.jdbc.Driver
     slave:
-      url: jdbc:mysql://172.19.1.96:3306/${spring.application.name}?useSSL=false&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+      url: jdbc:mysql://172.19.1.97:3306/${spring.application.name}?useSSL=false&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
       username: root
       password: ZhenMeiYouMiMa!123
       driver-class-name: com.mysql.jdbc.Driver
