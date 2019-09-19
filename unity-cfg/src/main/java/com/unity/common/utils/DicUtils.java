@@ -25,7 +25,6 @@ import java.util.List;
 @Component
 @Slf4j
 public class DicUtils {
-    private static final Logger logger = LoggerFactory.getLogger(DicUtils.class);
 
     @Resource
     private SystemClient systemClient;

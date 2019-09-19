@@ -37,16 +37,21 @@ public class DailyWorkStatusLog extends mDailyWorkStatusLog {
      */
     @TableField(exist = false)
     private String logName;
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-  
+
+
+    /**
+     * 审批名称
+     */
+    @TableField(exist = false)
+    private String deptName;
+
+
+
+
+
+
+
+
+
 }
 

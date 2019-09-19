@@ -29,7 +29,7 @@ public interface UserDao extends BaseDao<User> {
      * @since 2019/03/21 14:42
      */
     @Select("SELECT " +
-            " u.*, d. NAME AS department " +
+            " u.*, d. NAME AS department,d.dep_type AS depType " +
             "FROM " +
             " rbac_user u " +
             "INNER JOIN rbac_department d ON u.id_rbac_department = d.id " +
@@ -44,7 +44,7 @@ public interface UserDao extends BaseDao<User> {
      * @author gengjiajia
      * @since 2019/07/04 18:48
      */
-    @Select(" SELECT u.*, d.name as department" +
+    @Select(" SELECT u.*, d.name as department,d.dep_type AS depType " +
             " FROM rbac_user u " +
             " LEFT JOIN rbac_department d ON u.id_rbac_department = d.id " +
             " AND d.is_deleted = 0 " +
@@ -60,56 +60,6 @@ public interface UserDao extends BaseDao<User> {
      * @author gengjiajia
      * @since 2019/07/08 10:10
      */
-    @Select("<script> " +
-            " SELECT " +
-            "   COUNT(u.id) " +
-            " FROM " +
-            "   rbac_user u " +
-            " LEFT JOIN rbac_department d ON u.id_rbac_department = d.id " +
-            " <if test='roleId != null and roleId != 0'> " +
-            " INNER JOIN rbac_m_user_role mur ON mur.id_rbac_user = u.id " +
-            " INNER JOIN rbac_role r ON r.id = mur.id_rbac_role " +
-            " </if> " +
-            " WHERE " +
-            "   u.is_deleted = 0 " +
-            " <if test='idRbacDepartment != null and idRbacDepartment != 0 '> " +
-            " AND u.id_rbac_department = #{idRbacDepartment} " +
-            " </if> " +
-            " <if test='idRbacDepartment != null and idRbacDepartment == 0'> " +
-            " AND u.id_rbac_department IS NULL " +
-            " </if> " +
-            " <if test='loginName != null'> " +
-            " AND u.login_name like concat('%',#{loginName},'%') " +
-            " </if> " +
-            " <if test='roleId != null and roleId != 0'> " +
-            " AND mur.is_deleted = 0 " +
-            " AND r.id = #{roleId}" +
-            " </if> " +
-            " <if test='roleId != null and roleId == 0'> " +
-            " AND u.id in (" +
-            "   SELECT DISTINCT " +
-            "       id " +
-            "   FROM " +
-            "       rbac_user " +
-            "   WHERE " +
-            "       id NOT IN ( " +
-            "           SELECT DISTINCT " +
-            "               mur.id_rbac_user " +
-            "           FROM " +
-            "           rbac_m_user_role mur " +
-            "           WHERE mur.is_deleted = 0 " +
-            "  ) " +
-            " ORDER BY " +
-            "  gmt_create DESC " +
-            " ) " +
-            " </if> " +
-            " <if test='dataPermissionIdList != null'> " +
-            " AND u.id_rbac_department IN " +
-            "   <foreach item='item' index='index' collection='dataPermissionIdList' open='(' separator=',' close=')'> " +
-            "     #{item} " +
-            "   </foreach> " +
-            " </if> " +
-            "</script>")
     long countUserTotalNum(Map<String, Object> data);
 
     /**
@@ -120,72 +70,6 @@ public interface UserDao extends BaseDao<User> {
      * @author gengjiajia
      * @since 2019/07/08 10:10
      */
-    @Select("<script> " +
-            " SELECT " +
-            "   u.*, d.`name` AS department," +
-            " <if test='roleId != null and roleId != 0'> " +
-            " r.`name` AS groupConcatRoleName " +
-            " </if> " +
-            " <if test='roleId != null and roleId == 0'> " +
-            " '' AS groupConcatRoleName " +
-            " </if> " +
-            " <if test='roleId == null'> " +
-            " group_concat(r.`name`) AS groupConcatRoleName" +
-            " </if> " +
-            " FROM " +
-            "   rbac_user u " +
-            " LEFT JOIN rbac_department d ON u.id_rbac_department = d.id " +
-            " <if test='roleId != null and roleId != 0'> " +
-            " INNER JOIN rbac_m_user_role mur ON mur.id_rbac_user = u.id " +
-            " INNER JOIN rbac_role r ON r.id = mur.id_rbac_role " +
-            " </if> " +
-            " <if test='roleId == null'> " +
-            " LEFT JOIN rbac_m_user_role ur ON u.id = ur.id_rbac_user AND ur.is_deleted = 0 " +
-            " LEFT JOIN rbac_role r ON r.id = ur.id_rbac_role " +
-            " </if> " +
-            " WHERE " +
-            "   u.is_deleted = 0 " +
-            " <if test='idRbacDepartment != null and idRbacDepartment != 0 '> " +
-            " AND u.id_rbac_department = #{idRbacDepartment} " +
-            " </if> " +
-            " <if test='idRbacDepartment != null and idRbacDepartment == 0'> " +
-            " AND u.id_rbac_department IS NULL " +
-            " </if> " +
-            " <if test='loginName != null'> " +
-            " AND u.login_name like concat('%',#{loginName},'%') " +
-            " </if> " +
-            " <if test='roleId != null and roleId != 0'> " +
-            " AND mur.is_deleted = 0 " +
-            " AND r.id = #{roleId}" +
-            " </if> " +
-            " <if test='roleId != null and roleId == 0'> " +
-            " AND u.id in (" +
-            "   SELECT DISTINCT " +
-            "       id " +
-            "   FROM " +
-            "       rbac_user " +
-            "   WHERE " +
-            "       id NOT IN ( " +
-            "           SELECT DISTINCT " +
-            "               mur.id_rbac_user " +
-            "           FROM " +
-            "           rbac_m_user_role mur " +
-            "           WHERE mur.is_deleted = 0 " +
-            "  ) " +
-            " ORDER BY " +
-            "  gmt_create DESC " +
-            " ) " +
-            " </if> " +
-            " <if test='dataPermissionIdList != null'> " +
-            " AND u.id_rbac_department IN " +
-            "   <foreach item='item' index='index' collection='dataPermissionIdList' open='(' separator=',' close=')'> " +
-            "     #{item} " +
-            "   </foreach> " +
-            " </if> " +
-            " GROUP BY u.id " +
-            " ORDER BY u.gmt_create desc" +
-            " LIMIT #{offset},#{limit} " +
-            "</script>")
     List<User> findUserListByPage(Map<String, Object> data);
 
     /**
@@ -256,7 +140,7 @@ public interface UserDao extends BaseDao<User> {
      * @since 2019/07/12 18:58
      */
     @Select("SELECT " +
-            " u.*, d.name AS department,d.gradation_code as gradationCodeRbacDepartment " +
+            " u.*, d.name AS department,d.dep_type AS depType " +
             "FROM " +
             " rbac_user u " +
             "INNER JOIN rbac_department d ON u.id_rbac_department = d.id " +

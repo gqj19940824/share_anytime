@@ -49,8 +49,11 @@ public class DepartmentController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> save(@RequestBody Department entity) {
+        if(entity.getDepType() == null){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到组织类别");
+        }
         if (StringUtils.isBlank(entity.getName())) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未检测到单位名称");
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到单位/部门名称");
         }
         if (entity.getName().length() > NAME_MAX_LENGTH) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "单位名称字数限制50字");
@@ -152,6 +155,30 @@ public class DepartmentController extends BaseWebController {
         }
         service.changeStatus(department);
         return success("变更成功");
+    }
+
+
+    /**
+     * 账号新增页面获取单位下拉列表
+     *
+     * @return 单位下拉列表
+     * @author gengjiajia
+     * @since 2019/07/16 11:24
+     */
+    @PostMapping("/getDepartmentListToUserList")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getDepartmentListToUserList(@RequestBody(required=false) Department department) {
+        //数据权限
+        LambdaQueryWrapper<Department> wrapper = new LambdaQueryWrapper<>();
+        if(department != null && department.getDepType() != null){
+            wrapper.eq(Department::getDepType,department.getDepType());
+        }
+        wrapper.eq(Department::getUseStatus,YesOrNoEnum.YES.getType());
+        wrapper.orderByDesc(Department::getSort);
+        List<Map<String, Object>> maps = JsonUtil.ObjectToList(service.list(wrapper),
+                null
+                , Department::getId, Department::getName
+        );
+        return success(maps);
     }
 }
 

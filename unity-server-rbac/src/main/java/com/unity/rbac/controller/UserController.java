@@ -10,6 +10,7 @@ import com.unity.common.ui.PageEntity;
 import com.unity.common.util.GsonUtils;
 import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.entity.User;
+import com.unity.rbac.enums.UserTypeEnum;
 import com.unity.rbac.service.UserServiceImpl;
 import com.unity.rbac.utils.RegExpValidatorUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
@@ -235,12 +236,27 @@ public class UserController extends BaseWebController {
             //当前账号非管理员
             return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.OPERATION_NO_AUTHORITY).message("非管理员不能创建账号！").build();
         }
-        if (user.getIdRbacDepartment() == null) {
+        if(user.getUserType() == null){
+            return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择账号类别").build();
+        }
+        if(user.getReceiveSms() == null){
+            return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择是否接收短信").build();
+        }
+        //普通账号需选择单位
+        if (UserTypeEnum.ORDINARY.getId().equals(user.getUserType()) && user.getIdRbacDepartment() == null) {
             return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择所属单位").build();
         }
-
-        if(StringUtils.isBlank(user.getLoginName()) || !RegExpValidatorUtil.checkPhone(user.getLoginName().trim())){
-            return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("用户账号请使用手机号！").build();
+        if(!UserTypeEnum.ORDINARY.getId().equals(user.getUserType())){
+            user.setIdRbacDepartment(null);
+        }
+        if(!UserTypeEnum.ADMIN.getId().equals(user.getUserType())){
+            if(StringUtils.isBlank(user.getLoginName()) || !RegExpValidatorUtil.checkPhone(user.getLoginName().trim())){
+                return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("非管理员账号请使用手机号！").build();
+            }
+        } else {
+            if(StringUtils.isBlank(user.getLoginName()) || !RegExpValidatorUtil.checkLoginName(user.getLoginName().trim())){
+                return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("管理员账号由字母或数字组成，限制20字符！").build();
+            }
         }
         //校验账号唯一性
         if (user.getId() == null && userService.count(new LambdaQueryWrapper<User>().eq(User::getLoginName, user.getLoginName())) > 0){

@@ -30,16 +30,6 @@ public class Customer extends AuthUser {
     public List<Long> roleList;
 
     /**
-     * 账号级别
-     */
-    public Integer accountLevel;
-
-    /**
-     * 项目id
-     */
-    public Long idInfoProject;
-
-    /**
      * 数据权限id列表
      */
     public List<Long> dataPermissionIdList;
@@ -53,4 +43,14 @@ public class Customer extends AuthUser {
      * 是否管理员
      */
     public Integer isAdmin;
+
+    /**
+     * 账号类型
+     */
+    public Integer userType;
+
+    /**
+     * 所属组织类型
+     */
+    public Integer depType;
 }
