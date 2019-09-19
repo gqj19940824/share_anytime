@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.Lists;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constants.ConstString;
-import com.unity.common.enums.UserAccountLevelEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -168,8 +167,7 @@ public class RoleController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPageToUserList() {
         Customer customer = LoginContextHolder.getRequestAttributes();
         LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
-        if (customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType()) ||
-                (customer.getIsAdmin().equals(YesOrNoEnum.YES.getType()) && customer.getAccountLevel().equals(UserAccountLevelEnum.GROUP.getId()))) {
+        if (customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())) {
             //超管或集团管理员查所有
             wrapper.orderByDesc(Role::getGmtCreate);
         } else if (customer.getIsAdmin().equals(YesOrNoEnum.NO.getType())) {

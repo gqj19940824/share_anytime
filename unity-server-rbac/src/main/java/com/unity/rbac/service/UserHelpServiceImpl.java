@@ -19,6 +19,7 @@ import com.unity.rbac.dao.UserDao;
 import com.unity.rbac.entity.User;
 import com.unity.rbac.entity.UserIdentity;
 import com.unity.rbac.entity.UserRole;
+import com.unity.rbac.enums.UserTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -75,10 +76,9 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
     void updateLoginInfo(User user, Integer os, Date now, HttpServletRequest request) {
         user.setLastLoginIp(IpAdrressUtil.getIpAdrress(request));
         user.setLastLoginPlatform(os);
+        user.setSource(os);
         user.setGmtLoginLast(now);
         super.updateById(user);
-
-        log.info("remoteIP:" + user.getLastLoginIp());
     }
 
     /**
@@ -122,7 +122,11 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
         customer.setNameRbacDepartment(user.getDepartment());
         customer.setDataPermissionIdList(dataPermissionIdList);
         customer.setIsSuperAdmin(user.getSuperAdmin());
-        customer.setIsAdmin(user.getSuperAdmin().equals(YesOrNoEnum.YES.getType()) ? YesOrNoEnum.YES.getType() : user.getIsAdmin());
+        customer.setIsAdmin(user.getSuperAdmin().equals(YesOrNoEnum.YES.getType()) ? YesOrNoEnum.YES.getType()
+                : UserTypeEnum.ADMIN.getId().equals(user.getUserType()) ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType());
+        customer.setUserType(user.getUserType());
+        customer.setOs(os);
+        customer.setDepType(user.getDepType());
         redisUtils.putCurrentUserByToken(tokenStr, customer, day);
     }
 
@@ -153,8 +157,12 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
     void distributionDefaultIdentity(Long id) {
         UserIdentity userIdentity = new UserIdentity();
         userIdentity.setIdRbacUser(id);
-        userIdentity.setIdRbacIdentity(UserConstants.DEFAULT_IDENTITY_ID);
+        userIdentity.setIdRbacIdentity(UserConstants.PC_DEFAULT_IDENTITY_ID);
         userIdentityService.save(userIdentity);
+        UserIdentity userIdentity2 = new UserIdentity();
+        userIdentity2.setIdRbacUser(id);
+        userIdentity2.setIdRbacIdentity(UserConstants.MOBILE_DEFAULT_IDENTITY_ID);
+        userIdentityService.save(userIdentity2);
     }
 
     /**

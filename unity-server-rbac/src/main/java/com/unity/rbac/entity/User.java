@@ -2,7 +2,6 @@ package com.unity.rbac.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.unity.common.util.annotation.ExcelField;
 import com.unity.rbac.entity.generated.mUser;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,6 +24,9 @@ public class User extends mUser{
    **/
   @TableField(exist=false)
   private String department;
+
+  @TableField(exist = false)
+  private Integer depType;
 
 
   /**
