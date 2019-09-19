@@ -1,6 +1,7 @@
 package com.unity.innovation.entity.generated;
 
 
+import com.unity.common.base.CommentTarget;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,7 @@ public class mDailyWorkStatus extends BaseEntity{
         /**
         * 标题
         **/
+        @CommentTarget("标题")
         @TableField("title")
         private String title ;
         
@@ -34,6 +36,7 @@ public class mDailyWorkStatus extends BaseEntity{
         /**
         * 工作类别
         **/
+        @CommentTarget("工作类别")
         @TableField("type")
         private Long type ;
         
@@ -42,6 +45,7 @@ public class mDailyWorkStatus extends BaseEntity{
         /**
         * 主题
         **/
+        @CommentTarget("主题")
         @TableField("theme")
         private String theme ;
         
@@ -50,6 +54,7 @@ public class mDailyWorkStatus extends BaseEntity{
         /**
         * 内容描述
         **/
+        @CommentTarget("内容描述")
         @TableField("description")
         private String description ;
         

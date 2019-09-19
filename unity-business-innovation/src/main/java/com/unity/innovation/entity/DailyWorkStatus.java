@@ -2,15 +2,15 @@ package com.unity.innovation.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.unity.common.base.CommentTarget;
 import com.unity.innovation.entity.generated.mDailyWorkStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
+
+import java.util.List;
 
 @Builder(builderMethodName = "newInstance")
 @AllArgsConstructor
-
+@NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper=false)
 @TableName(value = "daily_work_status")
@@ -26,13 +26,41 @@ public class DailyWorkStatus extends mDailyWorkStatus {
      * 创建时间
      */
     @TableField(exist = false)
-    private String createTime;
+    private String modifiedTime;
+
 
     /**
-     * 提请时间
+     * 关键字拼接
      */
     @TableField(exist = false)
-    private String submitTime;
+    private String keyWordStr;
+
+    /**
+     * 工作类别名称
+     */
+    @TableField(exist = false)
+    private String typeName;
+
+
+    /**
+     * 附件集合
+     */
+    @TableField(exist = false)
+    private List<Attachment> attachmentList;
+
+    /**
+     * 关键字主键集合
+     */
+    @CommentTarget("关键字集合")
+    @TableField(exist = false)
+    private List<Long> keyWordList;
+
+    /**
+     * 单位名称
+     */
+    @TableField(exist = false)
+    private String deptName;
+
 }
 
 

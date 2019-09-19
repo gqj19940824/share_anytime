@@ -4,14 +4,10 @@ package com.unity.innovation.controller;
 
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.innovation.service.DailyWorkPackageServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-
-
-
-
+import javax.annotation.Resource;
 
 
 /**
@@ -20,9 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * 生成时间 2019-09-17 11:17:02
  */
 @Controller
-@RequestMapping("/dailyworkpackage")
+@RequestMapping("/dailyWorkPackage")
 public class DailyWorkPackageController extends BaseWebController {
-    @Autowired
+
+    @Resource
     DailyWorkPackageServiceImpl service;
 
 
