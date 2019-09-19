@@ -10,6 +10,7 @@ import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -17,12 +18,15 @@ import com.unity.common.util.BeanUtils;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.GsonUtils;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.HashRedisUtils;
+import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.dao.DepartmentDao;
 import com.unity.rbac.entity.Department;
 import com.unity.rbac.entity.UserDepartment;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,12 +52,14 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
     private final UserDepartmentServiceImpl userDepartmentService;
     private final HashRedisUtils hashRedisUtils;
     private final RedisTemplate<String, String> redisTemplate;
+    private final DicUtils dicUtils;
 
 
-    public DepartmentServiceImpl(UserDepartmentServiceImpl userDepartmentService, HashRedisUtils hashRedisUtils, RedisTemplate redisTemplate) {
+    public DepartmentServiceImpl(UserDepartmentServiceImpl userDepartmentService, HashRedisUtils hashRedisUtils, RedisTemplate redisTemplate, DicUtils dicUtils) {
         this.userDepartmentService = userDepartmentService;
         this.hashRedisUtils = hashRedisUtils;
         this.redisTemplate = redisTemplate;
+        this.dicUtils = dicUtils;
     }
 
     /**
@@ -201,7 +207,18 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
      * @since 2019/09/17 17:20
      */
     public PageElementGrid<Map<String, Object>> listByPage(PageEntity<Department> pageEntity) {
-        IPage<Department> page = super.page(pageEntity.getPageable(),new LambdaQueryWrapper<Department>().eq(Department::getUseStatus,YesOrNoEnum.YES.getType()).orderByDesc(Department::getSort));
+        LambdaQueryWrapper<Department> wrapper = new LambdaQueryWrapper<Department>().eq(Department::getUseStatus, YesOrNoEnum.YES.getType()).orderByDesc(Department::getSort);
+        Department entity = pageEntity.getEntity();
+        if(entity != null && entity.getDepType() != null){
+            wrapper.eq(Department::getDepType,entity.getDepType());
+        }
+        if(entity != null && StringUtils.isNotBlank(entity.getName())){
+            wrapper.like(Department::getName,entity.getName());
+        }
+        if(entity != null && entity.getUseStatus() != null){
+            wrapper.eq(Department::getUseStatus,entity.getUseStatus());
+        }
+        IPage<Department> page = super.page(pageEntity.getPageable(),wrapper);
         return PageElementGrid.<Map<String, Object>>newInstance()
                 .total(page.getTotal())
                 .items(convert2List(page.getRecords()))
@@ -242,7 +259,7 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
         return JsonUtil.ObjectToList(list,
                 (m,entity) -> adapterField(m,entity,idBySortAsc,idBySortDesc)
                 , Department::getId, Department::getGmtModified, Department::getName,Department::getPhone,
-                Department::getAddress,Department::getNotes
+                Department::getAddress,Department::getNotes,Department::getDepType,Department::getUseStatus
         );
     }
 
@@ -256,7 +273,11 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
     private void adapterField(Map<String, Object> m,Department entity,Long idBySortAsc,Long idBySortDesc){
         m.put("gmtGmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
         m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
-        m.put("first",entity.getId().equals(idBySortDesc) ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType());
         m.put("last",entity.getId().equals(idBySortAsc) ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType());
+        m.put("first",entity.getId().equals(idBySortDesc) ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType());
+        Dic dic = dicUtils.getDicByCode(UserConstants.DEP_TYPE, entity.getDepType().toString());
+        if(dic != null){
+            m.put("depTypeTitle",dic.getDicValue());
+        }
     }
 }

@@ -67,6 +67,7 @@ public class DailyWorkStatusPackage extends mDailyWorkStatusPackage {
     /**
      * 通过驳回
      */
+    @CommentTarget("审核标识")
     @TableField(exist = false)
     private Integer flag;
 

@@ -12,7 +12,6 @@ import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.constants.ConstString;
 import com.unity.common.constants.RedisKeys;
-import com.unity.common.enums.UserAccountLevelEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -27,7 +26,7 @@ import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.dao.UserDao;
 import com.unity.rbac.entity.*;
 import com.unity.rbac.enums.ResourceTypeEnum;
-import com.unity.rbac.enums.UcsSourceEnum;
+import com.unity.rbac.enums.UserTypeEnum;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -99,6 +98,9 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         data.put("offset", (pageEntity.getPageable().getCurrent() - 1L) * pageEntity.getPageable().getSize());
         data.put("limit", pageEntity.getPageable().getSize());
         data.put("idRbacDepartment", user.getIdRbacDepartment());
+        data.put("depType", user.getDepType());
+        data.put("isLock", user.getIsLock());
+        data.put("name", StringUtils.isBlank(user.getName()) ? null : user.getName().trim());
         data.put("loginName", StringUtils.isNotBlank(user.getLoginName()) ? user.getLoginName().trim() : null);
         boolean isQueryByRoleId = false;
         if (user.getRoleId() == null) {
@@ -112,14 +114,9 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
             data.put("roleId", user.getRoleId());
             isQueryByRoleId = true;
         }
-        if (customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType()) || UserAccountLevelEnum.GROUP.getId().equals(customer.getAccountLevel())) {
+        if (customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())) {
             //超级管理员或一级管理员 放开数据权限
             data.put("dataPermissionIdList", null);
-        } else if (customer.getAccountLevel().equals(UserAccountLevelEnum.PROJECT.getId())
-                || CollectionUtils.isEmpty(customer.getDataPermissionIdList())) {
-            grid.setTotal(0L);
-            grid.setItems(Lists.newArrayList());
-            return grid;
         } else {
             data.put("dataPermissionIdList", customer.getDataPermissionIdList());
         }
@@ -156,8 +153,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         }
         return JsonUtil.ObjectToList(list,
                 (m, u) -> adapterFieldByList(m, u, customer, roleIdListOfUserId, isQueryByRoleId, groupConcatRoleNameMap),
-                User::getId, User::getDepartment, User::getLoginName, User::getName, User::getIdRbacDepartment,
-                User::getPhone, User::getPosition, User::getIsAdmin, User::getIsLock, User::getGroupConcatRoleName, User::getNotes
+                User::getId, User::getDepartment, User::getLoginName, User::getName, User::getIdRbacDepartment,User::getReceiveSms,
+                User::getPhone, User::getPosition, User::getUserType, User::getIsLock, User::getGroupConcatRoleName, User::getNotes, User::getSource
         );
     }
 
@@ -204,6 +201,11 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         m.put("creator", entity.getCreator().contains(ConstString.SEPARATOR_POINT) ? entity.getCreator().split(ConstString.SPLIT_POINT)[1] : entity.getCreator());
         m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
         m.put("groupConcatRoleName", entity.getGroupConcatRoleName() != null ? entity.getGroupConcatRoleName() : "");
+        m.put("userTypeTitle", UserTypeEnum.of(entity.getUserType()).getName());
+        if(entity.getDepType() != null){
+            Dic dic = dicUtils.getDicByCode(UserConstants.DEP_TYPE, entity.getDepType().toString());
+            m.put("depTypeTitle",dic == null ? "" : dic.getDicValue());
+        }
     }
 
     /**
@@ -224,8 +226,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         }
         return JsonUtil.ObjectToMap(user,
                 this::adapterField,
-                User::getId, User::getDepartment, User::getLoginName, User::getName, User::getPhone,
-                User::getPosition, User::getGroupConcatRoleName, User::getSource, User::getNotes, User::getIsAdmin,
+                User::getId, User::getDepartment, User::getLoginName, User::getName, User::getPhone,User::getReceiveSms,
+                User::getPosition, User::getGroupConcatRoleName, User::getSource, User::getNotes, User::getUserType,
                 User::getIdRbacDepartment
         );
     }
@@ -411,7 +413,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         if (dto.getId() == null) {
             dto.setPwd(Encryption.getEncryption(UserConstants.RESET_PWD, dto.getLoginName()));
             //完善信息标识
-            dto.setSource(UcsSourceEnum.INNOVATION.getId());
             dto.setIsLock(YesOrNoEnum.NO.getType());
             super.save(dto);
             //默认分配一个身份
@@ -428,6 +429,11 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
             user.setPhone(dto.getPhone());
             user.setName(dto.getName());
             user.setPosition(dto.getPosition());
+            if(!dto.getLoginName().equals(user.getLoginName())){
+                //修改账号 密码重置
+                user.setLoginName(dto.getLoginName());
+                user.setPwd(Encryption.getEncryption(UserConstants.RESET_PWD,dto.getLoginName()));
+            }
             super.updateById(user);
             //如果用户登录过 //生成保存token的key
             if (user.getLastLoginPlatform() != null) {

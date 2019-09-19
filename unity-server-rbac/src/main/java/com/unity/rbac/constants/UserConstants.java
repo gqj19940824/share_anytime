@@ -56,11 +56,14 @@ public class UserConstants {
     /**备注   限制300字符*/
     public final static int USER_NOTES_MAX_LENGTH = 255;
     /**用户注册默认身份id*/
-    public static final Long DEFAULT_IDENTITY_ID = 1L;
+    public static final Long PC_DEFAULT_IDENTITY_ID = 1L;
+    public static final Long MOBILE_DEFAULT_IDENTITY_ID = 2L;
     /**项目账号前缀*/
     public static final String PROJECT_LOGIN_NAME_PREFIX = "@PJ_";
     /**管理员账号前缀*/
     public static final String ADMIN_LOGIN_NAME_PREFIX = "@AD_";
     /**项目及管理员账号 最大限制20字符*/
     public final static int PJ_AD_LOGIN_NAME_MAX_LENGTH = 24;
+    /**组织类别*/
+    public final static String DEP_TYPE = "dep_type";
 }

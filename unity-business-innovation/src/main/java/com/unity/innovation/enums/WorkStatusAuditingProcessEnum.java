@@ -4,28 +4,27 @@ import lombok.AllArgsConstructor;
 
 /**
  * @author zhqgeng
- * @create 2019-09-17 10:59
+ * @create 2019-09-19 14:40
  */
 @AllArgsConstructor
-public enum WorkStatusAuditingStatusEnum {
-
+public enum WorkStatusAuditingProcessEnum {
     /**
-     *  状态(10.待提交 20.待审核 30.待发布 40.已驳回 50.待更新发布效果 60.已更新发布效果 )
+     *  状态(10.待提交 20.已提交 30.已通过 40.已驳回 50.已发布 60.已更新发布效果 )
      * */
     TEN(10,"待提交"),
-    TWENTY(20,"待审核"),
-    THIRTY(30,"待发布"),
+    TWENTY(20,"已提交"),
+    THIRTY(30,"已通过"),
     FORTY(40,"已驳回"),
-    FIFTY(50,"待更新发布效果"),
+    FIFTY(50,"已发布"),
     SIXTY(60,"已更新发布效果"),
     ;
 
-    public static WorkStatusAuditingStatusEnum of(Integer id) {
-        if (id.equals(TEN.getId())) {
-            return TEN;
-        }
+    public static WorkStatusAuditingProcessEnum of(Integer id) {
         if (id.equals(TWENTY.getId())) {
             return TWENTY;
+        }
+        if (id.equals(TEN.getId())) {
+            return TEN;
         }
         if (id.equals(THIRTY.getId())) {
             return THIRTY;
@@ -50,7 +49,7 @@ public enum WorkStatusAuditingStatusEnum {
      */
     public static boolean exist(int id){
         boolean flag = false;
-        for (WorkStatusAuditingStatusEnum e: WorkStatusAuditingStatusEnum.values()){
+        for (WorkStatusAuditingProcessEnum e: WorkStatusAuditingProcessEnum.values()){
             if(e.getId()==id){
                 flag = true;
                 break;
