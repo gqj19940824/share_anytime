@@ -180,5 +180,17 @@ public class DepartmentController extends BaseWebController {
         );
         return success(maps);
     }
+
+    /**
+     * 功能描述 单位下拉列表
+
+     * @return 只有id和name的单位集合
+     * @author gengzhiqiang
+     * @date 2019/9/19 19:34
+     */
+    @PostMapping("/getDeptList")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getDeptList() {
+        return success(JsonUtil.ObjectToList(service.list(), null, Department::getId, Department::getName));
+    }
 }
 
