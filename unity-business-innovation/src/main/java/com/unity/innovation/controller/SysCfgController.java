@@ -161,7 +161,7 @@ public class SysCfgController extends BaseWebController {
                         m.put("departmentName", InnovationUtil.getDeptNameById(entity.getScope()));
                     }
                 }
-                ,SysCfg::getId,SysCfg::getCfgType,SysCfg::getCfgVal,SysCfg::getScope,SysCfg::getDepartmentName
+                ,SysCfg::getId,SysCfg::getCfgType,SysCfg::getCfgVal,SysCfg::getScope,SysCfg::getDepartmentName,SysCfg::getUseStatus
         );
     }
 
