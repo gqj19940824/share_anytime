@@ -20,13 +20,6 @@ public class User extends mUser{
   @TableField(exist=false)
   private String oldPwd;
 
-  @TableField(exist=false)
-  private Long parentIdRbacDepartment;
-
-  @TableField(exist=false)
-  private String gradationCodeRbacDepartment;
-
-
   /**
    * 公司名称
    **/
@@ -57,12 +50,6 @@ public class User extends mUser{
    */
   @TableField(exist=false)
   private String groupConcatRoleName;
-
-  /**
-   * 项目名称
-   */
-  @TableField(exist=false)
-  private String nameInfoProject;
 
   /**
    * 是否超管

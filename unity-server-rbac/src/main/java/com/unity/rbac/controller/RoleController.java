@@ -11,10 +11,10 @@ import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.util.JsonUtil;
+import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.entity.Role;
 import com.unity.rbac.pojos.Relation;
 import com.unity.rbac.service.RoleServiceImpl;
-import com.unity.rbac.utils.RegExpValidatorUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -63,8 +63,9 @@ public class RoleController extends BaseWebController {
         if (dto == null || StringUtils.isBlank(dto.getName())) {
             throw new UnityRuntimeException(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到角色名称");
         }
-        if(!RegExpValidatorUtil.match(RegExpValidatorUtil.ROLE_NAME_REG,dto.getName())){
-            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "角色名称为1到20个中文");
+        dto.setName(dto.getName().replaceAll(" ",""));
+        if(dto.getName().length() > UserConstants.USER_NAME_COMPANY_POSITION_MAX_LENGTH){
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "角色名称为1到20个字符");
         }
         roleService.saveOrUpdateRole(dto);
         return success("操作成功");
@@ -191,7 +192,7 @@ public class RoleController extends BaseWebController {
      * 更改排序
      *
      * @param map id
-     *            up 1 下降 0 上升
+     *            up 0 下降 1 上升
      * @return
      */
     @PostMapping("/changeOrder")

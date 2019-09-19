@@ -5,8 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.rbac.entity.generated.mDepartment;
 import lombok.*;
 
-import java.util.List;
-
 
 /**
  * @author gengjiajia
@@ -23,7 +21,7 @@ public class Department extends mDepartment{
      * 0:上移 1：下移
      */
     @TableField(exist = false)
-    private Integer upOrDown;
+    private Integer up;
 
 }
 

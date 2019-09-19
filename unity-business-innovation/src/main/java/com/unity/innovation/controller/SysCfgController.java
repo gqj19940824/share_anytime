@@ -5,12 +5,11 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.unity.common.client.RbacClient;
-import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ValidFieldFactory;
 import com.unity.common.util.ValidFieldUtil;
+import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.unity.common.base.controller.BaseWebController;
@@ -39,8 +38,6 @@ public class SysCfgController extends BaseWebController {
     @Resource
     SysCfgServiceImpl service;
 
-    @Resource
-    RbacClient rbacClient;
 
      /**
      * 分页查询
@@ -144,33 +141,28 @@ public class SysCfgController extends BaseWebController {
         service.updateById(entity);
         return success(null);
     }
-    
 
-    
      /**
      * 将实体列表 转换为List Map
+     *
      * @param list 实体列表
-     * @return
+     * @return java.util.List<java.util.Map<java.lang.String,java.lang.Object>>
+     * @author JH
+     * @date 2019/9/18 14:53
      */
+     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> convert2List(List<SysCfg> list){
        
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
-                    adapterField(m, entity);
+                    if(entity.getScope() == 0) {
+                        m.put("departmentName", "共用");
+                    } else {
+                        m.put("departmentName", InnovationUtil.getDeptNameById(entity.getScope()));
+                    }
                 }
-                ,SysCfg::getId,SysCfg::getSort,SysCfg::getNotes,SysCfg::getCfgType,SysCfg::getCfgVal,SysCfg::getScope
+                ,SysCfg::getId,SysCfg::getCfgType,SysCfg::getCfgVal,SysCfg::getScope,SysCfg::getDepartmentName
         );
-    }
-    
-
-    
-    /**
-     * 字段适配
-     * @param m 适配的结果
-     * @param entity 需要适配的实体
-     */
-    private void adapterField(Map<String, Object> m,SysCfg entity){
-
     }
 
 
