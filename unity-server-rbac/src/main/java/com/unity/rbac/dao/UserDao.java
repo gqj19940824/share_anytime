@@ -256,7 +256,7 @@ public interface UserDao extends BaseDao<User> {
      * @since 2019/07/12 18:58
      */
     @Select("SELECT " +
-            " u.*, d.name AS department,d.gradation_code as gradationCodeRbacDepartment " +
+            " u.*, d.name AS department " +
             "FROM " +
             " rbac_user u " +
             "INNER JOIN rbac_department d ON u.id_rbac_department = d.id " +

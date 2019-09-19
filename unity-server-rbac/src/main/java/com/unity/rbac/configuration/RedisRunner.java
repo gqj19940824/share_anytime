@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * @author gengjiajia
  */
 @Slf4j
-//@Component
+@Component
 public class RedisRunner implements ApplicationRunner {
 
     @Resource
