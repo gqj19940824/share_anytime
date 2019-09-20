@@ -12,6 +12,7 @@ import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
+import com.unity.innovation.entity.DailyWorkStatus;
 import com.unity.innovation.entity.DailyWorkStatusPackage;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.DailyWorkStatusPackageServiceImpl;
@@ -90,6 +91,39 @@ public class DailyWorkStatusPackageController extends BaseWebController {
                 }, DailyWorkStatusPackage::getId, DailyWorkStatusPackage::getGmtSubmit,DailyWorkStatusPackage::getDeptName,
                 DailyWorkStatusPackage::getTitle, DailyWorkStatusPackage::getState,DailyWorkStatusPackage::getStateName);
     }
+
+
+    /**
+     * 功能描述 分页列表查询
+     * @param search 查询条件
+     * @return 分页数据
+     * @author gengzhiqiang
+     * @date 2019/9/17 13:36
+     */
+    @PostMapping("/listForContent")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listForContent(@RequestBody PageEntity<DailyWorkStatus> search) {
+        IPage<DailyWorkStatus> list = service.listForContent(search);
+        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
+                .total(list.getTotal())
+                .items(convert2ListForContent(list.getRecords())).build();
+        return success(result);
+    }
+
+    /**
+     * 功能描述 数据整理
+     * @param list 集合
+     * @return java.util.List<java.util.Map<java.lang.String,java.lang.Object>> 规范数据
+     * @author gengzhiqiang
+     * @date 2019/9/17 13:36
+     */
+    private List<Map<String, Object>> convert2ListForContent(List<DailyWorkStatus> list) {
+        return JsonUtil.<DailyWorkStatus>ObjectToList(list,
+                (m, entity) -> {
+                }, DailyWorkStatus::getId, DailyWorkStatus::getTypeName, DailyWorkStatus::getKeyWordStr, DailyWorkStatus::getTheme,
+                DailyWorkStatus::getDescription, DailyWorkStatus::getNotes, DailyWorkStatus::getState, DailyWorkStatus::getGmtCreate,
+                DailyWorkStatus::getGmtModified, DailyWorkStatus::getTitle,DailyWorkStatus::getDeptName);
+    }
+
 
     /**
      * 功能描述

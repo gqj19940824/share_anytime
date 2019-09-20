@@ -112,7 +112,7 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
             lqw.eq(DailyWorkStatus::getIdRbacDepartment, search.getEntity().getIdRbacDepartment());
         }
         //排序规则      未提请发布在前，已提请发布在后；未提请发布按创建时间倒序，已提请发布按提请时间倒序
-        lqw.last(" ORDER BY state ASC , gmt_modified desc ");
+        lqw.last(" ORDER BY state ASC , gmt_create desc ");
         IPage<DailyWorkStatus> list = page(search.getPageable(), lqw);
         if (CollectionUtils.isEmpty(list.getRecords())) {
             return list;
@@ -149,7 +149,86 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
     }
 
 
-
+    /**
+     * 功能描述 需求包 添加基础数据 列表
+     * @param search 查询条件
+     * @return 分页信息
+     * @author gengzhiqiang
+     * @date 2019/9/20 14:50
+     */
+     IPage<DailyWorkStatus> listForContent(PageEntity<DailyWorkStatus> search) {
+        LambdaQueryWrapper<DailyWorkStatus> lqw = new LambdaQueryWrapper<>();
+        //标题
+        if (StringUtils.isNotBlank(search.getEntity().getTitle())) {
+            lqw.like(DailyWorkStatus::getTitle, search.getEntity().getTitle());
+        }
+        //主题
+        if (StringUtils.isNotBlank(search.getEntity().getTheme())) {
+            lqw.like(DailyWorkStatus::getTheme, search.getEntity().getTheme());
+        }
+        //工作类别
+        if (search.getEntity().getType() != null) {
+            lqw.eq(DailyWorkStatus::getType, search.getEntity().getType());
+        }
+        //关键字
+        if (search.getEntity().getKeyWord() != null) {
+            //关键词中间表查询工作动态的数据
+            List<DailyWorkKeyword> keyList = keywordService.list(new LambdaQueryWrapper<DailyWorkKeyword>()
+                    .eq(DailyWorkKeyword::getIdKeyword, search.getEntity().getKeyWord()));
+            List<Long> ids = keyList.stream().map(DailyWorkKeyword::getIdDailyWorkStatus).collect(Collectors.toList());
+            lqw.in(DailyWorkStatus::getId, ids);
+        }
+        //状态
+        lqw.eq(DailyWorkStatus::getState, YesOrNoEnum.NO.getType());
+        //创建时间
+        if (StringUtils.isNotBlank(search.getEntity().getCreateTime())) {
+            long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), true);
+            long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), false);
+            //gt 大于 lt 小于
+            lqw.gt(DailyWorkStatus::getGmtCreate, begin);
+            lqw.lt(DailyWorkStatus::getGmtCreate, end);
+        }
+        //本单位数据 管理员 列表数据都要显示
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (customer.getIdRbacDepartment() != null ) {
+            lqw.eq(DailyWorkStatus::getIdRbacDepartment, customer.getIdRbacDepartment());
+        }
+        //排序规则  创建时间倒序
+        lqw.orderByDesc(DailyWorkStatus::getGmtCreate);
+        IPage<DailyWorkStatus> list = page(search.getPageable(), lqw);
+        if (CollectionUtils.isEmpty(list.getRecords())) {
+            return list;
+        }
+        List<Long> ids = list.getRecords().stream().map(DailyWorkStatus::getId).collect(Collectors.toList());
+        //工作类别
+        List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
+                .eq(SysCfg::getCfgType, SysCfgEnum.ONE.getId()));
+        Map<Long, String> typeNames = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
+        //关键字
+        List<DailyWorkKeyword> keys = keywordService.list(new LambdaQueryWrapper<DailyWorkKeyword>()
+                .in(DailyWorkKeyword::getIdDailyWorkStatus, ids));
+        List<SysCfg> keyList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
+                .eq(SysCfg::getCfgType, SysCfgEnum.TWO.getId()));
+        Map<Long, String> keyNames = keyList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
+        keys.forEach(k->k.setKeyName(keyNames.get(k.getIdKeyword())));
+        Map<Long, List<DailyWorkKeyword>> keyStr = keys.stream().collect(Collectors.groupingBy(DailyWorkKeyword::getIdDailyWorkStatus));
+        list.getRecords().forEach(dwk -> {
+            //关键字
+            List<DailyWorkKeyword> keyList1 = keyStr.get((dwk.getId()));
+            String keysStr=keyList1.stream().map(DailyWorkKeyword::getKeyName).collect(joining(" "));
+            dwk.setKeyWordStr(keysStr);
+            //工作类别
+            dwk.setTypeName(typeNames.get(dwk.getType()));
+            //redis获取单位名称
+            if (hashRedisUtils.getFieldValueByFieldName
+                    (RedisConstants.DEPARTMENT + dwk.getIdRbacDepartment(), "name") != null) {
+                dwk.setDeptName(hashRedisUtils.getFieldValueByFieldName
+                        (RedisConstants.DEPARTMENT + dwk.getIdRbacDepartment(), "name")
+                );
+            }
+        });
+        return list;
+    }
 
     /**
      * 功能描述 新增编辑接口
@@ -252,4 +331,5 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
         removeByIds(ids);
 
     }
+
 }

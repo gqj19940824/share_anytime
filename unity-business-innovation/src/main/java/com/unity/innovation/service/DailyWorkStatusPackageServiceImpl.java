@@ -581,7 +581,15 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         RegionUtil.setBorderTop(1, range, sheet);
     }
 
-
-
-
+    /**
+     * 功能描述 基础数据列表
+     * @param search 查询条件
+     * @return
+     * @author gengzhiqiang
+     * @date 2019/9/20 14:56
+     */
+    public IPage<DailyWorkStatus> listForContent(PageEntity<DailyWorkStatus> search) {
+        IPage<DailyWorkStatus> list= workStatusService.listForContent(search);
+        return list;
+    }
 }
