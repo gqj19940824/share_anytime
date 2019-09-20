@@ -23,10 +23,16 @@ public class DailyWorkStatus extends mDailyWorkStatus {
     private Long keyWord;
 
     /**
-     * 创建时间
+     * 更新时间
      */
     @TableField(exist = false)
     private String modifiedTime;
+
+    /**
+     * 创建时间
+     */
+    @TableField(exist = false)
+    private String createTime;
 
 
     /**

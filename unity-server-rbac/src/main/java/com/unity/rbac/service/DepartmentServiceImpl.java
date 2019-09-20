@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -178,6 +179,8 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
         entityb.setId(entity1.getId());
         entityb.setSort(sort);
         this.updateById(entityb);
+        //更新redis中公司排序
+        reOrderDepartment();
     }
 
     /**
@@ -186,6 +189,7 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
      * @author JH
      * @date 2019/7/24 16:46
      */
+    @Async
     public void reOrderDepartment() {
         //将公司排序信息放入redis
         List<Department> list = super.list(new LambdaQueryWrapper<Department>().orderByDesc(Department::getSort));

@@ -20,7 +20,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -35,7 +34,7 @@ import java.util.Map;
  * @author zhang
  * 生成时间 2019-07-23 16:34:47
  */
-@Controller
+@RestController
 @RequestMapping("/dic")
 public class DicController extends BaseWebController {
 
@@ -55,7 +54,6 @@ public class DicController extends BaseWebController {
      * @return
      */
     @PostMapping("/dicGroup/save")
-    @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>> dicGroupSave(@RequestBody DicGroup entity) {
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
@@ -109,7 +107,6 @@ public class DicController extends BaseWebController {
      * @return
      */
     @PostMapping("dicGroup/list")
-    @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>> dicGroupLlist(@RequestBody PageEntity<DicGroup> pageEntity) {
         if (pageEntity == null || pageEntity.getPageable() == null){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
@@ -186,7 +183,6 @@ public class DicController extends BaseWebController {
      * @return
      */
     @PostMapping("/dic/save")
-    @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>> save(@RequestBody Dic entity) {
 
         if (entity == null) {
@@ -245,14 +241,17 @@ public class DicController extends BaseWebController {
      * @return
      */
     @PostMapping("/dic/list")
-    @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>> list(@RequestBody Map<String, Object> map) {
 
         if (MapUtils.isEmpty(map) || StringUtils.isBlank(MapUtils.getString(map, "groupCode"))) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
-
-        return success(dicService.list(new LambdaQueryWrapper<Dic>().eq(Dic::getGroupCode, MapUtils.getString(map, "groupCode")).orderByAsc(Dic::getSort)));
+        LambdaQueryWrapper<Dic> ew = new LambdaQueryWrapper<>();
+        ew.eq(Dic::getGroupCode, MapUtils.getString(map, "groupCode")).orderByAsc(Dic::getSort);
+        if(StringUtils.isNotBlank(MapUtils.getString(map, "dicName"))) {
+            ew.like(Dic::getDicName,MapUtils.getString(map, "dicName"));
+        }
+        return success(dicService.list(ew));
     }
 
     /**

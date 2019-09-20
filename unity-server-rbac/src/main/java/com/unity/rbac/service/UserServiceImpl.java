@@ -94,25 +94,27 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         PageElementGrid<Map<String, Object>> grid = new PageElementGrid<>();
         Customer customer = LoginContextHolder.getRequestAttributes();
         Map<String, Object> data = Maps.newHashMap();
-        User user = pageEntity.getEntity();
         data.put("offset", (pageEntity.getPageable().getCurrent() - 1L) * pageEntity.getPageable().getSize());
         data.put("limit", pageEntity.getPageable().getSize());
-        data.put("idRbacDepartment", user.getIdRbacDepartment());
-        data.put("depType", user.getDepType());
-        data.put("isLock", user.getIsLock());
-        data.put("name", StringUtils.isBlank(user.getName()) ? null : user.getName().trim());
-        data.put("loginName", StringUtils.isNotBlank(user.getLoginName()) ? user.getLoginName().trim() : null);
+        User user = pageEntity.getEntity();
         boolean isQueryByRoleId = false;
-        if (user.getRoleId() == null) {
-            //不查询
-            data.put("roleId", null);
-        } else if (user.getRoleId().equals(0L)) {
-            //查询无角色的用户
-            data.put("roleId", 0);
-        } else {
-            //查询指定角色的用户
-            data.put("roleId", user.getRoleId());
-            isQueryByRoleId = true;
+        if(user != null){
+            data.put("idRbacDepartment", user.getIdRbacDepartment());
+            data.put("depType", user.getDepType());
+            data.put("isLock", user.getIsLock());
+            data.put("name", StringUtils.isBlank(user.getName()) ? null : user.getName().trim());
+            data.put("loginName", StringUtils.isNotBlank(user.getLoginName()) ? user.getLoginName().trim() : null);
+            if (user.getRoleId() == null) {
+                //不查询
+                data.put("roleId", null);
+            } else if (user.getRoleId().equals(0L)) {
+                //查询无角色的用户
+                data.put("roleId", 0);
+            } else {
+                //查询指定角色的用户
+                data.put("roleId", user.getRoleId());
+                isQueryByRoleId = true;
+            }
         }
         if (customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())) {
             //超级管理员或一级管理员 放开数据权限
@@ -167,6 +169,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
     private void adapterFieldByList(Map<String, Object> m, User entity, Customer customer, Map<Long,
             List<Long>> roleIdListOfUserIdMap, boolean isQueryByRoleId, Map<Long, String> groupConcatRoleNameMap) {
         adapterField(m, entity);
+        m.put("receiveSmsName", entity.getReceiveSms() != null ? entity.getReceiveSms() == 0 ? "是" : "否" : "");
+        m.put("isLockName", entity.getIsLock() != null  ? entity.getIsLock() == 0 ? "已启用" : "已禁用" : "");
         List<Long> roleIdListOfUserId = roleIdListOfUserIdMap.get(entity.getId());
         if (customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())) {
             //超管可分配所有角色
@@ -200,8 +204,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
     private void adapterField(Map<String, Object> m, User entity) {
         m.put("creator", entity.getCreator().contains(ConstString.SEPARATOR_POINT) ? entity.getCreator().split(ConstString.SPLIT_POINT)[1] : entity.getCreator());
         m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
-        m.put("groupConcatRoleName", entity.getGroupConcatRoleName() != null ? entity.getGroupConcatRoleName() : "");
-        m.put("userTypeTitle", UserTypeEnum.of(entity.getUserType()).getName());
+        m.put("groupConcatRoleName", StringUtils.isNotEmpty(entity.getGroupConcatRoleName()) ? entity.getGroupConcatRoleName() : "");
+        m.put("userTypeTitle", entity.getUserType() != null ? UserTypeEnum.of(entity.getUserType()).getName() : "");
         if(entity.getDepType() != null){
             Dic dic = dicUtils.getDicByCode(UserConstants.DEP_TYPE, entity.getDepType().toString());
             m.put("depTypeTitle",dic == null ? "" : dic.getDicValue());
