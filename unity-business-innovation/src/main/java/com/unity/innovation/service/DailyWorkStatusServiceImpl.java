@@ -221,7 +221,7 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
         vo.setKeyWordList(list.stream().map(DailyWorkKeyword::getIdKeyword).collect(Collectors.toList()));
         //附件
         List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
-                .eq(Attachment::getAttachmentCode,entity.getAttachmentCode()));
+                .eq(Attachment::getAttachmentCode,vo.getAttachmentCode()));
         if (CollectionUtils.isNotEmpty(attachmentList)){
             vo.setAttachmentList(attachmentList);
         }
