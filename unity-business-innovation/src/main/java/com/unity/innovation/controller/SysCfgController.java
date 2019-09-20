@@ -52,6 +52,9 @@ public class SysCfgController extends BaseWebController {
 
         LambdaQueryWrapper<SysCfg> ew = new LambdaQueryWrapper<>();
         SysCfg cfg = pageEntity.getEntity();
+        if(cfg == null) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"缺少必要参数");
+        }
         if(cfg.getCfgType() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"缺少必要参数");
         }

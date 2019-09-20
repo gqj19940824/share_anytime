@@ -94,25 +94,27 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         PageElementGrid<Map<String, Object>> grid = new PageElementGrid<>();
         Customer customer = LoginContextHolder.getRequestAttributes();
         Map<String, Object> data = Maps.newHashMap();
-        User user = pageEntity.getEntity();
         data.put("offset", (pageEntity.getPageable().getCurrent() - 1L) * pageEntity.getPageable().getSize());
         data.put("limit", pageEntity.getPageable().getSize());
-        data.put("idRbacDepartment", user.getIdRbacDepartment());
-        data.put("depType", user.getDepType());
-        data.put("isLock", user.getIsLock());
-        data.put("name", StringUtils.isBlank(user.getName()) ? null : user.getName().trim());
-        data.put("loginName", StringUtils.isNotBlank(user.getLoginName()) ? user.getLoginName().trim() : null);
+        User user = pageEntity.getEntity();
         boolean isQueryByRoleId = false;
-        if (user.getRoleId() == null) {
-            //不查询
-            data.put("roleId", null);
-        } else if (user.getRoleId().equals(0L)) {
-            //查询无角色的用户
-            data.put("roleId", 0);
-        } else {
-            //查询指定角色的用户
-            data.put("roleId", user.getRoleId());
-            isQueryByRoleId = true;
+        if(user != null){
+            data.put("idRbacDepartment", user.getIdRbacDepartment());
+            data.put("depType", user.getDepType());
+            data.put("isLock", user.getIsLock());
+            data.put("name", StringUtils.isBlank(user.getName()) ? null : user.getName().trim());
+            data.put("loginName", StringUtils.isNotBlank(user.getLoginName()) ? user.getLoginName().trim() : null);
+            if (user.getRoleId() == null) {
+                //不查询
+                data.put("roleId", null);
+            } else if (user.getRoleId().equals(0L)) {
+                //查询无角色的用户
+                data.put("roleId", 0);
+            } else {
+                //查询指定角色的用户
+                data.put("roleId", user.getRoleId());
+                isQueryByRoleId = true;
+            }
         }
         if (customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())) {
             //超级管理员或一级管理员 放开数据权限
