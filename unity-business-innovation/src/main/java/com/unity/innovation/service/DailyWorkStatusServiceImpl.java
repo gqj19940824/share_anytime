@@ -92,6 +92,14 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
         if (search.getEntity().getState() != null) {
             lqw.eq(DailyWorkStatus::getState, search.getEntity().getState());
         }
+        //创建时间
+        if (StringUtils.isNotBlank(search.getEntity().getCreateTime())) {
+            long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), true);
+            long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), false);
+            //gt 大于 lt 小于
+            lqw.lt(DailyWorkStatus::getGmtCreate, end);
+            lqw.gt(DailyWorkStatus::getGmtCreate, begin);
+        }
         //更新时间
         if (StringUtils.isNotBlank(search.getEntity().getModifiedTime())) {
             long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getModifiedTime(), true);
