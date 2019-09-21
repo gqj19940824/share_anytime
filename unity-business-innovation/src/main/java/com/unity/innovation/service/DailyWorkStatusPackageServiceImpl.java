@@ -215,12 +215,6 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
             save(entity);
             //处理中间表
-            long count = (long) workMPackageService.list(new LambdaQueryWrapper<DailyWorkPackage>().in(DailyWorkPackage::getIdDailyWorkStatus, works)).size();
-            if (count > 0) {
-                throw UnityRuntimeException.newInstance()
-                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("已提请数据不可重复提请").build();
-            }
             workMPackageService.updateWorkPackage(entity.getId(), works);
         } else {
             //编辑
@@ -237,11 +231,13 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                         .message("只有待提交和已驳回状态下数据可编辑").build();
             }
             List<Long> works = entity.getWorkStatusList();
-            long count = (long) workStatusService.list(new LambdaQueryWrapper<DailyWorkStatus>().in(DailyWorkStatus::getId, works)).size();
+            long count = (long) workStatusService.list(new LambdaQueryWrapper<DailyWorkStatus>()
+                    .in(DailyWorkStatus::getId, works)
+                    .ne(DailyWorkStatus::getId,vo.getId())).size();
             if (count > 0) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("已提请数据不可重复提请").build();
+                        .message("当前列表存在已提请数据").build();
             }
             workMPackageService.updateWorkPackage(entity.getId(), works);
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
@@ -317,7 +313,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         Map<Integer, DailyWorkStatusLog> processNode = logList.stream().filter(log -> !WorkStatusAuditingStatusEnum.FORTY.getId().equals(log.getState()))
                 .collect(Collectors.groupingBy(DailyWorkStatusLog::getState,
                         Collectors.collectingAndThen(Collectors
-                                .maxBy(Comparator.comparingLong(DailyWorkStatusLog::getGmtCreate)), Optional::get)));
+                                .minBy(Comparator.comparingLong(DailyWorkStatusLog::getGmtCreate)), Optional::get)));
         vo.setProcessNode(processNode);
         //附件
         List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
