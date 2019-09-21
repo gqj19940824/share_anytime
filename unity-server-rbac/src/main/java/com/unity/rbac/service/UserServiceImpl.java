@@ -155,7 +155,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         }
         return JsonUtil.ObjectToList(list,
                 (m, u) -> adapterFieldByList(m, u, customer, roleIdListOfUserId, isQueryByRoleId, groupConcatRoleNameMap),
-                User::getId, User::getDepartment, User::getLoginName, User::getName, User::getIdRbacDepartment,User::getReceiveSms,
+                User::getId, User::getDepartment, User::getLoginName, User::getName, User::getIdRbacDepartment,User::getReceiveSms,User::getDepType,
                 User::getPhone, User::getPosition, User::getUserType, User::getIsLock, User::getGroupConcatRoleName, User::getNotes, User::getSource
         );
     }
