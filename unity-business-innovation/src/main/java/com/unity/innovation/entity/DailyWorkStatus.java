@@ -67,6 +67,12 @@ public class DailyWorkStatus extends mDailyWorkStatus {
     @TableField(exist = false)
     private String deptName;
 
+    /**
+     * 包id
+     */
+    @TableField(exist = false)
+    private String idPackage;
+
 }
 
 
