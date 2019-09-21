@@ -14,10 +14,7 @@ import com.unity.common.ui.PageEntity;
 import com.unity.common.utils.HashRedisUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.DailyWorkStatusDao;
-import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.DailyWorkKeyword;
-import com.unity.innovation.entity.DailyWorkStatus;
-import com.unity.innovation.entity.SysCfg;
+import com.unity.innovation.entity.*;
 import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
@@ -57,6 +54,10 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
 
     @Resource
     private HashRedisUtils hashRedisUtils;
+
+    @Resource
+    private DailyWorkPackageServiceImpl workMPackageService;
+
     /**
      * 功能描述 分页列表查询
      *
@@ -186,8 +187,18 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
             List<Long> ids = keyList.stream().map(DailyWorkKeyword::getIdDailyWorkStatus).collect(Collectors.toList());
             lqw.in(DailyWorkStatus::getId, ids);
         }
-        //状态
-        lqw.eq(DailyWorkStatus::getState, YesOrNoEnum.NO.getType());
+         //状态
+         if (search.getEntity().getIdPackage() != null) {
+             List<DailyWorkPackage> list = workMPackageService.list(new LambdaQueryWrapper<DailyWorkPackage>()
+                     .eq(DailyWorkPackage::getIdPackage, search.getEntity().getIdPackage()));
+             List<Long> ids = list.stream().map(DailyWorkPackage::getIdDailyWorkStatus).collect(Collectors.toList());
+             lqw.and(w -> w
+                     .eq(DailyWorkStatus::getId, ids)
+                     .or()
+                     .eq(DailyWorkStatus::getState, YesOrNoEnum.NO.getType()));
+         } else {
+             lqw.eq(DailyWorkStatus::getState, YesOrNoEnum.NO.getType());
+         }
         //创建时间
         if (StringUtils.isNotBlank(search.getEntity().getCreateTime())) {
             long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), true);
