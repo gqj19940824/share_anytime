@@ -9,6 +9,8 @@ import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ValidFieldFactory;
 import com.unity.common.util.ValidFieldUtil;
+import com.unity.innovation.entity.SysCfgScope;
+import com.unity.innovation.service.SysCfgScopeServiceImpl;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +24,7 @@ import reactor.core.publisher.Mono;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.Map;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import com.unity.innovation.service.SysCfgServiceImpl;
 import com.unity.innovation.entity.SysCfg;
@@ -37,6 +40,8 @@ public class SysCfgController extends BaseWebController {
 
     @Resource
     SysCfgServiceImpl service;
+    @Resource
+    SysCfgScopeServiceImpl scopeService;
 
 
      /**
@@ -59,16 +64,29 @@ public class SysCfgController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"缺少必要参数");
         }
         ew.eq(SysCfg::getCfgType,cfg.getCfgType());
-        Long scope = cfg.getScope();
-        if(scope != null) {
-            ew.eq(SysCfg::getScope,scope);
-        }
+
         ew.orderByDesc(SysCfg::getUseStatus);
         ew.last(", CONVERT(cfg_val USING gbk)");
         IPage<SysCfg> p = service.page(pageEntity.getPageable(),ew);
+        List<SysCfg> list = p.getRecords();
+        //id集合
+        List<Long> cfgIds = list.stream().map(SysCfg::getId).collect(Collectors.toList());
+        //按主表id分组
+        List<SysCfgScope> scopeList = scopeService.list(new LambdaQueryWrapper<SysCfgScope>().in(SysCfgScope::getIdSysCfg, cfgIds));
+        scopeList.forEach(n -> {
+                    if(n.getIdRbacDepartment() == 0) {
+                        n.setDepartmentName("共用");
+                    } else {
+                        n.setDepartmentName(InnovationUtil.getDeptNameById(n.getIdRbacDepartment()));
+                    }
+        });
+        Map<Long, List<SysCfgScope>> map = scopeList.stream().collect(Collectors.groupingBy(SysCfgScope::getIdSysCfg));
+        list.forEach( n ->
+           n.setScopeList(map.get(n.getId()))
+        );
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
                 .total(p.getTotal())
-                .items(convert2List(p.getRecords())).build();
+                .items(convert2List(list)).build();
         return success(result);
 
     }
@@ -83,10 +101,11 @@ public class SysCfgController extends BaseWebController {
     * @date 2019/9/17 15:58
     */
     @PostMapping("/saveOrUpdate")
-    public Mono<ResponseEntity<SystemResponse<Object>>> save(@RequestBody SysCfg entity) {
+    public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody SysCfg entity) {
         //参数校验
         validate(entity);
-        return success( service.saveOrUpdate(entity));
+        service.saveOrUpdateSysCfg(entity);
+        return success();
     }
 
     /**
@@ -158,14 +177,8 @@ public class SysCfgController extends BaseWebController {
     private List<Map<String, Object>> convert2List(List<SysCfg> list){
        
         return JsonUtil.ObjectToList(list,
-                (m, entity) -> {
-                    if(entity.getScope() == 0) {
-                        m.put("departmentName", "共用");
-                    } else {
-                        m.put("departmentName", InnovationUtil.getDeptNameById(entity.getScope()));
-                    }
-                }
-                ,SysCfg::getId,SysCfg::getCfgType,SysCfg::getCfgVal,SysCfg::getScope,SysCfg::getDepartmentName,SysCfg::getUseStatus
+            null
+                ,SysCfg::getId,SysCfg::getCfgType,SysCfg::getCfgVal,SysCfg::getScopeList,SysCfg::getUseStatus
         );
     }
 
