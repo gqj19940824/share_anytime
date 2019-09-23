@@ -159,7 +159,7 @@ public class DailyWorkStatusController extends BaseWebController {
      */
     @PostMapping("/getTypeList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getTypeList() {
-        return success(sysCfgService.getSysList(SysCfgEnum.ONE.getId()));
+        return success(sysCfgService.getSysList1(SysCfgEnum.ONE.getId()));
     }
 
     /**
@@ -171,7 +171,7 @@ public class DailyWorkStatusController extends BaseWebController {
      */
     @PostMapping("/getKeyList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getKeyList() {
-        return success(sysCfgService.getSysList(SysCfgEnum.TWO.getId()));
+        return success(sysCfgService.getSysList1(SysCfgEnum.TWO.getId()));
     }
 
 }
