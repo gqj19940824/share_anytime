@@ -296,6 +296,11 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                 if (WorkStatusAuditingProcessEnum.exist(log.getState())) {
                     log.setLogName(WorkStatusAuditingProcessEnum.of(log.getState()).getName());
                 }
+                if (!WorkStatusAuditingProcessEnum.FIFTY.getId().equals(log.getState())) {
+                    if (WorkStatusAuditingProcessEnum.exist(log.getState())) {
+                        log.setActionDescribe(WorkStatusAuditingProcessEnum.of(log.getState()).getActionDescribe());
+                    }
+                }
             }
             //redis获取单位名称
             if (hashRedisUtils.getFieldValueByFieldName
@@ -311,7 +316,10 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                 .collect(Collectors.groupingBy(DailyWorkStatusLog::getState,
                         Collectors.collectingAndThen(Collectors
                                 .minBy(Comparator.comparingLong(DailyWorkStatusLog::getGmtCreate)), Optional::get)));
-        vo.setProcessNode(processNode);
+        List<DailyWorkStatusLog> processNodes=Lists.newArrayList();
+        processNode.forEach((k, v) -> processNodes.add(v));
+        vo.setProcessNode(processNodes);
+       // vo.setProcessNode(processNode);
         //附件
         List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
                 .eq(Attachment::getAttachmentCode,entity.getAttachmentCode()));

@@ -57,12 +57,13 @@ public class DailyWorkStatusPackage extends mDailyWorkStatusPackage {
     @TableField(exist = false)
     private List<DailyWorkStatusLog> logList;
 
+
+
     /**
      * 流程节点
      */
     @TableField(exist = false)
-    private Map<Integer, DailyWorkStatusLog> processNode;
-
+    private List<DailyWorkStatusLog> processNode;
 
     /**
      * 通过驳回
