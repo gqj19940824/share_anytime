@@ -18,6 +18,7 @@ import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.util.JsonUtil;
+import org.assertj.core.internal.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -55,40 +56,60 @@ public class SysCfgController extends BaseWebController {
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<SysCfg> pageEntity) {
 
-        LambdaQueryWrapper<SysCfg> ew = new LambdaQueryWrapper<>();
         SysCfg cfg = pageEntity.getEntity();
-        if(cfg == null) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"缺少必要参数");
-        }
-        if(cfg.getCfgType() == null) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"缺少必要参数");
-        }
-        ew.eq(SysCfg::getCfgType,cfg.getCfgType());
-
-        ew.orderByDesc(SysCfg::getUseStatus);
-        ew.last(", CONVERT(cfg_val USING gbk)");
+        LambdaQueryWrapper<SysCfg> ew = wrapper(cfg);
         IPage<SysCfg> p = service.page(pageEntity.getPageable(),ew);
         List<SysCfg> list = p.getRecords();
         //id集合
         List<Long> cfgIds = list.stream().map(SysCfg::getId).collect(Collectors.toList());
         //按主表id分组
-        List<SysCfgScope> scopeList = scopeService.list(new LambdaQueryWrapper<SysCfgScope>().in(SysCfgScope::getIdSysCfg, cfgIds));
-        scopeList.forEach(n -> {
-                    if(n.getIdRbacDepartment() == 0) {
-                        n.setDepartmentName("共用");
-                    } else {
-                        n.setDepartmentName(InnovationUtil.getDeptNameById(n.getIdRbacDepartment()));
-                    }
-        });
-        Map<Long, List<SysCfgScope>> map = scopeList.stream().collect(Collectors.groupingBy(SysCfgScope::getIdSysCfg));
-        list.forEach( n ->
-           n.setScopeList(map.get(n.getId()))
-        );
+        if(CollectionUtils.isNotEmpty(cfgIds)) {
+            List<SysCfgScope> scopeList = scopeService.list(new LambdaQueryWrapper<SysCfgScope>().in(SysCfgScope::getIdSysCfg, cfgIds));
+            scopeList.forEach(n -> {
+                if(n.getIdRbacDepartment() == 0) {
+                    n.setDepartmentName("共用");
+                } else {
+                    n.setDepartmentName(InnovationUtil.getDeptNameById(n.getIdRbacDepartment()));
+                }
+            });
+            Map<Long, List<SysCfgScope>> map = scopeList.stream().collect(Collectors.groupingBy(SysCfgScope::getIdSysCfg));
+            list.forEach( n ->
+                    n.setScopeList(map.get(n.getId()))
+            );
+        }
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
                 .total(p.getTotal())
                 .items(convert2List(list)).build();
         return success(result);
 
+    }
+
+    /**
+    * 查询条件封装
+    *
+    * @param cfg 入参
+    * @return com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.unity.innovation.entity.SysCfg>
+    * @author JH
+    * @date 2019/9/23 9:51
+    */
+    private LambdaQueryWrapper<SysCfg> wrapper(SysCfg cfg) {
+        LambdaQueryWrapper<SysCfg> ew = new LambdaQueryWrapper<>();
+        if(cfg == null) {
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"缺少必要参数");
+        }
+        if(cfg.getCfgType() == null) {
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"缺少必要参数");
+        }
+        ew.eq(SysCfg::getCfgType,cfg.getCfgType());
+        if(cfg.getUseStatus() != null) {
+            ew.eq(SysCfg::getUseStatus,cfg.getUseStatus());
+        }
+        if(StringUtils.isNotBlank(cfg.getCfgVal())) {
+            ew.like(SysCfg::getCfgVal,cfg.getCfgVal());
+        }
+        ew.orderByDesc(SysCfg::getUseStatus);
+        ew.last(", CONVERT(cfg_val USING gbk)");
+        return ew;
     }
     
 
