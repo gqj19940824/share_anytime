@@ -17,7 +17,6 @@ import com.unity.innovation.entity.DailyWorkStatusPackage;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.DailyWorkStatusPackageServiceImpl;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +25,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +39,8 @@ import java.util.Map;
 @Controller
 @RequestMapping("/dailyWorkStatusPackage")
 public class DailyWorkStatusPackageController extends BaseWebController {
-    @Autowired
-    DailyWorkStatusPackageServiceImpl service;
+    @Resource
+    private DailyWorkStatusPackageServiceImpl service;
 
     /**
      * 功能描述 分页列表查询
@@ -184,7 +184,7 @@ public class DailyWorkStatusPackageController extends BaseWebController {
     /**
      * 功能描述 批量删除
      *
-     * @param ids
+     * @param ids id集合
      * @return 成功返回成功信息
      * @author gengzhiqiang
      * @date 2019/7/26 16:17
@@ -201,7 +201,7 @@ public class DailyWorkStatusPackageController extends BaseWebController {
     /**
      * 功能描述 提交接口
      *
-     * @param entity
+     * @param entity 实体
      * @return 成功返回成功信息
      * @author gengzhiqiang
      * @date 2019/7/26 16:12
@@ -219,7 +219,7 @@ public class DailyWorkStatusPackageController extends BaseWebController {
     /**
      * 功能描述 通过驳回接口
      *
-     * @param entity
+     * @param entity 实体
      * @return 成功返回成功信息
      * @author gengzhiqiang
      * @date 2019/7/26 16:12

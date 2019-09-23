@@ -54,7 +54,6 @@ import static java.util.stream.Collectors.joining;
  * Function: TODO ADD FUNCTION
  * Reason: TODO ADD REASON(可选)
  * date: 2019-09-17 11:17:02
- *
  * @author zhang
  * @since JDK 1.8
  */
@@ -74,7 +73,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
     private DailyWorkStatusLogServiceImpl logService;
 
     @Resource
-    SystemConfiguration systemConfiguration;
+    private SystemConfiguration systemConfiguration;
 
     @Resource
     private HashRedisUtils hashRedisUtils;
@@ -580,12 +579,11 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
     /**
      * 功能描述 基础数据列表
      * @param search 查询条件
-     * @return
+     * @return 基础数据列表
      * @author gengzhiqiang
      * @date 2019/9/20 14:56
      */
     public IPage<DailyWorkStatus> listForContent(PageEntity<DailyWorkStatus> search) {
-        IPage<DailyWorkStatus> list= workStatusService.listForContent(search);
-        return list;
+        return workStatusService.listForContent(search);
     }
 }

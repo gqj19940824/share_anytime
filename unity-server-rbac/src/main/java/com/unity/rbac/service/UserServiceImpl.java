@@ -232,7 +232,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                 this::adapterField,
                 User::getId, User::getDepartment, User::getLoginName, User::getName, User::getPhone,User::getReceiveSms,
                 User::getPosition, User::getGroupConcatRoleName, User::getSource, User::getNotes, User::getUserType,
-                User::getIdRbacDepartment
+                User::getIdRbacDepartment, User::getDepType
         );
     }
 
