@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
  * date: 2019-09-17 11:17:02
  *
  * @author zhang
- * @version
  * @since JDK 1.8
  */
 @Service

@@ -5,12 +5,9 @@ import com.unity.common.base.CommentTarget;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-
-
 import com.baomidou.mybatisplus.annotation.TableField;
-
 import com.unity.common.base.BaseEntity;
+
 
 /**
  * 系统配置
@@ -25,7 +22,7 @@ public class mSysCfg extends BaseEntity{
 
         
         /**
-        * 类型 1：工作类别 2：关键字 3：产业类型 4：需求类型
+        * 类型 1：工作类别 2：关键字 3：行业类别 4：需求类型 5：需求名目
         **/
         @CommentTarget("模块类别")
         @TableField("cfg_type")
@@ -39,15 +36,6 @@ public class mSysCfg extends BaseEntity{
         @CommentTarget("类别名称")
         @TableField("cfg_val")
         private String cfgVal ;
-        
-        
-        
-        /**
-        * 适用范围 0 代表全部  其余代表单位id
-        **/
-        @CommentTarget("适用范围")
-        @TableField("scope")
-        private Long scope ;
 
 
         /**

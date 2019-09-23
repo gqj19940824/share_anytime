@@ -38,7 +38,7 @@ import java.util.Map;
 public class DailyWorkStatusController extends BaseWebController {
 
     @Resource
-    DailyWorkStatusServiceImpl service;
+    private DailyWorkStatusServiceImpl service;
 
     @Resource
     private SysCfgServiceImpl sysCfgService;
@@ -136,7 +136,7 @@ public class DailyWorkStatusController extends BaseWebController {
     /**
      * 功能描述 批量删除
      *
-     * @param ids
+     * @param ids id集合
      * @return 成功返回成功信息
      * @author gengzhiqiang
      * @date 2019/7/26 16:17
