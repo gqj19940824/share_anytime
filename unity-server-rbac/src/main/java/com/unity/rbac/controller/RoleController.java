@@ -8,7 +8,7 @@ import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
-import com.unity.common.ui.SearchElementGrid;
+import com.unity.common.ui.PageEntity;
 import com.unity.common.util.JsonUtil;
 import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.entity.Role;
@@ -73,15 +73,15 @@ public class RoleController extends BaseWebController {
     /**
      * 后台角色列表
      *
-     * @param search 包含角色列表查询条件
+     * @param pageEntity 包含角色列表查询条件
      * @return code 0 表示成功
      * 500 表示缺少查询条件
      * @author gengjiajia
      * @since 2018/12/11 14:31
      */
     @PostMapping("listByPage")
-    public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody SearchElementGrid search) {
-        return success(roleService.findRoleList(search));
+    public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<Role> pageEntity) {
+        return success(roleService.findRoleList(pageEntity));
     }
 
 
@@ -182,8 +182,7 @@ public class RoleController extends BaseWebController {
             }
         }
         List<Role> roleList = roleService.list(wrapper);
-        List<Map<String, Object>> mapList = JsonUtil.ObjectToList(roleList, null, Role::getId, Role::getName);
-        return success(mapList);
+        return success(JsonUtil.ObjectToList(roleList, null, Role::getId, Role::getName));
     }
 
     /**
@@ -191,7 +190,7 @@ public class RoleController extends BaseWebController {
      *
      * @param map id
      *            up 0 下降 1 上升
-     * @return
+     * @return code 0 表示成功
      */
     @PostMapping("/changeOrder")
     public Mono<ResponseEntity<SystemResponse<Object>>> changeOrder(@RequestBody Map<String, Object> map) {

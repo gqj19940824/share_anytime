@@ -13,7 +13,7 @@ import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
-import com.unity.common.ui.SearchElementGrid;
+import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.XyDates;
@@ -26,6 +26,7 @@ import com.unity.rbac.pojos.Relation;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -121,34 +122,33 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
     /**
      * 后台角色列表
      *
-     * @param search 包含角色列表查询条件
+     * @param pageEntity 包含角色列表查询条件
      * @return 角色列表
      * @author gengjiajia
      * @since 2018/12/11 14:05
      */
-    public Map findRoleList(SearchElementGrid search) {
+    public Map findRoleList(PageEntity<Role> pageEntity) {
         Customer customer = LoginContextHolder.getRequestAttributes();
-        QueryWrapper<Role> wrapper = search.toEntityWrapper(Role.class);
-        if (customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())) {
-            wrapper.lambda().orderByDesc(Role::getSort);
-        } else if (CollectionUtils.isNotEmpty(customer.getRoleList())) {
-            wrapper.lambda().in(Role::getId, customer.getRoleList().toArray())
-//                    .or(w -> w.likeRight(Role::getCreator, customer.getId().toString().concat(ConstString.SEPARATOR_POINT))) 非超级管理员不允许新增或修改角色
-                    .orderByDesc(Role::getSort);
+        LambdaQueryWrapper<Role> wrapper = new LambdaQueryWrapper<>();
+        if (customer.getIsAdmin().equals(YesOrNoEnum.YES.getType())) {
+            wrapper.orderByDesc(Role::getSort);
         } else {
             return Maps.newHashMap();
+        }
+        Role role = pageEntity.getEntity();
+        if(role != null && StringUtils.isNotBlank(role.getName())){
+            wrapper.eq(Role::getName,role.getName().trim());
         }
         //获取最后一条数据 列表是倒叙 获取正序第一条即可
         Long lastId = baseMapper.getTheFirstRoleBySortAsc(customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType()) ? null : customer.getRoleList());
         Long firstId = baseMapper.getTheFirstRoleBySortDesc(customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType()) ? null : customer.getRoleList());
-        return JsonUtil.ObjectToMap(super.page(search.getPageable(), wrapper),
+        return JsonUtil.ObjectToMap(super.page(pageEntity.getPageable(), wrapper),
                 new String[]{"id", "name", "notes", "isDefault", "creator", "editor"},
                 (m, u) -> {
-                    Role entity = (Role) u;
-                    m.put("first",entity.getId().equals(firstId) ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType());
-                    m.put("last",entity.getId().equals(lastId) ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType());
-                    m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
-                    m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
+                    m.put("first",u.getId().equals(firstId) ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType());
+                    m.put("last",u.getId().equals(lastId) ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType());
+                    m.put("gmtModified", DateUtils.timeStamp2Date(u.getGmtModified()));
+                    m.put("gmtCreate", DateUtils.timeStamp2Date(u.getGmtCreate()));
                 });
     }
 
