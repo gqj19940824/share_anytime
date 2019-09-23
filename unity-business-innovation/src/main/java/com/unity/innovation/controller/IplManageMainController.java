@@ -4,6 +4,8 @@ package com.unity.innovation.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.unity.common.client.RbacClient;
+import com.unity.common.client.SystemClient;
 import com.unity.common.exception.UnityRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import com.alibaba.fastjson.JSON;
@@ -36,9 +38,6 @@ import java.util.Arrays;
 import com.unity.common.enums.FlagEnum;
 import javax.servlet.http.HttpServletResponse;
 
-
-import com.unity.innovation.client.SystemClient;
-import com.unity.innovation.client.RbacClient;
 import com.unity.innovation.service.IplManageMainServiceImpl;
 import com.unity.innovation.entity.IplManageMain;
 import com.unity.innovation.enums.*;
@@ -66,41 +65,6 @@ public class IplManageMainController extends BaseWebController {
     @Autowired
     SystemClient systemClient;
 
-    /**
-     * 模块入口
-     * @param model MVC模型
-     * @param iframe 用于刷新或调用iframe内容
-     * @return 返回视图
-     */
-    @RequestMapping("/view/moduleEntrance/{iframe}")
-    public String moduleEntrance(Model model,@PathVariable("iframe") String iframe) {
-        model.addAttribute("iframe", iframe);
-        model.addAttribute("button", JSON.toJSONString(rbacClient.getMenuButton(iframe)));
-        return "IplManageMainList";
-    }
-
-    /**
-     * 添加或修改表达入口
-     * @param model MVC模型
-     * @param iframe 用于刷新或调用iframe内容
-     * @param id 创新发布清单-发布管理主表id
-     * @return 返回视图
-     */
-    @RequestMapping(value = "/view/editEntrance/{iframe}")
-    public String editEntrance(Model model,@PathVariable("iframe") String iframe,String id) {
-        model.addAttribute("iframe", iframe);
-        model.addAttribute("id", id);
-        if(id!=null){
-            IplManageMain entity = service.getById(id);
-            if(entity==null) model.addAttribute("entity", "{}");
-            else model.addAttribute("entity", JSON.toJSONString(convert2Map(entity)));
-        }
-        else{
-            model.addAttribute("entity", "{}");
-        }
-        return "IplManageMainEdit";
-    }
-    
      /**
      * 获取一页数据
      * @param search 统一查询条件
