@@ -133,6 +133,22 @@ public class ExcelStyleUtil {
 
         styles.put("data", title);
 
+        title = wb.createCellStyle();
+        title.setVerticalAlignment(VerticalAlignment.CENTER);
+        title.setAlignment(HorizontalAlignment.LEFT);
+        Font noteFont = wb.createFont();
+        noteFont.setFontName("Arial");
+        noteFont.setFontHeightInPoints((short) 10);
+        title.setWrapText(true);
+        title.setFont(dataFont);
+        title.setBorderBottom(HSSFCellStyle.BORDER_THIN); //下边框
+        title.setBorderLeft(HSSFCellStyle.BORDER_THIN);//左边框
+        title.setBorderTop(HSSFCellStyle.BORDER_THIN);//上边框
+        title.setBorderRight(HSSFCellStyle.BORDER_THIN);//右边框
+        title.setDataFormat(wb.createDataFormat().getFormat("@"));
+
+        styles.put("note", title);
+
         return styles;
     }
 

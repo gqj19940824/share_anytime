@@ -32,9 +32,7 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
 import org.springframework.stereotype.Service;
@@ -298,6 +296,11 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                 if (WorkStatusAuditingProcessEnum.exist(log.getState())) {
                     log.setLogName(WorkStatusAuditingProcessEnum.of(log.getState()).getName());
                 }
+                if (!WorkStatusAuditingProcessEnum.FIFTY.getId().equals(log.getState())) {
+                    if (WorkStatusAuditingProcessEnum.exist(log.getState())) {
+                        log.setActionDescribe(WorkStatusAuditingProcessEnum.of(log.getState()).getActionDescribe());
+                    }
+                }
             }
             //redis获取单位名称
             if (hashRedisUtils.getFieldValueByFieldName
@@ -313,7 +316,10 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                 .collect(Collectors.groupingBy(DailyWorkStatusLog::getState,
                         Collectors.collectingAndThen(Collectors
                                 .minBy(Comparator.comparingLong(DailyWorkStatusLog::getGmtCreate)), Optional::get)));
-        vo.setProcessNode(processNode);
+        List<DailyWorkStatusLog> processNodes=Lists.newArrayList();
+        processNode.forEach((k, v) -> processNodes.add(v));
+        vo.setProcessNode(processNodes);
+       // vo.setProcessNode(processNode);
         //附件
         List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
                 .eq(Attachment::getAttachmentCode,entity.getAttachmentCode()));
@@ -473,16 +479,10 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             DailyWorkStatusPackage entity = DailyWorkStatusPackage.newInstance().build();
             entity.setId(id);
             entity = detailById(entity);
-            String top=entity.getTitle();
             Map<String, CellStyle> styleMap = ExcelStyleUtil.createProjectStyles(workbook);
             workbook.createCellStyle();
-            Row titleRow = sheet.createRow(0);
-            Cell titleCell = titleRow.createCell(0);
-            titleCell.setCellStyle(styleMap.get("title"));
-            titleCell.setCellValue(top);
-            row = sheet.createRow(1);
+            row = sheet.createRow(0);
             String[] title = { "标题", "工作类别", "关键字", "主题", "内容描述","备注","附件","创建时间"};
-            sheet.addMergedRegion(new CellRangeAddress(0,0, 0, title.length-1));
             for (int j = 0; j < title.length; j++) {
                 //创建每列
                 Cell cell = row.createCell(j);
@@ -520,7 +520,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
     private void addData(HSSFSheet sheet, DailyWorkStatusPackage entity, Map<String,CellStyle> styleMap) {
 
         CellStyle sty = styleMap.get("data");
-        int rowNum = 2;
+        int rowNum = 1;
         for (int j = 0; j < entity.getDataList().size(); j++) {
             HSSFRow row = sheet.createRow(rowNum++);
             HSSFCell cell0 = row.createCell(0);
@@ -562,13 +562,14 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             }
             cell7.setCellValue(DateUtils.timeStamp2Date(entity.getDataList().get(j).getGmtCreate()));
         }
-        Row titleRow = sheet.createRow(entity.getDataList().size() + 2);
+        Row titleRow = sheet.createRow(entity.getDataList().size() + 1);
         Cell titleCell = titleRow.createCell(0);
-        titleCell.setCellStyle(styleMap.get("data"));
+        CellStyle style = styleMap.get("note");
+        titleCell.setCellStyle(style);
         if (StringUtils.isNotBlank(entity.getNotes())) {
             titleCell.setCellValue("备注："+entity.getNotes());
         }
-        CellRangeAddress range = new CellRangeAddress(entity.getDataList().size() + 2, entity.getDataList().size() + 2, 0, 7);
+        CellRangeAddress range = new CellRangeAddress(entity.getDataList().size() + 1, entity.getDataList().size() + 1, 0, 7);
         sheet.addMergedRegion(range);
         RegionUtil.setBorderLeft(1, range, sheet);
         RegionUtil.setBorderBottom(1, range, sheet);

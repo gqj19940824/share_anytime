@@ -4,22 +4,31 @@ package com.unity.rbac.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.google.common.collect.Lists;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.ui.tree.TNode;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.utils.DicUtils;
+import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.entity.Department;
 import com.unity.rbac.service.DepartmentServiceImpl;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -34,9 +43,11 @@ public class DepartmentController extends BaseWebController {
 
     private final Integer NAME_MAX_LENGTH = 50;
     private final DepartmentServiceImpl service;
+    private final DicUtils dicUtils;
 
-    public DepartmentController(DepartmentServiceImpl service) {
+    public DepartmentController(DepartmentServiceImpl service, DicUtils dicUtils) {
         this.service = service;
+        this.dicUtils = dicUtils;
     }
 
     /**
@@ -130,14 +141,42 @@ public class DepartmentController extends BaseWebController {
     @PostMapping("listAllDepartmentList/{type}")
     public Mono<ResponseEntity<SystemResponse<Object>>> listAllDepartmentList(@PathVariable Integer type) {
         List<Department> list = service.list(new LambdaQueryWrapper<Department>().eq(Department::getUseStatus, YesOrNoEnum.YES.getType()));
-        Department department = new Department();
-        department.setName("共用");
-        department.setId(0L);
-        list.add(department);
-        return success(JsonUtil.ObjectToList(list,
-                null
-                , Department::getId, Department::getName
-        ));
+        //根节点
+        TNode root = new TNode();
+        root.setId("0");
+        root.setText("全部");
+        root.setIsParent(true);
+        List<TNode> rootChildren = Lists.newArrayList();
+        root.setChildren(rootChildren);
+        //按deptType分组
+        Map<Integer, List<Department>> map = list.stream().collect(Collectors.groupingBy(Department::getDepType));
+        //类型集合
+        Set<Integer> typeSet = map.keySet();
+        for (int deptType : typeSet) {
+            TNode typeNode = new TNode();
+            typeNode.setId("deptType:"+deptType);
+            Dic dic = dicUtils.getDicByCode(UserConstants.DEP_TYPE, deptType + "");
+            if(dic != null){
+                typeNode.setText(dic.getDicValue());
+            }else {
+                typeNode.setText("");
+            }
+            typeNode.setIsParent(true);
+            List<TNode> typeChildren = Lists.newArrayList();
+            typeNode.setChildren(typeChildren);
+            List<Department> listByType = map.get(deptType);
+            if(CollectionUtils.isNotEmpty(listByType)) {
+                listByType.forEach(department -> {
+                    TNode node = new TNode();
+                    node.setId(department.getId().toString());
+                    node.setText(department.getName());
+                    node.setIsParent(false);
+                    typeChildren.add(node);
+                });
+            }
+            rootChildren.add(typeNode);
+        }
+        return success(root);
     }
 
     /**

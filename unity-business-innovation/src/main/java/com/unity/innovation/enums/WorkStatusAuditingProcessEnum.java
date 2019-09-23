@@ -11,12 +11,12 @@ public enum WorkStatusAuditingProcessEnum {
     /**
      *  状态(10.待提交 20.已提交 30.已通过 40.已驳回 50.已发布 60.已更新发布效果 )
      * */
-    TEN(10,"待提交"),
-    TWENTY(20,"已提交"),
-    THIRTY(30,"已通过"),
-    FORTY(40,"已驳回"),
-    FIFTY(50,"已发布"),
-    SIXTY(60,"已更新发布效果"),
+    TEN(10,"待提交",""),
+    TWENTY(20,"已提交","提交发布需求"),
+    THIRTY(30,"已通过","审核发布需求"),
+    FORTY(40,"已驳回","审核发布需求"),
+    FIFTY(50,"已发布",""),
+    SIXTY(60,"已更新发布效果","更新发布效果"),
     ;
 
     public static WorkStatusAuditingProcessEnum of(Integer id) {
@@ -67,6 +67,11 @@ public enum WorkStatusAuditingProcessEnum {
      */
     private String name;
 
+    /**
+     * 流程名称
+     */
+    private String actionDescribe;
+
     public Integer getId() {
         return id;
     }
@@ -82,4 +87,13 @@ public enum WorkStatusAuditingProcessEnum {
     public void setName(String name) {
         this.name = name;
     }
+
+    public String getActionDescribe() {
+        return actionDescribe;
+    }
+
+    public void setActionDescribe(String actionDescribe) {
+        this.actionDescribe = actionDescribe;
+    }
+
 }
