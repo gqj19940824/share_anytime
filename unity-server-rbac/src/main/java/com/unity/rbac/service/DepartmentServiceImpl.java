@@ -23,7 +23,6 @@ import com.unity.common.utils.HashRedisUtils;
 import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.dao.DepartmentDao;
 import com.unity.rbac.entity.Department;
-import com.unity.rbac.entity.User;
 import com.unity.rbac.entity.UserDepartment;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
