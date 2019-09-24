@@ -130,6 +130,10 @@ public class DailyWorkStatusController extends BaseWebController {
      */
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody DailyWorkStatus entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity,DailyWorkStatus::getId);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
         return success(service.detailById(entity));
     }
 
