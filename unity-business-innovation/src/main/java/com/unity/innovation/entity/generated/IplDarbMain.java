@@ -22,17 +22,6 @@ import com.unity.common.base.CommentTarget;
 @EqualsAndHashCode(callSuper=false)
 public class IplDarbMain extends BaseEntity{
 
-
-        
-        /**
-        * 编号_创新发布清单-创新发展清单管理表一对多创新发展清单表
-        **/
-        @CommentTarget("编号_创新发布清单-创新发展清单管理表一对多创新发展清单表")
-        @TableField("id_iplm_main_m_ipl_main")
-        private Long idIplmMainIplMain ;
-        
-        
-        
         /**
         * 行业类别
         **/
@@ -221,6 +210,14 @@ public class IplDarbMain extends BaseEntity{
         private Integer status ;
         
         
+        /**
+        * 备注状态
+        **/
+        @CommentTarget("备注状态")
+        @TableField("process_status")
+        private Integer processStatus ;
+
+
 
 }
 

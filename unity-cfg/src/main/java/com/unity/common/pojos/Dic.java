@@ -18,6 +18,8 @@ public class Dic extends BaseEntity {
         private String dicValue ;
 
         private String groupCode ;
+
+        private Integer status; // 1：启用、2：禁用
 }
 
 

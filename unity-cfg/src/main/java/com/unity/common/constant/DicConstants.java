@@ -11,6 +11,15 @@ public class DicConstants {
     // 账号组
     public final static String ACCOUNT = "001";
 
+    // 行业类别
+    public final static String INDUSTRY_CATEGORY = "INDUSTRY_CATEGORY";
+
+    // 需求名目
+    public final static String DEMAND_ITEM = "DEMAND_ITEM";
+
+    // 需求类别
+    public final static String DEMAND_CATEGORY = "DEMAND_CATEGORY";
+
     // 超级管理员
     public final static String SUPER_ADMIN = "superAdmin";
     /**
