@@ -2,45 +2,31 @@
 package com.unity.innovation.controller;
 
 
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.SystemClient;
+import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
-import org.apache.commons.lang3.StringUtils;
-import com.alibaba.fastjson.JSON;
-import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
-import com.unity.common.ui.excel.ExcelEntity;
-import com.unity.common.ui.excel.ExportEntity;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.SearchElementGrid;
-import com.unity.common.ui.tree.zTree;
-import com.unity.common.ui.tree.zTreeStructure;
-import com.unity.common.ui.SearchCondition;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
-
+import com.unity.innovation.entity.generated.IplLog;
+import com.unity.innovation.entity.generated.IplLog;
+import com.unity.innovation.service.IplLogServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.unity.common.constants.ConstString;
 
-import java.util.Date;
-import java.util.Map;
 import java.util.List;
-import java.util.Arrays;
-import com.unity.common.enums.FlagEnum;
-import javax.servlet.http.HttpServletResponse;
-
-import com.unity.innovation.service.IplLogServiceImpl;
-import com.unity.innovation.entity.IplLog;
-import com.unity.innovation.enums.*;
+import java.util.Map;
 
 
 
@@ -92,45 +78,11 @@ public class IplLogController extends BaseWebController {
     @PostMapping("/save")
     @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IplLog entity) {
-        
+
         service.saveOrUpdate(entity);
         return success(null);
     }
     
-    @RequestMapping({"/export/excel"})
-    public void exportExcel(HttpServletResponse res,String cond) {
-        String fileName="创新发布清单-操作日志";
-        ExportEntity<IplLog> excel =  ExcelEntity.exportEntity(res);
-
-        try {
-            SearchElementGrid search = new SearchElementGrid();
-            search.setCond(JSON.parseObject(cond, SearchCondition.class));
-            LambdaQueryWrapper<IplLog> ew = wrapper(search);
-            List<IplLog> list = service.list(ew);
-     
-            excel
-                .addColumn(IplLog::getId,"编号")
-                .addColumn(IplLog::getIdIplEsbMain,"编号_创新发布清单-企服局-主表")
-                .addColumn(IplLog::getIdIplOdMain,"编号_创新发布清单-组织部-主表")
-                .addColumn(IplLog::getIdIplSatbMain,"编号_创新发布清单-科技局-主表")
-                .addColumn(IplLog::getIdIplDarbMain,"编号_创新发布清单-发改局-主表")
-                .addColumn(IplLog::getIdSuggestion,"编号_意见建议-纪检组")
-                .addColumn(IplLog::getIdIplPdMain,"编号_创新发布清单-宣传部-主表")
-                .addColumn(IplLog::getIdIplYzgtMain,"编号_创新发布清单-亦庄国投-主表")
-                .addColumn(IplLog::getNotes,"备注")
-                .addColumn(IplLog::getEditor,"修改人")
-                .addColumn(IplLog::getProcessStatus,"处理状态")
-                .addColumn(IplLog::getProcessInfo,"处理进展")
-                .addColumn(IplLog::getIdRbacDepartmentAssist,"协同单位id")
-                .addColumn(IplLog::getIdIplMain,"主表id")
-                .addColumn(IplLog::getIdRbacDepartmentDuty,"主责单位id")
-                .addColumn(IplLog::getLogType,"日志类别")
-                 .export(fileName,convert2List(list));
-        }
-        catch (Exception ex){
-            excel.exportError(fileName,ex);
-        }
-    }
 
     
      /**
@@ -188,12 +140,12 @@ public class IplLogController extends BaseWebController {
      * @return
      */
     private List<Map<String, Object>> convert2List(List<IplLog> list){
-       
+
         return JsonUtil.<IplLog>ObjectToList(list,
                 (m, entity) -> {
-                    adapterField(m, entity);
+                   // adapterField(m, entity);
                 }
-                ,IplLog::getId,IplLog::getIdIplEsbMain,IplLog::getIdIplOdMain,IplLog::getIdIplSatbMain,IplLog::getIdIplDarbMain,IplLog::getIdSuggestion,IplLog::getIdIplPdMain,IplLog::getIdIplYzgtMain,IplLog::getSort,IplLog::getNotes,IplLog::getProcessStatus,IplLog::getProcessInfo,IplLog::getIdRbacDepartmentAssist,IplLog::getIdIplMain,IplLog::getIdRbacDepartmentDuty,IplLog::getLogType
+                ,IplLog::getId,IplLog::getSort,IplLog::getNotes,IplLog::getProcessStatus,IplLog::getProcessInfo,IplLog::getIdRbacDepartmentAssist,IplLog::getIdIplMain
         );
     }
     
@@ -205,9 +157,9 @@ public class IplLogController extends BaseWebController {
     private Map<String, Object> convert2Map(IplLog ent){
         return JsonUtil.<IplLog>ObjectToMap(ent,
                 (m, entity) -> {
-                    adapterField(m,entity);
+                   // adapterField(m,entity);
                 }
-                ,IplLog::getId,IplLog::getIdIplEsbMain,IplLog::getIdIplOdMain,IplLog::getIdIplSatbMain,IplLog::getIdIplDarbMain,IplLog::getIdSuggestion,IplLog::getIdIplPdMain,IplLog::getIdIplYzgtMain,IplLog::getIsDeleted,IplLog::getSort,IplLog::getNotes,IplLog::getProcessStatus,IplLog::getProcessInfo,IplLog::getIdRbacDepartmentAssist,IplLog::getIdIplMain,IplLog::getIdRbacDepartmentDuty,IplLog::getLogType
+                ,IplLog::getId,IplLog::getIsDeleted,IplLog::getSort,IplLog::getNotes,IplLog::getProcessStatus,IplLog::getProcessInfo,IplLog::getIdRbacDepartmentAssist,IplLog::getIdIplMain
         );
     }
     
@@ -276,7 +228,7 @@ public class IplLogController extends BaseWebController {
 
 
         IplLog entity1 = service.getOne(wrapper);
-        if(entity1==null) throw new UnityRuntimeException(msg);
+     //   if(entity1==null) throw new UnityRuntimeException(msg);
 
         entity.setSort(entity1.getSort());
 

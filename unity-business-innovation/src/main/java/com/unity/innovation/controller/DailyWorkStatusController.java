@@ -109,13 +109,13 @@ public class DailyWorkStatusController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "标题限制50字");
         }
         if (entity.getTheme().length()>ParamConstants.PARAM_MAX_LENGTH_50){
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "主题限制50字");
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "主题限制50字");
         }
         if (entity.getDescription().length()>ParamConstants.PARAM_MAX_LENGTH_500){
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "内容描述限制500字");
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "内容描述限制500字");
         }
-        if (entity.getNotes().length()>ParamConstants.PARAM_MAX_LENGTH_500){
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "备注限制500字");
+        if (StringUtils.isNotBlank(entity.getNotes()) && entity.getNotes().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注限制500字");
         }
         return null;
     }
@@ -130,6 +130,10 @@ public class DailyWorkStatusController extends BaseWebController {
      */
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody DailyWorkStatus entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity,DailyWorkStatus::getId);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
         return success(service.detailById(entity));
     }
 

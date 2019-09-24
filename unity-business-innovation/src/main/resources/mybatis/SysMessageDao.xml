@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unity.innovation.dao.SysMessageDao">
+
+    <select id="countListTotalByParam" parameterType="java.util.Map" resultType="java.lang.Long">
+        SELECT
+          COUNT(m.id)
+        FROM
+          sys_message m
+        INNER JOIN sys_message_read_log mr ON m.id = mr.message_id
+        WHERE m.is_deleted = 0
+          and mr.is_deleted = 0
+          and mr.target_user_id = #{userId}
+        <if test="dataSource != null">
+            AND m.data_source = #{dataSource}
+        </if>
+        <if test="title != null">
+            AND m.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="startTime != null">
+            AND m.gmt_create &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND m.gmt_create &lt;= #{endTime}
+        </if>
+    </select>
+
+    <select id="findPageListByParam" parameterType="java.util.Map" resultType="com.unity.innovation.entity.SysMessage">
+        SELECT
+            m.*,mr.is_read AS isRead,mr.target_user_id AS targetUserId
+        FROM
+            sys_message m
+                INNER JOIN sys_message_read_log mr ON m.id = mr.message_id
+        WHERE m.is_deleted = 0
+        and mr.is_deleted = 0
+        and mr.target_user_id = #{userId}
+        <if test="dataSource != null">
+            AND m.data_source = #{dataSource}
+        </if>
+        <if test="title != null">
+            AND m.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="startTime != null">
+            AND m.gmt_create &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND m.gmt_create &lt;= #{endTime}
+        </if>
+    </select>
+</mapper>

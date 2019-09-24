@@ -221,16 +221,16 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                         .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                         .message("未获取到对象").build();
             }
-            if (WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getState()) ||
-                    WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getState())) {
+            if (!(WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getState()) ||
+                    WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getState()))) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
                         .message("只有待提交和已驳回状态下数据可编辑").build();
             }
             List<Long> works = entity.getWorkStatusList();
-            long count = (long) workStatusService.list(new LambdaQueryWrapper<DailyWorkStatus>()
-                    .in(DailyWorkStatus::getId, works)
-                    .ne(DailyWorkStatus::getId,vo.getId())).size();
+            long count = (long) workMPackageService.list(new LambdaQueryWrapper<DailyWorkPackage>()
+                    .in(DailyWorkPackage::getIdDailyWorkStatus, works)
+                    .ne(DailyWorkPackage::getIdPackage,vo.getId())).size();
             if (count > 0) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
@@ -435,7 +435,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             log.setIdPackage(vo.getId());
             log.setState(WorkStatusAuditingStatusEnum.THIRTY.getId());
             log.setActionDescribe("审核发布需求");
-            log.setComment(vo.getComment());
+            log.setComment(entity.getComment());
             logService.save(log);
         }else {
             //待审核>>>>>驳回
@@ -447,7 +447,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             log.setIdPackage(vo.getId());
             log.setState(WorkStatusAuditingStatusEnum.FORTY.getId());
             log.setActionDescribe("审核发布需求");
-            log.setComment(vo.getComment());
+            log.setComment(entity.getComment());
             logService.save(log);
         }
     }
@@ -455,12 +455,12 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
     /**
      * 功能描述 导出接口
      *
-     * @param id 查询条件
+     * @param entity 对象
      * @return byte[] 返回数据流
      * @author gengzhiqiang
      * @date 2019/7/8 10:15
      */
-    public byte[] export(Long id) {
+    public byte[] export(DailyWorkStatusPackage entity) {
         //查询模板信息
         byte[] content;
         String templatePath = systemConfiguration.getUploadPath() + File.separator + "workStatus" + File.separator;
@@ -473,12 +473,9 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         try {
             //定义表格对象
             HSSFWorkbook workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet();
+            HSSFSheet sheet = workbook.createSheet(entity.getTitle());
             HSSFRow row;
             //表头
-            DailyWorkStatusPackage entity = DailyWorkStatusPackage.newInstance().build();
-            entity.setId(id);
-            entity = detailById(entity);
             Map<String, CellStyle> styleMap = ExcelStyleUtil.createProjectStyles(workbook);
             workbook.createCellStyle();
             row = sheet.createRow(0);
@@ -568,6 +565,8 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         titleCell.setCellStyle(style);
         if (StringUtils.isNotBlank(entity.getNotes())) {
             titleCell.setCellValue("备注："+entity.getNotes());
+        }else{
+            titleCell.setCellValue("备注：");
         }
         CellRangeAddress range = new CellRangeAddress(entity.getDataList().size() + 1, entity.getDataList().size() + 1, 0, 7);
         sheet.addMergedRegion(range);

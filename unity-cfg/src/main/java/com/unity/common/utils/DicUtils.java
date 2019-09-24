@@ -33,6 +33,23 @@ public class DicUtils {
     private RedisTemplate redisTemplate;
 
     /**
+     * 根据字典组编码和字典项编码查询字典值
+     *
+     * @param groupCode 字典组编码
+     * @param dicCode 字典项编码
+     * @author qinhuan
+     * @since 2019年07月11日13:56:45
+     */
+    public String getDicValueByCode(String groupCode, String dicCode) {
+        String value = "";
+        Dic dicByCode = getDicByCode(groupCode, dicCode);
+        if (dicByCode != null){
+            value = dicByCode.getDicValue();
+        }
+        return value;
+    }
+
+    /**
      * 根据字典组编码和字典项编码查询字典
      *
      * @param groupCode 字典组编码
