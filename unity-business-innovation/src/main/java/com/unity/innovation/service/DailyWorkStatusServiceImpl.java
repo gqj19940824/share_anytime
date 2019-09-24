@@ -193,7 +193,7 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
                      .eq(DailyWorkPackage::getIdPackage, search.getEntity().getIdPackage()));
              List<Long> ids = list.stream().map(DailyWorkPackage::getIdDailyWorkStatus).collect(Collectors.toList());
              lqw.and(w -> w
-                     .eq(DailyWorkStatus::getId, ids)
+                     .in(DailyWorkStatus::getId, ids)
                      .or()
                      .eq(DailyWorkStatus::getState, YesOrNoEnum.NO.getType()));
          } else {

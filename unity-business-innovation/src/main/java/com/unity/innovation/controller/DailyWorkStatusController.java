@@ -114,7 +114,7 @@ public class DailyWorkStatusController extends BaseWebController {
         if (entity.getDescription().length()>ParamConstants.PARAM_MAX_LENGTH_500){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "内容描述限制500字");
         }
-        if (entity.getNotes().length()>ParamConstants.PARAM_MAX_LENGTH_500){
+        if (StringUtils.isNotBlank(entity.getNotes()) && entity.getNotes().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "备注限制500字");
         }
         return null;
