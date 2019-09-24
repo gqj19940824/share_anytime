@@ -19,7 +19,6 @@ import com.unity.common.base.CommentTarget;
  * 生成时间 2019-09-21 15:45:36
  */
 @Data
-@Builder(builderMethodName = "newInstance")
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper=false)
 public class IplLog extends BaseEntity{
