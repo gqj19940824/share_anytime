@@ -213,7 +213,7 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
      * @since 2019/09/17 17:20
      */
     public PageElementGrid<Map<String, Object>> listByPage(PageEntity<Department> pageEntity) {
-        LambdaQueryWrapper<Department> wrapper = new LambdaQueryWrapper<Department>().eq(Department::getUseStatus, YesOrNoEnum.YES.getType()).orderByDesc(Department::getSort);
+        LambdaQueryWrapper<Department> wrapper = new LambdaQueryWrapper<Department>().orderByDesc(Department::getSort);
         Department entity = pageEntity.getEntity();
         if(entity != null && entity.getDepType() != null){
             wrapper.eq(Department::getDepType,entity.getDepType());
