@@ -435,7 +435,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             log.setIdPackage(vo.getId());
             log.setState(WorkStatusAuditingStatusEnum.THIRTY.getId());
             log.setActionDescribe("审核发布需求");
-            log.setComment(vo.getComment());
+            log.setComment(entity.getComment());
             logService.save(log);
         }else {
             //待审核>>>>>驳回
@@ -447,7 +447,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             log.setIdPackage(vo.getId());
             log.setState(WorkStatusAuditingStatusEnum.FORTY.getId());
             log.setActionDescribe("审核发布需求");
-            log.setComment(vo.getComment());
+            log.setComment(entity.getComment());
             logService.save(log);
         }
     }
