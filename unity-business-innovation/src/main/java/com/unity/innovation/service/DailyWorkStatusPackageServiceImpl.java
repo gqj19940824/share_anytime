@@ -228,9 +228,9 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                         .message("只有待提交和已驳回状态下数据可编辑").build();
             }
             List<Long> works = entity.getWorkStatusList();
-            long count = (long) workStatusService.list(new LambdaQueryWrapper<DailyWorkStatus>()
-                    .in(DailyWorkStatus::getId, works)
-                    .ne(DailyWorkStatus::getId,vo.getId())).size();
+            long count = (long) workMPackageService.list(new LambdaQueryWrapper<DailyWorkPackage>()
+                    .in(DailyWorkPackage::getIdDailyWorkStatus, works)
+                    .ne(DailyWorkPackage::getIdPackage,vo.getId())).size();
             if (count > 0) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
