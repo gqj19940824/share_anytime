@@ -158,10 +158,10 @@ public class SysCfgController extends BaseWebController {
         List<SysCfg> list;
         //新增
         if(entity.getId() == null) {
-            list = service.list(new LambdaUpdateWrapper<SysCfg>().eq(SysCfg::getCfgVal, entity.getCfgVal()));
+            list = service.list(new LambdaUpdateWrapper<SysCfg>().eq(SysCfg::getCfgVal, entity.getCfgVal()).eq(SysCfg::getCfgType,entity.getCfgType()));
 
         } else {
-            list = service.list(new LambdaUpdateWrapper<SysCfg>().eq(SysCfg::getCfgVal, entity.getCfgVal()).ne(SysCfg::getId,entity.getId()));
+            list = service.list(new LambdaUpdateWrapper<SysCfg>().eq(SysCfg::getCfgVal, entity.getCfgVal()).eq(SysCfg::getCfgType,entity.getCfgType()).ne(SysCfg::getId,entity.getId()));
         }
         if(CollectionUtils.isNotEmpty(list)) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)

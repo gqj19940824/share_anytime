@@ -10,6 +10,7 @@ import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.base.SessionHolder;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
+import com.unity.common.constant.SafetyConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.constants.RedisKeys;
 import com.unity.common.enums.YesOrNoEnum;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -571,4 +573,24 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
     public void updateIsLockByIdRbacDepartment(Integer isLock,Long idRbacDepartment){
         baseMapper.updateIsLockByIdRbacDepartment(isLock,idRbacDepartment);
     }
+
+
+
+    /**
+    * 查询属于某几个单位的用户，得到{单位id，员工id集合}
+    *
+    * @param departmentIds 单位id的集合
+    * @return Map<Long, List<Long>>
+    * @author JH
+    * @date 2019/9/23 16:23
+    */
+    public Map<Long,List<Long>> listUserInDepartment(List<Long> departmentIds) {
+
+        if (CollectionUtils.isNotEmpty(departmentIds)) {
+            List<User> userList = baseMapper.selectList(new LambdaQueryWrapper<User>().in(User::getIdRbacDepartment, departmentIds).orderByDesc(User::getGmtCreate));
+           return userList.stream().collect(groupingBy(User::getIdRbacDepartment, mapping(User::getId, toList())));
+        }
+        return new HashMap<>(SafetyConstant.HASHMAP_DEFAULT_LENGTH);
+    }
+
 }
