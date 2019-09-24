@@ -246,13 +246,20 @@ public class DailyWorkStatusPackageController extends BaseWebController {
      */
     @GetMapping({"/export/excel"})
     public Mono<ResponseEntity<byte[]>> exportExcel(@RequestParam("id") Long id) {
-
-        String filename="工作动态详情"+DateUtils.timeStamp2Date(System.currentTimeMillis(),"yyyy-MM-dd");
+        if (id == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到要导出的id").build();
+        }
+        DailyWorkStatusPackage entity = DailyWorkStatusPackage.newInstance().build();
+        entity.setId(id);
+        entity = service.detailById(entity);
+        String filename = entity.getTitle();
         byte[] content;
         HttpHeaders headers = new HttpHeaders();
         try {
             //根据flag 判断导出类型
-            content = service.export(id);
+            content = service.export(entity);
             //处理乱码
             headers.setContentDispositionFormData("工作动态详情", new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1) + ".xls");
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);

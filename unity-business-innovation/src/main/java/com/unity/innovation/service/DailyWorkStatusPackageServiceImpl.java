@@ -455,12 +455,12 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
     /**
      * 功能描述 导出接口
      *
-     * @param id 查询条件
+     * @param entity 对象
      * @return byte[] 返回数据流
      * @author gengzhiqiang
      * @date 2019/7/8 10:15
      */
-    public byte[] export(Long id) {
+    public byte[] export(DailyWorkStatusPackage entity) {
         //查询模板信息
         byte[] content;
         String templatePath = systemConfiguration.getUploadPath() + File.separator + "workStatus" + File.separator;
@@ -473,12 +473,9 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         try {
             //定义表格对象
             HSSFWorkbook workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet();
+            HSSFSheet sheet = workbook.createSheet(entity.getTitle());
             HSSFRow row;
             //表头
-            DailyWorkStatusPackage entity = DailyWorkStatusPackage.newInstance().build();
-            entity.setId(id);
-            entity = detailById(entity);
             Map<String, CellStyle> styleMap = ExcelStyleUtil.createProjectStyles(workbook);
             workbook.createCellStyle();
             row = sheet.createRow(0);
