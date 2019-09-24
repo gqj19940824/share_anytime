@@ -23,6 +23,7 @@ import com.unity.common.utils.HashRedisUtils;
 import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.dao.DepartmentDao;
 import com.unity.rbac.entity.Department;
+import com.unity.rbac.entity.User;
 import com.unity.rbac.entity.UserDepartment;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -54,13 +55,15 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
     private final HashRedisUtils hashRedisUtils;
     private final RedisTemplate<String, String> redisTemplate;
     private final DicUtils dicUtils;
+    private final UserServiceImpl userService;
 
 
-    public DepartmentServiceImpl(UserDepartmentServiceImpl userDepartmentService, HashRedisUtils hashRedisUtils, RedisTemplate redisTemplate, DicUtils dicUtils) {
+    public DepartmentServiceImpl(UserDepartmentServiceImpl userDepartmentService, HashRedisUtils hashRedisUtils, RedisTemplate redisTemplate, DicUtils dicUtils, UserServiceImpl userService) {
         this.userDepartmentService = userDepartmentService;
         this.hashRedisUtils = hashRedisUtils;
         this.redisTemplate = redisTemplate;
         this.dicUtils = dicUtils;
+        this.userService = userService;
     }
 
     /**
@@ -247,6 +250,10 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
         if (!dto.getUseStatus().equals(department.getUseStatus())) {
             department.setUseStatus(dto.getUseStatus());
             super.updateById(department);
+            //单位状态变更，对应的用户状态要发生变化
+            userService.updateIsLockByIdRbacDepartment(dto.getUseStatus().equals(YesOrNoEnum.YES.getType())
+                            ? YesOrNoEnum.NO.getType() : YesOrNoEnum.YES.getType(),
+                    department.getId());
         }
     }
 
@@ -258,10 +265,16 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
      */
     private List<Map<String, Object>> convert2List(List<Department> list) {
         List<Long> ids = list.stream().map(Department::getId).collect(toList());
-        Long idBySortAsc = baseMapper.getTheFirstDepartmentBySortAsc(ids);
-        Long idBySortDesc = baseMapper.getTheFirstDepartmentBySortDesc(ids);
+        Long idBySortAsc = 0L;
+        Long idBySortDesc = 0L;
+        if(CollectionUtils.isNotEmpty(ids)){
+            idBySortAsc = baseMapper.getTheFirstDepartmentBySortAsc(ids);
+            idBySortDesc = baseMapper.getTheFirstDepartmentBySortDesc(ids);
+        }
+        Long ascId = idBySortAsc;
+        Long descId = idBySortDesc;
         return JsonUtil.ObjectToList(list,
-                (m,entity) -> adapterField(m,entity,idBySortAsc,idBySortDesc)
+                (m,entity) -> adapterField(m,entity,ascId,descId)
                 , Department::getId, Department::getGmtModified, Department::getName,Department::getPhone,
                 Department::getAddress,Department::getNotes,Department::getDepType,Department::getUseStatus
         );
@@ -283,5 +296,20 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
         if(dic != null){
             m.put("depTypeTitle",dic.getDicValue());
         }
+    }
+
+    /**
+     * 单位列表获取单位类型下拉框数据
+     *
+     * @return 单位类型下拉框数据
+     * @author gengjiajia
+     * @since 2019/09/24 10:31
+     */
+    public List<Map<String, Object>> getDepTypeSelectListToDepList() {
+        List<Dic> dicList = dicUtils.getDicsByGroupCode(UserConstants.DEP_TYPE);
+        return JsonUtil.ObjectToList(dicList,
+                null
+                , Dic::getDicCode,Dic::getDicValue
+        );
     }
 }
