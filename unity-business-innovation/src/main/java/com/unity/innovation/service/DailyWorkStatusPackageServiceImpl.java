@@ -568,6 +568,8 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         titleCell.setCellStyle(style);
         if (StringUtils.isNotBlank(entity.getNotes())) {
             titleCell.setCellValue("备注："+entity.getNotes());
+        }else{
+            titleCell.setCellValue("备注：");
         }
         CellRangeAddress range = new CellRangeAddress(entity.getDataList().size() + 1, entity.getDataList().size() + 1, 0, 7);
         sheet.addMergedRegion(range);
