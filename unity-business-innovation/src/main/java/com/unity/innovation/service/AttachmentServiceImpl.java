@@ -27,6 +27,23 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unchecked")
 @Service
 public class AttachmentServiceImpl extends BaseServiceImpl<AttachmentDao, Attachment> {
+
+    /**
+     * 批量保存附件
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019-09-23 11:08
+     */
+    public void bachSave(String attachmentCode, List<Attachment> attachments){
+        if (CollectionUtils.isNotEmpty(attachments)){
+            attachments.forEach(e->e.setAttachmentCode(attachmentCode));
+
+            saveBatch(attachments);
+        }
+    }
+
     /**
      * 功能描述 附件方法重写
      * @param attachmentCode 附件code
@@ -47,7 +64,7 @@ public class AttachmentServiceImpl extends BaseServiceImpl<AttachmentDao, Attach
             return attachmentCode;
         }
 
-        Set<Long> collect = attachments.stream().map(Attachment::getId).collect(Collectors.toSet());
+        Set<Long> collect = attachments.stream().filter(a->a.getId() != null).map(Attachment::getId).collect(Collectors.toSet());
         //新增的附件列表
         List<Attachment> attachmentAdds = attachments.stream().filter(i -> (i.getId() == null || i.getId() < 0) && StringUtils.isNotEmpty(i.getUrl())).collect(Collectors.toList());
         attachmentAdds.forEach(i->i.setAttachmentCode(attachmentCode));

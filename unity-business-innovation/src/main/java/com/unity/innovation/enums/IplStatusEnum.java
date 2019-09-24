@@ -3,16 +3,17 @@ package com.unity.innovation.enums;
 import lombok.AllArgsConstructor;
 
 /**
- * 数据状态
- *
  * @author qinhuan
- * 生成时间 2019-07-30 14:59:44
+ * @create 2019-09-17 19:54
  */
 @AllArgsConstructor
-public enum ProcessStatusEnum {
-    DEAL_OVERTIME(1, "超时未开始处理"),
-    UPDATE_OVERTIME(2, "超时未更新"),
-    NORMAL(3, "进展正常");
+public enum IplStatusEnum {
+    /**
+     *  状态
+     * */
+    UNDEAL(1,"待处理"),
+    DEALING(2,"处理中"),
+    DONE(3,"处理完毕");
 
     /**
      * 功能描述 根据枚举值返回类型名
@@ -22,14 +23,14 @@ public enum ProcessStatusEnum {
      * @date 2019/7/11 21:29
      */
     public static String ofName(Integer id) {
-        if (DEAL_OVERTIME.getId().equals(id)) {
-            return DEAL_OVERTIME.name;
+        if (UNDEAL.getId().equals(id)) {
+            return UNDEAL.name;
         }
-        if (UPDATE_OVERTIME.getId().equals(id)) {
-            return UPDATE_OVERTIME.getName();
+        if (DEALING.getId().equals(id)) {
+            return DEALING.getName();
         }
-        if (NORMAL.getId().equals(id)) {
-            return NORMAL.getName();
+        if (DONE.getId().equals(id)) {
+            return DONE.getName();
         }
         return null;
     }
@@ -40,11 +41,8 @@ public enum ProcessStatusEnum {
     public Integer getId() {
         return id;
     }
-
     public String getName() {
         return name;
     }
+
 }
-
-
-
