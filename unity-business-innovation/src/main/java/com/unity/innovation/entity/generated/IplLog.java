@@ -58,18 +58,6 @@ public class IplLog extends BaseEntity{
         @CommentTarget("主表id")
         @TableField("id_ipl_main")
         private Long idIplMain ;
-        
-        
-        
-        /**
-        * 主责单位id
-        **/
-        @CommentTarget("主责单位id")
-        @TableField("id_rbac_department_duty")
-        private Long idRbacDepartmentDuty ;
-        
-
-
 }
 
 
