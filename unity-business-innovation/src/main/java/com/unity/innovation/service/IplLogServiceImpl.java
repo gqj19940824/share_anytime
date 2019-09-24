@@ -16,7 +16,6 @@ import com.unity.innovation.dao.IplLogDao;
  * date: 2019-09-21 15:45:36
  * 
  * @author zhang 
- * @version  
  * @since JDK 1.8
  */
 @Service
