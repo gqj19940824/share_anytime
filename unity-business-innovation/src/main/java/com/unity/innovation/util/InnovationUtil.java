@@ -1,5 +1,7 @@
 package com.unity.innovation.util;
 
+import com.google.common.collect.Lists;
+import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.util.XyDates;
 import com.unity.common.utils.HashRedisUtils;
@@ -11,6 +13,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.time.Year;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * @author zhqgeng
@@ -75,6 +78,37 @@ public class InnovationUtil {
     */
     public static String getDeptNameById(Long deptId) {
         return  innovationUtil.hashRedisUtils.getFieldValueByFieldName(RedisConstants.DEPARTMENT.concat(deptId.toString()), RedisConstants.NAME);
+    }
+
+    /**
+    * 根据用户id返回用户名
+    *
+    * @param userId 用户id
+    * @return java.lang.String
+    * @author JH
+    * @date 2019/9/24 15:01
+    */
+    public static String getUserNameById(Long userId) {
+        return  innovationUtil.hashRedisUtils.getFieldValueByFieldName(RedisConstants.USER.concat(userId.toString()), RedisConstants.NAME);
+    }
+
+     /**
+     * 根据单位id集合从redis中获取单位集合
+     *
+     * @param ids 单位集合
+     * @return java.util.List<com.unity.common.client.vo.DepartmentVO>
+     * @author JH
+     * @date 2019/9/24 13:58
+     */
+    public static List<DepartmentVO> getDepartmentListByIds(List<Long> ids) {
+        List<DepartmentVO> list = Lists.newArrayList();
+        ids.forEach(id ->{
+            DepartmentVO department = new DepartmentVO();
+            department.setId(id);
+            department.setName(getDeptNameById(id));
+            list.add(department);
+        });
+        return list;
     }
 
 }

@@ -39,6 +39,18 @@ public interface RbacClient {
     @PostMapping("/feign/user/getUserIdListByDepIdList")
     List<Long> getUserIdListByDepIdList(@RequestBody List<Long> departmentIdList);
 
+
+    /**
+    * 查询属于某几个单位的用户，得到{用户id，单位id}集合
+    *
+    * @param ids  单位id的集合
+    * @return java.util.Map<java.lang.Long,java.lang.Long>
+    * @author JH
+    * @date 2019/9/23 16:16
+    */
+    @PostMapping("/feign/user/listUserInDepartment")
+    Map<Long,List<Long>> listUserInDepartment(@RequestBody List<Long> ids);
+
     @Component
     class HystrixClientFallback implements RbacClient {
 
@@ -47,6 +59,10 @@ public interface RbacClient {
             return null;
         }
 
+        @Override
+        public Map<Long,List<Long>> listUserInDepartment(List<Long> ids) {
+            return null;
+        }
         @Override
         public List<Long> getUserIdListByDepIdList(List<Long> departmentIdList) {
             return null;
