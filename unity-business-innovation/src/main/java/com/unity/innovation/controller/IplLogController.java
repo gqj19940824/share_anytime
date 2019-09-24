@@ -15,7 +15,8 @@ import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
-import com.unity.innovation.entity.IplLog;
+import com.unity.innovation.entity.generated.IplLog;
+import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.service.IplLogServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +78,7 @@ public class IplLogController extends BaseWebController {
     @PostMapping("/save")
     @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IplLog entity) {
-        
+
         service.saveOrUpdate(entity);
         return success(null);
     }
