@@ -224,6 +224,12 @@ public class IplDarbMain extends BaseEntity{
         @TableField("process_status")
         private Integer processStatus ;
 
+        /**
+        * 主责单位id
+        **/
+        @CommentTarget("主责单位id")
+        @TableField("id_rbac_department")
+        private Long idRbacDepartment ;
 
 
 }

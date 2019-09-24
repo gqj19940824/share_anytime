@@ -6,7 +6,6 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.generated.IplLog;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.unity.innovation.entity.IplDarbMain;
 import com.unity.innovation.dao.IplDarbMainDao;
 
-import java.util.Arrays;
+import java.awt.print.Pageable;
 import java.util.List;
 
 /**
@@ -61,9 +60,15 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao,IplDa
 
         // 保存修改
         updateById(entity);
+        LambdaQueryWrapper<IplLog> qw = new LambdaQueryWrapper();
+        qw.eq(IplLog::getIdIplMain, entity.getId())
+                .eq(IplLog::getIdRbacDepartmentDuty, entity.getIdRbacDepartment())
+                .orderByDesc(IplLog::getGmtCreate);
+        IplLog last = iplLogService.getOne(qw, false);
 
-         IplLog iplLog = IplLog.newInstance().idIplMain(entity.getId()).idRbacDepartmentAssist(0L).processInfo("更新基本信息").processStatus(1).build();
-         iplLogService.save(iplLog);
+        IplLog iplLog = IplLog.newInstance().idIplMain(entity.getId()).idRbacDepartmentAssist(0L)
+                .processInfo("更新基本信息").processStatus(last.getProcessStatus()).idRbacDepartmentDuty(entity.getIdRbacDepartment()).build();
+        iplLogService.save(iplLog);
     }
 
     @Transactional(rollbackFor = Exception.class)

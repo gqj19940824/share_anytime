@@ -23,5 +23,4 @@ import com.unity.innovation.dao.IplLogDao;
 @Transactional(rollbackFor = Exception.class)
 public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao,IplLog>{
 
-     
 }

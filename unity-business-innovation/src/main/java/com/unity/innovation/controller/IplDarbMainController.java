@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constants.ConstString;
+import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -15,11 +16,13 @@ import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.DicUtils;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplDarbMain;
+import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.ProcessStatusEnum;
 import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.service.AttachmentServiceImpl;
 import com.unity.innovation.service.IplDarbMainServiceImpl;
+import com.unity.innovation.service.IplLogServiceImpl;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,13 +53,41 @@ public class IplDarbMainController extends BaseWebController {
     private AttachmentServiceImpl attachmentService;
 
     @Autowired
+    private IplLogServiceImpl iplLogService;
+
+    @Autowired
     private DicUtils dicUtils;
-    
+
     /**
-     * 获取一页数据
-     * @param pageEntity 统一查询条件
+     * 保存实时更新
+     * @param iplLog
      * @return
      */
+    @PostMapping("/updateStatus")
+    public Mono<ResponseEntity<SystemResponse<Object>>> updateStatus(@RequestBody IplLog iplLog) {
+        Long idIplMain = iplLog.getIdIplMain();
+        IplDarbMain byId = service.getById(idIplMain);
+        Long idRbacDepartment = byId.getIdRbacDepartment();
+
+        iplLog.setIdRbacDepartmentDuty(idRbacDepartment);
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        Long idRbacDepartment1 = customer.getIdRbacDepartment();
+        if (idRbacDepartment.equals(idRbacDepartment1)){
+            iplLog.setIdRbacDepartmentAssist(0L);
+        }else {
+            iplLog.setIdRbacDepartmentAssist(idRbacDepartment1);
+        }
+
+        iplLogService.save(iplLog);
+        return success(null);
+    }
+
+
+        /**
+         * 获取一页数据
+         * @param pageEntity 统一查询条件
+         * @return
+         */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplDarbMain> pageEntity) {
 
@@ -91,6 +122,7 @@ public class IplDarbMainController extends BaseWebController {
         // TODO 校验
 
         if (entity.getId() == null){ // 新增
+            entity.setIdRbacDepartment(100L); // TODO 写死了主责单位id
             service.add(entity);
         }else { // 编辑
             // 没有登录会抛异常
