@@ -135,7 +135,6 @@ public class ResourceController extends BaseWebController {
         if(relation == null || relation.getId() == null){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到要分配的角色ID");
         }
-
         resourceService.bindRoleAndResource(relation);
         return success("操作成功");
     }
