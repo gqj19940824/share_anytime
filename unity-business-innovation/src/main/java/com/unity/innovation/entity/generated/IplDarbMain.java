@@ -120,7 +120,14 @@ public class IplDarbMain extends BaseEntity{
         private Double bond ;
         
         
-        
+        /**
+        * 自筹
+        **/
+        @CommentTarget("自筹")
+        @TableField("self_raise")
+        private Double selfRaise ;
+
+
         /**
         * 增信方式
         **/

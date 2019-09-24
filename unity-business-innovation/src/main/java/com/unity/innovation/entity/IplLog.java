@@ -4,12 +4,11 @@ import lombok.*;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 
-@Builder(builderMethodName = "newInstance")
-@AllArgsConstructor
 
+@AllArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper=false)
-@TableName(value = "in_ipl_log")
+@TableName(value = "ipl_log")
 public class IplLog extends com.unity.innovation.entity.generated.IplLog {
         
         

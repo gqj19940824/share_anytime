@@ -40,7 +40,7 @@ import java.util.Map;
  * @author zhang
  * 生成时间 2019-09-21 15:45:35
  */
-@Controller
+@RestController
 @RequestMapping("/ipldarbmain")
 public class IplDarbMainController extends BaseWebController {
     @Autowired
@@ -58,7 +58,6 @@ public class IplDarbMainController extends BaseWebController {
      * @return
      */
     @PostMapping("/listByPage")
-    @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplDarbMain> pageEntity) {
 
         LambdaQueryWrapper<IplDarbMain> ew = wrapper(pageEntity);
@@ -75,7 +74,6 @@ public class IplDarbMainController extends BaseWebController {
      * @return
      */
     @GetMapping("/detailById/{id}")
-    @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@PathVariable("id") String id) {
         IplDarbMain byId = service.getById(id);
         Map<String, Object> stringObjectMap = convert2Map(byId);
@@ -88,7 +86,6 @@ public class IplDarbMainController extends BaseWebController {
      * @return
      */
     @PostMapping("/saveOrUpdate")
-    @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IplDarbMain entity) {
 
         // TODO 校验
@@ -110,9 +107,9 @@ public class IplDarbMainController extends BaseWebController {
      * @param ids id列表用英文逗号分隔
      * @return
      */
-    @DeleteMapping("/removeByIds")
-    public Mono<ResponseEntity<SystemResponse<Object>>>  removeByIds(@RequestBody String ids) {
-        service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
+    @DeleteMapping("/removeByIds/{ids}")
+    public Mono<ResponseEntity<SystemResponse<Object>>>  removeByIds(@PathVariable("ids") String ids) {
+        service.delByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
         return success(null);
     }
 
@@ -127,7 +124,7 @@ public class IplDarbMainController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m, entity);
                 }
-                ,IplDarbMain::getId,IplDarbMain::getSort,IplDarbMain::getNotes,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay
+                ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay
         );
     }
 
@@ -141,7 +138,7 @@ public class IplDarbMainController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m,entity);
                 }
-                ,IplDarbMain::getId,IplDarbMain::getSort,IplDarbMain::getNotes,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay
+                ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay
         );
     }
     
@@ -151,22 +148,7 @@ public class IplDarbMainController extends BaseWebController {
      * @param entity 需要适配的实体
      */
     private void adapterField(Map<String, Object> m, IplDarbMain entity){
-        if(!StringUtils.isEmpty(entity.getCreator())) {
-            if(entity.getCreator().indexOf(ConstString.SEPARATOR_POINT)>-1) {
-                m.put("creator", entity.getCreator().split(ConstString.SPLIT_POINT)[1]);
-            }
-            else {
-                m.put("creator", entity.getCreator());
-            }
-        }
-        if(!StringUtils.isEmpty(entity.getEditor())) {
-            if(entity.getEditor().indexOf(ConstString.SEPARATOR_POINT)>-1) {
-                m.put("editor", entity.getEditor().split(ConstString.SPLIT_POINT)[1]);
-            }
-            else {
-                m.put("editor", entity.getEditor());
-            }
-        }
+
         m.put("industryCategory", dicUtils.getDicValueByCode(DicConstants.INDUSTRY_CATEGORY, entity.getIndustryCategory() + ""));
         m.put("demandItem", dicUtils.getDicValueByCode(DicConstants.DEMAND_ITEM, entity.getDemandItem() + ""));
         m.put("demandCategory", dicUtils.getDicValueByCode(DicConstants.DEMAND_CATEGORY, entity.getDemandCategory() + ""));

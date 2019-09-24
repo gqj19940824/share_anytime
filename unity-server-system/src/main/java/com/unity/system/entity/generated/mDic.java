@@ -4,9 +4,6 @@ package com.unity.system.entity.generated;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
 import com.baomidou.mybatisplus.annotation.TableField;
 
 import com.unity.common.base.BaseEntity;
@@ -51,8 +48,13 @@ public class mDic extends BaseEntity{
         **/
         @TableField("group_code")
         private String groupCode ;
-        
-        
+
+
+        /**
+        *
+        **/
+        @TableField("status")
+        private String status ;
 
 }
 
