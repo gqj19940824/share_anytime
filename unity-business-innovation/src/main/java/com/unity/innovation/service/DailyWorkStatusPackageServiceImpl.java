@@ -221,8 +221,8 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                         .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                         .message("未获取到对象").build();
             }
-            if (WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getState()) ||
-                    WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getState())) {
+            if (!(WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getState()) ||
+                    WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getState()))) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
                         .message("只有待提交和已驳回状态下数据可编辑").build();
