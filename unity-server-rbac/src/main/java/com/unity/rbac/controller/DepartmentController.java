@@ -231,5 +231,17 @@ public class DepartmentController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> getDeptList() {
         return success(JsonUtil.ObjectToList(service.list(), null, Department::getId, Department::getName));
     }
+
+    /**
+     * 单位列表获取单位类型下拉框数据
+
+     * @return 只有id和name的单位集合
+     * @author gengzhiqiang
+     * @date 2019/9/19 19:34
+     */
+    @PostMapping("/getDepTypeSelectListToDepList")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getDepTypeSelectListToDepList() {
+        return success(service.getDepTypeSelectListToDepList());
+    }
 }
 

@@ -559,4 +559,16 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         }
         //else 则是 无效操作 不理会
     }
+
+    /**
+     * 根据单位id修改对应用户状态
+     *
+     * @param  isLock 是否启用 0 是 1 否（主要是考虑到用户这边用的字段叫 isLck）
+     * @param idRbacDepartment 单位id
+     * @author gengjiajia
+     * @since 2019/09/24 10:51
+     */
+    public void updateIsLockByIdRbacDepartment(Integer isLock,Long idRbacDepartment){
+        baseMapper.updateIsLockByIdRbacDepartment(isLock,idRbacDepartment);
+    }
 }

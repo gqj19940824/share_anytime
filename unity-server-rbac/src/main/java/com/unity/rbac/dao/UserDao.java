@@ -5,6 +5,7 @@ import com.unity.common.base.BaseDao;
 import com.unity.rbac.entity.User;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -169,5 +170,17 @@ public interface UserDao extends BaseDao<User> {
             "   </foreach>" +
             "</script>")
     List<User> getUserIdsByRoleIdAndDepartmentIds(Map<String,Object> map);
+
+    /**
+     * 根据单位id修改对应用户状态
+     *
+     * @param  useStatus 是否启用 0 是 1 否（主要是考虑到用户这边用的字段叫 isLck）
+     * @param idRbacDepartment 单位id
+     * @author gengjiajia
+     * @since 2019/09/24 10:51
+     */
+    @Update("UPDATE rbac_user SET is_lock = #{useStatus} WHERE id_rbac_department = #{idRbacDepartment} AND is_deleted = 0")
+    @Transactional(rollbackFor = Exception.class)
+    void updateIsLockByIdRbacDepartment(@Param("useStatus") Integer useStatus,@Param("idRbacDepartment") Long idRbacDepartment);
 }
 
