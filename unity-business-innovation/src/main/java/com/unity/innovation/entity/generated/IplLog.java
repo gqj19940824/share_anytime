@@ -1,9 +1,8 @@
 package com.unity.innovation.entity.generated;
 
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.*;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -18,7 +17,10 @@ import com.unity.common.base.CommentTarget;
  * 生成时间 2019-09-21 15:45:36
  */
 @Data
+@Builder(builderMethodName = "newInstance")
 @NoArgsConstructor
+@AllArgsConstructor
+@TableName(value = "ipl_log")
 @EqualsAndHashCode(callSuper=false)
 public class IplLog extends BaseEntity{
 
@@ -56,18 +58,14 @@ public class IplLog extends BaseEntity{
         @CommentTarget("主表id")
         @TableField("id_ipl_main")
         private Long idIplMain ;
-        
-        
-        
+
+
         /**
         * 主责单位id
         **/
         @CommentTarget("主责单位id")
         @TableField("id_rbac_department_duty")
         private Long idRbacDepartmentDuty ;
-        
-
-
 }
 
 

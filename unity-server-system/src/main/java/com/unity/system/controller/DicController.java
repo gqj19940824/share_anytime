@@ -3,7 +3,9 @@ package com.unity.system.controller;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.sun.org.apache.xpath.internal.operations.Gt;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.constant.SafetyConstant;
 import com.unity.common.constants.ConstString;
@@ -12,6 +14,7 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ConvertUtil;
+import com.unity.common.utils.UUIDUtil;
 import com.unity.system.entity.Dic;
 import com.unity.system.entity.DicGroup;
 import com.unity.system.service.DicGroupServiceImpl;
@@ -227,6 +230,9 @@ public class DicController extends BaseWebController {
             dic.setDicValue(entity.getDicValue());
             dic.setNotes(entity.getNotes());
             dic.setGmtModified(System.currentTimeMillis());
+            if (StringUtils.isNotBlank(entity.getStatus())){
+                dic.setStatus(entity.getStatus());
+            }
             dicService.saveOrUpdate(dic);
 
             String key = RedisConstants.DIC_PREFIX + dic.getGroupCode();
@@ -383,4 +389,90 @@ public class DicController extends BaseWebController {
         });
         return success(resultMap);
     }
+
+    /**
+     * 行业类别列表查询
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019-09-24 09:36
+     */
+    @PostMapping("category/listByPage")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getIndustryCategorys(@RequestBody PageEntity<Dic> pageEntity){
+
+        LambdaQueryWrapper<Dic> qw = new LambdaQueryWrapper<>();
+
+        if (pageEntity != null && pageEntity.getEntity() != null){
+
+            Dic entity = pageEntity.getEntity();
+
+            // 组名
+            String groupCode = entity.getGroupCode();
+            if (StringUtils.isBlank(groupCode)){
+                return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "缺少必要请求参数");
+            }
+
+            qw.eq(Dic::getGroupCode, groupCode);
+
+            // 类别
+            String dicValue = entity.getDicValue();
+            if (StringUtils.isNotBlank(dicValue)){
+                qw.like(Dic::getDicValue, dicValue);
+            }
+            // 状态
+            String status = entity.getStatus();
+            if (StringUtils.isNotBlank(status)){
+                qw.eq(Dic::getStatus, status);
+            }
+        }
+        IPage<Dic> page = dicService.page(pageEntity.getPageable(), qw);
+        PageElementGrid result = PageElementGrid.<Dic>newInstance().total(page.getTotal()).items(page.getRecords()).build();
+        return success(result);
+    }
+
+    /**
+     * 行业类别添加或修改
+     *
+     * @param entity 实体
+     * @return
+     */
+    @PostMapping("category/saveOrUpdate")
+    public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdateIndustryCategory(@RequestBody Dic entity) {
+
+        if (entity == null) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
+        }
+        String dicValue = entity.getDicValue();
+        if (StringUtils.isBlank(dicValue) || dicValue.length() > 20) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "类别名称必填且长度不可超过20位字符");
+        }
+        // 新增
+        if (entity.getId() == null) {
+            String groupCode = entity.getGroupCode();
+            if (StringUtils.isBlank(groupCode)){
+                return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
+            }
+            entity.setDicCode(UUIDUtil.getUUID());
+            entity.setStatus("1");
+            dicService.save(entity);
+        } else {
+
+            Dic dic = dicService.getById(entity.getId());
+            if (dic == null) {
+                return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, "数据不存在");
+            }
+            dic.setDicValue(entity.getDicValue());
+            dic.setGmtModified(System.currentTimeMillis());
+            if (StringUtils.isNotBlank(entity.getStatus())){
+                dic.setStatus(entity.getStatus());
+            }
+            dicService.saveOrUpdate(dic);
+
+            String key = RedisConstants.DIC_PREFIX + dic.getGroupCode();
+            redisTemplate.opsForHash().put(key, dic.getDicCode(), JSON.toJSONString(dic));
+        }
+        return success(null);
+    }
+
 }

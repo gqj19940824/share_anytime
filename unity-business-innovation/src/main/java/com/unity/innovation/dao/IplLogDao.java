@@ -3,7 +3,7 @@ package com.unity.innovation.dao;
 
 
 import com.unity.common.base.BaseDao;
-import com.unity.innovation.entity.IplLog;
+import com.unity.innovation.entity.generated.IplLog;
 
 /**
  * 创新发布清单-操作日志

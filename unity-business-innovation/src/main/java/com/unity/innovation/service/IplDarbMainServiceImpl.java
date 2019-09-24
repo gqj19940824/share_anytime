@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.generated.IplLog;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,9 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao,IplDa
     @Autowired
     private AttachmentServiceImpl attachmentService;
 
+    @Autowired
+    private IplLogServiceImpl iplLogService;
+
     @Transactional(rollbackFor = Exception.class)
     public Long add(IplDarbMain entity) {
         // 保存附件
@@ -43,8 +47,6 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao,IplDa
         }
 
         save(entity);
-
-        // TODO 记录日志
 
         return entity.getId();
     }
@@ -60,13 +62,14 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao,IplDa
         // 保存修改
         updateById(entity);
 
-        // TODO 记录日志
+         IplLog iplLog = IplLog.newInstance().idIplMain(entity.getId()).idRbacDepartmentAssist(0L).processInfo("更新基本信息").processStatus(1).build();
+         iplLogService.save(iplLog);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void delByIds(Long[] ids) {
-        if (ArrayUtils.isNotEmpty(ids)){
-            Arrays.stream(ids).forEach(e->{
+    public void delByIds(List<Long> ids) {
+        if (CollectionUtils.isNotEmpty(ids)){
+            ids.forEach(e->{
                 IplDarbMain byId = getById(e);
                 if (byId != null){
                     String attachmentCode = byId.getAttachmentCode();
