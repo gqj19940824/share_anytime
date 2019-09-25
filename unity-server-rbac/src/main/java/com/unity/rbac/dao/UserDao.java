@@ -33,7 +33,7 @@ public interface UserDao extends BaseDao<User> {
             " u.*, d. NAME AS department,d.dep_type AS depType " +
             "FROM " +
             " rbac_user u " +
-            "INNER JOIN rbac_department d ON u.id_rbac_department = d.id " +
+            "LEFT JOIN rbac_department d ON u.id_rbac_department = d.id " +
             "WHERE u.id = #{userId}")
     User getUserInfoById(Long userId);
 

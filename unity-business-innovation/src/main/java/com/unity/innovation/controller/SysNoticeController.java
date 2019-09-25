@@ -65,18 +65,6 @@ public class SysNoticeController extends BaseWebController {
 
     }
 
-    @PostMapping("/listByPageOther")
-    public Mono<ResponseEntity<SystemResponse<Object>>> listByPageOther(@RequestBody PageEntity<SysNotice> pageEntity) {
-
-        Page<SysNotice> pageable = pageEntity.getPageable();
-        SysNotice entity = pageEntity.getEntity();
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        Long userId = customer.getId();
-        entity.setUserId(userId);
-
-        return success();
-    }
-
 
     /**
     * 添加或修改
@@ -249,6 +237,68 @@ public class SysNoticeController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"缺少主表id");
         }
         return success(service.getReadInfo(entity));
+    }
+
+
+    /**
+    * 非宣传部查看收到通知公告列表接口
+    *
+    * @param pageEntity 分页条件
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/9/25 10:02
+    */
+    @PostMapping("/listByPageOther")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listByPageOther(@RequestBody PageEntity<SysNotice> pageEntity) {
+
+        Page<SysNotice> pageable = pageEntity.getPageable();
+        SysNotice entity = pageEntity.getEntity();
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        Long userId = customer.getId();
+        entity.setUserId(userId);
+        IPage<SysNotice> page = service.listByPageOther(pageable, entity);
+        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
+                .total(page.getTotal())
+                .items( JsonUtil.ObjectToList(page.getRecords(),
+                               null
+                        , SysNotice::getId, SysNotice::getTitle, SysNotice::getGmtSend
+                )).build();
+        return success(result);
+
+    }
+
+
+    /**
+     * 非宣传部查看详情接口
+     *
+     * @param entity 主表id
+     * @return com.unity.innovation.entity.SysNotice
+     * @author JH
+     * @date 2019/9/25 10:52
+     */
+    @PostMapping("/findById")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getById(@RequestBody SysNotice entity) {
+        if(entity == null || entity.getId() == null) {
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"缺少id");
+        }
+        return success(service.findById(entity.getId()));
+    }
+
+    /**
+    * 逻辑删除
+    *
+    * @param ids 主表id集合
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/9/25 11:13
+    */
+    @PostMapping("/deleteByIds")
+    public Mono<ResponseEntity<SystemResponse<Object>>> deleteByIds(@RequestBody List<Long> ids) {
+        if(CollectionUtils.isEmpty(ids)) {
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"缺少id");
+        }
+        service.deleteByIds(ids);
+        return success();
     }
 
 }
