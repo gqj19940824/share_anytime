@@ -63,6 +63,37 @@ public class IplDarbMainController extends BaseWebController {
     private DicUtils dicUtils;
 
     /**
+     * 协同事项列表
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019-09-25 15:26
+     */
+    public Mono<ResponseEntity<SystemResponse<Object>>> assists(@PathVariable("mainId") Long mainId){
+        // 查询基本信息
+        IplDarbMain entity = service.getById(mainId);
+
+        if (entity == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        // 主责单位id
+        Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
+
+        // 查询协同单位列表
+        LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
+        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId).orderByDesc(IplAssist::getGmtCreate);
+        List<IplAssist> assists = iplAssistService.list(qw);
+        if (CollectionUtils.isNotEmpty(assists)){
+            assists.forEach(e->{
+                e.setNameRbacDepartmentAssist(InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist()));
+            });
+        }
+
+        return success(assists);
+    }
+
+    /**
      * 总体进展
      * @param mainId
      * @return
@@ -70,56 +101,109 @@ public class IplDarbMainController extends BaseWebController {
     @PostMapping("/totalProcess/{mainId}")
     public Mono<ResponseEntity<SystemResponse<Object>>> totalProcess(@PathVariable("mainId") Long mainId) {
 
+        // 查询基本信息
         IplDarbMain entity = service.getById(mainId);
+
+        if (entity == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        // 主责单位id
+        Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
+
+        // 查询协同单位列表
         LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-        LambdaQueryWrapper<IplAssist> eq = qw.eq(IplAssist::getIdIplMain, entity.getId()).eq(IplAssist::getIdRbacDepartmentDuty, entity.getIdRbacDepartment()).orderByDesc(IplAssist::getGmtCreate);
-        List<IplAssist> assists = iplAssistService.list(eq);
+        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId).orderByDesc(IplAssist::getGmtCreate);
+        List<IplAssist> assists = iplAssistService.list(qw);
+
+        // 查询处理日志列表
+        LambdaQueryWrapper<IplLog> logqw = new LambdaQueryWrapper<>();
+        logqw.eq(IplLog::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplLog::getIdIplMain, mainId).orderByDesc(IplLog::getGmtCreate);
+        List<IplLog> logs = iplLogService.list(logqw);
+
+        // 定义返回值
         List<Map<String, Object>> resultList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(assists)){
-            LambdaQueryWrapper<IplLog> logqw = new LambdaQueryWrapper<>();
-            LambdaQueryWrapper<IplLog> eq1 = logqw.eq(IplLog::getIdIplMain, entity.getId()).eq(IplLog::getIdRbacDepartmentDuty, entity.getIdRbacDepartment()).orderByDesc(IplLog::getGmtCreate);
-            List<IplLog> logs = iplLogService.list(eq1);
+        if (CollectionUtils.isNotEmpty(logs)){
+            // 按照协同单位的id分成子logs
             LinkedHashMap<Long, List<IplLog>> collect = logs.stream().collect(Collectors.groupingBy(IplLog::getIdRbacDepartmentAssist, LinkedHashMap::new, Collectors.toList()));
 
+            // 主责单位处理日志
             Map<String, Object> mapDuty = new HashMap<>();
-            mapDuty.put("department", InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
+            mapDuty.put("department", InnovationUtil.getDeptNameById(idRbacDepartmentDuty));
             mapDuty.put("processStatus", entity.getProcessStatus());
-            mapDuty.put("logs", collect.get(0L));
+            mapDuty.put("logs", collect.get(0L)); // 在日志表的协同单位字段中，主责单位的日志记录在该字段中存为0
             resultList.add(mapDuty);
-            assists.forEach(e->{
-                Map<String, Object> map = new HashMap<>();
-                map.put("department", InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist()));
-                map.put("processStatus", e.getProcessStatus());
-                map.put("logs", collect.get(e.getIdRbacDepartmentAssist()));
-                resultList.add(map);
-            });
+            // 协同单位处理日志
+            if (CollectionUtils.isNotEmpty(assists)){
+                assists.forEach(e->{
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("department", InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist()));
+                    map.put("processStatus", e.getProcessStatus());
+                    map.put("logs", collect.get(e.getIdRbacDepartmentAssist()));
+                    resultList.add(map);
+                });
+            }
         }
+
         return success(resultList);
     }
 
     /**
-     * 保存实时更新
+     * 实时更新
      * @param iplLog
      * @return
      */
     @PostMapping("/updateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> updateStatus(@RequestBody IplLog iplLog) {
         Long idIplMain = iplLog.getIdIplMain();
-        IplDarbMain byId = service.getById(idIplMain);
-        Long idRbacDepartment = byId.getIdRbacDepartment();
+        IplDarbMain entity = service.getById(idIplMain);
+        if (entity == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        // 主责单位id
+        Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
 
-        iplLog.setIdRbacDepartmentDuty(idRbacDepartment);
+        iplLog.setIdRbacDepartmentDuty(idRbacDepartmentDuty);
         Customer customer = LoginContextHolder.getRequestAttributes();
-        Long idRbacDepartment1 = customer.getIdRbacDepartment();
-        if (idRbacDepartment.equals(idRbacDepartment1)){
+        Long customerIdRbacDepartment = customer.getIdRbacDepartment();
+        if (idRbacDepartmentDuty.equals(customerIdRbacDepartment)){
             iplLog.setIdRbacDepartmentAssist(0L);
         }else {
-            iplLog.setIdRbacDepartmentAssist(idRbacDepartment1);
+            iplLog.setIdRbacDepartmentAssist(customerIdRbacDepartment);
         }
 
         iplLogService.save(iplLog);
         return success(null);
-        // TODO 如果主责单位去操作协同单位的状态，则需要插两条log
+    }
+
+    /**
+     * 主责单位实时更新协同单位处理状态
+     * @param iplLog
+     * @return
+     */
+    @PostMapping("/updateStatusByDuty")
+    public Mono<ResponseEntity<SystemResponse<Object>>> updateStatusByDuty(@RequestBody IplLog iplLog) {
+
+        // 协助单位id
+        Long idRbacDepartmentAssist = iplLog.getIdRbacDepartmentAssist();
+        if (idRbacDepartmentAssist == null){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
+        }
+        // 主表id
+        Long idIplMain = iplLog.getIdIplMain();
+        IplDarbMain entity = service.getById(idIplMain);
+        if (entity == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        // 主责单位id
+        Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
+
+        LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
+        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, idRbacDepartmentAssist);
+        IplAssist iplAssist = iplAssistService.getOne(qw);
+
+        // 修改状态、插入日志
+        service.updateStatusByDuty(iplAssist, iplLog, idRbacDepartmentDuty, idRbacDepartmentAssist, idIplMain);
+        return success(null);
     }
 
     /**
@@ -135,7 +219,7 @@ public class IplDarbMainController extends BaseWebController {
         List<IplAssist> assistList = new ArrayList<>();
         assists.forEach(e->{
             IplAssist build = IplAssist.newInstance()
-                    .idRbacDepartmentDuty(byId.getIdRbacDepartment())
+                    .idRbacDepartmentDuty(byId.getIdRbacDepartmentDuty())
                     .dealStatus(IplStatusEnum.DEALING.getId())
                     .idIplMain(idIplMain)
                     .idRbacDepartmentAssist(MapUtils.getLong(e, "idRbacDepartmentAssist"))
@@ -187,7 +271,7 @@ public class IplDarbMainController extends BaseWebController {
         // TODO 校验
 
         if (entity.getId() == null){ // 新增
-            entity.setIdRbacDepartment(100L); // TODO 写死了主责单位id
+            entity.setIdRbacDepartmentDuty(100L); // TODO 写死了主责单位id
             service.add(entity);
         }else { // 编辑
             // 没有登录会抛异常
