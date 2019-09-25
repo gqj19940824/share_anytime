@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao,IplDa
     @Autowired
     private IplLogServiceImpl iplLogService;
 
+    @Autowired
+    private IplAssistServiceImpl iplAssistService;
+
     @Transactional(rollbackFor = Exception.class)
     public Long add(IplDarbMain entity) {
         // 保存附件
@@ -61,7 +65,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao,IplDa
         updateById(entity);
         LambdaQueryWrapper<IplLog> qw = new LambdaQueryWrapper();
         qw.eq(IplLog::getIdIplMain, entity.getId())
-                .eq(IplLog::getIdRbacDepartmentDuty, entity.getIdRbacDepartment())
+                .eq(IplLog::getIdRbacDepartmentDuty, entity.getIdRbacDepartmentDuty())
                 .orderByDesc(IplLog::getGmtCreate);
         IplLog last = iplLogService.getOne(qw, false);
         // 处理中
@@ -70,7 +74,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao,IplDa
             dealStatus = last.getDealStatus();
         }
         IplLog iplLog = IplLog.newInstance().idIplMain(entity.getId()).idRbacDepartmentAssist(0L)
-                .processInfo("更新基本信息").idRbacDepartmentDuty(entity.getIdRbacDepartment()).dealStatus(dealStatus).build();
+                .processInfo("更新基本信息").idRbacDepartmentDuty(entity.getIdRbacDepartmentDuty()).dealStatus(dealStatus).build();
         iplLogService.save(iplLog);
     }
 
@@ -87,5 +91,18 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao,IplDa
                 }
             });
         }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void updateStatusByDuty(IplAssist iplAssist, IplLog iplLog, Long idRbacDepartmentDuty, Long idRbacDepartmentAssist, Long idIplMain){
+        iplAssist.setDealStatus(iplLog.getDealStatus());
+        iplAssistService.updateById(iplAssist);
+
+        // 主责单位改变协同单位的状态需要向协同单位和主责单位的操作日志中同时插入一条记录
+        IplLog assistDeptLog = IplLog.newInstance().dealStatus(iplLog.getDealStatus()).idRbacDepartmentDuty(idRbacDepartmentDuty).idIplMain(idIplMain).processInfo("主责单位改变状态").idRbacDepartmentAssist(idRbacDepartmentAssist).build();
+        IplLog dutyDeptLog = IplLog.newInstance().dealStatus(iplLog.getDealStatus()).idRbacDepartmentDuty(idRbacDepartmentDuty).idIplMain(idIplMain).processInfo("主责单位改变状态").idRbacDepartmentAssist(0L).build();
+
+        iplLogService.save(assistDeptLog);
+        iplLogService.save(dutyDeptLog);
     }
 }

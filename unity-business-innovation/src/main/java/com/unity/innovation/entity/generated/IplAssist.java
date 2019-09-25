@@ -30,7 +30,14 @@ public class IplAssist extends BaseEntity{
         @CommentTarget("协同单位id")
         @TableField("id_rbac_department_assist")
         private Long idRbacDepartmentAssist ;
-        
+
+
+        /**
+         * 协同单位名称
+         **/
+        @TableField(exist = false)
+        private String nameRbacDepartmentAssist ;
+
 
         /**
         * 邀请事项
@@ -65,7 +72,8 @@ public class IplAssist extends BaseEntity{
         @CommentTarget("主责单位id")
         @TableField("id_rbac_department_duty")
         private Long idRbacDepartmentDuty ;
-        
+
+
         /**
         * 进展超时
         **/
