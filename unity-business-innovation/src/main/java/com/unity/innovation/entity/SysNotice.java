@@ -51,6 +51,9 @@ public class SysNotice extends mSysNotice{
      * */
     @TableField(exist = false)
     private Long gmtEnd ;
+
+    @TableField(exist = false)
+    private Long userId ;
   
 }
 
