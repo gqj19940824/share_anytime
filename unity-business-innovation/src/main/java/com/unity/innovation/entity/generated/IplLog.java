@@ -66,6 +66,12 @@ public class IplLog extends BaseEntity{
         @CommentTarget("主责单位id")
         @TableField("id_rbac_department_duty")
         private Long idRbacDepartmentDuty ;
+
+        /**
+         * 状态名称
+         */
+        @TableField(exist = false)
+        private String statusName;
 }
 
 
