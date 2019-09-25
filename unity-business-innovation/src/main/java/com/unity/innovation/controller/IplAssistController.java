@@ -39,7 +39,7 @@ import com.unity.common.enums.FlagEnum;
 import javax.servlet.http.HttpServletResponse;
 
 import com.unity.innovation.service.IplAssistServiceImpl;
-import com.unity.innovation.entity.IplAssist;
+import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.enums.*;
 
 
@@ -96,42 +96,6 @@ public class IplAssistController extends BaseWebController {
         service.saveOrUpdate(entity);
         return success(null);
     }
-    
-    @RequestMapping({"/export/excel"})
-    public void exportExcel(HttpServletResponse res,String cond) {
-        String fileName="创新发布清单-协同事项";
-        ExportEntity<IplAssist> excel =  ExcelEntity.exportEntity(res);
-
-        try {
-            SearchElementGrid search = new SearchElementGrid();
-            search.setCond(JSON.parseObject(cond, SearchCondition.class));
-            LambdaQueryWrapper<IplAssist> ew = wrapper(search);
-            List<IplAssist> list = service.list(ew);
-     
-            excel
-                .addColumn(IplAssist::getId,"编号")
-                .addColumn(IplAssist::getIdIplEsbMain2,"编号_创新发布清单-企服局-主表")
-                .addColumn(IplAssist::getIdIplEsbMain3,"编号_创新发布清单-企服局-主表2")
-                .addColumn(IplAssist::getIdIplOdMain,"编号_创新发布清单-组织部-主表")
-                .addColumn(IplAssist::getIdIplSatbMain,"编号_创新发布清单-科技局-主表")
-                .addColumn(IplAssist::getIdIplDarbMain,"编号_创新发布清单-发改局-主表")
-                .addColumn(IplAssist::getIdSuggestion,"编号_意见建议-纪检组")
-                .addColumn(IplAssist::getIdIplPdMain,"编号_创新发布清单-宣传部-主表")
-                .addColumn(IplAssist::getIdIplYzgtMain,"编号_创新发布清单-亦庄国投-主表")
-                .addColumn(IplAssist::getNotes,"备注")
-                .addColumn(IplAssist::getEditor,"修改人")
-                .addColumn(IplAssist::getIdRbacDepartmentAssist,"协同单位id")
-                .addColumn(IplAssist::getInviteInfo,"邀请事项")
-                .addColumn(IplAssist::getProcess,"处理状态")
-                .addColumn(IplAssist::getIdIplEsbMain,"所属主表id")
-                .addColumn(IplAssist::getIdRbacDepartmentDuty,"主责单位id")
-                 .export(fileName,convert2List(list));
-        }
-        catch (Exception ex){
-            excel.exportError(fileName,ex);
-        }
-    }
-
     
      /**
      * 获取数据
@@ -193,7 +157,7 @@ public class IplAssistController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m, entity);
                 }
-                ,IplAssist::getId,IplAssist::getIdIplEsbMain2,IplAssist::getIdIplEsbMain3,IplAssist::getIdIplOdMain,IplAssist::getIdIplSatbMain,IplAssist::getIdIplDarbMain,IplAssist::getIdSuggestion,IplAssist::getIdIplPdMain,IplAssist::getIdIplYzgtMain,IplAssist::getSort,IplAssist::getNotes,IplAssist::getIdRbacDepartmentAssist,IplAssist::getInviteInfo,IplAssist::getProcess,IplAssist::getIdIplEsbMain,IplAssist::getIdRbacDepartmentDuty
+                ,IplAssist::getId,IplAssist::getSort,IplAssist::getNotes,IplAssist::getIdRbacDepartmentAssist,IplAssist::getInviteInfo,IplAssist::getIdRbacDepartmentDuty
         );
     }
     
@@ -207,7 +171,7 @@ public class IplAssistController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m,entity);
                 }
-                ,IplAssist::getId,IplAssist::getIdIplEsbMain2,IplAssist::getIdIplEsbMain3,IplAssist::getIdIplOdMain,IplAssist::getIdIplSatbMain,IplAssist::getIdIplDarbMain,IplAssist::getIdSuggestion,IplAssist::getIdIplPdMain,IplAssist::getIdIplYzgtMain,IplAssist::getIsDeleted,IplAssist::getSort,IplAssist::getNotes,IplAssist::getIdRbacDepartmentAssist,IplAssist::getInviteInfo,IplAssist::getProcess,IplAssist::getIdIplEsbMain,IplAssist::getIdRbacDepartmentDuty
+                ,IplAssist::getId,IplAssist::getSort,IplAssist::getNotes,IplAssist::getIdRbacDepartmentAssist,IplAssist::getInviteInfo,IplAssist::getIdRbacDepartmentDuty
         );
     }
     

@@ -29,8 +29,8 @@ public class IplLog extends BaseEntity{
         * 处理状态
         **/
         @CommentTarget("处理状态")
-        @TableField("process_status")
-        private Integer processStatus ;
+        @TableField("deal_status")
+        private Integer dealStatus ;
         
         
         
@@ -66,6 +66,15 @@ public class IplLog extends BaseEntity{
         @CommentTarget("主责单位id")
         @TableField("id_rbac_department_duty")
         private Long idRbacDepartmentDuty ;
+
+        /**
+        * 超时状态
+        **/
+        @CommentTarget("超时状态")
+        @TableField("process_status")
+        private Long processStatus ;
+
+
 }
 
 
