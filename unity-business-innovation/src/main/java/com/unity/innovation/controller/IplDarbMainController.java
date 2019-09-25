@@ -70,6 +70,7 @@ public class IplDarbMainController extends BaseWebController {
      * @author qinhuan
      * @since 2019-09-25 15:26
      */
+    @GetMapping("/assists/{mainId}")
     public Mono<ResponseEntity<SystemResponse<Object>>> assists(@PathVariable("mainId") Long mainId){
         // 查询基本信息
         IplDarbMain entity = service.getById(mainId);
