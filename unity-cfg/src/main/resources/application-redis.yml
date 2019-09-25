@@ -2,10 +2,12 @@ spring:
 #  session:
 #    store-type: redis
   redis:
+    topic: __keyevent@0__:expired
     namespace: sessionRBAC
     flush-mode: on-save
-    timeout: 5000D
-
+    timeout: 2000
+    return: true
+    borrow: true
     jedis:
       pool:
         max-idle: 50
@@ -18,7 +20,7 @@ spring:
   profiles: devel
   redis:
    port: 6379
-   host: 172.19.1.96
+   host: 172.19.1.97
    password: Jingkai@jingcaiwang.cn
 
 ---
