@@ -6,10 +6,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.*;
 import com.unity.innovation.entity.SysNoticeUser;
 import com.unity.innovation.enums.IsSendEnum;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.unity.common.base.controller.BaseWebController;
@@ -61,6 +63,18 @@ public class SysNoticeController extends BaseWebController {
                 .items(convert2List(p.getRecords())).build();
         return success(result);
 
+    }
+
+    @PostMapping("/listByPageOther")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listByPageOther(@RequestBody PageEntity<SysNotice> pageEntity) {
+
+        Page<SysNotice> pageable = pageEntity.getPageable();
+        SysNotice entity = pageEntity.getEntity();
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        Long userId = customer.getId();
+        entity.setUserId(userId);
+
+        return success();
     }
 
 
@@ -186,13 +200,11 @@ public class SysNoticeController extends BaseWebController {
     @PostMapping("/removeByIds")
     public Mono<ResponseEntity<SystemResponse<Object>>> removeByIds(@RequestBody List<Long> ids) {
         if (CollectionUtils.isEmpty(ids) || CollectionUtils.isEmpty(service.list(new LambdaQueryWrapper<SysNotice>().in(SysNotice::getId, ids)))) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("要删除的数据不存在").build();
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"要删除的数据不存在");
         }
         List<SysNotice> list = service.list(new LambdaQueryWrapper<SysNotice>().in(SysNotice::getId, ids).eq(SysNotice::getIsSend, YesOrNoEnum.YES.getType()));
         if (CollectionUtils.isNotEmpty(list)) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("存在已发送的数据、无法删除").build();
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"存在已发送的数据、无法删除");
         }
         service.removeByIds(ids);
         return success();
@@ -210,8 +222,7 @@ public class SysNoticeController extends BaseWebController {
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody SysNotice entity) {
         if(entity == null || entity.getId() == null) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("缺少id").build();
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"缺少id");
         }
         return success(service.detailById(entity.getId()));
     }
@@ -219,8 +230,7 @@ public class SysNoticeController extends BaseWebController {
     @PostMapping("/getAttachmentListById")
     public Mono<ResponseEntity<SystemResponse<Object>>> getAttachmentListById(@RequestBody SysNotice entity) {
         if(entity == null || entity.getId() == null) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("缺少id").build();
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"缺少id");
         }
         return success(service.getAttachmentListById(entity.getId()));
     }
@@ -236,8 +246,7 @@ public class SysNoticeController extends BaseWebController {
     @PostMapping("/getReadInfo")
     public Mono<ResponseEntity<SystemResponse<Object>>> getReadInfo(@RequestBody SysNoticeUser entity) {
         if(entity == null || entity.getIdSysNotice() == null) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("缺少主表id").build();
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"缺少主表id");
         }
         return success(service.getReadInfo(entity));
     }
