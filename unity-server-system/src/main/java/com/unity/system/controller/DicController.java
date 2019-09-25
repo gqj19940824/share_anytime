@@ -398,7 +398,7 @@ public class DicController extends BaseWebController {
      * @author qinhuan
      * @since 2019-09-24 09:36
      */
-    @PostMapping("category/listByPage")
+    @PostMapping("/category/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> getIndustryCategorys(@RequestBody PageEntity<Dic> pageEntity){
 
         LambdaQueryWrapper<Dic> qw = new LambdaQueryWrapper<>();

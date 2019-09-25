@@ -3,7 +3,7 @@ package com.unity.innovation.dao;
 
 
 import com.unity.common.base.BaseDao;
-import com.unity.innovation.entity.IplAssist;
+import com.unity.innovation.entity.generated.IplAssist;
 
 /**
  * 创新发布清单-协同事项

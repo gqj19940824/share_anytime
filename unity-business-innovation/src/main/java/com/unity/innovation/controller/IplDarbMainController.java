@@ -1,6 +1,5 @@
 package com.unity.innovation.controller;
 
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
@@ -15,28 +14,30 @@ import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.DicUtils;
 import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.ProcessStatusEnum;
 import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.service.AttachmentServiceImpl;
+import com.unity.innovation.service.IplAssistServiceImpl;
 import com.unity.innovation.service.IplDarbMainServiceImpl;
 import com.unity.innovation.service.IplLogServiceImpl;
+import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * darb->Development and Reform Bureau\r\n\r\n
@@ -56,7 +57,45 @@ public class IplDarbMainController extends BaseWebController {
     private IplLogServiceImpl iplLogService;
 
     @Autowired
+    private IplAssistServiceImpl iplAssistService;
+
+    @Autowired
     private DicUtils dicUtils;
+
+    /**
+     * 总体进展
+     * @param mainId
+     * @return
+     */
+    @PostMapping("/totalProcess/{mainId}")
+    public Mono<ResponseEntity<SystemResponse<Object>>> totalProcess(@PathVariable("mainId") Long mainId) {
+
+        IplDarbMain entity = service.getById(mainId);
+        LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
+        LambdaQueryWrapper<IplAssist> eq = qw.eq(IplAssist::getIdIplMain, entity.getId()).eq(IplAssist::getIdRbacDepartmentDuty, entity.getIdRbacDepartment()).orderByDesc(IplAssist::getGmtCreate);
+        List<IplAssist> assists = iplAssistService.list(eq);
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(assists)){
+            LambdaQueryWrapper<IplLog> logqw = new LambdaQueryWrapper<>();
+            LambdaQueryWrapper<IplLog> eq1 = logqw.eq(IplLog::getIdIplMain, entity.getId()).eq(IplLog::getIdRbacDepartmentDuty, entity.getIdRbacDepartment()).orderByDesc(IplLog::getGmtCreate);
+            List<IplLog> logs = iplLogService.list(eq1);
+            LinkedHashMap<Long, List<IplLog>> collect = logs.stream().collect(Collectors.groupingBy(IplLog::getIdRbacDepartmentAssist, LinkedHashMap::new, Collectors.toList()));
+
+            Map<String, Object> mapDuty = new HashMap<>();
+            mapDuty.put("department", InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
+            mapDuty.put("processStatus", entity.getProcessStatus());
+            mapDuty.put("logs", collect.get(0L));
+            resultList.add(mapDuty);
+            assists.forEach(e->{
+                Map<String, Object> map = new HashMap<>();
+                map.put("department", InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist()));
+                map.put("processStatus", e.getProcessStatus());
+                map.put("logs", collect.get(e.getIdRbacDepartmentAssist()));
+                resultList.add(map);
+            });
+        }
+        return success(resultList);
+    }
 
     /**
      * 保存实时更新
@@ -80,14 +119,40 @@ public class IplDarbMainController extends BaseWebController {
 
         iplLogService.save(iplLog);
         return success(null);
+        // TODO 如果主责单位去操作协同单位的状态，则需要插两条log
     }
 
+    /**
+     * 新增协同事项
+     * @param map 统一查询条件
+     * @return
+     */
+    @PostMapping("/addAssistant")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody Map map) {
+        Long idIplMain = MapUtils.getLong(map, "idIplMain");
+        IplDarbMain byId = service.getById(idIplMain);
+        List<Map> assists = (List<Map>) map.get("assists");
+        List<IplAssist> assistList = new ArrayList<>();
+        assists.forEach(e->{
+            IplAssist build = IplAssist.newInstance()
+                    .idRbacDepartmentDuty(byId.getIdRbacDepartment())
+                    .dealStatus(IplStatusEnum.DEALING.getId())
+                    .idIplMain(idIplMain)
+                    .idRbacDepartmentAssist(MapUtils.getLong(e, "idRbacDepartmentAssist"))
+                    .inviteInfo(MapUtils.getString(e, "inviteInfo"))
+                    .build();
+            assistList.add(build);
+        });
+        iplAssistService.saveBatch(assistList);
+        // TODO 插入日志
+        return success(null);
+    }
 
-        /**
-         * 获取一页数据
-         * @param pageEntity 统一查询条件
-         * @return
-         */
+    /**
+     * 获取一页数据
+     * @param pageEntity 统一查询条件
+     * @return
+     */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplDarbMain> pageEntity) {
 

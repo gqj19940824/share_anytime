@@ -12,11 +12,11 @@ import com.unity.common.constant.RedisConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.SysNoticeDepartment;
 import com.unity.innovation.entity.SysNoticeUser;
 import com.unity.innovation.enums.IsReadEnum;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.type.YesNoType;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +45,8 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
     private SysNoticeUserServiceImpl noticeUserService;
     @Resource
     private RedisTemplate redisTemplate;
+    @Resource
+    private SysNoticeDepartmentServiceImpl noticeDepartmentService;
 
 
 
@@ -68,8 +70,12 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
         String attachmentCode = old.getAttachmentCode();
         //处理附件
         attachmentService.updateAttachments(attachmentCode,entity.getAttachmentList());
-        //修改关联表
-        updateNoticeUser(entity);
+        //修改单位关联表
+        updateNoticeDepartment(entity);
+        if(YesOrNoEnum.YES.getType() == entity.getIsSend()) {
+            //保存人员关联表数据
+            saveNoticeUser(entity);
+        }
 
     }
 
@@ -91,8 +97,13 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
         super.save(entity);
         //处理附件
         attachmentService.updateAttachments(attachmentCode,entity.getAttachmentList());
-        //保存关联表数据
-        updateNoticeUser(entity);
+        //保存单位关联表
+        updateNoticeDepartment(entity);
+        if(YesOrNoEnum.YES.getType() == entity.getIsSend()) {
+            //保存人员关联表数据
+            saveNoticeUser(entity);
+        }
+
     }
 
     /**
@@ -102,11 +113,8 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
     * @author JH
     * @date 2019/9/23 17:18
     */
-    private void updateNoticeUser(SysNotice entity) {
-        Long id = entity.getId();
-        if (id!= null) {
-            noticeUserService.remove(new LambdaUpdateWrapper<SysNoticeUser>().eq(SysNoticeUser::getIdSysNotice,id));
-        }
+    private void saveNoticeUser(SysNotice entity) {
+
         List<Long> departmentIds = entity.getDepartmentIds();
         //返回单位包含的用户集合
         Map<Long, List<Long>> map = rbacClient.listUserInDepartment(departmentIds);
@@ -120,12 +128,38 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
                     noticeUser.setIdSysNotice(entity.getId());
                     noticeUser.setIdRbacDepartment(departmentId);
                     noticeUser.setIdRbacUser(userId);
+                    noticeUser.setIsShow(YesOrNoEnum.YES.getType());
                     noticeUserList.add(noticeUser);
                 });
             }
         });
         //保存关联表数据
         noticeUserService.saveBatch(noticeUserList);
+    }
+
+
+    /**
+    * 修改单位关联表数据
+    *
+    * @param entity 实体
+    * @author JH
+    * @date 2019/9/24 20:20
+    */
+    private void updateNoticeDepartment(SysNotice entity) {
+        Long id = entity.getId();
+        if (id!= null) {
+            noticeDepartmentService.remove(new LambdaUpdateWrapper<SysNoticeDepartment>().eq(SysNoticeDepartment::getIdSysNotice,id));
+        }
+        List<Long> departmentIds = entity.getDepartmentIds();
+        List<SysNoticeDepartment> noticeDepartmentList = Lists.newArrayList();
+        departmentIds.forEach(departmentId ->{
+            SysNoticeDepartment noticeDepartment = new SysNoticeDepartment();
+            noticeDepartment.setIdSysNotice(entity.getId());
+            noticeDepartment.setIdRbacDepartment(departmentId);
+            noticeDepartmentList.add(noticeDepartment);
+        });
+        //保存单位关联表数据
+        noticeDepartmentService.saveBatch(noticeDepartmentList);
     }
 
     /**
@@ -141,9 +175,9 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
         String attachmentCode = entity.getAttachmentCode();
         //附件集合
         List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode, attachmentCode));
-        List<SysNoticeUser> noticeUserList = noticeUserService.list(new LambdaQueryWrapper<SysNoticeUser>().eq(SysNoticeUser::getIdSysNotice, id));
         //接收单位集合
-        List<Long> departmentIds = noticeUserList.stream().map(SysNoticeUser::getIdRbacDepartment).collect(Collectors.toList());
+        List<SysNoticeDepartment> list = noticeDepartmentService.list(new LambdaQueryWrapper<SysNoticeDepartment>().eq(SysNoticeDepartment::getIdSysNotice, id));
+        List<Long> departmentIds = list.stream().map(SysNoticeDepartment::getIdRbacDepartment).collect(Collectors.toList());
         List<DepartmentVO> departmentList = InnovationUtil.getDepartmentListByIds(departmentIds);
         entity.setAttachmentList(attachmentList);
         entity.setDepartmentList(departmentList);
@@ -175,57 +209,83 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
     */
     public List<SysNoticeUser> getReadInfo(SysNoticeUser entity) {
 
-        Integer isRead = entity.getIsRead();
+
+        Long noticeId = entity.getIdSysNotice();
+        SysNotice sysNotice = baseMapper.selectById(noticeId);
         List<SysNoticeUser> res = Lists.newArrayList();
+        //未发送
+        if(YesOrNoEnum.NO.getType() == sysNotice.getIsSend()) {
+            //接收单位集合
+            List<SysNoticeDepartment> list = noticeDepartmentService.list(new LambdaQueryWrapper<SysNoticeDepartment>().eq(SysNoticeDepartment::getIdSysNotice, noticeId));
+            List<Long> departmentIds = list.stream().map(SysNoticeDepartment::getIdRbacDepartment).collect(Collectors.toList());
+            //返回单位包含的用户集合
+            Map<Long, List<Long>> map = rbacClient.listUserInDepartment(departmentIds);
+            departmentIds.forEach(departmentId ->{
+                List<Long> userIds = map.get(departmentId);
+                if(CollectionUtils.isNotEmpty(userIds)) {
+                    userIds.forEach( userId -> {
+                        SysNoticeUser noticeUser = new SysNoticeUser();
+                        noticeUser.setIdRbacDepartment(departmentId);
+                        noticeUser.setIdRbacUser(userId);
+                        res.add(noticeUser);
+                    });
+                }
+            });
+        } else {
+            Integer isRead = entity.getIsRead();
 
-        //已浏览
-        LambdaQueryWrapper<SysNoticeUser> isReadWrapper = new LambdaQueryWrapper<>();
-        isReadWrapper.eq(SysNoticeUser::getIdSysNotice, entity.getIdSysNotice());
-        isReadWrapper.eq(SysNoticeUser::getIsRead, YesOrNoEnum.YES.getType());
-        if(entity.getIdRbacDepartment() != null) {
-            isReadWrapper.eq(SysNoticeUser::getIdRbacDepartment,entity.getIdRbacDepartment());
-        }
-        isReadWrapper.orderByDesc(SysNoticeUser::getGmtRead);
-        List<SysNoticeUser> isReadList = noticeUserService.list(isReadWrapper);
-
-
-        //未浏览
-        String s = (String) redisTemplate.opsForValue().get(RedisConstants.DEPARTMENT_ORDER_LIST);
-        List<Long> orderByList = JSON.parseArray(s, Long.class);
-        //单位排序
-        LambdaQueryWrapper<SysNoticeUser> noReadWrapper = new LambdaQueryWrapper<>();
-        noReadWrapper.eq(SysNoticeUser::getIsRead, YesOrNoEnum.NO.getType());
-        noReadWrapper.eq(SysNoticeUser::getIdSysNotice, entity.getIdSysNotice());
-        if(entity.getIdRbacDepartment() != null) {
-            noReadWrapper.eq(SysNoticeUser::getIdRbacDepartment,entity.getIdRbacDepartment());
-        }
-        if (orderByList != null && orderByList.size() > 0) {
-            StringBuffer sb = new StringBuffer();
-            sb.append("  order by field ( id_rbac_department ");
-            orderByList.forEach(o -> sb.append(",").append(o.toString()));
-            sb.append(") ");
-            noReadWrapper.last(sb.toString());
-        }
-        List<SysNoticeUser> noReadList = noticeUserService.list(noReadWrapper);
-
-
-        if(isRead != null) {
             //已浏览
-            if(YesOrNoEnum.YES.getType() == isRead) {
-                res.addAll(isReadList);
+            LambdaQueryWrapper<SysNoticeUser> isReadWrapper = new LambdaQueryWrapper<>();
+            isReadWrapper.eq(SysNoticeUser::getIdSysNotice, entity.getIdSysNotice());
+            isReadWrapper.eq(SysNoticeUser::getIsRead, YesOrNoEnum.YES.getType());
+            if(entity.getIdRbacDepartment() != null) {
+                isReadWrapper.eq(SysNoticeUser::getIdRbacDepartment,entity.getIdRbacDepartment());
+            }
+            isReadWrapper.orderByDesc(SysNoticeUser::getGmtRead);
+            List<SysNoticeUser> isReadList = noticeUserService.list(isReadWrapper);
+
+
             //未浏览
+            String s = (String) redisTemplate.opsForValue().get(RedisConstants.DEPARTMENT_ORDER_LIST);
+            List<Long> orderByList = JSON.parseArray(s, Long.class);
+            //单位排序
+            LambdaQueryWrapper<SysNoticeUser> noReadWrapper = new LambdaQueryWrapper<>();
+            noReadWrapper.eq(SysNoticeUser::getIsRead, YesOrNoEnum.NO.getType());
+            noReadWrapper.eq(SysNoticeUser::getIdSysNotice, entity.getIdSysNotice());
+            if(entity.getIdRbacDepartment() != null) {
+                noReadWrapper.eq(SysNoticeUser::getIdRbacDepartment,entity.getIdRbacDepartment());
+            }
+            if (orderByList != null && orderByList.size() > 0) {
+                StringBuffer sb = new StringBuffer();
+                sb.append("  order by field ( id_rbac_department ");
+                orderByList.forEach(o -> sb.append(",").append(o.toString()));
+                sb.append(") ");
+                noReadWrapper.last(sb.toString());
+            }
+            List<SysNoticeUser> noReadList = noticeUserService.list(noReadWrapper);
+
+
+            if(isRead != null) {
+                //已浏览
+                if(YesOrNoEnum.YES.getType() == isRead) {
+                    res.addAll(isReadList);
+                    //未浏览
+                } else {
+                    res.addAll(noReadList);
+                }
             } else {
+                res.addAll(isReadList);
                 res.addAll(noReadList);
             }
-        } else {
-            res.addAll(isReadList);
-            res.addAll(noReadList);
         }
+
         //设置单位名称、用户名称、浏览名称
         res.forEach(sysNoticeUser -> {
             sysNoticeUser.setDepartmentName(InnovationUtil.getDeptNameById(sysNoticeUser.getIdRbacDepartment()));
             sysNoticeUser.setUserName(InnovationUtil.getUserNameById(sysNoticeUser.getIdRbacUser()));
-            sysNoticeUser.setIsReadName(IsReadEnum.of(sysNoticeUser.getIsRead()).getName());
+            if(sysNoticeUser.getIsRead() != null) {
+                sysNoticeUser.setIsReadName(IsReadEnum.of(sysNoticeUser.getIsRead()).getName());
+            }
         });
         return res;
 
@@ -245,10 +305,11 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
         List<String> codeList = sysNotices.stream().map(SysNotice::getAttachmentCode).collect(Collectors.toList());
         //删除主表
         baseMapper.deleteBatchIds(ids);
-        //删除关联表
-        noticeUserService.remove(new LambdaUpdateWrapper<SysNoticeUser>().in(SysNoticeUser::getIdSysNotice,ids));
+        //删除单位关联表
+        noticeDepartmentService.remove(new LambdaUpdateWrapper<SysNoticeDepartment>().in(SysNoticeDepartment::getIdSysNotice,ids));
         //删除附件表
         attachmentService.remove(new LambdaUpdateWrapper<Attachment>().in(Attachment::getAttachmentCode,codeList));
+        //无需删除用户关联表，因为此时还未发送
     }
 
 

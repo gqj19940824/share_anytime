@@ -65,9 +65,13 @@ public class mSysNoticeUser extends BaseEntity{
         **/
         @CommentTarget("浏览时间")
         @TableField("gmt_read")
-        private Integer gmtRead ;
-        
-        
+        private Long gmtRead ;
+
+        /**
+         * 是否显示
+         * */
+        @TableField("is_show")
+        private Integer isShow ;
 
 }
 
