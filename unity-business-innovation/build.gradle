@@ -1,5 +1,7 @@
 dependencies {
- compile project(':unity-cfg')
+    compile project(':unity-cfg')
+    // https://mvnrepository.com/artifact/redis.clients/jedis
+    compile group: 'redis.clients', name: 'jedis', version: '3.0.1'
 }
 archivesBaseName="unity-business-innovation"
 //sourceSets {
