@@ -75,6 +75,12 @@ public class IplLog extends BaseEntity{
         private Integer processStatus ;
 
 
+        /**
+         * 状态名称
+         */
+        @TableField(exist = false)
+        private String statusName;
+
 }
 
 

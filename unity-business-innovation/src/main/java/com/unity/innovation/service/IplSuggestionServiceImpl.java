@@ -244,6 +244,11 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                 .eq(IplLog::getIdIplMain, vo.getId())
                 .eq(IplLog::getIdRbacDepartmentDuty, customer.getIdRbacDepartment())
                 .orderByDesc(IplLog::getGmtCreate));
+        logList.forEach(log -> {
+            if (log.getDealStatus() != null) {
+                log.setStatusName(IplStatusEnum.ofName(log.getDealStatus()));
+            }
+        });
         vo.setIplLogList(logList);
         //附件
         List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
