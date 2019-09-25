@@ -284,7 +284,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                         .message("账号已锁定，如有疑问请联系管理员")
                         .build();
             }
-            if (user.getIdRbacDepartment() == null) {
+            if (user.getIdRbacDepartment() == null && UserTypeEnum.ORDINARY.getId().equals(user.getUserType())) {
+
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.LOGIN_DATA_SATUS_ERR)
                         .message("暂未分配所属单位，请联系管理员")
