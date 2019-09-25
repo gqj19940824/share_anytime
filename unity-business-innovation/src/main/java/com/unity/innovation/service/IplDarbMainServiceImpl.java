@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.unity.innovation.entity.IplDarbMain;
 import com.unity.innovation.dao.IplDarbMainDao;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 /**
@@ -65,9 +64,13 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao,IplDa
                 .eq(IplLog::getIdRbacDepartmentDuty, entity.getIdRbacDepartment())
                 .orderByDesc(IplLog::getGmtCreate);
         IplLog last = iplLogService.getOne(qw, false);
-
+        // 处理中
+        Integer dealStatus = 2;
+        if (last != null){
+            dealStatus = last.getDealStatus();
+        }
         IplLog iplLog = IplLog.newInstance().idIplMain(entity.getId()).idRbacDepartmentAssist(0L)
-                .processInfo("更新基本信息").processStatus(last.getProcessStatus()).idRbacDepartmentDuty(entity.getIdRbacDepartment()).build();
+                .processInfo("更新基本信息").idRbacDepartmentDuty(entity.getIdRbacDepartment()).dealStatus(dealStatus).build();
         iplLogService.save(iplLog);
     }
 

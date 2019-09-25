@@ -71,29 +71,48 @@ public class IplDarbMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> totalProcess(@PathVariable("mainId") Long mainId) {
 
         IplDarbMain entity = service.getById(mainId);
+
+        if (entity == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        // 主责单位id
+        Long idRbacDepartmentDuty = entity.getIdRbacDepartment();
+
+        // 查询协同单位列表
         LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-        LambdaQueryWrapper<IplAssist> eq = qw.eq(IplAssist::getIdIplMain, entity.getId()).eq(IplAssist::getIdRbacDepartmentDuty, entity.getIdRbacDepartment()).orderByDesc(IplAssist::getGmtCreate);
-        List<IplAssist> assists = iplAssistService.list(eq);
+        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId).orderByDesc(IplAssist::getGmtCreate);
+        List<IplAssist> assists = iplAssistService.list(qw);
+
+        // 查询处理日志
+        LambdaQueryWrapper<IplLog> logqw = new LambdaQueryWrapper<>();
+        logqw.eq(IplLog::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplLog::getIdIplMain, mainId).orderByDesc(IplLog::getGmtCreate);
+        List<IplLog> logs = iplLogService.list(logqw);
+
+        // 定义返回值
         List<Map<String, Object>> resultList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(assists)){
-            LambdaQueryWrapper<IplLog> logqw = new LambdaQueryWrapper<>();
-            LambdaQueryWrapper<IplLog> eq1 = logqw.eq(IplLog::getIdIplMain, entity.getId()).eq(IplLog::getIdRbacDepartmentDuty, entity.getIdRbacDepartment()).orderByDesc(IplLog::getGmtCreate);
-            List<IplLog> logs = iplLogService.list(eq1);
+        if (CollectionUtils.isNotEmpty(logs)){
+
+            // 按照协同单位的id分成子logs
             LinkedHashMap<Long, List<IplLog>> collect = logs.stream().collect(Collectors.groupingBy(IplLog::getIdRbacDepartmentAssist, LinkedHashMap::new, Collectors.toList()));
 
+            // 主责单位处理日志
             Map<String, Object> mapDuty = new HashMap<>();
-            mapDuty.put("department", InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
+            mapDuty.put("department", InnovationUtil.getDeptNameById(idRbacDepartmentDuty));
             mapDuty.put("processStatus", entity.getProcessStatus());
             mapDuty.put("logs", collect.get(0L));
             resultList.add(mapDuty);
-            assists.forEach(e->{
-                Map<String, Object> map = new HashMap<>();
-                map.put("department", InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist()));
-                map.put("processStatus", e.getProcessStatus());
-                map.put("logs", collect.get(e.getIdRbacDepartmentAssist()));
-                resultList.add(map);
-            });
+            // 协同单位处理日志
+            if (CollectionUtils.isNotEmpty(assists)){
+                assists.forEach(e->{
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("department", InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist()));
+                    map.put("processStatus", e.getProcessStatus());
+                    map.put("logs", collect.get(e.getIdRbacDepartmentAssist()));
+                    resultList.add(map);
+                });
+            }
         }
+
         return success(resultList);
     }
 
