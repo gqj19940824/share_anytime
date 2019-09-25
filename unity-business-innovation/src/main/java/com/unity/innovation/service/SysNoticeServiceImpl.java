@@ -341,7 +341,7 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
     * @date 2019/9/25 10:52
     */
     @Transactional(rollbackFor = Exception.class)
-    public SysNotice getById(Long id) {
+    public SysNotice findById(Long id) {
         SysNotice notice = super.getById(id);
         String attachmentCode = notice.getAttachmentCode();
         //附件集合

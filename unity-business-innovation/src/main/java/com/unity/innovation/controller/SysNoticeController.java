@@ -276,12 +276,12 @@ public class SysNoticeController extends BaseWebController {
      * @author JH
      * @date 2019/9/25 10:52
      */
-    @PostMapping("/getById")
+    @PostMapping("/findById")
     public Mono<ResponseEntity<SystemResponse<Object>>> getById(@RequestBody SysNotice entity) {
         if(entity == null || entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"缺少id");
         }
-        return success(service.getById(entity.getId()));
+        return success(service.findById(entity.getId()));
     }
 
     /**
