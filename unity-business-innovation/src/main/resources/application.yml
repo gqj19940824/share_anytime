@@ -29,3 +29,4 @@ spring:
       - /identity/saveUserIdentiryList/*
       - /api/user/pushUcsUserToSecurity
       - /resource/saveRoleResource
+      - /redisSubscribe/pushRedisSubscribeInfo

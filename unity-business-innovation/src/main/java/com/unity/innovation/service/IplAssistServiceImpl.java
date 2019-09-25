@@ -5,7 +5,7 @@ import com.unity.common.base.BaseServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unity.innovation.entity.IplAssist;
+import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.dao.IplAssistDao;
 
  /**
