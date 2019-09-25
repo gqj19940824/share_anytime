@@ -7,6 +7,7 @@ import com.unity.common.util.XyDates;
 import com.unity.common.utils.HashRedisUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -14,6 +15,8 @@ import javax.annotation.Resource;
 import java.time.Year;
 import java.util.Calendar;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author zhqgeng
@@ -109,6 +112,34 @@ public class InnovationUtil {
             list.add(department);
         });
         return list;
+    }
+
+    /**
+     * 功能描述 邮箱校验
+     *
+     * @param email 邮箱字符串
+     * @return boolean 是否为邮箱 true 是 false 不是
+     * @author gengzhiqiang
+     * @date 2019/9/24 16:30
+     */
+    public static boolean isEmail(String email) {
+        String com = ".com";
+        String cn = ".cn";
+        String net = ".net";
+        if (StringUtils.isBlank(email)) {
+            return false;
+        }
+        if (!(email.endsWith(com) || email.endsWith(cn) || email.endsWith(net))) {
+            return false;
+        }
+        String REGEX_EMAIL = "^([a-z0-9A-Z]+[-|\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-zA-Z]{2,}$";
+        Pattern p = Pattern.compile(REGEX_EMAIL);
+        Matcher m = p.matcher(email);
+        if (m.matches()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }
