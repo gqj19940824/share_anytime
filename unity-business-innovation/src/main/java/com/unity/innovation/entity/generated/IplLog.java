@@ -72,7 +72,7 @@ public class IplLog extends BaseEntity{
         **/
         @CommentTarget("超时状态")
         @TableField("process_status")
-        private Long processStatus ;
+        private Integer processStatus ;
 
 
 }
