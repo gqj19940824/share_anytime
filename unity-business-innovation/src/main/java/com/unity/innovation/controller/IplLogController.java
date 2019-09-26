@@ -145,7 +145,7 @@ public class IplLogController extends BaseWebController {
                 (m, entity) -> {
                    // adapterField(m, entity);
                 }
-                ,IplLog::getId,IplLog::getSort,IplLog::getNotes,IplLog::getProcessStatus,IplLog::getProcessInfo,IplLog::getIdRbacDepartmentAssist,IplLog::getIdIplMain
+                ,IplLog::getId,IplLog::getSort,IplLog::getNotes,IplLog::getProcessInfo,IplLog::getIdRbacDepartmentAssist,IplLog::getIdIplMain
         );
     }
     
@@ -159,7 +159,7 @@ public class IplLogController extends BaseWebController {
                 (m, entity) -> {
                    // adapterField(m,entity);
                 }
-                ,IplLog::getId,IplLog::getIsDeleted,IplLog::getSort,IplLog::getNotes,IplLog::getProcessStatus,IplLog::getProcessInfo,IplLog::getIdRbacDepartmentAssist,IplLog::getIdIplMain
+                ,IplLog::getId,IplLog::getIsDeleted,IplLog::getSort,IplLog::getNotes,IplLog::getProcessInfo,IplLog::getIdRbacDepartmentAssist,IplLog::getIdIplMain
         );
     }
     

@@ -68,19 +68,10 @@ public class IplLog extends BaseEntity{
         private Long idRbacDepartmentDuty ;
 
         /**
-        * 超时状态
-        **/
-        @CommentTarget("超时状态")
-        @TableField("process_status")
-        private Integer processStatus ;
-
-
-        /**
          * 状态名称
          */
         @TableField(exist = false)
         private String statusName;
-
 }
 
 

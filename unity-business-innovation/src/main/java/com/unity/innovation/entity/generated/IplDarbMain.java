@@ -228,8 +228,8 @@ public class IplDarbMain extends BaseEntity{
         * 主责单位id
         **/
         @CommentTarget("主责单位id")
-        @TableField("id_rbac_department")
-        private Long idRbacDepartment ;
+        @TableField("id_rbac_department_duty")
+        private Long idRbacDepartmentDuty;
 
 
 }
