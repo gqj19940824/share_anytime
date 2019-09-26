@@ -1,9 +1,8 @@
 package com.unity.innovation.entity.generated;
 
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.*;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -17,91 +16,20 @@ import com.unity.common.base.CommentTarget;
  * @author zhang
  * 生成时间 2019-09-21 15:45:34
  */
-@Data
+@Builder(builderMethodName = "newInstance")
+@AllArgsConstructor
 @NoArgsConstructor
+@Data
 @EqualsAndHashCode(callSuper=false)
+@TableName(value = "iplm_main_m_ipl_main")
 public class IplmMainIplMain extends BaseEntity{
-
-
-        
-        /**
-        * 编号_创新发布清单-发布管理主表
-        **/
-        @CommentTarget("编号_创新发布清单-发布管理主表")
-        @TableField("id_ipl_manage_main")
-        private Long idIplManageMain ;
-        
-        
-        
-        /**
-        * 编号_创新发布清单-企服局-主表
-        **/
-        @CommentTarget("编号_创新发布清单-企服局-主表")
-        @TableField("id_ipl_esb_main2")
-        private Long idIplEsbMain2 ;
-        
-        
-        
-        /**
-        * 编号_创新发布清单-组织部-主表
-        **/
-        @CommentTarget("编号_创新发布清单-组织部-主表")
-        @TableField("id_ipl_od_main")
-        private Long idIplOdMain ;
-        
-        
-        
-        /**
-        * 编号_创新发布清单-科技局-主表
-        **/
-        @CommentTarget("编号_创新发布清单-科技局-主表")
-        @TableField("id_ipl_satb_main")
-        private Long idIplSatbMain ;
-        
-        
-        
-        /**
-        * 编号_创新发布清单-发改局-主表
-        **/
-        @CommentTarget("编号_创新发布清单-发改局-主表")
-        @TableField("id_ipl_darb_main")
-        private Long idIplDarbMain ;
-        
-        
-        
-        /**
-        * 编号_创新发布清单-纪检组-主表
-        **/
-        @CommentTarget("编号_创新发布清单-纪检组-主表")
-        @TableField("id_ipl_supervision_main")
-        private Long idIplSupervisionMain ;
-        
-        
-        
-        /**
-        * 编号_创新发布清单-宣传部-主表
-        **/
-        @CommentTarget("编号_创新发布清单-宣传部-主表")
-        @TableField("id_ipl_pd_main")
-        private Long idIplPdMain ;
-        
-        
-        
-        /**
-        * 编号_创新发布清单-亦庄国投-主表
-        **/
-        @CommentTarget("编号_创新发布清单-亦庄国投-主表")
-        @TableField("id_ipl_yzgt_main")
-        private Long idIplYzgtMain ;
-        
-        
         
         /**
         * 创新发布清单id
         **/
         @CommentTarget("创新发布清单id")
-        @TableField("id_ipl_esb_main")
-        private Long idIplEsbMain ;
+        @TableField("id_ipl_main")
+        private Long idIplMain ;
         
         
         
@@ -118,11 +46,8 @@ public class IplmMainIplMain extends BaseEntity{
         * 单位id
         **/
         @CommentTarget("单位id")
-        @TableField("id_rbac_department")
-        private Long idRbacDepartment ;
-        
-        
-
+        @TableField("id_rbac_department_duty")
+        private Long idRbacDepartmentDuty ;
 }
 
 

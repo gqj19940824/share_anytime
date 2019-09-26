@@ -2,6 +2,7 @@ package com.unity.innovation.entity.generated;
 
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.unity.innovation.entity.Attachment;
 import lombok.*;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -10,6 +11,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
+
+import java.util.List;
 
 /**
  * 创新发布清单-发布管理主表
@@ -68,6 +71,15 @@ public class IplManageMain extends BaseEntity{
         private String publishResult ;
         
         
+        /**
+        * 发改局列表
+        **/
+        @CommentTarget("发改局列表ID")
+        @TableField(exist = false)
+        private List<Long> idiplDarbMains ;
+
+        @TableField(exist = false)
+        private List<Attachment> attachments;
 
 }
 

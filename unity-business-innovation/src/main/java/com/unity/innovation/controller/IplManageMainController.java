@@ -14,8 +14,10 @@ import com.unity.common.ui.excel.ExportEntity;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
+import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.service.IplManageMainServiceImpl;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -62,11 +64,16 @@ public class IplManageMainController extends BaseWebController {
      * @param entity 创新发布清单-发布管理主表实体
      * @return
      */
-    @PostMapping("/save")
+    @PostMapping("/saveOrUpdate")
     @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IplManageMain entity) {
-        
-        service.saveOrUpdate(entity);
+
+        if (entity.getId() == null){
+            service.add(entity);
+        }else {
+
+        }
+
         return success(null);
     }
     

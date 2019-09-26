@@ -2,20 +2,22 @@ package com.unity.innovation.entity.generated;
 
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * darb->Development and Reform Bureau\r\n\r\n
  * @author zhang
  * 生成时间 2019-09-21 15:45:36
  */
-@Data
+@Builder(builderMethodName = "newInstance")
+@AllArgsConstructor
 @NoArgsConstructor
+@Data
 @EqualsAndHashCode(callSuper=false)
+@TableName(value = "ipl_darb_main_snapshot")
 public class IplDarbMainSnapshot extends BaseEntity{
 
         /**

@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -160,15 +161,16 @@ public class InnovationUtil {
      * @param dest
      * @throws Exception
      */
-    public static void Copy(Object source, Object dest)throws Exception {
-        //获取属性
-        BeanInfo sourceBean = Introspector.getBeanInfo(source.getClass(), java.lang.Object.class);
-        PropertyDescriptor[] sourceProperty = sourceBean.getPropertyDescriptors();
-
-        BeanInfo destBean = Introspector.getBeanInfo(dest.getClass(), java.lang.Object.class);
-        PropertyDescriptor[] destProperty = destBean.getPropertyDescriptors();
-
+    public static <T> T Copy(Object source, T dest) {
         try{
+            //获取属性
+            BeanInfo sourceBean = Introspector.getBeanInfo(source.getClass(), java.lang.Object.class);
+            PropertyDescriptor[] sourceProperty = sourceBean.getPropertyDescriptors();
+
+            BeanInfo destBean = Introspector.getBeanInfo(dest.getClass(), java.lang.Object.class);
+            PropertyDescriptor[] destProperty = destBean.getPropertyDescriptors();
+
+
             for(int i=0;i<sourceProperty.length;i++){
 
                 for(int j=0;j<destProperty.length;j++){
@@ -181,8 +183,9 @@ public class InnovationUtil {
                 }
             }
         }catch(Exception e){
-            throw new Exception("属性复制失败:"+e.getMessage());
+            log.error("属性复制失败:"+e.getMessage());
         }
+        return dest;
     }
 
 }
