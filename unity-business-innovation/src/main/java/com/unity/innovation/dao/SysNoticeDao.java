@@ -27,7 +27,7 @@ public interface SysNoticeDao extends BaseDao<SysNotice> {
      * @date 2019/9/25 9:58
      */
     @Select("  <script>" +
-            "  SELECT a.id,a.title,a.gmt_send " +
+            "  SELECT a.id,a.title,a.gmt_send,b.is_read " +
             "  from sys_notice as a   " +
             "  INNER JOIN sys_m_notice_user b " +
             "  ON a.id = b.id_sys_notice   " +

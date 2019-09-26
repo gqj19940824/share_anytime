@@ -261,7 +261,7 @@ public class SysNoticeController extends BaseWebController {
                 .total(page.getTotal())
                 .items( JsonUtil.ObjectToList(page.getRecords(),
                                null
-                        , SysNotice::getId, SysNotice::getTitle, SysNotice::getGmtSend
+                        , SysNotice::getId, SysNotice::getTitle, SysNotice::getGmtSend,SysNotice::getIsRead
                 )).build();
         return success(result);
 

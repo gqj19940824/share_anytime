@@ -11,8 +11,8 @@
         WHERE m.is_deleted = 0
           and mr.is_deleted = 0
           and mr.target_user_id = #{userId}
-        <if test="dataSource != null">
-            AND m.data_source = #{dataSource}
+        <if test="dataSourceClass != null">
+            AND m.data_source_class = #{dataSourceClass}
         </if>
         <if test="title != null">
             AND m.title LIKE CONCAT('%', #{title}, '%')
@@ -34,8 +34,8 @@
         WHERE m.is_deleted = 0
         and mr.is_deleted = 0
         and mr.target_user_id = #{userId}
-        <if test="dataSource != null">
-            AND m.data_source = #{dataSource}
+        <if test="dataSourceClass != null">
+            AND m.data_source_class = #{dataSourceClass}
         </if>
         <if test="title != null">
             AND m.title LIKE CONCAT('%', #{title}, '%')

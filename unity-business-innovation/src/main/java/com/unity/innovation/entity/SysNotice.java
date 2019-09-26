@@ -54,6 +54,9 @@ public class SysNotice extends mSysNotice{
 
     @TableField(exist = false)
     private Long userId ;
+
+    @TableField(exist = false)
+    private Integer isRead ;
   
 }
 
