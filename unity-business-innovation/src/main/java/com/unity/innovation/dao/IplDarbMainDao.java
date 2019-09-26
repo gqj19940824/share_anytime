@@ -3,7 +3,7 @@ package com.unity.innovation.dao;
 
 
 import com.unity.common.base.BaseDao;
-import com.unity.innovation.entity.IplDarbMain;
+import com.unity.innovation.entity.generated.IplDarbMain;
 
 /**
  * darb->Development and Reform Bureau\r\n\r\n

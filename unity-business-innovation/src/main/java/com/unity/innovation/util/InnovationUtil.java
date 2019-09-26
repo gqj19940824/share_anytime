@@ -1,17 +1,30 @@
 package com.unity.innovation.util;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.RedisConstants;
+import com.unity.common.util.JsonUtil;
 import com.unity.common.util.XyDates;
 import com.unity.common.utils.HashRedisUtils;
+import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.SysCfg;
+import com.unity.innovation.entity.generated.IplDarbMain;
+import com.unity.innovation.entity.generated.IplDarbMainSnapshot;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -138,6 +151,37 @@ public class InnovationUtil {
             return true;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * 两个对象中相同的属性值复制
+     * @param source
+     * @param dest
+     * @throws Exception
+     */
+    public static void Copy(Object source, Object dest)throws Exception {
+        //获取属性
+        BeanInfo sourceBean = Introspector.getBeanInfo(source.getClass(), java.lang.Object.class);
+        PropertyDescriptor[] sourceProperty = sourceBean.getPropertyDescriptors();
+
+        BeanInfo destBean = Introspector.getBeanInfo(dest.getClass(), java.lang.Object.class);
+        PropertyDescriptor[] destProperty = destBean.getPropertyDescriptors();
+
+        try{
+            for(int i=0;i<sourceProperty.length;i++){
+
+                for(int j=0;j<destProperty.length;j++){
+
+                    if(sourceProperty[i].getName().equals(destProperty[j].getName())){
+                        //调用source的getter方法和dest的setter方法
+                        destProperty[j].getWriteMethod().invoke(dest, sourceProperty[i].getReadMethod().invoke(source));
+                        break;
+                    }
+                }
+            }
+        }catch(Exception e){
+            throw new Exception("属性复制失败:"+e.getMessage());
         }
     }
 
