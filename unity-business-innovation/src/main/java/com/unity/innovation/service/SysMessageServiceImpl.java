@@ -159,7 +159,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             sysMessageReadLogService.updateById(log);
         }
         // webSocket 提醒数量 -1
-        sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), Arrays.asList(customer.getId()), false);
+        sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), Arrays.asList(customer.getId()), YesOrNoEnum.NO.getType());
     }
 
     /**
@@ -211,7 +211,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         List<Long> userIdList = rbacClient.getUserIdListByDepIdList(msg.getHelpDepartmentIdList());
         saveMessageLog(messageId, userIdList);
         // webSocket 目标用户 提醒数量 +1
-        sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, true);
+        sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, YesOrNoEnum.YES.getType());
     }
 
     /**
@@ -242,7 +242,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             List<Long> userIdList = rbacClient.getUserIdListByDepIdList(depIdList);
             saveMessageLog(messageId, userIdList);
             // webSocket 目标用户 提醒数量 +1
-            sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, true);
+            sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, YesOrNoEnum.YES.getType());
         }
     }
 
@@ -307,7 +307,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             List<Long> userIdList = rbacClient.getUserIdListByRoleIdList(idList);
             saveMessageLog(messageId, userIdList);
             // webSocket 目标用户 提醒数量 +1
-            sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, true);
+            sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, YesOrNoEnum.YES.getType());
         }
     }
 }
