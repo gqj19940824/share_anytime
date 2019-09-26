@@ -51,7 +51,7 @@ public class MyWebSocketHandler implements WebSocketHandler {
             log.info("===== 《MyWebSocketHandler》 服务器接收socket信息 {}", format);
             if (map.get("id") != null && map.get("message") == null) {
                 //获取当前用户的需求数，返回给后台页面
-                sendMessageToUser(map.get("id") + "", new TextMessage("{\"sysMessageNum\":0,\"noticeNum\":0}"));
+                sendMessageToUser(map.get("id") + "", new TextMessage("{\"isAdd\":1,\"sysMessageNum\":0,\"noticeNum\":0}"));
             } else if (map.get("id") != null && map.get("message") != null) {
                 //心跳检测
                 sendMessageToUser(map.get("id") + "", new TextMessage("pang"));
