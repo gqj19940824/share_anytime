@@ -129,7 +129,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
      * @date 2019/9/23 18:52
      */
     @Transactional(rollbackFor = Exception.class)
-    public void saveEntity(IplSuggestion entity) {
+    public Long  saveEntity(IplSuggestion entity) {
         if (entity.getId() == null) {
             entity.setAttachmentCode(UUIDUtil.getUUID());
             // 状态设为处理中
@@ -140,6 +140,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             entity.setSource(SourceEnum.SELF.getId());
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
             save(entity);
+            return entity.getId();
         } else {
             IplSuggestion vo = getById(entity.getId());
             if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {
@@ -176,6 +177,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                 iplLogService.save(iplLog);
             }
             updateById(entity);
+            return entity.getId();
         }
     }
 
