@@ -98,7 +98,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             lqw.like(IplSuggestion::getProcessStatus, search.getEntity().getProcessStatus());
         }
         //企业名称
-        if (search.getEntity().getEnterpriseName() != null) {
+        if (StringUtils.isNotBlank(search.getEntity().getEnterpriseName())) {
             lqw.like(IplSuggestion::getEnterpriseName, search.getEntity().getEnterpriseName());
         }
         lqw.orderByDesc(IplSuggestion::getGmtModified);
