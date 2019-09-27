@@ -219,7 +219,9 @@ public class IplDarbMainController extends BaseWebController {
             service.edit(entity);
         }
 
-        return success(SafetyConstant.SUCCESS);
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", entity.getId());
+        return success(result);
     }
 
     /**
