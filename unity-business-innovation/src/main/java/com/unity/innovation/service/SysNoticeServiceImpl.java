@@ -29,7 +29,6 @@ import com.unity.innovation.entity.SysNotice;
 import com.unity.innovation.dao.SysNoticeDao;
 
 import javax.annotation.Resource;
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,6 +52,8 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
     private RedisTemplate redisTemplate;
     @Resource
     private SysNoticeDepartmentServiceImpl noticeDepartmentService;
+    @Resource
+    private SysMessageReadLogServiceImpl readLogService;
 
 
     /**
@@ -140,6 +141,9 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
         });
         //保存关联表数据
         noticeUserService.saveBatch(noticeUserList);
+        //发送系统消息
+        List<Long> userList = noticeUserList.stream().map(SysNoticeUser::getIdRbacUser).collect(Collectors.toList());
+        readLogService.updateMessageNumToUserIdList(2,userList,YesOrNoEnum.YES.getType());
     }
 
 
@@ -350,11 +354,12 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
         Customer customer = LoginContextHolder.getRequestAttributes();
         Long userId = customer.getId();
         SysNoticeUser noticeUser = noticeUserService.getOne(new LambdaQueryWrapper<SysNoticeUser>().eq(SysNoticeUser::getIdSysNotice,id).eq(SysNoticeUser::getIdRbacUser,userId));
-        //原先未浏览，改为已浏览，同时设置浏览时间
+        //原先未浏览，改为已浏览，同时设置浏览时间,减少相应用户的系统消息
         if(YesOrNoEnum.NO.getType() == noticeUser.getIsRead()) {
             noticeUser.setIsRead(YesOrNoEnum.YES.getType());
             noticeUser.setGmtRead(System.currentTimeMillis());
             noticeUserService.updateById(noticeUser);
+            readLogService.updateMessageNumToUserIdList(2,Lists.newArrayList(userId),YesOrNoEnum.NO.getType());
         }
         return notice;
     }
