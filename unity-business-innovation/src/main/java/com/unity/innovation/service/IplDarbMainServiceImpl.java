@@ -7,6 +7,7 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
+import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,14 +60,13 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
 
     @Transactional(rollbackFor = Exception.class)
     public Long add(IplDarbMain entity) {
-        String uuid = UUIDUtil.getUUID();
+
         // 保存附件
         List<Attachment> attachments = entity.getAttachments();
         if (CollectionUtils.isNotEmpty(attachments)) {
-            attachmentService.bachSave(uuid, attachments);
+            attachmentService.bachSave(entity.getAttachmentCode(), attachments);
         }
 
-        entity.setAttachmentCode(uuid);
         save(entity);
 
         // TODO 设置超时

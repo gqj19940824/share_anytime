@@ -14,6 +14,7 @@ import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.DicUtils;
+import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplAssist;
@@ -206,6 +207,9 @@ public class IplDarbMainController extends BaseWebController {
         // TODO 校验
 
         if (entity.getId() == null){ // 新增
+            String uuid = UUIDUtil.getUUID();
+            entity.setStatus(IplStatusEnum.DEALING.getId());
+            entity.setAttachmentCode(uuid);
             entity.setIdRbacDepartmentDuty(10L);
             service.add(entity);
         }else { // 编辑
