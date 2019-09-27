@@ -20,7 +20,6 @@ import com.unity.innovation.dao.IplmManageLogDao;
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class IplmManageLogServiceImpl extends BaseServiceImpl<IplmManageLogDao,IplmManageLog>{
 
      

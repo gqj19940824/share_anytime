@@ -72,6 +72,14 @@ public class IplLog extends BaseEntity{
          */
         @TableField(exist = false)
         private String statusName;
+
+        /**
+         * 主责单位id
+         **/
+        @CommentTarget("完成额度")
+        @TableField("complete_num")
+        private Long completeNum ;
+
 }
 
 

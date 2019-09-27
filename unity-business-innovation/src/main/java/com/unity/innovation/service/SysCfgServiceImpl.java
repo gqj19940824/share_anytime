@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +34,18 @@ public class SysCfgServiceImpl extends BaseServiceImpl<SysCfgDao, SysCfg> {
     private SysCfgScopeServiceImpl scopeService;
 
     /**
+     * 根据ids查询其对应的values
+     *
+     * @param ids
+     * @return
+     * @author qinhuan
+     * @since 2019-09-26 13:48
+     */
+    public List<Map<String, Object>> getValues(Set<Long> ids){
+        return baseMapper.getValues(ids);
+    }
+
+    /**
      * 功能描述 根据类型 获取列表
      *          类型 1：工作类别 2：关键字 3：产业类型 4：需求类型
      * @return java.util.List<java.util.Map   <   java.lang.String   ,   java.lang.Object>>
@@ -46,6 +59,7 @@ public class SysCfgServiceImpl extends BaseServiceImpl<SysCfgDao, SysCfg> {
         if (customer.getIdRbacDepartment() != null) {
             list.add(customer.getIdRbacDepartment());
         }
+
         List<SysCfg> typeList = list(new LambdaQueryWrapper<SysCfg>()
                 .eq(SysCfg::getCfgType, type).eq(SysCfg::getUseStatus, 1).in(SysCfg::getScope, list));
         return JsonUtil.ObjectToList(typeList, null, SysCfg::getId, SysCfg::getCfgVal);

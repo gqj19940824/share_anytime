@@ -16,6 +16,8 @@ public class SafetyConstant {
     public static final Integer STATUE_ONE = 1;//状态1  只显示已浏览
     public static final Integer STATUE_TWO = 2;//状态2  只显示未浏览
 
+    public static final String SUCCESS = "操作成功";
+
     /**
      * 通知公告的通告名称(title)的最大长度
      */

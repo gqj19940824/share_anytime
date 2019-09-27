@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class DailyWorkStatusLogServiceImpl extends BaseServiceImpl<DailyWorkStatusLogDao, DailyWorkStatusLog> {
 
      

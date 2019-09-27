@@ -2,19 +2,26 @@
 package com.unity.innovation.controller;
 
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.client.vo.SysReminder;
-import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
-import com.unity.common.util.ConvertUtil;
 import com.unity.innovation.entity.SysMessage;
+import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
+import com.unity.innovation.enums.SysMessageDataSourceEnum;
 import com.unity.innovation.service.SysMessageServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -44,6 +51,26 @@ public class SysMessageController extends BaseWebController {
     }
 
     /**
+     * 获取系统消息下拉类别列表
+     *
+     * @return 类别列表
+     * @author gengjiajia
+     * @since 2019/09/23 11:00
+     */
+    @PostMapping("/getSysMessageClassList")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getSysMessageClassList() {
+        List<Map<String,Object>> list = Lists.newArrayList();
+        SysMessageDataSourceClassEnum[] enums = SysMessageDataSourceClassEnum.values();
+        for (SysMessageDataSourceClassEnum e : enums){
+            Map<String,Object> map = Maps.newHashMap();
+            map.put("id",e.getId());
+            map.put("name",e.getName());
+            list.add(map);
+        }
+        return success(list);
+    }
+
+    /**
      * 删除系统消息
      *
      * @param  sysMessage 包含系统id
@@ -55,7 +82,7 @@ public class SysMessageController extends BaseWebController {
         if (sysMessage == null || sysMessage.getId() == null){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到数据ID");
         }
-        service.removeById(sysMessage.getId());
+        service.deleteById(sysMessage.getId());
         return success("删除成功");
     }
 

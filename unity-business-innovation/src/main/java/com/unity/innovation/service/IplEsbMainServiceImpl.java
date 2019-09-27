@@ -20,7 +20,6 @@ import com.unity.innovation.dao.IplEsbMainDao;
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao,IplEsbMain>{
 
      
