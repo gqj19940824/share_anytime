@@ -125,7 +125,7 @@ public class IplSupervisionMainController extends BaseWebController {
        
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> m.put("categoryName", IplCategoryEnum.ofName(entity.getCategory()))
-                ,IplSupervisionMain::getId,IplSupervisionMain::getCategory,IplSupervisionMain::getDescription
+                ,IplSupervisionMain::getId,IplSupervisionMain::getCategory,IplSupervisionMain::getDescription,IplSupervisionMain::getGmtCreate
         );
     }
     
