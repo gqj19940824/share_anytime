@@ -1,52 +1,33 @@
-
 package com.unity.innovation.controller;
 
-
-
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.unity.common.client.RbacClient;
-import com.unity.common.client.SystemClient;
-import com.unity.common.exception.UnityRuntimeException;
-import org.apache.commons.lang3.StringUtils;
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.ui.PageElementGrid;
+import com.unity.common.ui.SearchCondition;
+import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.ui.excel.ExcelEntity;
 import com.unity.common.ui.excel.ExportEntity;
-import com.unity.common.ui.PageElementGrid;
-import com.unity.common.ui.SearchElementGrid;
-import com.unity.common.ui.tree.zTree;
-import com.unity.common.ui.tree.zTreeStructure;
-import com.unity.common.ui.SearchCondition;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
-
+import com.unity.innovation.entity.generated.IplDarbMain;
+import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.service.IplManageMainServiceImpl;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.unity.common.constants.ConstString;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.List;
-import java.util.Arrays;
-import com.unity.common.enums.FlagEnum;
 import javax.servlet.http.HttpServletResponse;
-
-import com.unity.innovation.service.IplManageMainServiceImpl;
-import com.unity.innovation.entity.IplManageMain;
-import com.unity.innovation.enums.*;
-
-
-
-
-
-
+import java.util.List;
+import java.util.Map;
 
 /**
  * 创新发布清单-发布管理主表
@@ -58,12 +39,6 @@ import com.unity.innovation.enums.*;
 public class IplManageMainController extends BaseWebController {
     @Autowired
     IplManageMainServiceImpl service;
-    
-    @Autowired
-    RbacClient rbacClient;
-
-    @Autowired
-    SystemClient systemClient;
 
      /**
      * 获取一页数据
@@ -89,16 +64,21 @@ public class IplManageMainController extends BaseWebController {
      * @param entity 创新发布清单-发布管理主表实体
      * @return
      */
-    @PostMapping("/save")
+    @PostMapping("/saveOrUpdate")
     @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IplManageMain entity) {
-        
-        service.saveOrUpdate(entity);
+
+        if (entity.getId() == null){
+            service.add(entity);
+        }else {
+
+        }
+
         return success(null);
     }
     
     @RequestMapping({"/export/excel"})
-    public void exportExcel(HttpServletResponse res,String cond) {
+    public void exportExcel(HttpServletResponse res, String cond) {
         String fileName="创新发布清单-发布管理主表";
         ExportEntity<IplManageMain> excel =  ExcelEntity.exportEntity(res);
 
@@ -110,13 +90,12 @@ public class IplManageMainController extends BaseWebController {
      
             excel
                 .addColumn(IplManageMain::getId,"编号")
-                .addColumn(IplManageMain::getIdIpaManageMainIplManageMain,"编号_创新发布活动-活动管理一对多发布管理表")
                 .addColumn(IplManageMain::getNotes,"备注")
                 .addColumn(IplManageMain::getEditor,"修改人")
                 .addColumn(IplManageMain::getTitle,"标题")
                 .addColumn(IplManageMain::getStatus,"状态")
                 .addColumn(IplManageMain::getAttachmentCode,"附件")
-                .addColumn(IplManageMain::getIdRbacDepartment,"单位id")
+                .addColumn(IplManageMain::getIdRbacDepartmentDuty,"单位id")
                 .addColumn(IplManageMain::getPublishResult,"发布结果")
                  .export(fileName,convert2List(list));
         }
@@ -186,7 +165,7 @@ public class IplManageMainController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m, entity);
                 }
-                ,IplManageMain::getId,IplManageMain::getIdIpaManageMainIplManageMain,IplManageMain::getSort,IplManageMain::getNotes,IplManageMain::getTitle,IplManageMain::getStatus,IplManageMain::getAttachmentCode,IplManageMain::getIdRbacDepartment,IplManageMain::getPublishResult
+                ,IplManageMain::getId,IplManageMain::getSort,IplManageMain::getNotes,IplManageMain::getTitle,IplManageMain::getStatus,IplManageMain::getAttachmentCode,IplManageMain::getIdRbacDepartmentDuty,IplManageMain::getPublishResult
         );
     }
     
@@ -200,7 +179,7 @@ public class IplManageMainController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m,entity);
                 }
-                ,IplManageMain::getId,IplManageMain::getIdIpaManageMainIplManageMain,IplManageMain::getIsDeleted,IplManageMain::getSort,IplManageMain::getNotes,IplManageMain::getTitle,IplManageMain::getStatus,IplManageMain::getAttachmentCode,IplManageMain::getIdRbacDepartment,IplManageMain::getPublishResult
+                , IplManageMain::getId,IplManageMain::getIsDeleted,IplManageMain::getSort,IplManageMain::getNotes,IplManageMain::getTitle,IplManageMain::getStatus,IplManageMain::getAttachmentCode,IplManageMain::getIdRbacDepartmentDuty,IplManageMain::getPublishResult
         );
     }
     
@@ -240,50 +219,6 @@ public class IplManageMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
         return success(null);
-    }
-
-
-    /**
-     * 更改排序
-     * @param id
-     * @param up 1 下降 0 上升
-     * @return
-     */
-    @PostMapping("/changeOrder/{id}/{up}")
-    public Mono<ResponseEntity<SystemResponse<Object>>> changeOrder(@PathVariable Integer id,@PathVariable Integer up){
-        IplManageMain entity = service.getById(id);
-        Long sort = entity.getSort();
-        LambdaQueryWrapper<IplManageMain> wrapper = new LambdaQueryWrapper();
-
-        String msg ="";
-        if(up==1) {
-            wrapper.lt(IplManageMain::getSort, sort);
-            msg ="已经是最后一条数据";
-            wrapper.orderByDesc(IplManageMain::getSort);
-        }
-        else {
-            wrapper.gt(IplManageMain::getSort, sort);
-            msg ="已经是第一条数据";
-            wrapper.orderByAsc(IplManageMain::getSort);
-        }
-
-
-        IplManageMain entity1 = service.getOne(wrapper);
-        if(entity1==null) throw new UnityRuntimeException(msg);
-
-        entity.setSort(entity1.getSort());
-
-        IplManageMain entityA = new IplManageMain();
-        entityA.setId(entity.getId());
-        entityA.setSort(entity1.getSort());
-        service.updateById(entityA);
-
-        IplManageMain entityB = new IplManageMain();
-        entityB.setId(entity1.getId());
-        entityB.setSort(sort);
-        service.updateById(entityB);
-
-        return success("移动成功");
     }
 }
 

@@ -11,10 +11,12 @@ public enum IplmStatusEnum {
     /**
      *  类型 1：工作类别 2：关键字 3：产业类型 4：需求类型
      * */
-    ONE(1,"工作类别"),
-    TWO(2,"关键字"),
-    THREE(3,"产业类型"),
-    FOUR(4,"需求类型")
+    UNCOMMIT(1,"待提交"),
+    UNAUDIT(2,"待审核"),
+    REJECTED(3,"产业类型"),
+    UNPUBLISH(4,"需求类型"),
+    UNUPDATE(5, "待更新发布结果"),
+    UPDATED(6, "已更新发布结果")
     ;
 
 //    /**

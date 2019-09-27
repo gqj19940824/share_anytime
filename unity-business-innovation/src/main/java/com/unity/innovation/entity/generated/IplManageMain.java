@@ -1,9 +1,9 @@
 package com.unity.innovation.entity.generated;
 
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.unity.innovation.entity.Attachment;
+import lombok.*;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -12,27 +12,21 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
 
+import java.util.List;
+
 /**
  * 创新发布清单-发布管理主表
  * @author zhang
  * 生成时间 2019-09-21 15:45:37
  */
-@Data
+@Builder(builderMethodName = "newInstance")
+@AllArgsConstructor
 @NoArgsConstructor
+@Data
 @EqualsAndHashCode(callSuper=false)
+@TableName(value = "ipl_manage_main")
 public class IplManageMain extends BaseEntity{
 
-
-        
-        /**
-        * 编号_创新发布活动-活动管理一对多发布管理表
-        **/
-        @CommentTarget("编号_创新发布活动-活动管理一对多发布管理表")
-        @TableField("id_ipa_manage_main_m_ipl_manage_main")
-        private Long idIpaManageMainIplManageMain ;
-        
-        
-        
         /**
         * 标题
         **/
@@ -63,9 +57,9 @@ public class IplManageMain extends BaseEntity{
         /**
         * 单位id
         **/
-        @CommentTarget("单位id")
-        @TableField("id_rbac_department")
-        private Long idRbacDepartment ;
+        @CommentTarget("主责单位id")
+        @TableField("id_rbac_department_duty")
+        private Long idRbacDepartmentDuty ;
         
         
         
@@ -77,6 +71,15 @@ public class IplManageMain extends BaseEntity{
         private String publishResult ;
         
         
+        /**
+        * 发改局列表
+        **/
+        @CommentTarget("发改局列表ID")
+        @TableField(exist = false)
+        private List<Long> idiplDarbMains ;
+
+        @TableField(exist = false)
+        private List<Attachment> attachments;
 
 }
 

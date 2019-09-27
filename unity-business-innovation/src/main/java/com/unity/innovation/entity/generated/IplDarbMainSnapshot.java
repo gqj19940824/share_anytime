@@ -1,18 +1,11 @@
 package com.unity.innovation.entity.generated;
 
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.unity.innovation.entity.Attachment;
-import lombok.*;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
 import com.baomidou.mybatisplus.annotation.TableField;
-
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
-
-import java.util.List;
+import lombok.*;
 
 /**
  * darb->Development and Reform Bureau\r\n\r\n
@@ -24,8 +17,8 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper=false)
-@TableName(value = "ipl_darb_main")
-public class IplDarbMain extends BaseEntity{
+@TableName(value = "ipl_darb_main_snapshot")
+public class IplDarbMainSnapshot extends BaseEntity{
 
         /**
         * 行业类别
@@ -236,14 +229,6 @@ public class IplDarbMain extends BaseEntity{
         @TableField("id_rbac_department_duty")
         private Long idRbacDepartmentDuty;
 
-        @TableField(exist = false)
-        private List<Attachment> attachments;
-
-        @TableField(exist = false)
-        private String creatTime;
-
-        @TableField(exist = false)
-        private String updateTime;
 
 }
 

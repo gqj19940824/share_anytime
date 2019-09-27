@@ -5,15 +5,15 @@ import com.unity.common.base.BaseServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unity.innovation.entity.generated.IplmMainIplMain;
-import com.unity.innovation.dao.IplmMainIplMainDao;
+import com.unity.innovation.entity.IplSupervisionMain;
+import com.unity.innovation.dao.IplSupervisionMainDao;
 
  /**
  * 
- * ClassName: IplmMainIplMainService
+ * ClassName: IplSupervisionMainService
  * Function: TODO ADD FUNCTION
  * Reason: TODO ADD REASON(可选)
- * date: 2019-09-21 15:45:34
+ * date: 2019-09-23 15:34:08
  * 
  * @author zhang 
  * @version  
@@ -21,7 +21,7 @@ import com.unity.innovation.dao.IplmMainIplMainDao;
  */
 @Service
 @Transactional(rollbackFor = Exception.class)
-public class IplmMainIplMainServiceImpl extends BaseServiceImpl<IplmMainIplMainDao,IplmMainIplMain>{
+public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisionMainDao,IplSupervisionMain>{
 
      
 }

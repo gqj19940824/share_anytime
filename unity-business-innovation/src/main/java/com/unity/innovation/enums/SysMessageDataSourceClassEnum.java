@@ -11,47 +11,51 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum SysMessageDataSourceClassEnum {
     /***/
-    DEVELOPMENT(1, "发改局"),
-    COMPANY_SERVER(2, "企服局"),
-    TECHNOLOGY(3, "科技局"),
-    ORGANIZATION(4, "组织部"),
-    INSPECTION(5, "纪检组"),
-    PROPAGANDA(6, "宣传部"),
-    INVESTMENT(7, "亦庄国投"),
-    ;
+    COOPERATION(1, "城市创新合作实时清单"),
+    DEVELOPING(2, "企业创新发展实时清单"),
+    TARGET(3, "成长目标投资实时清单"),
+    DEMAND(4, "高端才智需求实时清单"),
+    SUGGEST(5, "意见和建议"),
+    PROPAGANDA(6, "报名参与发布会"),
+    INVESTMENT(7, "寻找投资项目"),
+    HELP(10, "清单协同处理"),
+    COOPERATION_RELEASE(20, "城市创新合作实时清单发布管理"),
+    DEVELOPING_RELEASE(21, "企业创新发展实时清单发布管理"),
+    TARGET_RELEASE(22, "成长目标投资实时清单发布管理"),
+    DEMAND_RELEASE(23, "高端才智需求实时清单发布管理"),
+    RELATION_RELEASE(24, "亲清政商关系清单发布管理"),
+    LIST_RELEASE_REVIEW(30, "清单发布审核"),
+    WORK_RELEASE_MANAGE(40, "工作动态发布管理"),
+    WORK_RELEASE_REVIEW(50, "工作动态发布审核");
 
 
     public static SysMessageDataSourceClassEnum of(Integer id) {
-        if (id.equals(DEVELOPMENT.getId())) {
-            return DEVELOPMENT;
+        switch (id){
+            case 1 : return COOPERATION;
+            case 2 : return DEVELOPING;
+            case 3 : return TARGET;
+            case 4 : return DEMAND;
+            case 5 : return SUGGEST;
+            case 6 : return PROPAGANDA;
+            case 7 : return INVESTMENT;
+            case 10 : return HELP;
+            case 20 : return COOPERATION_RELEASE;
+            case 21 : return DEVELOPING_RELEASE;
+            case 22 : return TARGET_RELEASE;
+            case 23 : return DEMAND_RELEASE;
+            case 24 : return RELATION_RELEASE;
+            case 30 : return LIST_RELEASE_REVIEW;
+            case 40 : return WORK_RELEASE_MANAGE;
+            case 50 : return WORK_RELEASE_REVIEW;
+            default: return null;
         }
-        if (id.equals(COMPANY_SERVER.getId())) {
-            return COMPANY_SERVER;
-        }
-        if (id.equals(TECHNOLOGY.getId())) {
-            return TECHNOLOGY;
-        }
-        if (id.equals(ORGANIZATION.getId())) {
-            return ORGANIZATION;
-        }
-        if (id.equals(INSPECTION.getId())) {
-            return INSPECTION;
-        }
-        if (id.equals(PROPAGANDA.getId())) {
-            return PROPAGANDA;
-        }
-        if (id.equals(INVESTMENT.getId())) {
-            return INVESTMENT;
-        }
-        ;
-        return null;
     }
 
     /**
      * 判断值是否在枚举中存在
      *
-     * @param id
-     * @return
+     * @param id 类型
+     * @return boolean
      */
     public static boolean exist(int id) {
         boolean flag = false;
