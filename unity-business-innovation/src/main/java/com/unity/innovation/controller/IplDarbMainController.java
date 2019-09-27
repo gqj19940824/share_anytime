@@ -219,7 +219,9 @@ public class IplDarbMainController extends BaseWebController {
             service.edit(entity);
         }
 
-        return success(SafetyConstant.SUCCESS);
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", entity.getId());
+        return success(result);
     }
 
     /**
@@ -252,7 +254,7 @@ public class IplDarbMainController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m, entity, ids);
                 }
-                ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay
+                ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay,IplDarbMain::getAttachmentCode
         );
     }
 
@@ -267,7 +269,7 @@ public class IplDarbMainController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m,entity, ids);
                 }
-                ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay
+                ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay,IplDarbMain::getAttachmentCode
         );
     }
     

@@ -37,10 +37,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      */
     public Map<String, Object> totalProcessAndAssists(Long mainId, Long idRbacDepartmentDuty, Integer processStatus) {
 
-        // 查询协同单位列表
-        LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId).orderByDesc(IplAssist::getGmtCreate);
-        List<IplAssist> assists = list(qw);
+        List<IplAssist> assists = getAssists(idRbacDepartmentDuty, mainId);
 
         // 查询处理日志列表
         LambdaQueryWrapper<IplLog> logqw = new LambdaQueryWrapper<>();
@@ -62,16 +59,8 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             // 协同单位处理日志
             if (CollectionUtils.isNotEmpty(assists)) { // 去除主责单位数据  TODO
                 assists.forEach(e -> {
-                    String nameDeptAssist = null;
-                    try {
-                        nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist());
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                    e.setNameRbacDepartmentAssist(nameDeptAssist);
-
                     Map<String, Object> map = new HashMap<>();
-                    map.put("department", nameDeptAssist);
+                    map.put("department", e.getNameRbacDepartmentAssist());
                     map.put("processStatus", e.getProcessStatus());
                     map.put("logs", collect.get(e.getIdRbacDepartmentAssist()));
                     processList.add(map);
@@ -84,5 +73,27 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         resultMap.put("assists", assists);
 
         return resultMap;
+    }
+
+    public List<IplAssist> getAssists(Long idRbacDepartmentDuty, Long mainId){
+        // 查询协同单位列表
+        LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
+        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId).orderByDesc(IplAssist::getGmtCreate);
+
+        List<IplAssist> assists = list(qw);
+
+        // 协同单位名称
+        if (CollectionUtils.isNotEmpty(assists)) {
+            assists.forEach(e -> {
+                String nameDeptAssist = null;
+                try {
+                    nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                e.setNameRbacDepartmentAssist(nameDeptAssist);
+            });
+        }
+        return assists;
     }
 }
