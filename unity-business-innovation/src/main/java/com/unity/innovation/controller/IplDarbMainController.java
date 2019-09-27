@@ -27,6 +27,7 @@ import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.service.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
+import oracle.jdbc.proxy.annotation.Post;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -226,11 +227,12 @@ public class IplDarbMainController extends BaseWebController {
 
     /**
      * 批量删除
-     * @param ids id列表用英文逗号分隔
+     * @param idsMap id列表用英文逗号分隔
      * @return
      */
-    @DeleteMapping("/removeByIds/{ids}")
-    public Mono<ResponseEntity<SystemResponse<Object>>>  removeByIds(@PathVariable("ids") String ids) {
+    @PostMapping("/removeByIds")
+    public Mono<ResponseEntity<SystemResponse<Object>>>  removeByIds(@RequestBody Map<String, String> idsMap) {
+        String ids = idsMap.get("ids");
         service.delByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
         return success();
     }
