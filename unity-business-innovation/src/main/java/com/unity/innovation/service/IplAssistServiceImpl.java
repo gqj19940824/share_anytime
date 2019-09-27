@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssist> {
     @Autowired
     private IplLogServiceImpl iplLogService;
@@ -61,7 +60,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             mapDuty.put("logs", collect.get(0L)); // 在日志表的协同单位字段中，主责单位的日志记录在该字段中存为0
             processList.add(mapDuty);
             // 协同单位处理日志
-            if (CollectionUtils.isNotEmpty(assists)) {
+            if (CollectionUtils.isNotEmpty(assists)) { // 去除主责单位数据  TODO
                 assists.forEach(e -> {
                     String nameDeptAssist = null;
                     try {

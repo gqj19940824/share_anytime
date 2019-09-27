@@ -20,7 +20,6 @@ import com.unity.innovation.dao.SysCfgScopeDao;
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class SysCfgScopeServiceImpl extends BaseServiceImpl<SysCfgScopeDao,SysCfgScope>{
 
      

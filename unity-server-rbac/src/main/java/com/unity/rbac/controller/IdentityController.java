@@ -1,6 +1,7 @@
 package com.unity.rbac.controller;
 
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.SafetyConstant;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.util.ConvertUtil;
@@ -123,7 +124,7 @@ public class IdentityController extends BaseWebController {
     @DeleteMapping("del/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         identityService.removeByIds(ConvertUtil.arrString2Long(ids.split(",")));
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
     /**

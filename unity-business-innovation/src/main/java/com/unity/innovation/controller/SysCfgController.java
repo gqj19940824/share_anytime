@@ -5,6 +5,7 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.unity.common.constant.SafetyConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ValidFieldFactory;
@@ -183,7 +184,7 @@ public class SysCfgController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"缺少必要参数");
         }
         service.updateById(entity);
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
      /**

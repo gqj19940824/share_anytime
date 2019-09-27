@@ -2,6 +2,7 @@ package com.unity.me.controller.api;
 
 import com.google.common.collect.Maps;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.SafetyConstant;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.pojos.UmengMessageDTO;
@@ -139,7 +140,7 @@ public class PushMessageLogApiController extends BaseWebController {
                 messageReceiverService.updateBatchById(messageRecivers);
             }
         }
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
 
