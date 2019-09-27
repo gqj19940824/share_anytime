@@ -44,9 +44,9 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         // 主责单位id
         Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
 
-        iplLog.setIdRbacDepartmentDuty(idRbacDepartmentDuty);
         Customer customer = LoginContextHolder.getRequestAttributes();
         Long customerIdRbacDepartment = customer.getIdRbacDepartment();
+        // 主责单位
         if (idRbacDepartmentDuty.equals(customerIdRbacDepartment)){
             iplLog.setIdRbacDepartmentAssist(0L);
             // 判断状态，如果主责单位把主表完结，需要改主表状态 TODO 并且改协同表状态，各插入一个日志和协同表的redis
@@ -54,7 +54,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
             iplLog.setIdRbacDepartmentAssist(customerIdRbacDepartment);
         }
 
-
+        iplLog.setIdRbacDepartmentDuty(idRbacDepartmentDuty);
         iplLogService.save(iplLog); // TODO 更改redis
     }
 

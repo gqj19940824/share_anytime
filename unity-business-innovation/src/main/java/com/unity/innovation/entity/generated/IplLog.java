@@ -78,7 +78,7 @@ public class IplLog extends BaseEntity{
          **/
         @CommentTarget("完成额度")
         @TableField("complete_num")
-        private Long completeNum ;
+        private Double completeNum ;
 
 }
 
