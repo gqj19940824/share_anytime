@@ -297,7 +297,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         Customer customer = LoginContextHolder.getRequestAttributes();
         //保存日志信息 主表id 单位id 流程状态 处理进展
         //待处理 或者 处理中 时
-        if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus()) || IplStatusEnum.DEALING.getId().equals(vo.getStatus())) {
+        if (IplStatusEnum.UNDEAL.getId().equals(entity.getStatus()) || IplStatusEnum.DEALING.getId().equals(entity.getStatus())) {
             IplLog iplLog = IplLog.newInstance()
                     .idIplMain(entity.getId())
                     .idRbacDepartmentDuty(customer.getIdRbacDepartment())
@@ -311,7 +311,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             updateById(vo);
             //处理完成
-        } else if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {
+        } else if (IplStatusEnum.DONE.getId().equals(entity.getStatus())) {
             IplLog iplLog = IplLog.newInstance()
                     .idIplMain(entity.getId())
                     .idRbacDepartmentDuty(customer.getIdRbacDepartment())
