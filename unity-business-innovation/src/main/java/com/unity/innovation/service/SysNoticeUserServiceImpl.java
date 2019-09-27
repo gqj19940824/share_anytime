@@ -20,7 +20,6 @@ import com.unity.innovation.dao.SysNoticeUserDao;
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class SysNoticeUserServiceImpl extends BaseServiceImpl<SysNoticeUserDao,SysNoticeUser>{
 
      

@@ -26,7 +26,6 @@ import java.util.Map;
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class SysMessageReadLogServiceImpl extends BaseServiceImpl<SysMessageReadLogDao, SysMessageReadLog> {
 
     private final HashRedisUtils hashRedisUtils;

@@ -27,6 +27,5 @@ import java.util.List;
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class IplDarbMainSnapshotServiceImpl extends BaseServiceImpl<IplDarbMainSnapshotDao, IplDarbMainSnapshot> {
 }

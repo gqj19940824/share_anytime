@@ -20,7 +20,6 @@ import com.unity.innovation.dao.IpaManageMainIplManageMainDao;
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class IpaManageMainIplManageMainServiceImpl extends BaseServiceImpl<IpaManageMainIplManageMainDao,IpaManageMainIplManageMain>{
 
      

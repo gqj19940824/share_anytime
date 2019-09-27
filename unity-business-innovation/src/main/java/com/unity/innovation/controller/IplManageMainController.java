@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.SafetyConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
@@ -74,7 +75,7 @@ public class IplManageMainController extends BaseWebController {
 
         }
 
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
     
     @RequestMapping({"/export/excel"})
@@ -218,7 +219,7 @@ public class IplManageMainController extends BaseWebController {
     @DeleteMapping("/del/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 }
 
