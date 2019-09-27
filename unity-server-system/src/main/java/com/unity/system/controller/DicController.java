@@ -101,7 +101,7 @@ public class DicController extends BaseWebController {
             dicGroupService.updateById(dicGroup);
             redisTemplate.opsForHash().put(key, dicGroup.getGroupCode(), JSON.toJSONString(dicGroup));
         }
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
     /**
@@ -148,7 +148,7 @@ public class DicController extends BaseWebController {
             }
 
         });
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
     /**
@@ -238,7 +238,7 @@ public class DicController extends BaseWebController {
             String key = RedisConstants.DIC_PREFIX + dic.getGroupCode();
             redisTemplate.opsForHash().put(key, dic.getDicCode(), JSON.toJSONString(dic));
         }
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
     /**
@@ -284,7 +284,7 @@ public class DicController extends BaseWebController {
             redisTemplate.opsForHash().delete(RedisConstants.DIC_PREFIX + byId.getGroupCode(), byId.getDicCode());
         });
 
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
     /**
@@ -472,7 +472,7 @@ public class DicController extends BaseWebController {
             String key = RedisConstants.DIC_PREFIX + dic.getGroupCode();
             redisTemplate.opsForHash().put(key, dic.getDicCode(), JSON.toJSONString(dic));
         }
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
 }

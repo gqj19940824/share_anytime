@@ -1,14 +1,12 @@
 package com.unity.innovation.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.unity.common.base.CommentTarget;
-import com.unity.innovation.entity.generated.IplLog;
-import lombok.*;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-
+import com.unity.common.base.CommentTarget;
+import com.unity.innovation.entity.generated.IplAssist;
+import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.entity.generated.mIplSuggestion;
+import lombok.*;
 
 import java.util.List;
 
@@ -63,6 +61,14 @@ public class IplSuggestion extends mIplSuggestion{
     private List<IplLog> iplLogList;
 
     /**
+     * 数据集合
+     */
+    @TableField(exist = false)
+    private List<IplAssist> logList;
+
+
+
+    /**
      * 日志名称
      */
     @TableField(exist = false)
@@ -74,6 +80,13 @@ public class IplSuggestion extends mIplSuggestion{
     @CommentTarget("处理进展")
     @TableField(exist = false)
     private String processMessage;
+
+
+    /**
+     * 日志名称
+     */
+    @TableField(exist = false)
+    private String deptName;
 
 }
 

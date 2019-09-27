@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class DailyWorkPackageServiceImpl extends BaseServiceImpl<DailyWorkPackageDao,DailyWorkPackage>{
 
     @Resource

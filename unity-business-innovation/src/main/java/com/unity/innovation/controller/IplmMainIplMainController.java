@@ -4,6 +4,7 @@ package com.unity.innovation.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.SafetyConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
@@ -63,7 +64,7 @@ public class IplmMainIplMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IplmMainIplMain entity) {
         
         service.saveOrUpdate(entity);
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
     
      /**
@@ -179,7 +180,7 @@ public class IplmMainIplMainController extends BaseWebController {
     @DeleteMapping("/del/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 }
 

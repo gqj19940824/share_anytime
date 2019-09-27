@@ -79,7 +79,7 @@ public class IplAssist extends BaseEntity{
         **/
         @CommentTarget("进展超时")
         @TableField("process_status")
-        private Long processStatus ;
+        private Integer processStatus ;
 
 
 

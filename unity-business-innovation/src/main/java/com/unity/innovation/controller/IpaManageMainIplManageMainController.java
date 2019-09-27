@@ -6,6 +6,7 @@ package com.unity.innovation.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.SystemClient;
+import com.unity.common.constant.SafetyConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import com.alibaba.fastjson.JSON;
@@ -94,7 +95,7 @@ public class IpaManageMainIplManageMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IpaManageMainIplManageMain entity) {
         
         service.saveOrUpdate(entity);
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
     
     @RequestMapping({"/export/excel"})
@@ -237,7 +238,7 @@ public class IpaManageMainIplManageMainController extends BaseWebController {
     @DeleteMapping("/del/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
 

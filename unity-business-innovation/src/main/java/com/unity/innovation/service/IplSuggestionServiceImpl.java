@@ -258,6 +258,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         if (CollectionUtils.isNotEmpty(attachmentList)){
             vo.setAttachmentList(attachmentList);
         }
+        vo.setDeptName("主责单位：纪检组");
         return vo;
     }
 

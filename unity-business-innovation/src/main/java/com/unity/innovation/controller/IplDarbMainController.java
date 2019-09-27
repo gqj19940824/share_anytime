@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.DicConstants;
+import com.unity.common.constant.SafetyConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
@@ -13,6 +14,7 @@ import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.DicUtils;
+import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplAssist;
@@ -61,11 +63,6 @@ public class IplDarbMainController extends BaseWebController {
     @Autowired
     private SysCfgServiceImpl sysCfgService;
 
-    @Autowired
-    private DicUtils dicUtils;
-
-
-
     /**
      * 实时更新
      * @param iplLog
@@ -78,20 +75,10 @@ public class IplDarbMainController extends BaseWebController {
         if (entity == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        // 主责单位id
-        Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
 
-        iplLog.setIdRbacDepartmentDuty(idRbacDepartmentDuty);
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        Long customerIdRbacDepartment = customer.getIdRbacDepartment();
-        if (idRbacDepartmentDuty.equals(customerIdRbacDepartment)){
-            iplLog.setIdRbacDepartmentAssist(0L);
-        }else {
-            iplLog.setIdRbacDepartmentAssist(customerIdRbacDepartment);
-        }
+        service.updateStatus(entity, iplLog);
 
-        iplLogService.save(iplLog);
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
     /**
@@ -122,7 +109,7 @@ public class IplDarbMainController extends BaseWebController {
 
         // 修改状态、插入日志
         service.updateStatusByDuty(iplAssist, iplLog, idRbacDepartmentDuty, idRbacDepartmentAssist, idIplMain);
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
     /**
@@ -153,6 +140,7 @@ public class IplDarbMainController extends BaseWebController {
             IplAssist assist = IplAssist.newInstance()
                     .idRbacDepartmentDuty(idRbacDepartmentDuty)
                     .dealStatus(IplStatusEnum.DEALING.getId())
+                    .dealStatus(ProcessStatusEnum.NORMAL.getId())
                     .idIplMain(idIplMain)
                     .idRbacDepartmentAssist(idRbacDepartmentAssist)
                     .inviteInfo(MapUtils.getString(e, "inviteInfo"))
@@ -175,7 +163,7 @@ public class IplDarbMainController extends BaseWebController {
         // 新增协同单位并记录日志
         service.addAssistant(iplLog, assistList);
         
-        return success(null);
+        return success(SafetyConstant.SUCCESS);
     }
 
     /**
@@ -219,6 +207,9 @@ public class IplDarbMainController extends BaseWebController {
         // TODO 校验
 
         if (entity.getId() == null){ // 新增
+            String uuid = UUIDUtil.getUUID();
+            entity.setStatus(IplStatusEnum.DEALING.getId());
+            entity.setAttachmentCode(uuid);
             entity.setIdRbacDepartmentDuty(10L);
             service.add(entity);
         }else { // 编辑
@@ -228,7 +219,9 @@ public class IplDarbMainController extends BaseWebController {
             service.edit(entity);
         }
 
-        return success(null);
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", entity.getId());
+        return success(result);
     }
 
     /**
@@ -239,7 +232,7 @@ public class IplDarbMainController extends BaseWebController {
     @DeleteMapping("/removeByIds/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  removeByIds(@PathVariable("ids") String ids) {
         service.delByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(null);
+        return success();
     }
 
     /**
