@@ -61,6 +61,12 @@ public class IplSuggestion extends mIplSuggestion{
     private List<IplLog> iplLogList;
 
     /**
+     * 日志集合
+     */
+    @TableField(exist = false)
+    private  List totalProcess;
+
+    /**
      * 数据集合
      */
     @TableField(exist = false)
@@ -82,11 +88,7 @@ public class IplSuggestion extends mIplSuggestion{
     private String processMessage;
 
 
-    /**
-     * 日志名称
-     */
-    @TableField(exist = false)
-    private String deptName;
+
 
 }
 
