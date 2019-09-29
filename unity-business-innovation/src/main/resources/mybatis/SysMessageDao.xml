@@ -46,7 +46,7 @@
         <if test="endTime != null">
             AND m.gmt_create &lt;= #{endTime}
         </if>
-        order by m.i_sort
+        order by m.i_sort desc
         limit #{offset},#{limit}
     </select>
 </mapper>
