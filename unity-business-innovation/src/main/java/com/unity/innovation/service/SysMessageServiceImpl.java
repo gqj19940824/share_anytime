@@ -22,6 +22,7 @@ import com.unity.innovation.constants.MessageConstants;
 import com.unity.innovation.dao.SysMessageDao;
 import com.unity.innovation.entity.SysMessage;
 import com.unity.innovation.entity.SysMessageReadLog;
+import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
 import com.unity.innovation.enums.SysMessageSendTypeEnum;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.beanutils.ConvertUtils;
@@ -116,7 +117,8 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
     private void adapterField(Map<String, Object> m, SysMessage entity) {
         m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
         m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
-        m.put("dataSourceClassTitle", "");
+        SysMessageDataSourceClassEnum sourceClassEnum = SysMessageDataSourceClassEnum.of(entity.getDataSourceClass());
+        m.put("dataSourceClassTitle", sourceClassEnum != null ? sourceClassEnum.getName() : "");
     }
 
     /**
