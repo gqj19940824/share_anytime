@@ -26,6 +26,7 @@ import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
 import com.unity.innovation.enums.SysMessageSendTypeEnum;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
@@ -311,5 +312,37 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             // webSocket 目标用户 提醒数量 +1
             sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, YesOrNoEnum.YES.getType());
         }
+    }
+
+    /**
+     * 获取当前用户的未读消息数
+     *
+     * @return 未读消息数
+     * @author gengjiajia
+     * @since 2019/09/30 09:10
+     */
+    public Map<String, Object> getMessageNumByCustomer() {
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        Map<String, Object> sysMegNumMap = hashRedisUtils.getObj(MessageSaveFormEnum.SYS_MSG.getName());
+        Map<String, Object> noticeMegNumMap = hashRedisUtils.getObj(MessageSaveFormEnum.NOTICE.getName());
+        //获取所有消息数量，判断是否有属于当前人的消息
+        int sysMessageNum = 0;
+        int noticeNum = 0;
+        if (MapUtils.isNotEmpty(sysMegNumMap)) {
+            Object numBySysObj = sysMegNumMap.get(customer.getId().toString());
+            int numBySys = numBySysObj != null ? Integer.parseInt(numBySysObj.toString()) : 0;
+            sysMessageNum += numBySys;
+        }
+
+        if (MapUtils.isNotEmpty(noticeMegNumMap)) {
+            Object numByNoticeObj = noticeMegNumMap.get(customer.getId().toString());
+            int numByNotice = numByNoticeObj == null ? 0 : Integer.parseInt(numByNoticeObj.toString());
+            noticeNum += numByNotice;
+        }
+        Map<String, Object> numMap = Maps.newHashMap();
+        numMap.put("isAdd",YesOrNoEnum.YES.getType());
+        numMap.put("sysMessageNum",sysMessageNum);
+        numMap.put("noticeNum",noticeNum);
+        return numMap;
     }
 }
