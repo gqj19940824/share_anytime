@@ -2,33 +2,22 @@
 package com.unity.innovation.controller;
 
 
-import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.SystemResponse;
-import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
-import com.unity.common.ui.SearchCondition;
-import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.ui.excel.ExcelEntity;
 import com.unity.common.ui.excel.ExportEntity;
-import com.unity.common.util.DateUtils;
-import com.unity.common.util.JsonUtil;
-import com.unity.common.util.ValidFieldUtil;
-import com.unity.common.util.VerifyCodeUtils;
 import com.unity.innovation.entity.IplPdMain;
 import com.unity.innovation.service.IplPdMainServiceImpl;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -66,12 +55,6 @@ public class IplPdMainController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody IplPdMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplPdMain::getIndustryCategory, IplPdMain::getEnterpriseName,
-                IplPdMain::getEnterpriseIntroduction, IplPdMain::getSpecificCause, IplPdMain::getContactPerson, IplPdMain::getContactWay,
-                IplPdMain::getIdCard, IplPdMain::getPost);
-        if(StringUtils.isNotEmpty(msg)){
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,msg);
-        }
         service.saveOrUpdateIplPdMain(entity);
         return success("提交成功");
     }

@@ -4,13 +4,15 @@ package com.unity.innovation.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseServiceImpl;
-import com.unity.common.constants.ConstString;
 import com.unity.common.enums.YesOrNoEnum;
+import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JKDates;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.IplPdMainDao;
@@ -127,6 +129,15 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
      */
     @Transactional(rollbackFor = Exception.class)
     public void saveOrUpdateIplPdMain(IplPdMain entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplPdMain::getIndustryCategory, IplPdMain::getEnterpriseName,
+                IplPdMain::getContactPerson, IplPdMain::getContactWay,IplPdMain::getEnterpriseIntroduction,
+                IplPdMain::getIdCard, IplPdMain::getPost,IplPdMain::getSpecificCause);
+        if(StringUtils.isNotEmpty(msg)){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message(msg)
+                    .build();
+        }
         if(entity.getId() == null){
             entity.setStatus(YesOrNoEnum.NO.getType());
             this.save(entity);
