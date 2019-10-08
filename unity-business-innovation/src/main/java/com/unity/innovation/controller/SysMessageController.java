@@ -10,7 +10,6 @@ import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.innovation.entity.SysMessage;
 import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
-import com.unity.innovation.enums.SysMessageDataSourceEnum;
 import com.unity.innovation.service.SysMessageServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -102,5 +101,16 @@ public class SysMessageController extends BaseWebController {
         return success("设置成功");
     }
 
+    /**
+     * 获取当前用户未读消息数
+     *
+     * @return 未读消息数
+     * @author gengjiajia
+     * @since 2019/09/30 09:16  
+     */
+    @PostMapping("/getMessageNumByCustomer")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getMessageNumByCustomer() {
+        return success(service.getMessageNumByCustomer());
+    }
 }
 
