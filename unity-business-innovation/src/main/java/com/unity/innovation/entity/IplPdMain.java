@@ -26,6 +26,6 @@ public class IplPdMain extends mIplPdMain {
      * 附件
      */
     @TableField(exist = false)
-    private List<Attachment> attachments;
+    private List<Attachment> attachmentList;
 }
 
