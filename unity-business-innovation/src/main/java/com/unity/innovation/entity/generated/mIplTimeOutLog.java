@@ -43,11 +43,11 @@ public class mIplTimeOutLog extends BaseEntity{
         
         
         /**
-        * 清单类别:status:10 cityControl,20 innovationControl,30 targetControl,40 intelligenceControl
+        * 清单部门id:status:10 cityControl,20 innovationControl,30 targetControl,40 intelligenceControl
         **/
         @CommentTarget("清单类别:status:10 cityControl,20 innovationControl,30 targetControl,40 intelligenceControl")
         @TableField("list_category")
-        private Integer listCategory ;
+        private Long listCategory ;
         
         
         

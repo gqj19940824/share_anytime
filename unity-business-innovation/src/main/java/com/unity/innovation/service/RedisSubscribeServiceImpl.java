@@ -70,17 +70,19 @@ public class RedisSubscribeServiceImpl {
         IplTimeOutLog iplTimeOutLog = new IplTimeOutLog();
         iplTimeOutLog.setMainId(Long.valueOf(idArrays[0]));
         Long aLong = Long.valueOf(idArrays[1]);
+        Long departmentId = ListCategoryEnum.valueOf(ListTypeConstants.CITY_CONTROL).getId();
+        iplTimeOutLog.setListCategory(departmentId);
         //主责
         if(aLong.intValue() == 0){
             iplTimeOutLog.setUnitCategory(10);
+            iplTimeOutLog.setDepartmentId(departmentId);
             //协同
         }else {
             iplTimeOutLog.setUnitCategory(20);
             iplTimeOutLog.setDepartmentId(aLong);
         }
-        iplTimeOutLog.setListCategory(ListCategoryEnum.valueOf(ListTypeConstants.CITY_CONTROL).getId());
         iplTimeOutLog.setTimeType(time);
-
+        iplTimeOutLogService.save(iplTimeOutLog);
 
     }
 }

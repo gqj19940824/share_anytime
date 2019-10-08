@@ -10,14 +10,14 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum ListCategoryEnum {
 
-    CITYCONTROL(10,"cityControl"),
-    INNOVATIONCONTROL(20,"innovationControl"),
-    TARGETCONTROL(30,"targetControl"),
-    INTELLIGENCECONTROL(40,"intelligenceControl"),
+    CITYCONTROL(10L,"cityControl"),
+    INNOVATIONCONTROL(20L,"innovationControl"),
+    TARGETCONTROL(30L,"targetControl"),
+    INTELLIGENCECONTROL(40L,"intelligenceControl"),
     ;
     
     
-    public static ListCategoryEnum of(Integer id) {
+    public static ListCategoryEnum of(Long id) {
 
         if (id.equals(CITYCONTROL.getId())) {
             return CITYCONTROL;
@@ -50,14 +50,14 @@ public enum ListCategoryEnum {
         return flag;
     }
     
-    private Integer id;
+    private Long id;
     private String name;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
