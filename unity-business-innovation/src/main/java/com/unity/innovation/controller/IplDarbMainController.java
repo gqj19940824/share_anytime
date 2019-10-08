@@ -286,7 +286,9 @@ public class IplDarbMainController extends BaseWebController {
         List<Map<String, Object>> values = sysCfgService.getValues(ids);
 
         Map<Long, Object> collect = values.stream().collect(Collectors.toMap(e -> MapUtils.getLong(e, "id"), e -> MapUtils.getString(e, "cfg_val"),(k1,k2)->k2));
-
+        m.put("industryCategoryId", entity.getIndustryCategory());
+        m.put("demandItemId", entity.getDemandItem());
+        m.put("demandCategoryId", entity.getDemandCategory());
         m.put("industryCategory", collect.get(entity.getIndustryCategory()));
         m.put("demandItem", collect.get(entity.getDemandItem()));
         m.put("demandCategory", collect.get(entity.getDemandCategory()));
