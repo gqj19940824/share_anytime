@@ -5,6 +5,7 @@ package com.unity.innovation.controller.api;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.innovation.entity.IplPdMain;
+import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.service.IplPdMainServiceImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +39,10 @@ public class IplPdMainApiController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody IplPdMain entity) {
-        if(CollectionUtils.isNotEmpty(entity.getAttachments()) && entity.getAttachments().size() > 9){
+        if(CollectionUtils.isNotEmpty(entity.getAttachmentList()) && entity.getAttachmentList().size() > 9){
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH,"照片数量不得大于9张");
         }
+        entity.setSource(SourceEnum.ENTERPRISE.getId());
         service.saveOrUpdateIplPdMain(entity);
         return success("提交成功");
     }

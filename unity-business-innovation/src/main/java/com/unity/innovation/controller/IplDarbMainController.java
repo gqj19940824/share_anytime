@@ -272,6 +272,7 @@ public class IplDarbMainController extends BaseWebController {
                     adapterField(m,entity, ids);
                 }
                 ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay,IplDarbMain::getAttachmentCode
+                ,IplDarbMain::getIndustryCategory,IplDarbMain::getDemandItem,IplDarbMain::getDemandCategory
         );
     }
     
@@ -285,7 +286,9 @@ public class IplDarbMainController extends BaseWebController {
         List<Map<String, Object>> values = sysCfgService.getValues(ids);
 
         Map<Long, Object> collect = values.stream().collect(Collectors.toMap(e -> MapUtils.getLong(e, "id"), e -> MapUtils.getString(e, "cfg_val"),(k1,k2)->k2));
-
+        m.put("industryCategoryId", entity.getIndustryCategory());
+        m.put("demandItemId", entity.getDemandItem());
+        m.put("demandCategoryId", entity.getDemandCategory());
         m.put("industryCategory", collect.get(entity.getIndustryCategory()));
         m.put("demandItem", collect.get(entity.getDemandItem()));
         m.put("demandCategory", collect.get(entity.getDemandCategory()));
@@ -346,7 +349,7 @@ public class IplDarbMainController extends BaseWebController {
                 ew.like(IplDarbMain::getContactWay, contactWay);
             }
 
-            SimpleDateFormat df = new SimpleDateFormat("yyyyMM01");
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-01");
             Calendar c = Calendar.getInstance();
             // 创建时间
             String creatTime = entity.getCreatTime();
@@ -354,7 +357,7 @@ public class IplDarbMainController extends BaseWebController {
                 String[] split = creatTime.split("-");
 
                 c.set(Calendar.YEAR, Integer.parseInt(split[0]));
-                c.set(Calendar.MONTH, Integer.parseInt(split[1]));
+                c.set(Calendar.MONTH, Integer.parseInt(split[1])-1);
 
                 String start = df.format(c.getTime());
                 try {
@@ -374,7 +377,7 @@ public class IplDarbMainController extends BaseWebController {
                 String[] split = updateTime.split("-");
 
                 c.set(Calendar.YEAR, Integer.parseInt(split[0]));
-                c.set(Calendar.MONTH, Integer.parseInt(split[1]));
+                c.set(Calendar.MONTH, Integer.parseInt(split[1])-1);
 
                 String start = df.format(c.getTime());
                 try {
