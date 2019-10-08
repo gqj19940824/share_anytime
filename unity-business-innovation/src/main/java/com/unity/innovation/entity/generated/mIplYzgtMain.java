@@ -24,15 +24,7 @@ public class mIplYzgtMain extends BaseEntity{
 
 
         
-        /**
-        * 编号_创新发布清单-创新发展清单管理表一对多创新发展清单表
-        **/
-        @CommentTarget("编号_创新发布清单-创新发展清单管理表一对多创新发展清单表")
-        @TableField("id_iplm_main_m_ipl_main")
-        private Long idIplmMainIplMain ;
-        
-        
-        
+
         /**
         * 行业类别
         **/
@@ -61,9 +53,9 @@ public class mIplYzgtMain extends BaseEntity{
         
         
         /**
-        * 具体意向和事由
+        * 投资意向
         **/
-        @CommentTarget("具体意向和事由")
+        @CommentTarget("投资意向")
         @TableField("specific_cause")
         private String specificCause ;
         
@@ -117,9 +109,9 @@ public class mIplYzgtMain extends BaseEntity{
         /**
         * 状态
         **/
-        @CommentTarget("状态")
+        /*@CommentTarget("状态")
         @TableField("status")
-        private Integer status ;
+        private Integer status ;*/
         
         
         

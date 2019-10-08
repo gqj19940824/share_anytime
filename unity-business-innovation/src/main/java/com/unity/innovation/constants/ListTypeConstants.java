@@ -7,8 +7,18 @@ package com.unity.innovation.constants;
  *@since 2019/9/24 10:38
  */
 public class ListTypeConstants {
-
-
+    /**
+     * 字典超时时间配置
+     */
+    public final static String LIST_TIMEOUT = "list_timeout";
+    /**
+     * 超时未处理
+     */
+    public final static String HOURS = "hours";
+    /**
+     * 超时未更新
+     */
+    public final static String DAYS = "days";
     /**
      * 清单监控
      */
