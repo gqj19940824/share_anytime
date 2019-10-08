@@ -346,7 +346,7 @@ public class IplDarbMainController extends BaseWebController {
                 ew.like(IplDarbMain::getContactWay, contactWay);
             }
 
-            SimpleDateFormat df = new SimpleDateFormat("yyyyMM01");
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-01");
             Calendar c = Calendar.getInstance();
             // 创建时间
             String creatTime = entity.getCreatTime();
@@ -354,7 +354,7 @@ public class IplDarbMainController extends BaseWebController {
                 String[] split = creatTime.split("-");
 
                 c.set(Calendar.YEAR, Integer.parseInt(split[0]));
-                c.set(Calendar.MONTH, Integer.parseInt(split[1]));
+                c.set(Calendar.MONTH, Integer.parseInt(split[1])-1);
 
                 String start = df.format(c.getTime());
                 try {
@@ -374,7 +374,7 @@ public class IplDarbMainController extends BaseWebController {
                 String[] split = updateTime.split("-");
 
                 c.set(Calendar.YEAR, Integer.parseInt(split[0]));
-                c.set(Calendar.MONTH, Integer.parseInt(split[1]));
+                c.set(Calendar.MONTH, Integer.parseInt(split[1])-1);
 
                 String start = df.format(c.getTime());
                 try {
