@@ -49,7 +49,15 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         // 主责单位
         if (idRbacDepartmentDuty.equals(customerIdRbacDepartment)){
             iplLog.setIdRbacDepartmentAssist(0L);
+
             // 判断状态，如果主责单位把主表完结，需要改主表状态 TODO 并且改协同表状态，各插入一个日志和协同表的redis
+            if (IplStatusEnum.DONE.getId().equals(iplLog.getDealStatus())){
+                entity.setStatus(IplStatusEnum.DONE.getId());
+                updateById(entity);
+
+                List<IplAssist> assists = iplAssistService.getAssists(idRbacDepartmentDuty, entity.getId());
+//                iplAssistService
+            }
         }else {
             iplLog.setIdRbacDepartmentAssist(customerIdRbacDepartment);
         }

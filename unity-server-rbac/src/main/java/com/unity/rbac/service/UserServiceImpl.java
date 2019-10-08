@@ -318,7 +318,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         userHelpService.saveCustomer(user, os, tokenStr, customer);
         Map userMap = JsonUtil.ObjectToMap(user,
                 new String[]{"id", "loginName", "phone", "name", "notes", "idRbacDepartment", "department",
-                        "isAdmin"},
+                        "isAdmin","userType"},
                 (m, u) -> {
                     m.put("gmtCreate", DateUtils.timeStamp2Date(u.getGmtCreate()));
                     m.put("roleList", userRoleService.selectRoleIdsByUserId(u.getId()));

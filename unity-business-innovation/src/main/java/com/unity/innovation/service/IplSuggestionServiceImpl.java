@@ -3,6 +3,7 @@ package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -24,7 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -95,7 +98,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             lqw.like(IplSuggestion::getProcessStatus, search.getEntity().getProcessStatus());
         }
         //企业名称
-        if (search.getEntity().getEnterpriseName() != null) {
+        if (StringUtils.isNotBlank(search.getEntity().getEnterpriseName())) {
             lqw.like(IplSuggestion::getEnterpriseName, search.getEntity().getEnterpriseName());
         }
         lqw.orderByDesc(IplSuggestion::getGmtModified);
@@ -251,14 +254,30 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                 log.setStatusName(IplStatusEnum.ofName(log.getDealStatus()));
             }
         });
-        vo.setIplLogList(logList);
+        //封装对象
+        Map<String, Object> iplLogMap1 = new HashMap<>(16);
+        iplLogMap1.put("department", vo.getLogEnterpriseName());
+        iplLogMap1.put("processStatus", 3);
+        IplLog l1 = IplLog.newInstance().build();
+        l1.setGmtCreate(vo.getGmtCreate());
+        List l1List = Lists.newArrayList();
+        l1List.add(l1);
+        iplLogMap1.put("logs", l1List);
+        Map<String, Object> iplLogMap2 = new HashMap<>(16);
+        iplLogMap2.put("department", "主责单位：纪检组");
+        iplLogMap2.put("processStatus", vo.getStatus());
+        l1.setGmtCreate(vo.getGmtCreate());
+        iplLogMap2.put("logs", logList);
+        List logListAll = Lists.newArrayList();
+        logListAll.add(iplLogMap1);
+        logListAll.add(iplLogMap2);
+        vo.setTotalProcess(logListAll);
         //附件
         List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
                 .eq(Attachment::getAttachmentCode,vo.getAttachmentCode()));
         if (CollectionUtils.isNotEmpty(attachmentList)){
             vo.setAttachmentList(attachmentList);
         }
-        vo.setDeptName("主责单位：纪检组");
         return vo;
     }
 
@@ -278,7 +297,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         Customer customer = LoginContextHolder.getRequestAttributes();
         //保存日志信息 主表id 单位id 流程状态 处理进展
         //待处理 或者 处理中 时
-        if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus()) || IplStatusEnum.DEALING.getId().equals(vo.getStatus())) {
+        if (IplStatusEnum.UNDEAL.getId().equals(entity.getStatus()) || IplStatusEnum.DEALING.getId().equals(entity.getStatus())) {
             IplLog iplLog = IplLog.newInstance()
                     .idIplMain(entity.getId())
                     .idRbacDepartmentDuty(customer.getIdRbacDepartment())
@@ -292,7 +311,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             updateById(vo);
             //处理完成
-        } else if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {
+        } else if (IplStatusEnum.DONE.getId().equals(entity.getStatus())) {
             IplLog iplLog = IplLog.newInstance()
                     .idIplMain(entity.getId())
                     .idRbacDepartmentDuty(customer.getIdRbacDepartment())

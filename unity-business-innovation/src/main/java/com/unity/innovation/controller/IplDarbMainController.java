@@ -27,6 +27,7 @@ import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.service.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
+import oracle.jdbc.proxy.annotation.Post;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -219,16 +220,19 @@ public class IplDarbMainController extends BaseWebController {
             service.edit(entity);
         }
 
-        return success(SafetyConstant.SUCCESS);
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", entity.getId());
+        return success(result);
     }
 
     /**
      * 批量删除
-     * @param ids id列表用英文逗号分隔
+     * @param idsMap id列表用英文逗号分隔
      * @return
      */
-    @DeleteMapping("/removeByIds/{ids}")
-    public Mono<ResponseEntity<SystemResponse<Object>>>  removeByIds(@PathVariable("ids") String ids) {
+    @PostMapping("/removeByIds")
+    public Mono<ResponseEntity<SystemResponse<Object>>>  removeByIds(@RequestBody Map<String, String> idsMap) {
+        String ids = idsMap.get("ids");
         service.delByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
         return success();
     }
@@ -252,7 +256,7 @@ public class IplDarbMainController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m, entity, ids);
                 }
-                ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay
+                ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay,IplDarbMain::getAttachmentCode
         );
     }
 
@@ -267,7 +271,8 @@ public class IplDarbMainController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m,entity, ids);
                 }
-                ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay
+                ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay,IplDarbMain::getAttachmentCode
+                ,IplDarbMain::getIndustryCategory,IplDarbMain::getDemandItem,IplDarbMain::getDemandCategory
         );
     }
     
@@ -281,7 +286,9 @@ public class IplDarbMainController extends BaseWebController {
         List<Map<String, Object>> values = sysCfgService.getValues(ids);
 
         Map<Long, Object> collect = values.stream().collect(Collectors.toMap(e -> MapUtils.getLong(e, "id"), e -> MapUtils.getString(e, "cfg_val"),(k1,k2)->k2));
-
+        m.put("industryCategoryId", entity.getIndustryCategory());
+        m.put("demandItemId", entity.getDemandItem());
+        m.put("demandCategoryId", entity.getDemandCategory());
         m.put("industryCategory", collect.get(entity.getIndustryCategory()));
         m.put("demandItem", collect.get(entity.getDemandItem()));
         m.put("demandCategory", collect.get(entity.getDemandCategory()));
@@ -342,7 +349,7 @@ public class IplDarbMainController extends BaseWebController {
                 ew.like(IplDarbMain::getContactWay, contactWay);
             }
 
-            SimpleDateFormat df = new SimpleDateFormat("yyyyMM01");
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-01");
             Calendar c = Calendar.getInstance();
             // 创建时间
             String creatTime = entity.getCreatTime();
@@ -350,7 +357,7 @@ public class IplDarbMainController extends BaseWebController {
                 String[] split = creatTime.split("-");
 
                 c.set(Calendar.YEAR, Integer.parseInt(split[0]));
-                c.set(Calendar.MONTH, Integer.parseInt(split[1]));
+                c.set(Calendar.MONTH, Integer.parseInt(split[1])-1);
 
                 String start = df.format(c.getTime());
                 try {
@@ -370,7 +377,7 @@ public class IplDarbMainController extends BaseWebController {
                 String[] split = updateTime.split("-");
 
                 c.set(Calendar.YEAR, Integer.parseInt(split[0]));
-                c.set(Calendar.MONTH, Integer.parseInt(split[1]));
+                c.set(Calendar.MONTH, Integer.parseInt(split[1])-1);
 
                 String start = df.format(c.getTime());
                 try {
