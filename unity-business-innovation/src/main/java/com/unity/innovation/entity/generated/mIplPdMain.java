@@ -33,7 +33,7 @@ public class mIplPdMain extends BaseEntity {
      **/
     @CommentTarget("行业类别")
     @TableField("industry_category")
-    private Integer industryCategory;
+    private Long industryCategory;
 
 
     /**
