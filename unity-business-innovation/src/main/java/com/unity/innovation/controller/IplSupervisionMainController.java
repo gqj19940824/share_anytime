@@ -6,7 +6,9 @@ package com.unity.innovation.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unity.common.ui.PageEntity;
+import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.IplCategoryEnum;
+import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -162,6 +164,110 @@ public class IplSupervisionMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"缺少id");
         }
         return success(service.getById(entity.getId()));
+    }
+
+    //------------------------------------------------我是一个分割线
+
+    /**
+    * 一次打包新增/修改
+    *
+    * @param entity 清单发布管理实体
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/10/8 14:52
+    */
+    @PostMapping("/saveOrUpdateIplManageMain")
+    public Mono<ResponseEntity<SystemResponse<Object>>>  saveOrUpdateIplManageMain(@RequestBody IplManageMain entity) {
+        validateIplManageMain(entity);
+        service.saveOrUpdateIplManageMain(entity);
+        return success(null);
+    }
+
+    /**
+    * 参数校验
+    *
+    * @param entity 实体
+    * @author JH
+    * @date 2019/10/9 10:21
+    */
+    private void validateIplManageMain(IplManageMain entity) {
+
+    }
+
+
+    /**
+    * 一次打包删除
+    *
+    * @param entity 包含id的清单发布管理实体
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/10/9 10:31
+    */
+    @PostMapping("/deleteIplManageMain")
+    public Mono<ResponseEntity<SystemResponse<Object>>>  deleteIplManageMain(@RequestBody IplManageMain entity) {
+        if(entity.getId() == null || entity.getIdIplSupervisionMain() == null) {
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"缺少id");
+        }else {
+            service.deleteIplManageMain(entity);
+        }
+        return success();
+    }
+
+
+    /**
+     * 清亲政商关系清单发布管理-纪检组列表查询
+     *
+     * @param pageEntity 分页条件
+     * @return 分页数据
+     * @author JH
+     * @date 2019/10/9 15:13
+     */
+    @PostMapping("/listByPageIplManageMain")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listByPageIplManageMain(@RequestBody PageEntity<IplManageMain> pageEntity) {
+        Page<IplManageMain> pageable = pageEntity.getPageable();
+        IplManageMain entity = pageEntity.getEntity();
+        LambdaQueryWrapper<IplManageMain> ew = wrapperIplManageMain(entity);
+
+        IPage<IplManageMain> p = service.pageIplManageMain(pageable, ew);
+        List<IplManageMain> list = p.getRecords();
+        list.forEach(n -> n.setStatusName(WorkStatusAuditingStatusEnum.of(n.getStatus()).getName()));
+        PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
+                .total(p.getTotal())
+                .items(JsonUtil.ObjectToList(list,
+                       null
+                        ,IplManageMain::getId,IplManageMain::getStatus,IplManageMain::getStatusName,IplManageMain::getGmtCreate
+                )).build();
+        return success(result);
+
+    }
+
+
+    /**
+    * 查询条件封装
+    *
+    * @param entity 分页条件
+    * @return 封装后的wrapper
+    * @author JH
+    * @date 2019/10/9 15:13
+    */
+    private LambdaQueryWrapper<IplManageMain> wrapperIplManageMain(IplManageMain entity){
+        LambdaQueryWrapper<IplManageMain> ew = new LambdaQueryWrapper<>();
+        //只查询纪检组
+        ew.eq(IplManageMain::getIdRbacDepartmentDuty,8L);
+        if(entity.getStatus() != null) {
+            ew.eq(IplManageMain::getStatus,entity.getStatus());
+        }
+        //提交时间
+        if (StringUtils.isNotBlank(entity.getCreateTime())) {
+            long begin = InnovationUtil.getFirstTimeInMonth(entity.getCreateTime(), true);
+            long end = InnovationUtil.getFirstTimeInMonth(entity.getCreateTime(), false);
+            //gt 大于 lt 小于
+            ew.lt(IplManageMain::getGmtCreate, end);
+            ew.gt(IplManageMain::getGmtCreate, begin);
+            //如果有提交时间，只查询已提交的数据
+            ew.gt(IplManageMain::getStatus, WorkStatusAuditingStatusEnum.TEN.getId());
+        }
+        return ew;
     }
 
 }
