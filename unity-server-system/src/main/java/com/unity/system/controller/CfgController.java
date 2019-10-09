@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.client.RbacClient;
-import com.unity.common.constant.SafetyConstant;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
@@ -185,7 +185,7 @@ public class CfgController extends BaseWebController {
         redisTemplate.delete(cfgCollect);
 
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(",")));
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
     /**
@@ -202,7 +202,7 @@ public class CfgController extends BaseWebController {
         List<String> cfgCollect = list.stream().map(item -> item.getCfgType()).collect(Collectors.toList());
         redisTemplate.delete(cfgCollect);
         service.removeByIds(ids);
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
 

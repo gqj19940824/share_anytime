@@ -61,13 +61,9 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         if (StringUtils.isNotBlank(search.getEntity().getTitle())) {
             lqw.like(IplSuggestion::getTitle, search.getEntity().getTitle());
         }
-        //联系人
-        if (StringUtils.isNotBlank(search.getEntity().getContactPerson())) {
-            lqw.like(IplSuggestion::getContactPerson, search.getEntity().getContactPerson());
-        }
-        //联系方式
-        if (StringUtils.isNotBlank(search.getEntity().getContactWay())) {
-            lqw.like(IplSuggestion::getContactWay, search.getEntity().getContactWay());
+        //企业名称
+        if (StringUtils.isNotBlank(search.getEntity().getEnterpriseName())) {
+            lqw.like(IplSuggestion::getEnterpriseName, search.getEntity().getEnterpriseName());
         }
         //创建时间
         if (StringUtils.isNotBlank(search.getEntity().getCreateTime())) {
@@ -77,29 +73,17 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             lqw.lt(IplSuggestion::getGmtCreate, end);
             lqw.gt(IplSuggestion::getGmtCreate, begin);
         }
-        //更新时间
-        if (StringUtils.isNotBlank(search.getEntity().getModifiedTime())) {
-            long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getModifiedTime(), false);
-            long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getModifiedTime(), true);
-            //gt 大于 lt 小于
-            lqw.gt(IplSuggestion::getGmtModified, begin);
-            lqw.lt(IplSuggestion::getGmtModified, end);
-        }
         //来源
         if (search.getEntity().getSource() != null) {
-            lqw.like(IplSuggestion::getSource, search.getEntity().getSource());
+            lqw.eq(IplSuggestion::getSource, search.getEntity().getSource());
         }
         //状态
         if (search.getEntity().getStatus() != null) {
-            lqw.like(IplSuggestion::getStatus, search.getEntity().getStatus());
+            lqw.eq(IplSuggestion::getStatus, search.getEntity().getStatus());
         }
         //备注
         if (search.getEntity().getProcessStatus() != null) {
-            lqw.like(IplSuggestion::getProcessStatus, search.getEntity().getProcessStatus());
-        }
-        //企业名称
-        if (StringUtils.isNotBlank(search.getEntity().getEnterpriseName())) {
-            lqw.like(IplSuggestion::getEnterpriseName, search.getEntity().getEnterpriseName());
+            lqw.eq(IplSuggestion::getProcessStatus, search.getEntity().getProcessStatus());
         }
         lqw.orderByDesc(IplSuggestion::getGmtModified);
         IPage<IplSuggestion> list = page(search.getPageable(), lqw);
@@ -260,7 +244,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         iplLogMap1.put("processStatus", 3);
         IplLog l1 = IplLog.newInstance().build();
         l1.setGmtCreate(vo.getGmtCreate());
-        List l1List = Lists.newArrayList();
+        List<IplLog> l1List = Lists.newArrayList();
         l1List.add(l1);
         iplLogMap1.put("logs", l1List);
         Map<String, Object> iplLogMap2 = new HashMap<>(16);
@@ -268,7 +252,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         iplLogMap2.put("processStatus", vo.getStatus());
         l1.setGmtCreate(vo.getGmtCreate());
         iplLogMap2.put("logs", logList);
-        List logListAll = Lists.newArrayList();
+        List<Map<String, Object>> logListAll = Lists.newArrayList();
         logListAll.add(iplLogMap1);
         logListAll.add(iplLogMap2);
         vo.setTotalProcess(logListAll);

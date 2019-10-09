@@ -6,7 +6,7 @@ package com.unity.common.constant;
  * @author zhqgeng
  * @create 2019-07-02 9:57
  */
-public class SafetyConstant {
+public class InnovationConstant {
 
     public static final Short YSE_BUTTON = 1;//显示按钮
     public static final Short NO_BUTTON = 0;//不显示按钮

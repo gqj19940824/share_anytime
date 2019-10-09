@@ -6,19 +6,13 @@ package com.unity.innovation.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.SystemClient;
-import com.unity.common.constant.SafetyConstant;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import org.apache.commons.lang3.StringUtils;
-import com.alibaba.fastjson.JSON;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
-import com.unity.common.ui.excel.ExcelEntity;
-import com.unity.common.ui.excel.ExportEntity;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.SearchElementGrid;
-import com.unity.common.ui.tree.zTree;
-import com.unity.common.ui.tree.zTreeStructure;
-import com.unity.common.ui.SearchCondition;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
@@ -26,27 +20,16 @@ import com.unity.common.util.JsonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.constants.ConstString;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.List;
-import java.util.Arrays;
-import com.unity.common.enums.FlagEnum;
-import javax.servlet.http.HttpServletResponse;
 
 import com.unity.innovation.service.IplAssistServiceImpl;
 import com.unity.innovation.entity.generated.IplAssist;
-import com.unity.innovation.enums.*;
-
-
-
-
-
 
 
 /**
@@ -95,7 +78,7 @@ public class IplAssistController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IplAssist entity) {
         
         service.saveOrUpdate(entity);
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
     
      /**
@@ -211,7 +194,7 @@ public class IplAssistController extends BaseWebController {
     @DeleteMapping("/del/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
 

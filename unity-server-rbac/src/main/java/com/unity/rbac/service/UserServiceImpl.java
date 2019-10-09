@@ -10,7 +10,7 @@ import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.base.SessionHolder;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
-import com.unity.common.constant.SafetyConstant;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.constants.RedisKeys;
 import com.unity.common.enums.YesOrNoEnum;
@@ -591,7 +591,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
             List<User> userList = baseMapper.selectList(new LambdaQueryWrapper<User>().in(User::getIdRbacDepartment, departmentIds).orderByDesc(User::getGmtCreate));
            return userList.stream().collect(groupingBy(User::getIdRbacDepartment, mapping(User::getId, toList())));
         }
-        return new HashMap<>(SafetyConstant.HASHMAP_DEFAULT_LENGTH);
+        return new HashMap<>(InnovationConstant.HASHMAP_DEFAULT_LENGTH);
     }
 
 }

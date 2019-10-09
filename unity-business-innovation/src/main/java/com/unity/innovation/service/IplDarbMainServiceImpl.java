@@ -3,7 +3,6 @@ package com.unity.innovation.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.pojos.Customer;
-import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
@@ -43,20 +42,40 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
     public void updateStatus(IplDarbMain entity, IplLog iplLog){
         // 主责单位id
         Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
+        Long id = entity.getId();
 
         Customer customer = LoginContextHolder.getRequestAttributes();
         Long customerIdRbacDepartment = customer.getIdRbacDepartment();
         // 主责单位
         if (idRbacDepartmentDuty.equals(customerIdRbacDepartment)){
-            iplLog.setIdRbacDepartmentAssist(0L);
+//            iplLog.setIdRbacDepartmentAssist(0L);
 
             // 判断状态，如果主责单位把主表完结，需要改主表状态 TODO 并且改协同表状态，各插入一个日志和协同表的redis
-            if (IplStatusEnum.DONE.getId().equals(iplLog.getDealStatus())){
+            Integer dealStatus = iplLog.getDealStatus();
+            if (IplStatusEnum.DONE.getId().equals(dealStatus)){
+                // 更新主表状态
                 entity.setStatus(IplStatusEnum.DONE.getId());
                 updateById(entity);
 
-                List<IplAssist> assists = iplAssistService.getAssists(idRbacDepartmentDuty, entity.getId());
-//                iplAssistService
+                StringBuilder builder = new StringBuilder("关闭");
+
+                List<IplAssist> assists = iplAssistService.getAssists(idRbacDepartmentDuty, id);
+                assists.forEach(e->{
+                    builder.append(e.getNameRbacDepartmentAssist()).append("、");
+                    e.setDealStatus(IplStatusEnum.DONE.getId());
+                });
+                if (builder.indexOf("、")>0){
+                    builder.deleteCharAt(builder.length()-1);
+                }
+                builder.append("协同邀请");
+
+                // 批量更新协同单位状态
+                iplAssistService.updateBatchById(assists);
+
+                // 主责记录日志
+                IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty).idRbacDepartmentAssist(0L).idIplMain(id).processInfo(builder.toString());
+
+
             }
         }else {
             iplLog.setIdRbacDepartmentAssist(customerIdRbacDepartment);
