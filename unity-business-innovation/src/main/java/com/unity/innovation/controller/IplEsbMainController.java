@@ -78,7 +78,7 @@ public class IplEsbMainController extends BaseWebController {
                 }, IplEsbMain::getId, IplEsbMain::getIndustryCategory, IplEsbMain::getIndustryCategoryName, IplEsbMain::getEnterpriseName
                 , IplEsbMain::getSummary, IplEsbMain::getContactPerson, IplEsbMain::getContactWay, IplEsbMain::getGmtCreate
                 , IplEsbMain::getGmtModified, IplEsbMain::getSource, IplEsbMain::getSourceName, IplEsbMain::getStatus
-                , IplEsbMain::getStatusName, IplEsbMain::getProcessStatus, IplEsbMain::getProcessStatusName);
+                , IplEsbMain::getStatusName, IplEsbMain::getProcessStatus, IplEsbMain::getProcessStatusName, IplEsbMain::getLatestProcess);
     }
 
     /**
