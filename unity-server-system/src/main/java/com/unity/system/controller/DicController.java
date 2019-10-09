@@ -3,11 +3,9 @@ package com.unity.system.controller;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.sun.org.apache.xpath.internal.operations.Gt;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
-import com.unity.common.constant.SafetyConstant;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
@@ -101,7 +99,7 @@ public class DicController extends BaseWebController {
             dicGroupService.updateById(dicGroup);
             redisTemplate.opsForHash().put(key, dicGroup.getGroupCode(), JSON.toJSONString(dicGroup));
         }
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
     /**
@@ -148,7 +146,7 @@ public class DicController extends BaseWebController {
             }
 
         });
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
     /**
@@ -238,7 +236,7 @@ public class DicController extends BaseWebController {
             String key = RedisConstants.DIC_PREFIX + dic.getGroupCode();
             redisTemplate.opsForHash().put(key, dic.getDicCode(), JSON.toJSONString(dic));
         }
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
     /**
@@ -284,7 +282,7 @@ public class DicController extends BaseWebController {
             redisTemplate.opsForHash().delete(RedisConstants.DIC_PREFIX + byId.getGroupCode(), byId.getDicCode());
         });
 
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
     /**
@@ -314,7 +312,7 @@ public class DicController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
 
-        return success(dicService.getOne(new LambdaQueryWrapper<Dic>().eq(Dic::getGroupCode, SafetyConstant.PROMPT).eq(Dic::getDicCode, MapUtils.getString(map, "dicCode"))));
+        return success(dicService.getOne(new LambdaQueryWrapper<Dic>().eq(Dic::getGroupCode, InnovationConstant.PROMPT).eq(Dic::getDicCode, MapUtils.getString(map, "dicCode"))));
     }
 
     /**
@@ -472,7 +470,7 @@ public class DicController extends BaseWebController {
             String key = RedisConstants.DIC_PREFIX + dic.getGroupCode();
             redisTemplate.opsForHash().put(key, dic.getDicCode(), JSON.toJSONString(dic));
         }
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
 }

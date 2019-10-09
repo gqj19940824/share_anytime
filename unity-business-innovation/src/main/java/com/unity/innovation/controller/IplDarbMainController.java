@@ -3,31 +3,25 @@ package com.unity.innovation.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constant.DicConstants;
-import com.unity.common.constant.SafetyConstant;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
-import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
-import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.ProcessStatusEnum;
 import com.unity.innovation.enums.SourceEnum;
-import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.service.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
-import oracle.jdbc.proxy.annotation.Post;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -79,7 +73,7 @@ public class IplDarbMainController extends BaseWebController {
 
         service.updateStatus(entity, iplLog);
 
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
     /**
@@ -110,7 +104,7 @@ public class IplDarbMainController extends BaseWebController {
 
         // 修改状态、插入日志
         service.updateStatusByDuty(iplAssist, iplLog, idRbacDepartmentDuty, idRbacDepartmentAssist, idIplMain);
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
     /**
@@ -164,7 +158,7 @@ public class IplDarbMainController extends BaseWebController {
         // 新增协同单位并记录日志
         service.addAssistant(iplLog, assistList);
         
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
     /**
