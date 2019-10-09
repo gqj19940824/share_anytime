@@ -54,7 +54,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      * @since 2019-10-09 14:42
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
-    public void bathDel(Long mainId, String businessType){
+    public void batchDel(Long mainId, String businessType){
 
     }
 
