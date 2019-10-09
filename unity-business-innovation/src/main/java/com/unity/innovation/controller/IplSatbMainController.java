@@ -6,8 +6,11 @@ import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.entity.IplSatbMain;
+import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.service.IplSatbMainServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,25 +60,16 @@ public class IplSatbMainController extends BaseWebController {
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody IplSatbMain entity) {
         //校验
-
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplSatbMain::getIndustryCategory, IplSatbMain::getEnterpriseName
+            ,IplSatbMain::getDemandCategory,IplSatbMain::getProjectName,IplSatbMain::getProjectAddress,IplSatbMain::getProjectIntroduce
+            ,IplSatbMain::getTotalAmount,IplSatbMain::getTechDemondInfo,IplSatbMain::getContactPerson,IplSatbMain::getContactWay);
+        if (StringUtils.isNotEmpty(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,msg);
+        }
+        entity.setSource(SourceEnum.SELF.getId());
         service.saveOrUpdateIplSatbMain(entity);
-        return success(null);
+        return success("更新成功");
     }
-
-    /*
-     * 将实体 转换为 Map
-     *
-     * @param ent 实体
-     * @return
-     */
-    /*private Map<String, Object> convert2Map(IplSatbMain ent) {
-        return JsonUtil.<IplSatbMain>ObjectToMap(ent,
-                (m, entity) -> {
-                    adapterField(m, entity);
-                }
-                , IplSatbMain::getId, IplSatbMain::getIdIplmMainIplMain, IplSatbMain::getIsDeleted, IplSatbMain::getSort, IplSatbMain::getNotes, IplSatbMain::getIndustryCategory, IplSatbMain::getEnterpriseName, IplSatbMain::getDemandCategory, IplSatbMain::getProjectName, IplSatbMain::getProjectAddress, IplSatbMain::getProjectIntroduce, IplSatbMain::getTotalAmount, IplSatbMain::getBank, IplSatbMain::getBond, IplSatbMain::getRaise, IplSatbMain::getTechDemondInfo, IplSatbMain::getContactPerson, IplSatbMain::getContactWay, IplSatbMain::getAttachmentCode, IplSatbMain::getSource, IplSatbMain::getStatus
-        );
-    }*/
 
     /**
      * 删除实时清单

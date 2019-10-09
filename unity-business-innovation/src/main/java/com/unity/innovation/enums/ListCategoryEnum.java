@@ -2,6 +2,8 @@ package com.unity.innovation.enums;
 
 import lombok.AllArgsConstructor;
 
+import java.util.Arrays;
+
 /**
  * 清单类别
  * @author zhang
@@ -32,6 +34,15 @@ public enum ListCategoryEnum {
             return INTELLIGENCECONTROL;
         }
        return null;
+    }
+
+    public static ListCategoryEnum valueOfName(String name){
+        for (ListCategoryEnum e: ListCategoryEnum.values()){
+            if(e.getName().equals(name)){
+               return e;
+            }
+        }
+        return  null;
     }
     
     /**

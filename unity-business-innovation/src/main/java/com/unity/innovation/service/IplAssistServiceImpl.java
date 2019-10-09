@@ -48,16 +48,11 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         List<Map<String, Object>> processList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(logs)) {
             // 按照协同单位的id分成子logs
-            LinkedHashMap<Long, List<IplLog>> collect = logs.stream().collect(Collectors.groupingBy(IplLog::getIdRbacDepartmentAssist, LinkedHashMap::new, Collectors.toList()));
+            LinkedHashMap<Long, List<IplLog>> collect = logs.stream()
+                    .collect(Collectors.groupingBy(IplLog::getIdRbacDepartmentAssist, LinkedHashMap::new, Collectors.toList()));
 
-            // 主责单位处理日志
-            Map<String, Object> mapDuty = new HashMap<>();
-            mapDuty.put("department", InnovationUtil.getDeptNameById(idRbacDepartmentDuty));
-            mapDuty.put("processStatus", processStatus);
-            mapDuty.put("logs", collect.get(0L)); // 在日志表的协同单位字段中，主责单位的日志记录在该字段中存为0
-            processList.add(mapDuty);
             // 协同单位处理日志
-            if (CollectionUtils.isNotEmpty(assists)) { // 去除主责单位数据  TODO
+            if (CollectionUtils.isNotEmpty(assists)) {
                 assists.forEach(e -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("department", e.getNameRbacDepartmentAssist());
@@ -86,11 +81,16 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         if (CollectionUtils.isNotEmpty(assists)) {
             assists.forEach(e -> {
                 String nameDeptAssist = null;
-                try {
-                    nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist());
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                if (new Long(0L).equals(e.getIdRbacDepartmentAssist())){
+                    nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentDuty());
+                }else {
+                    try {
+                        nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist());
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 }
+
                 e.setNameRbacDepartmentAssist(nameDeptAssist);
             });
         }

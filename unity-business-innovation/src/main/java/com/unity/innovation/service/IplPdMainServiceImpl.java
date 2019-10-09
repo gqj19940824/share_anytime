@@ -155,16 +155,28 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
                     .message(msg)
                     .build();
         }
-        String uuid = UUIDUtil.getUUID();
         if (entity.getId() == null) {
+            String uuid = UUIDUtil.getUUID();
             entity.setStatus(IplStatusEnum.UNDEAL.getId());
             entity.setAttachmentCode(uuid);
             this.save(entity);
+            //附件处理
+            if(CollectionUtils.isNotEmpty(entity.getAttachmentList())){
+                attachmentService.updateAttachments(uuid, entity.getAttachmentList());
+            }
         } else {
+            IplPdMain main = this.getById(entity.getId());
+            entity.setSource(main.getSource());
+            entity.setAttachmentCode(main.getAttachmentCode());
+            entity.setStatus(main.getStatus());
+            entity.setGmtCreate(main.getGmtCreate());
+            entity.setSort(main.getSort());
             this.updateById(entity);
+            //附件处理
+            attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
+
         }
-        //附件处理
-        attachmentService.updateAttachments(uuid, entity.getAttachmentList());
+
     }
 
     /**
@@ -204,7 +216,7 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
      */
     private Map<String, Object> convert2Map(IplPdMain ent) {
         //获取行业分类
-        SysCfg sysCfg = sysCfgService.getById(ent.getId());
+        SysCfg sysCfg = sysCfgService.getById(ent.getIndustryCategory());
         //获取附件详情
         List<Attachment> attachmentList;
         if (StringUtils.isNotEmpty(ent.getAttachmentCode())) {
@@ -212,7 +224,6 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
         } else {
             attachmentList = Lists.newArrayList();
         }
-
         return JsonUtil.ObjectToMap(ent,
                 (m, entity) -> {
                     adapterField(m, entity);
