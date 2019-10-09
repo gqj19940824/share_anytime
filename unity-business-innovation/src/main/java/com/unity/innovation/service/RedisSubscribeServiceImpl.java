@@ -6,6 +6,7 @@ import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.IplTimeOutLog;
 import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.TimeTypeEnum;
+import com.unity.innovation.enums.UnitCategoryEnum;
 import com.unity.innovation.util.RedisPoolUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -47,12 +48,14 @@ public class RedisSubscribeServiceImpl {
             //超时未处理
             if (ListTypeConstants.HOURS.equals(time)) {
                 result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600));
-
                 //超时未更新
             } else if (ListTypeConstants.DAYS.equals(time)) {
                 result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600 * 24));
             } else {
                 log.info("请确认参数");
+            }
+            if("OK".equals(result)){
+                recordTimeOutLog(time,idArrays);
             }
         }
         return result;
@@ -66,19 +69,19 @@ public class RedisSubscribeServiceImpl {
      *@author zhangxiaogang
      *@since 2019/10/8 18:37
      */
-    private void recordTimeOutLog(Integer time, String... idArrays){
+    private void recordTimeOutLog(String time, String... idArrays){
         IplTimeOutLog iplTimeOutLog = new IplTimeOutLog();
         iplTimeOutLog.setMainId(Long.valueOf(idArrays[0]));
         Long aLong = Long.valueOf(idArrays[1]);
-        Long departmentId = ListCategoryEnum.valueOf(ListTypeConstants.CITY_CONTROL).getId();
+        Long departmentId = ListCategoryEnum.valueOfName(ListTypeConstants.CITY_CONTROL.substring(0,ListTypeConstants.CITY_CONTROL.length()-1)).getId();
         iplTimeOutLog.setListCategory(departmentId);
         //主责
         if(aLong.intValue() == 0){
-            iplTimeOutLog.setUnitCategory(10);
+            iplTimeOutLog.setUnitCategory(UnitCategoryEnum.MAIN.getId());
             iplTimeOutLog.setDepartmentId(departmentId);
             //协同
         }else {
-            iplTimeOutLog.setUnitCategory(20);
+            iplTimeOutLog.setUnitCategory(UnitCategoryEnum.COORDINATION.getId());
             iplTimeOutLog.setDepartmentId(aLong);
         }
         iplTimeOutLog.setTimeType(time);

@@ -3,11 +3,9 @@ package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.dao.IplLogDao;
+import com.unity.innovation.entity.generated.IplLog;
+import org.springframework.stereotype.Service;
 
 /**
  * ClassName: IplLogService
@@ -42,4 +40,27 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         }
         return dealStatus;
     }
+
+    /**
+     * 功能描述 保存日志
+     * @param idIplMain   主表id
+     * @param status      状态 2 处理中 3 处理完成
+     * @param idDuty      主责单位id
+     * @param idAssist    协同单位id
+     * @param processInfo 记录信息
+     * @author gengzhiqiang
+     * @date 2019/9/27 17:12
+     */
+    public void saveLog(Long idIplMain, Integer status, Long idDuty, Long idAssist, String processInfo) {
+        IplLog dutyLog = IplLog.newInstance()
+                .idIplMain(idIplMain)
+                .dealStatus(status)
+                .idRbacDepartmentDuty(idDuty)
+                .idRbacDepartmentAssist(idAssist)
+                .processInfo(processInfo)
+                .build();
+        save(dutyLog);
+    }
+
+
 }
