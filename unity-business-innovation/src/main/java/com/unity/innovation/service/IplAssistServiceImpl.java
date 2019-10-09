@@ -47,14 +47,14 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     /**
      * 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
      *
-     * @param  mainId 主表id，
+     * @param  mainIds 主表id，
      *         businessType 业务类型，参见innovationConst.DEPARTMENT_DARB_ID
      * @return
      * @author qinhuan
      * @since 2019-10-09 14:42
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
-    public void batchDel(Long mainId, String businessType){
+    public void batchDel(List<Long> mainIds, String businessType){
 
     }
 
