@@ -48,6 +48,22 @@ public class IplmMainIplMain extends BaseEntity{
         @CommentTarget("单位id")
         @TableField("id_rbac_department_duty")
         private Long idRbacDepartmentDuty ;
+
+        /**
+         * 单位id
+         **/
+        @CommentTarget("单位id")
+        @TableField("id_rbac_department")
+        private Long idRbacDepartment ;
+
+        /**
+         * 快照id
+         **/
+        @CommentTarget("快照id")
+        @TableField("id_snapshot")
+        private Long idSnapShot ;
+
+
 }
 
 

@@ -3,24 +3,11 @@ package com.unity.innovation.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.*;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-
 import com.unity.innovation.entity.generated.mIplSupervisionMain;
 
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-
+/**
+ * @author jh
+ * */
 @Builder(builderMethodName = "newInstance")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,6 +21,14 @@ public class IplSupervisionMain extends mIplSupervisionMain{
      */
     @TableField(exist = false)
     private String createTime;
+
+
+    /**
+     * 清单名称
+     */
+    @TableField(exist = false)
+    private String categoryName;
+
   
 }
 
