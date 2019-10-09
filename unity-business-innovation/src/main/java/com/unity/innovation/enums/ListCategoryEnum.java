@@ -11,9 +11,9 @@ import lombok.AllArgsConstructor;
 public enum ListCategoryEnum {
 
     CITYCONTROL(10L,"cityControl"),
-    INNOVATIONCONTROL(20L,"innovationControl"),
-    TARGETCONTROL(30L,"targetControl"),
-    INTELLIGENCECONTROL(40L,"intelligenceControl"),
+    INNOVATIONCONTROL(12L,"innovationControl"),
+    TARGETCONTROL(13L,"targetControl"),
+    INTELLIGENCECONTROL(2L,"intelligenceControl"),
     ;
     
     
