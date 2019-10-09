@@ -151,8 +151,8 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @param entity 需要适配的实体
      */
     private void adapterField(Map<String, Object> m, IplSatbMain entity) {
-        m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
-        m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
+        m.put("gmtCreate", entity.getGmtCreate());
+        m.put("gmtModified", entity.getGmtModified());
         m.put("sourceTitle", entity.getSource().equals(SourceEnum.SELF.getId()) ? "科技局" : "企业");
         m.put("statusTitle", IplStatusEnum.ofName(entity.getStatus()));
     }
