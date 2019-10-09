@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.client.RbacClient;
-import com.unity.common.constant.SafetyConstant;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
@@ -210,7 +210,7 @@ public class DictionaryItemController extends BaseWebController {
     @DeleteMapping("/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(",")));
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
     /**

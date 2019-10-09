@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constant.SafetyConstant;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
@@ -15,10 +15,8 @@ import com.unity.common.ui.excel.ExportEntity;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
-import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.service.IplManageMainServiceImpl;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -75,7 +73,7 @@ public class IplManageMainController extends BaseWebController {
 
         }
 
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
     
     @RequestMapping({"/export/excel"})
@@ -219,7 +217,7 @@ public class IplManageMainController extends BaseWebController {
     @DeleteMapping("/del/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 }
 

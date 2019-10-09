@@ -7,16 +7,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.SystemClient;
-import com.unity.common.constant.SafetyConstant;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
-import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
-import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.service.IplLogServiceImpl;
 import org.apache.commons.lang3.StringUtils;
@@ -81,7 +79,7 @@ public class IplLogController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IplLog entity) {
 
         service.saveOrUpdate(entity);
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
     
 
@@ -199,7 +197,7 @@ public class IplLogController extends BaseWebController {
     @DeleteMapping("/del/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
 

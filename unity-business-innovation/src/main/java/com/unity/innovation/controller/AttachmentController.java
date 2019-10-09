@@ -3,7 +3,7 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constant.SafetyConstant;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.JsonUtil;
 import com.unity.innovation.entity.Attachment;
@@ -46,7 +46,7 @@ public class AttachmentController extends BaseWebController {
                     ,Attachment::getId,Attachment::getName,Attachment::getIsDeleted,Attachment::getSize,Attachment::getUrl,Attachment::getSizeLong,Attachment::getStatus,Attachment::getType
             ));
         }
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
 }
