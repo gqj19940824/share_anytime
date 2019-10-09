@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constant.SafetyConstant;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
@@ -112,7 +112,7 @@ public class MessageReciverController extends BaseWebController {
     @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody MessageReciver entity) {
         service.saveOrUpdate(entity);
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
     
@@ -227,7 +227,7 @@ public class MessageReciverController extends BaseWebController {
     @DeleteMapping("/del/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
 

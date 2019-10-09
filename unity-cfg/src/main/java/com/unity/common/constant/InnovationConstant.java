@@ -6,7 +6,7 @@ package com.unity.common.constant;
  * @author zhqgeng
  * @create 2019-07-02 9:57
  */
-public class SafetyConstant {
+public class InnovationConstant {
 
     public static final Short YSE_BUTTON = 1;//显示按钮
     public static final Short NO_BUTTON = 0;//不显示按钮
@@ -76,4 +76,24 @@ public class SafetyConstant {
      * 集团安全部领导角色
      * */
     public static final  Long GROUP_SECURITY_MANAGER_ROLE = 31L;
+
+    /**
+     * 发改局 单位主键 ipl_darb_main
+     */
+    public final static Long DEPARTMENT_DARB_ID = 10L;
+
+    /**
+     * 企业发展服务局 单位主键 ipl_esb_main
+     */
+    public final static Long DEPARTMENT_ESB_ID = 12L;
+
+    /**
+     * 科技局 单位主键 ipl_satb_main
+     */
+    public final static Long DEPARTMENT_SATB_ID = 13L;
+
+    /**
+     * 组织部 单位主键 ipl_od_main
+     */
+    public final static Long DEPARTMENT_OD_ID = 2L;
 }

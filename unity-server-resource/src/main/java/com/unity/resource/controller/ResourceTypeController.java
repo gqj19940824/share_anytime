@@ -5,14 +5,12 @@ package com.unity.resource.controller;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.unity.common.base.ContextHolder;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.SystemClient;
-import com.unity.common.constant.SafetyConstant;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
-import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.SearchElementGrid;
@@ -29,7 +27,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -107,7 +104,7 @@ public class ResourceTypeController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody ResourceType entity) {
         
         service.saveOrUpdate(entity);
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
     
@@ -219,7 +216,7 @@ public class ResourceTypeController extends BaseWebController {
     @DeleteMapping("/del/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(SafetyConstant.SUCCESS);
+        return success(InnovationConstant.SUCCESS);
     }
 
 
