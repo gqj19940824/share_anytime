@@ -1,5 +1,6 @@
 package com.unity.innovation.controller;
 
+import com.unity.common.constant.InnovationConstant;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.service.RedisSubscribeServiceImpl;
 import com.unity.innovation.util.RedisPoolUtil;
@@ -28,7 +29,7 @@ public class RedisSubscribeController {
 
         System.out.println(mytest);
 
-        redisSubscribeService.saveSubscribeInfo("12-0",ListTypeConstants.DEAL_OVER_TIME,ListTypeConstants.IPL_DARB);
+        redisSubscribeService.saveSubscribeInfo("12-0",ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_DARB_ID);
     }
 
 

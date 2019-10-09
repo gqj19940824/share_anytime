@@ -1,5 +1,6 @@
 package com.unity.innovation.enums;
 
+import com.unity.common.constant.InnovationConstant;
 import lombok.AllArgsConstructor;
 
 import java.util.Arrays;
@@ -12,10 +13,10 @@ import java.util.Arrays;
 @AllArgsConstructor
 public enum ListCategoryEnum {
 
-    CITYCONTROL(10L,"cityControl"),
-    INNOVATIONCONTROL(12L,"innovationControl"),
-    TARGETCONTROL(13L,"targetControl"),
-    INTELLIGENCECONTROL(2L,"intelligenceControl"),
+    CITYCONTROL(InnovationConstant.DEPARTMENT_DARB_ID,"DEPARTMENT_DARB_CONTROL"),
+    INNOVATIONCONTROL(InnovationConstant.DEPARTMENT_ESB_ID,"DEPARTMENT_ESB_CONTROL"),
+    TARGETCONTROL(InnovationConstant.DEPARTMENT_SATB_ID,"DEPARTMENT_SATB_CONTROL"),
+    INTELLIGENCECONTROL(InnovationConstant.DEPARTMENT_OD_ID,"DEPARTMENT_OD_CONTROL"),
     ;
     
     

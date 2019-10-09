@@ -41,16 +41,7 @@ public class mIplTimeOutLog extends BaseEntity{
         private Integer unitCategory ;
         
         
-        
-        /**
-        * 清单部门id:status:10 cityControl,20 innovationControl,30 targetControl,40 intelligenceControl
-        **/
-        @CommentTarget("清单类别:status:10 cityControl,20 innovationControl,30 targetControl,40 intelligenceControl")
-        @TableField("list_category")
-        private Long listCategory ;
-        
-        
-        
+
         /**
         * 主数据id
         **/
@@ -61,7 +52,7 @@ public class mIplTimeOutLog extends BaseEntity{
         
         
         /**
-        * 单位id
+        * 单位id（主责或协同）
         **/
         @CommentTarget("单位id")
         @TableField("department_id")
