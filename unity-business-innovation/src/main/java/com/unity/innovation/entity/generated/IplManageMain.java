@@ -69,7 +69,12 @@ public class IplManageMain extends BaseEntity{
         @CommentTarget("发布结果")
         @TableField("publish_result")
         private String publishResult ;
-        
+
+        /**
+         * 提请时间
+         **/
+        @TableField("gmt_submit")
+        private Long gmtSubmit ;
         
         /**
         * 发改局列表
