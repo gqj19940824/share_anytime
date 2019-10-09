@@ -5,11 +5,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.pojos.Customer;
 import com.unity.common.util.JsonUtil;
 import com.unity.innovation.dao.SysCfgDao;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.SysCfgScope;
+import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.*;
 
 /**
  * ClassName: SysCfgService
@@ -111,6 +115,19 @@ public class SysCfgServiceImpl extends BaseServiceImpl<SysCfgDao, SysCfg> {
         scopeService.saveBatch(list);
     }
 
-
+    /**
+     * 获取行业类别
+     *
+     * @return 行业类别
+     * @author gengjiajia
+     * @since 2019/10/08 10:49
+     */
+    public Map<Long, String> getSysCfgMap(Integer cfgType) {
+        List<SysCfg> cfgList = this.list(new LambdaQueryWrapper<SysCfg>()
+                .eq(SysCfg::getCfgType, cfgType)
+                .eq(SysCfg::getUseStatus, YesOrNoEnum.YES.getType()));
+        return cfgList.stream()
+                .collect(groupingBy(SysCfg::getId, mapping(SysCfg::getCfgVal, joining())));
+    }
 
 }
