@@ -73,7 +73,7 @@ public class RedisSubscribeServiceImpl {
         IplTimeOutLog iplTimeOutLog = new IplTimeOutLog();
         iplTimeOutLog.setMainId(Long.valueOf(idArrays[0]));
         Long aLong = Long.valueOf(idArrays[1]);
-        Long departmentId = ListCategoryEnum.valueOfName(ListTypeConstants.CITY_CONTROL.substring(0,ListTypeConstants.CITY_CONTROL.length()-1)).getId();
+        Long departmentId = ListCategoryEnum.valueOfName(ListTypeConstants.IPL_DARB.substring(0,ListTypeConstants.IPL_DARB.length()-1)).getId();
         iplTimeOutLog.setListCategory(departmentId);
         //主责
         if(aLong.intValue() == 0){

@@ -26,7 +26,7 @@ public class ListTypeConstants {
     /**
      *城市创新合作/发改局
      */
-    public final static String CITY_CONTROL = "darb:";
+    public final static String IPL_DARB = "IPL_DARB:";
 
 
 }
