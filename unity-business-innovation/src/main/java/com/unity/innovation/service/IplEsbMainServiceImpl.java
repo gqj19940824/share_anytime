@@ -437,19 +437,27 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                                 .idIplMain(vo.getId())
                                 .idRbacDepartmentDuty(vo.getIdRbacDepartmentDuty())
                                 .idRbacDepartmentAssist(d.getIdRbacDepartmentAssist())
-                                .processInfo("")
+                                .processInfo("主责单位关闭协同邀请")
                                 .build();
                         logs.add(log);
                     });
                     //保存协同日志
                     iplLogService.saveBatch(logs);
+                    //修改协同单位状态
+                    IplAssist assist=IplAssist.newInstance()
+                            .dealStatus(IplStatusEnum.DONE.getId())
+                            .processStatus(ProcessStatusEnum.NORMAL.getId())
+                            .build();
+                    iplAssistService.update(assist, new LambdaUpdateWrapper<IplAssist>()
+                            .eq(IplAssist::getIdRbacDepartmentDuty, InnovationConstant.DEPARTMENT_ESB_ID)
+                            .eq(IplAssist::getIdIplMain, vo.getId()));
                     sb.deleteCharAt(sb.length() - 1);
                     sb.append("协同邀请");
                     entity.setDealMessage(sb.toString());
                 }
                 //保存 主责日志
                 iplLogService.saveLog(entity.getIdIplMain(), IplStatusEnum.DONE.getId(),
-                        entity.getIdRbacDepartmentDuty(), 0L, entity.getDealMessage());
+                        vo.getIdRbacDepartmentDuty(), 0L, entity.getDealMessage());
                 //更新主表状态
                 vo.setStatus(IplStatusEnum.DONE.getId());
                 vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
