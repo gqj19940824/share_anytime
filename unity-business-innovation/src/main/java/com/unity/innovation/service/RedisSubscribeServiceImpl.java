@@ -106,9 +106,8 @@ public class RedisSubscribeServiceImpl {
      * @since 2019/10/9 17:15
      */
     public void removeRecordInfo(String id, String overTimeType, Long departmentId) {
-        Dic dicByCode = dicUtils.getDicByCode(ListTypeConstants.LIST_TIMEOUT, overTimeType);
         ListCategoryEnum listCategoryEnum = ListCategoryEnum.of(departmentId);
-        if (listCategoryEnum != null && dicByCode != null) {
+        if (listCategoryEnum != null) {
             String key = ListTypeConstants.LIST_CONTROL
                     .concat(listCategoryEnum.getName() + RedisConstants.KEY_JOINER)
                     .concat("%s")
