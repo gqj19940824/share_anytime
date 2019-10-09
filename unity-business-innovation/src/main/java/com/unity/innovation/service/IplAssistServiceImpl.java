@@ -51,24 +51,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
     public void del(Long mainId, Long idRbacDepartmentDuty, String attachmentCode){
-
-        // 删除日志
-        LambdaQueryWrapper<IplLog> logQw = new LambdaQueryWrapper<>();
-        logQw.eq(IplLog::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplLog::getIdIplMain, mainId);
-        iplLogService.remove(logQw);
-
-        // 删除协同
-        LambdaQueryWrapper<IplAssist> assistQw = new LambdaQueryWrapper<>();
-        assistQw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId);
-        iplAssistService.remove(assistQw);
-
-        // 删除附件
-        LambdaQueryWrapper<Attachment> attachmentQw = new LambdaQueryWrapper<>();
-        attachmentQw.eq(Attachment::getAttachmentCode, attachmentCode);
-        attachmentService.remove(attachmentQw);
-
-        // 删除redis定时任务 TODO
-
+        batchDel(Collections.singletonList(mainId), idRbacDepartmentDuty, Collections.singletonList(attachmentCode));
     }
 
     /**
