@@ -24,9 +24,9 @@ public class ListTypeConstants {
      */
     public final static String LIST_CONTROL = "listControl:";
     /**
-     *城市创新合作
+     *城市创新合作/发改局
      */
-    public final static String CITY_CONTROL = "cityControl:";
+    public final static String CITY_CONTROL = "darb:";
 
 
 }
