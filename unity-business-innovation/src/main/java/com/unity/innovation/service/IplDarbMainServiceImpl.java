@@ -104,7 +104,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         save(entity);
 
         // 设置处理超时时间
-        redisSubscribeService.saveSubscribeInfo(entity.getId() + "", ListTypeConstants.DEAL_OVER_TIME, ListTypeConstants.IPL_DARB);
+        redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, entity.getIdRbacDepartmentDuty());
 
         return entity.getId();
     }
@@ -129,10 +129,10 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         Integer status = entity.getStatus();
         // 设置处理超时时间
         if (IplStatusEnum.UNDEAL.getId().equals(status)){
-            redisSubscribeService.saveSubscribeInfo(entity.getId() + "", ListTypeConstants.DEAL_OVER_TIME, ListTypeConstants.IPL_DARB);
+            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, entity.getIdRbacDepartmentDuty());
         // 设置更新超时时间
         }else if (IplStatusEnum.DEALING.getId().equals(status)){
-            redisSubscribeService.saveSubscribeInfo(entity.getId() + "", ListTypeConstants.UPDATE_OVER_TIME, ListTypeConstants.IPL_DARB);
+            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, entity.getIdRbacDepartmentDuty());
 
             // 非"待处理"状态才记录日志
             Integer lastDealStatus = iplLogService.getLastDealStatus(id, entity.getIdRbacDepartmentDuty());
@@ -142,6 +142,15 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         }
     }
 
+    /**
+     * 批量删除发改局数据
+     *
+     * @param mainIds 发改局表ids
+     * @param attachmentCodes 发改局表attachmentCodes
+     *
+     * @author qinhuan
+     * @since 2019-10-09 16:27
+     */
     @Transactional(rollbackFor = Exception.class)
     public void delByIds(List<Long> mainIds, List<String> attachmentCodes) {
 
