@@ -55,6 +55,7 @@ public class RedisSubscribeServiceImpl {
                     result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600));
                     //超时未更新
                 } else if (ListTypeConstants.UPDATE_OVER_TIME.equals(overTimeType)) {
+                    removeRecordInfo(id, ListTypeConstants.DEAL_OVER_TIME, departmentId);
                     result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600 * 24));
                 } else {
                     log.info("请确认参数");
@@ -105,16 +106,36 @@ public class RedisSubscribeServiceImpl {
      * @since 2019/10/9 17:15
      */
     public void removeRecordInfo(String id, String overTimeType, Long departmentId) {
-        Dic dicByCode = dicUtils.getDicByCode(ListTypeConstants.LIST_TIMEOUT, overTimeType);
         ListCategoryEnum listCategoryEnum = ListCategoryEnum.of(departmentId);
-        if (listCategoryEnum != null && dicByCode != null) {
+        if (listCategoryEnum != null) {
             String key = ListTypeConstants.LIST_CONTROL
                     .concat(listCategoryEnum.getName() + RedisConstants.KEY_JOINER)
-                    .concat(overTimeType)
+                    .concat("%s")
                     .concat(RedisConstants.KEY_JOINER)
                     .concat(id);
             log.info("【删除记录redis存储的key:】" + key);
-            RedisPoolUtil.del(key);
+            RedisPoolUtil.del(String.format(key, overTimeType));
+        }
+    }
+    /**
+     * 删除清单超时处理信息
+     *
+     * @param id           清单id(主数据id+"-"+0(主责)/协同单位id)
+     * @param departmentId 主责单位id
+     * @author zhangxiaogang
+     * @since 2019/10/9 17:15
+     */
+    public void removeRecordInfo(String id, Long departmentId) {
+        ListCategoryEnum listCategoryEnum = ListCategoryEnum.of(departmentId);
+        if (listCategoryEnum != null) {
+            String key = ListTypeConstants.LIST_CONTROL
+                    .concat(listCategoryEnum.getName() + RedisConstants.KEY_JOINER)
+                    .concat("%s")
+                    .concat(RedisConstants.KEY_JOINER)
+                    .concat(id);
+            log.info("【删除记录redis存储的key:】" + key);
+            RedisPoolUtil.del(String.format(key,ListTypeConstants.DEAL_OVER_TIME));
+            RedisPoolUtil.del(String.format(key,ListTypeConstants.UPDATE_OVER_TIME));
         }
     }
 }

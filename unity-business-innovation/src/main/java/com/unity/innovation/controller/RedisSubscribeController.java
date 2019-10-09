@@ -21,7 +21,7 @@ public class RedisSubscribeController {
     private RedisSubscribeServiceImpl redisSubscribeService;
 
     @GetMapping("/pushRedisSubscribeInfo")
-    public void pushRedisSubscribeInfo(@RequestParam("hours")String hours, @RequestParam("id") Long id ){
+    public void pushRedisSubscribeInfo(@RequestParam("hours")String hours, @RequestParam("id") Long id )throws Exception{
 
         String key = ListTypeConstants.LIST_CONTROL.concat(ListTypeConstants.IPL_DARB).concat(hours).concat(":").concat(id.toString());
         System.out.println(key);
@@ -29,7 +29,11 @@ public class RedisSubscribeController {
 
         System.out.println(mytest);
 
-        redisSubscribeService.saveSubscribeInfo("12-0",ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_DARB_ID);
+        //redisSubscribeService.saveSubscribeInfo("12-0",ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_DARB_ID);
+
+        Thread.sleep(100000L);
+        redisSubscribeService.removeRecordInfo("12-0",ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_DARB_ID);
+
     }
 
 
