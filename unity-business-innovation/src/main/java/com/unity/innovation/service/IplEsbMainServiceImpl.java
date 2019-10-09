@@ -206,6 +206,10 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         iplLogService.remove(new LambdaQueryWrapper<IplLog>()
                 .in(IplLog::getIdIplMain, ids)
                 .eq(IplLog::getIdRbacDepartmentDuty, InnovationConstant.DEPARTMENT_ESB_ID));
+        //删除协同单位
+        iplAssistService.remove(new LambdaQueryWrapper<IplAssist>()
+                .eq(IplAssist::getIdRbacDepartmentDuty,InnovationConstant.DEPARTMENT_ESB_ID)
+                .in(IplAssist::getIdIplMain,ids));
         //主表
         removeByIds(ids);
     }
