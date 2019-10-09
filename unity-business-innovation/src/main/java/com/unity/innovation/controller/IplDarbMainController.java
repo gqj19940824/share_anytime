@@ -203,9 +203,9 @@ public class IplDarbMainController extends BaseWebController {
 
         if (entity.getId() == null){ // 新增
             String uuid = UUIDUtil.getUUID();
-            entity.setStatus(IplStatusEnum.DEALING.getId());
+            entity.setStatus(IplStatusEnum.UNDEAL.getId());
             entity.setAttachmentCode(uuid);
-            entity.setIdRbacDepartmentDuty(10L);
+            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_DARB_ID);
             service.add(entity);
         }else { // 编辑
             // 没有登录会抛异常

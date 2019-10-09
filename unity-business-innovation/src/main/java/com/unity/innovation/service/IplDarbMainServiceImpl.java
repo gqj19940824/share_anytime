@@ -3,6 +3,7 @@ package com.unity.innovation.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.pojos.Customer;
+import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
@@ -38,6 +39,9 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
 
     @Autowired
     private IplAssistServiceImpl iplAssistService;
+
+    @Autowired
+    private RedisSubscribeServiceImpl redisSubscribeService;
 
     public void updateStatus(IplDarbMain entity, IplLog iplLog){
         // 主责单位id
@@ -97,6 +101,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         save(entity);
 
         // TODO 设置超时
+        redisSubscribeService.saveSubscribeInfo(entity.getId() + "", ListTypeConstants.DEAL_OVER_TIME, ListTypeConstants.IPL_DARB);
 
         return entity.getId();
     }

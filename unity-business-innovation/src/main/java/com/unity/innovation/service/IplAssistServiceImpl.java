@@ -7,6 +7,7 @@ import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.unity.innovation.entity.generated.IplAssist;
@@ -30,6 +31,34 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     private IplLogServiceImpl iplLogService;
 
     /**
+     * 删除主表附带的日志、协同、附件，调用方法必须要有事物
+     *
+     * @param  mainId 主表id，
+     *         businessType 业务类型，参见innovationConst.DEPARTMENT_DARB_ID
+     * @return
+     * @author qinhuan
+     * @since 2019-10-09 14:42
+     */
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
+    public void del(Long mainId, String businessType){
+
+    }
+
+    /**
+     * 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
+     *
+     * @param  mainIds 主表id，
+     *         businessType 业务类型，参见innovationConst.DEPARTMENT_DARB_ID
+     * @return
+     * @author qinhuan
+     * @since 2019-10-09 14:42
+     */
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
+    public void batchDel(List<Long> mainIds, String businessType){
+
+    }
+
+    /**
      * 总体进展
      *
      * @param mainId :主表id，idRbacDepartmentDuty:主表主责单位id，processStatus:主表状态
@@ -48,16 +77,11 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         List<Map<String, Object>> processList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(logs)) {
             // 按照协同单位的id分成子logs
-            LinkedHashMap<Long, List<IplLog>> collect = logs.stream().collect(Collectors.groupingBy(IplLog::getIdRbacDepartmentAssist, LinkedHashMap::new, Collectors.toList()));
+            LinkedHashMap<Long, List<IplLog>> collect = logs.stream()
+                    .collect(Collectors.groupingBy(IplLog::getIdRbacDepartmentAssist, LinkedHashMap::new, Collectors.toList()));
 
-            // 主责单位处理日志
-            Map<String, Object> mapDuty = new HashMap<>();
-            mapDuty.put("department", InnovationUtil.getDeptNameById(idRbacDepartmentDuty));
-            mapDuty.put("processStatus", processStatus);
-            mapDuty.put("logs", collect.get(0L)); // 在日志表的协同单位字段中，主责单位的日志记录在该字段中存为0
-            processList.add(mapDuty);
             // 协同单位处理日志
-            if (CollectionUtils.isNotEmpty(assists)) { // 去除主责单位数据  TODO
+            if (CollectionUtils.isNotEmpty(assists)) {
                 assists.forEach(e -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("department", e.getNameRbacDepartmentAssist());
@@ -86,11 +110,16 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         if (CollectionUtils.isNotEmpty(assists)) {
             assists.forEach(e -> {
                 String nameDeptAssist = null;
-                try {
-                    nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist());
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                if (new Long(0L).equals(e.getIdRbacDepartmentAssist())){
+                    nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentDuty());
+                }else {
+                    try {
+                        nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist());
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 }
+
                 e.setNameRbacDepartmentAssist(nameDeptAssist);
             });
         }
