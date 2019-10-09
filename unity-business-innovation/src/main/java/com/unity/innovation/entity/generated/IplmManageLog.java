@@ -14,6 +14,7 @@ import com.unity.common.base.CommentTarget;
  */
 @Builder(builderMethodName = "newInstance")
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper=false)
 @TableName(value = "iplm_manage_log")

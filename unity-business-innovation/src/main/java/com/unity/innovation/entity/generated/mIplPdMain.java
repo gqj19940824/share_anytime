@@ -115,7 +115,12 @@ public class mIplPdMain extends BaseEntity {
     @TableField("post")
     private String post;
 
-
+    /**
+     * 主责单位id
+     **/
+    @CommentTarget("主责单位id")
+    @TableField("id_rbac_department_duty")
+    private Long idRbacDepartmentDuty;
 }
 
 
