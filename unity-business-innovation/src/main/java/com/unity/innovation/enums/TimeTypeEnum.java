@@ -9,8 +9,8 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public enum TimeTypeEnum {
-    HOURS(1,"hours"),
-    DAYS(1,"days")
+    HOURS(24,"hours"),
+    DAYS(7,"days")
     ;
     
     
@@ -22,6 +22,16 @@ public enum TimeTypeEnum {
             return DAYS;
         }
        return null;
+    }
+
+
+    public static TimeTypeEnum valueOfName(String name){
+        for (TimeTypeEnum e: TimeTypeEnum.values()){
+            if(e.getName().equals(name)){
+                return e;
+            }
+        }
+        return  null;
     }
     
     /**

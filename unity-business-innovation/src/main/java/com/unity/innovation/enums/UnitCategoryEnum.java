@@ -9,8 +9,10 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public enum UnitCategoryEnum {
+    //主责
     MAIN(10,"main"),
-    COORDINATION(1,"coordination")
+    //协同
+    COORDINATION(20,"coordination")
     ;
     
     

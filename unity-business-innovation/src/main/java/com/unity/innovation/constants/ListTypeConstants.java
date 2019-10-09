@@ -14,11 +14,11 @@ public class ListTypeConstants {
     /**
      * 超时未处理
      */
-    public final static String HOURS = "hours";
+    public final static String DEAL_OVER_TIME = "DEAL_OVER_TIME";
     /**
      * 超时未更新
      */
-    public final static String DAYS = "days";
+    public final static String UPDATE_OVER_TIME = "UPDATE_OVER_TIME";
     /**
      * 清单监控
      */

@@ -1,8 +1,11 @@
 package com.unity.innovation.controller;
 
 import com.unity.innovation.constants.ListTypeConstants;
+import com.unity.innovation.service.RedisSubscribeServiceImpl;
 import com.unity.innovation.util.RedisPoolUtil;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
 
 /**
  * 测试 redis订阅与发布功能
@@ -13,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("redisSubscribe")
 public class RedisSubscribeController {
 
+    @Resource
+    private RedisSubscribeServiceImpl redisSubscribeService;
 
     @GetMapping("/pushRedisSubscribeInfo")
     public void pushRedisSubscribeInfo(@RequestParam("hours")String hours, @RequestParam("id") Long id ){
@@ -22,6 +27,8 @@ public class RedisSubscribeController {
         String mytest = RedisPoolUtil.setEx(key, key, 30);
 
         System.out.println(mytest);
+
+        redisSubscribeService.saveSubscribeInfo("12-0",ListTypeConstants.HOURS,ListTypeConstants.CITY_CONTROL);
     }
 
 

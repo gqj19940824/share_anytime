@@ -39,6 +39,9 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
     @Autowired
     private IplAssistServiceImpl iplAssistService;
 
+    @Autowired
+    private RedisSubscribeServiceImpl redisSubscribeService;
+
     public void updateStatus(IplDarbMain entity, IplLog iplLog){
         // 主责单位id
         Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
@@ -97,6 +100,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         save(entity);
 
         // TODO 设置超时
+//        redisSubscribeService.saveSubscribeInfo()
 
         return entity.getId();
     }

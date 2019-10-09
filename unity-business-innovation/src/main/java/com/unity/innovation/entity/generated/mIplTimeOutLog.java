@@ -27,9 +27,9 @@ public class mIplTimeOutLog extends BaseEntity{
         /**
         * 超时类型:status:1 hours,2 days
         **/
-        @CommentTarget("超时类型:status:1 hours,2 days")
+        @CommentTarget("超时类型:status: hours,days")
         @TableField("time_type")
-        private Integer timeType ;
+        private String timeType ;
         
         
         

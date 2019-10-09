@@ -93,7 +93,6 @@ public class IplPdMainController extends BaseWebController {
                     .addColumn(IplPdMain::getIdCard, "身份证")
                     .addColumn(IplPdMain::getPost, "职务")
                     .addColumn(IplPdMain::getAttachmentCode, "附件")
-                    .addColumn(IplPdMain::getStatus, "状态")
                     .addColumn(IplPdMain::getNotes, "备注")
                     .addColumn(IplPdMain::getGmtCreate, "创建时间")
                     .addColumn(IplPdMain::getGmtModified, "更新时间")
