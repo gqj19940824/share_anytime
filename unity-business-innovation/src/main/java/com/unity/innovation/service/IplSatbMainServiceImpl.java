@@ -10,9 +10,12 @@ import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JKDates;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.IplSatbMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplSatbMain;
+import com.unity.innovation.enums.IplStatusEnum;
+import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.enums.SysCfgEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -146,6 +149,8 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     private void adapterField(Map<String, Object> m, IplSatbMain entity) {
         m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
         m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
+        m.put("sourceTitle", entity.getSource().equals(SourceEnum.SELF.getId()) ? "科技局" : "企业");
+        m.put("statusTitle", IplStatusEnum.ofName(entity.getStatus()));
     }
 
     /**
@@ -170,7 +175,28 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @author gengjiajia
      * @since 2019/10/08 20:46
      */
+    @Transactional(rollbackFor = Exception.class)
     public void saveOrUpdateIplSatbMain(IplSatbMain entity) {
+        if(entity.getId() == null){
+            String uuid = UUIDUtil.getUUID();
+            entity.setAttachmentCode(uuid);
+            entity.setStatus(IplStatusEnum.UNDEAL.getId());
+            if(CollectionUtils.isNotEmpty(entity.getAttachmentList())){
+                attachmentService.updateAttachments(uuid,entity.getAttachmentList());
+            }
+            this.save(entity);
+        } else {
+            IplSatbMain main = this.getById(entity.getId());
+            entity.setAttachmentCode(main.getAttachmentCode());
+            entity.setSource(main.getSource());
+            entity.setStatus(main.getStatus());
+            entity.setGmtCreate(main.getGmtCreate());
+            entity.setSort(main.getSort());
+            if(CollectionUtils.isNotEmpty(entity.getAttachmentList())){
+                attachmentService.updateAttachments(main.getAttachmentCode(),entity.getAttachmentList());
+            }
+            this.updateById(entity);
+        }
 
     }
 
@@ -183,7 +209,9 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      */
     public void deleteById(Long id) {
         //关联删除附件
-
+        IplSatbMain main = this.getById(id);
+        attachmentService.remove(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode, main.getAttachmentCode()));
+        this.removeById(id);
     }
 
     /**
@@ -195,7 +223,32 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @since 2019/10/08 20:48
      */
     public Map<String, Object> detailById(Long id) {
+        return convert2Map(this.getById(id));
+    }
 
-        return null;
+    /**
+     * 将实体 转换为 Map
+     *
+     * @param ent 实体
+     * @return
+     */
+    private Map<String, Object> convert2Map(IplSatbMain ent) {
+        //获取附件
+
+        //行业类别
+
+        //需求类别
+
+
+        return JsonUtil.<IplSatbMain>ObjectToMap(ent,
+                (m, entity) -> {
+                    adapterField(m, entity);
+                }
+                , IplSatbMain::getId,IplSatbMain::getIndustryCategory, IplSatbMain::getEnterpriseName,
+                IplSatbMain::getDemandCategory, IplSatbMain::getProjectName, IplSatbMain::getProjectAddress,
+                IplSatbMain::getProjectIntroduce, IplSatbMain::getTotalAmount, IplSatbMain::getBank, IplSatbMain::getBond,
+                IplSatbMain::getRaise, IplSatbMain::getTechDemondInfo, IplSatbMain::getContactPerson, IplSatbMain::getContactWay,
+                IplSatbMain::getSource, IplSatbMain::getStatus
+        );
     }
 }
