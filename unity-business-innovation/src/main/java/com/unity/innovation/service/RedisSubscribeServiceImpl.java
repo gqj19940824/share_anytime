@@ -41,10 +41,14 @@ public class RedisSubscribeServiceImpl {
         String result = "error";
         try {
             Dic dicByCode = dicUtils.getDicByCode(ListTypeConstants.LIST_TIMEOUT, overTimeType);
-            String key = ListTypeConstants.LIST_CONTROL.concat(ListCategoryEnum.of(departmentId).getName() + RedisConstants.KEY_JOINER).concat(overTimeType).concat(RedisConstants.KEY_JOINER).concat(id);
-            log.info("【记录redis存储的key:】" + key);
-
-            if (dicByCode != null) {
+            ListCategoryEnum listCategoryEnum = ListCategoryEnum.of(departmentId);
+            if (listCategoryEnum != null && dicByCode != null) {
+                String key = ListTypeConstants.LIST_CONTROL
+                        .concat(listCategoryEnum.getName() + RedisConstants.KEY_JOINER)
+                        .concat(overTimeType)
+                        .concat(RedisConstants.KEY_JOINER)
+                        .concat(id);
+                log.info("【记录redis存储的key:】" + key);
                 String[] idArrays = id.split("-");
                 //超时未处理
                 if (ListTypeConstants.DEAL_OVER_TIME.equals(overTimeType)) {
@@ -59,8 +63,6 @@ public class RedisSubscribeServiceImpl {
                     recordTimeOutLog(departmentId, overTimeType, idArrays);
                 }
             }
-
-
         } catch (Exception e) {
             log.error("【操作异常:" + e.getMessage() + "】");
         }
@@ -91,6 +93,28 @@ public class RedisSubscribeServiceImpl {
         }
         iplTimeOutLog.setTimeType(overTimeType);
         iplTimeOutLogService.save(iplTimeOutLog);
+    }
 
+    /**
+     * 删除清单超时处理信息
+     *
+     * @param id           清单id(主数据id+"-"+0(主责)/协同单位id)
+     * @param overTimeType 选择超时DEAL_OVER_TIME/UPDATE_OVER_TIME
+     * @param departmentId 主责单位id
+     * @author zhangxiaogang
+     * @since 2019/10/9 17:15
+     */
+    public void removeRecordInfo(String id, String overTimeType, Long departmentId) {
+        Dic dicByCode = dicUtils.getDicByCode(ListTypeConstants.LIST_TIMEOUT, overTimeType);
+        ListCategoryEnum listCategoryEnum = ListCategoryEnum.of(departmentId);
+        if (listCategoryEnum != null && dicByCode != null) {
+            String key = ListTypeConstants.LIST_CONTROL
+                    .concat(listCategoryEnum.getName() + RedisConstants.KEY_JOINER)
+                    .concat(overTimeType)
+                    .concat(RedisConstants.KEY_JOINER)
+                    .concat(id);
+            log.info("【删除记录redis存储的key:】" + key);
+            RedisPoolUtil.del(key);
+        }
     }
 }
