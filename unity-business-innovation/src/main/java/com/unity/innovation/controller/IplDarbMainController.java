@@ -227,7 +227,22 @@ public class IplDarbMainController extends BaseWebController {
     @PostMapping("/removeByIds")
     public Mono<ResponseEntity<SystemResponse<Object>>>  removeByIds(@RequestBody Map<String, String> idsMap) {
         String ids = idsMap.get("ids");
-        service.delByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
+        if (StringUtils.isBlank(ids)){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
+        }
+
+        List<IplDarbMain> list = service.list(new LambdaQueryWrapper<IplDarbMain>().in(IplDarbMain::getId, ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA))));
+        if (CollectionUtils.isNotEmpty(list)){
+            List<Long> mainIds = new ArrayList<>();
+            List<String> attachmentCodes = new ArrayList<>();
+            list.forEach(e->{
+                mainIds.add(e.getId());
+                attachmentCodes.add(e.getAttachmentCode());
+            });
+
+            service.delByIds(mainIds, attachmentCodes);
+        }
+
         return success();
     }
 

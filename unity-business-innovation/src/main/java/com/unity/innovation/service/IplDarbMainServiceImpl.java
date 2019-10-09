@@ -2,7 +2,10 @@ package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.InnovationConstant;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.SystemResponse;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.generated.IplAssist;
@@ -100,7 +103,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
 
         save(entity);
 
-        // TODO 设置超时
+        // 设置处理超时时间
         redisSubscribeService.saveSubscribeInfo(entity.getId() + "", ListTypeConstants.DEAL_OVER_TIME, ListTypeConstants.IPL_DARB);
 
         return entity.getId();
@@ -108,40 +111,45 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
 
     @Transactional(rollbackFor = Exception.class)
     public void edit(IplDarbMain entity) {
-        // 保存附件 TODO code查询出来
+        // 保存附件
+        Long id = entity.getId();
+        IplDarbMain byId = getById(id);
+        if (byId == null){
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
         List<Attachment> attachments = entity.getAttachments();
         if (CollectionUtils.isNotEmpty(attachments)) {
-            attachmentService.updateAttachments(entity.getAttachmentCode(), attachments);
+            attachmentService.updateAttachments(byId.getAttachmentCode(), attachments);
         }
 
         // 保存修改
         updateById(entity);
 
-        // TODO 设置超时
+        // 更新超时时间
+        Integer status = entity.getStatus();
+        // 设置处理超时时间
+        if (IplStatusEnum.UNDEAL.getId().equals(status)){
+            redisSubscribeService.saveSubscribeInfo(entity.getId() + "", ListTypeConstants.DEAL_OVER_TIME, ListTypeConstants.IPL_DARB);
+        // 设置更新超时时间
+        }else if (IplStatusEnum.DEALING.getId().equals(status)){
+            redisSubscribeService.saveSubscribeInfo(entity.getId() + "", ListTypeConstants.UPDATE_OVER_TIME, ListTypeConstants.IPL_DARB);
 
-        // TODO 非"待处理"状态才记录日志
-        Integer lastDealStatus = iplLogService.getLastDealStatus(entity.getId(), entity.getIdRbacDepartmentDuty());
-        IplLog iplLog = IplLog.newInstance().idIplMain(entity.getId()).idRbacDepartmentAssist(0L)
-                .processInfo("更新基本信息").idRbacDepartmentDuty(entity.getIdRbacDepartmentDuty()).dealStatus(lastDealStatus).build();
-        iplLogService.save(iplLog);
+            // 非"待处理"状态才记录日志
+            Integer lastDealStatus = iplLogService.getLastDealStatus(id, entity.getIdRbacDepartmentDuty());
+            IplLog iplLog = IplLog.newInstance().idIplMain(id).idRbacDepartmentAssist(0L)
+                    .processInfo("更新基本信息").idRbacDepartmentDuty(entity.getIdRbacDepartmentDuty()).dealStatus(lastDealStatus).build();
+            iplLogService.save(iplLog);
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void delByIds(List<Long> ids) {
+    public void delByIds(List<Long> mainIds, List<String> attachmentCodes) {
 
-        // 通过集合删除，并删除日志 TODO
+        // 删除主表
+        removeByIds(mainIds);
 
-        if (CollectionUtils.isNotEmpty(ids)) {
-            ids.forEach(e -> {
-                IplDarbMain byId = getById(e);
-                if (byId != null) {
-                    String attachmentCode = byId.getAttachmentCode();
-                    attachmentService.remove(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode, attachmentCode));
-
-                    removeById(e);
-                }
-            });
-        }
+        // 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
+        iplAssistService.batchDel(mainIds, InnovationConstant.DEPARTMENT_DARB_ID, attachmentCodes);
     }
 
     @Transactional(rollbackFor = Exception.class)
