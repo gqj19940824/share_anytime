@@ -2,25 +2,29 @@
 package com.unity.innovation.controller;
 
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
-import com.unity.common.ui.SearchCondition;
-import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.ui.excel.ExcelEntity;
 import com.unity.common.ui.excel.ExportEntity;
 import com.unity.common.util.DateUtils;
+import com.unity.common.util.JKDates;
 import com.unity.innovation.entity.IplPdMain;
 import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.service.IplPdMainServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 import java.util.List;
 
 
@@ -73,13 +77,11 @@ public class IplPdMainController extends BaseWebController {
      * @since 2019/09/29 16:04
      */
     @RequestMapping({"/export/excel"})
-    public void exportExcel(HttpServletResponse res, String cond) {
+    public void exportExcel(HttpServletRequest req, HttpServletResponse res) {
         String fileName = "发布会报名信息";
         ExportEntity<IplPdMain> excel = ExcelEntity.exportEntity(res);
         try {
-            SearchElementGrid search = new SearchElementGrid();
-            search.setCond(JSON.parseObject(cond, SearchCondition.class));
-            LambdaQueryWrapper<IplPdMain> ew = wrapper(search);
+            LambdaQueryWrapper<IplPdMain> ew = wrapper(req);
             List<IplPdMain> list = service.list(ew);
             excel
                     .addColumn(IplPdMain::getIndustryCategory, "行业类别")
@@ -133,26 +135,36 @@ public class IplPdMainController extends BaseWebController {
     /**
      * 查询条件转换
      *
-     * @param search 统一查询对象
+     * @param req 统一查询对象
      * @return 查询对象
      */
-    private LambdaQueryWrapper<IplPdMain> wrapper(SearchElementGrid search) {
-        LambdaQueryWrapper<IplPdMain> ew;
-        if (search != null) {
-            if (search.getCond() != null) {
-                search.getCond().findRule(IplPdMain::getGmtCreate).forEach(r -> {
-                    r.setData(DateUtils.parseDate(r.getData()).getTime());
-                });
-                search.getCond().findRule(IplPdMain::getGmtModified).forEach(r -> {
-                    r.setData(DateUtils.parseDate(r.getData()).getTime());
-                });
-            }
-            ew = search.toEntityLambdaWrapper(IplPdMain.class);
-        } else {
-            ew = new LambdaQueryWrapper<>();
+    private LambdaQueryWrapper<IplPdMain> wrapper(HttpServletRequest req) {
+        LambdaQueryWrapper<IplPdMain> ew = new LambdaQueryWrapper<>();
+        String industryCategory = req.getParameter("industryCategory");
+        String enterpriseName = req.getParameter("enterpriseName");
+        String createDate = req.getParameter("createDate");
+        String source = req.getParameter("source");
+        String notes = req.getParameter("notes");
+        if (StringUtils.isNotBlank(industryCategory)) {
+            ew.eq(IplPdMain::getIndustryCategory, Long.parseLong(industryCategory));
+        }
+        if (StringUtils.isNotBlank(enterpriseName)) {
+            ew.like(IplPdMain::getEnterpriseName, enterpriseName);
+        }
+        if (StringUtils.isNotBlank(createDate)) {
+            String[] dateArr = createDate.split("-");
+            int maxDay = JKDates.getMaxDay(Integer.parseInt(dateArr[0]), Integer.parseInt(dateArr[1]));
+            Date startDate = DateUtils.parseDate(createDate.concat("-01 00:00:00"));
+            Date endDate = DateUtils.parseDate(createDate.concat("-").concat(String.valueOf(maxDay)).concat(" 23:59:59"));
+            ew.between(IplPdMain::getGmtCreate, startDate.getTime(), endDate.getTime());
+        }
+        if (StringUtils.isNotBlank(source)) {
+            ew.eq(IplPdMain::getSource, Integer.parseInt(source));
+        }
+        if (StringUtils.isNotBlank(notes)) {
+            ew.like(IplPdMain::getNotes, notes);
         }
         ew.orderByAsc(IplPdMain::getSort);
-
         return ew;
     }
 

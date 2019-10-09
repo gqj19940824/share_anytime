@@ -265,6 +265,7 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
         return JsonUtil.<IplPdMain>ObjectToList(list,
                 (m, entity) -> {
                     adapterField(m, entity);
+                    m.put("source", SourceEnum.ENTERPRISE.getId().equals(entity.getSource()) ? "企业" : "宣传部");
                     m.put("attachmentCode", MapUtils.isEmpty(map) ? "" : map.get(entity.getAttachmentCode()));
                     m.put("industryCategory", industryCategoryMap.get(entity.getIndustryCategory()));
                 }
