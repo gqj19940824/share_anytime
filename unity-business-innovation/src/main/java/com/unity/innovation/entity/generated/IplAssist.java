@@ -1,15 +1,13 @@
 package com.unity.innovation.entity.generated;
 
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.*;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
 import com.baomidou.mybatisplus.annotation.TableField;
-
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
+import lombok.*;
+
+import java.util.List;
 
 /**
  * 创新发布清单-协同事项
@@ -81,8 +79,26 @@ public class IplAssist extends BaseEntity{
         @TableField("process_status")
         private Integer processStatus ;
 
+        /**
+         * 单位名称
+         */
+        @TableField(exist = false)
+        private String deptName;
 
 
+        /**
+         * 日志集合
+         */
+        @TableField(exist = false)
+        private List<IplLog> logList;
+
+
+        /**
+         * 处理进展
+         */
+        @CommentTarget("处理进展")
+        @TableField(exist = false)
+        private String dealMessage;
 }
 
 
