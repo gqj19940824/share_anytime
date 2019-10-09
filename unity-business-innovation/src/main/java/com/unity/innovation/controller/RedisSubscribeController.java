@@ -22,13 +22,13 @@ public class RedisSubscribeController {
     @GetMapping("/pushRedisSubscribeInfo")
     public void pushRedisSubscribeInfo(@RequestParam("hours")String hours, @RequestParam("id") Long id ){
 
-        String key = ListTypeConstants.LIST_CONTROL.concat(ListTypeConstants.CITY_CONTROL).concat(hours).concat(":").concat(id.toString());
+        String key = ListTypeConstants.LIST_CONTROL.concat(ListTypeConstants.IPL_DARB).concat(hours).concat(":").concat(id.toString());
         System.out.println(key);
         String mytest = RedisPoolUtil.setEx(key, key, 30);
 
         System.out.println(mytest);
 
-        redisSubscribeService.saveSubscribeInfo("12-0",ListTypeConstants.HOURS,ListTypeConstants.CITY_CONTROL);
+        redisSubscribeService.saveSubscribeInfo("12-0",ListTypeConstants.DEAL_OVER_TIME,ListTypeConstants.IPL_DARB);
     }
 
 
