@@ -30,6 +30,19 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     private IplLogServiceImpl iplLogService;
 
     /**
+     * 删除主表附带的日志、协同、附件
+     *
+     * @param  mainId 主表id，
+     *         businessType 业务类型，参见innovationConst.DEPARTMENT_DARB_ID
+     * @return
+     * @author qinhuan
+     * @since 2019-10-09 14:42
+     */
+    public void del(Long mainId, String businessType){
+
+    }
+
+    /**
      * 总体进展
      *
      * @param mainId :主表id，idRbacDepartmentDuty:主表主责单位id，processStatus:主表状态
