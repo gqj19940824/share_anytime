@@ -137,6 +137,13 @@ public class mIplEsbMain extends BaseEntity{
         @TableField("process_status")
         private Integer processStatus ;
 
+
+        /**
+         * 最新进展
+         **/
+        @TableField("latest_process")
+        private String latestProcess ;
+
 }
 
 
