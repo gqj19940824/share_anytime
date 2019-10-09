@@ -7,6 +7,7 @@ import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.unity.innovation.entity.generated.IplAssist;
@@ -30,7 +31,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     private IplLogServiceImpl iplLogService;
 
     /**
-     * 删除主表附带的日志、协同、附件
+     * 删除主表附带的日志、协同、附件，调用方法必须要有事物
      *
      * @param  mainId 主表id，
      *         businessType 业务类型，参见innovationConst.DEPARTMENT_DARB_ID
@@ -38,6 +39,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      * @author qinhuan
      * @since 2019-10-09 14:42
      */
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
     public void del(Long mainId, String businessType){
 
     }
