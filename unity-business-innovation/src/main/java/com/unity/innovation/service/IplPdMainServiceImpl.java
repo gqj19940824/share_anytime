@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
@@ -159,6 +160,7 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
             String uuid = UUIDUtil.getUUID();
             entity.setStatus(IplStatusEnum.UNDEAL.getId());
             entity.setAttachmentCode(uuid);
+            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_PD_ID);
             this.save(entity);
             //附件处理
             if(CollectionUtils.isNotEmpty(entity.getAttachmentList())){

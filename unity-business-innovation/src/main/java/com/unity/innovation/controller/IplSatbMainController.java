@@ -46,7 +46,6 @@ public class IplSatbMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplSatbMain> pageEntity) {
         PageElementGrid result = service.listByPage(pageEntity);
         return success(result);
-
     }
 
     /**
@@ -95,8 +94,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody IplSatbMain entity) {
-        Map<String,Object> map = service.detailById(entity.getId());
-        return success(map);
+        return success(service.detailById(entity.getId()));
     }
 }
 

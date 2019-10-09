@@ -2,39 +2,36 @@
 package com.unity.innovation.controller;
 
 
-
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.SystemClient;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
-import org.apache.commons.lang3.StringUtils;
-import com.alibaba.fastjson.JSON;
-import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.ui.PageElementGrid;
+import com.unity.common.ui.SearchCondition;
+import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.ui.excel.ExcelEntity;
 import com.unity.common.ui.excel.ExportEntity;
-import com.unity.common.ui.PageElementGrid;
-import com.unity.common.ui.SearchElementGrid;
-import com.unity.common.ui.SearchCondition;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
-
+import com.unity.innovation.entity.generated.IplmManageLog;
+import com.unity.innovation.service.IplmManageLogServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.unity.common.constants.ConstString;
 
-import java.util.Map;
-import java.util.List;
 import javax.servlet.http.HttpServletResponse;
-
-import com.unity.innovation.service.IplmManageLogServiceImpl;
-import com.unity.innovation.entity.IplmManageLog;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -99,7 +96,7 @@ public class IplmManageLogController extends BaseWebController {
      
             excel
                 .addColumn(IplmManageLog::getId,"编号")
-                .addColumn(IplmManageLog::getIdIplManageMain2,"编号_创新发布清单-发布管理主表")
+                .addColumn(IplmManageLog::getIdIplManageMain,"编号_创新发布清单-发布管理主表")
                 .addColumn(IplmManageLog::getNotes,"备注")
                 .addColumn(IplmManageLog::getEditor,"修改人")
                 .addColumn(IplmManageLog::getIdRbacDepartment,"单位")
@@ -174,7 +171,7 @@ public class IplmManageLogController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m, entity);
                 }
-                ,IplmManageLog::getId,IplmManageLog::getIdIplManageMain2,IplmManageLog::getSort,IplmManageLog::getNotes,IplmManageLog::getIdRbacDepartment,IplmManageLog::getStatus,IplmManageLog::getContent,IplmManageLog::getIdIplManageMain
+                ,IplmManageLog::getId,IplmManageLog::getIdIplManageMain,IplmManageLog::getSort,IplmManageLog::getNotes,IplmManageLog::getIdRbacDepartment,IplmManageLog::getStatus,IplmManageLog::getContent,IplmManageLog::getIdIplManageMain
         );
     }
     
@@ -188,7 +185,7 @@ public class IplmManageLogController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m,entity);
                 }
-                ,IplmManageLog::getId,IplmManageLog::getIdIplManageMain2,IplmManageLog::getIsDeleted,IplmManageLog::getSort,IplmManageLog::getNotes,IplmManageLog::getIdRbacDepartment,IplmManageLog::getStatus,IplmManageLog::getContent,IplmManageLog::getIdIplManageMain
+                ,IplmManageLog::getId,IplmManageLog::getIdIplManageMain,IplmManageLog::getIsDeleted,IplmManageLog::getSort,IplmManageLog::getNotes,IplmManageLog::getIdRbacDepartment,IplmManageLog::getStatus,IplmManageLog::getContent,IplmManageLog::getIdIplManageMain
         );
     }
     

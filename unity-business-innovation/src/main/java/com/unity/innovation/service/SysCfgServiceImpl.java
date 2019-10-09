@@ -126,8 +126,9 @@ public class SysCfgServiceImpl extends BaseServiceImpl<SysCfgDao, SysCfg> {
         List<SysCfg> cfgList = this.list(new LambdaQueryWrapper<SysCfg>()
                 .eq(SysCfg::getCfgType, cfgType)
                 .eq(SysCfg::getUseStatus, YesOrNoEnum.YES.getType()));
-        return cfgList.stream()
-                .collect(groupingBy(SysCfg::getId, mapping(SysCfg::getCfgVal, joining())));
+        return cfgList.stream().collect(toMap(SysCfg::getId, SysCfg::getCfgVal));
+        /*return cfgList.stream()
+                .collect(groupingBy(SysCfg::getId, mapping(SysCfg::getCfgVal, joining())));*/
     }
 
 }
