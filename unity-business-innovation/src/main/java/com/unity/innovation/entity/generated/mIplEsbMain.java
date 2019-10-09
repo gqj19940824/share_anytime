@@ -1,16 +1,12 @@
 package com.unity.innovation.entity.generated;
 
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.unity.common.base.BaseEntity;
+import com.unity.common.base.CommentTarget;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
-import com.baomidou.mybatisplus.annotation.TableField;
-
-import com.unity.common.base.BaseEntity;
-import com.unity.common.base.CommentTarget;
 
 /**
  * EnterpriseServiceBreau->esb;\r\nInnovationPublishList->ip
@@ -24,12 +20,7 @@ public class mIplEsbMain extends BaseEntity{
 
 
         
-        /**
-        * 编号_创新发布清单-创新发展清单管理表一对多创新发展清单表
-        **/
-        @CommentTarget("编号_创新发布清单-创新发展清单管理表一对多创新发展清单表")
-        @TableField("id_iplm_main_m_ipl_main")
-        private Long idIplmMainIplMain ;
+
         
         
         
@@ -38,7 +29,7 @@ public class mIplEsbMain extends BaseEntity{
         **/
         @CommentTarget("行业类别")
         @TableField("industry_category")
-        private Integer industryCategory ;
+        private Long industryCategory ;
         
         
         
@@ -136,10 +127,15 @@ public class mIplEsbMain extends BaseEntity{
         * 单位id
         **/
         @CommentTarget("单位id")
-        @TableField("id_rbac_department")
-        private Long idRbacDepartment ;
-        
-        
+        @TableField("id_rbac_department_duty")
+        private Long idRbacDepartmentDuty ;
+
+        /**
+         * 备注状态
+         **/
+        @CommentTarget("备注状态")
+        @TableField("process_status")
+        private Integer processStatus ;
 
 }
 
