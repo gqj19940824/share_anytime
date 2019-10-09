@@ -2,6 +2,7 @@ package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,17 +31,43 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     @Autowired
     private IplLogServiceImpl iplLogService;
 
+    @Autowired
+    private IplAssistServiceImpl iplAssistService;
+
+    @Autowired
+    private AttachmentServiceImpl attachmentService;
+
+    @Autowired
+    private RedisSubscribeServiceImpl redisSubscribeService;
+
     /**
      * 删除主表附带的日志、协同、附件，调用方法必须要有事物
      *
      * @param  mainId 主表id，
-     *         businessType 业务类型，参见innovationConst.DEPARTMENT_DARB_ID
+     * @param  idRbacDepartmentDuty 主责单位id
      * @return
      * @author qinhuan
      * @since 2019-10-09 14:42
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
-    public void del(Long mainId, String businessType){
+    public void del(Long mainId, Long idRbacDepartmentDuty, String attachmentCode){
+
+        // 删除日志
+        LambdaQueryWrapper<IplLog> logQW = new LambdaQueryWrapper();
+        logQW.eq(IplLog::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplLog::getIdIplMain, mainId);
+        iplLogService.remove(logQW);
+
+        // 删除协同
+        LambdaQueryWrapper<IplAssist> assistQW = new LambdaQueryWrapper();
+        assistQW.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId);
+        iplAssistService.remove(assistQW);
+
+        // 删除附件
+        LambdaQueryWrapper<Attachment> attachmentQW = new LambdaQueryWrapper<>();
+        attachmentQW.eq(Attachment::getAttachmentCode, attachmentCode);
+        attachmentService.remove(attachmentQW);
+
+        // 删除redis定时任务 TODO
 
     }
 
@@ -54,7 +81,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      * @since 2019-10-09 14:42
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
-    public void batchDel(List<Long> mainIds, String businessType){
+    public void batchDel(List<Long> mainIds, String businessType, List<String> attachmentCodes){
 
     }
 
