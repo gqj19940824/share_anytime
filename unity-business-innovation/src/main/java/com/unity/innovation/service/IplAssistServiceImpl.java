@@ -53,19 +53,19 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     public void del(Long mainId, Long idRbacDepartmentDuty, String attachmentCode){
 
         // 删除日志
-        LambdaQueryWrapper<IplLog> logQW = new LambdaQueryWrapper();
-        logQW.eq(IplLog::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplLog::getIdIplMain, mainId);
-        iplLogService.remove(logQW);
+        LambdaQueryWrapper<IplLog> logQw = new LambdaQueryWrapper<>();
+        logQw.eq(IplLog::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplLog::getIdIplMain, mainId);
+        iplLogService.remove(logQw);
 
         // 删除协同
-        LambdaQueryWrapper<IplAssist> assistQW = new LambdaQueryWrapper();
-        assistQW.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId);
-        iplAssistService.remove(assistQW);
+        LambdaQueryWrapper<IplAssist> assistQw = new LambdaQueryWrapper<>();
+        assistQw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId);
+        iplAssistService.remove(assistQw);
 
         // 删除附件
-        LambdaQueryWrapper<Attachment> attachmentQW = new LambdaQueryWrapper<>();
-        attachmentQW.eq(Attachment::getAttachmentCode, attachmentCode);
-        attachmentService.remove(attachmentQW);
+        LambdaQueryWrapper<Attachment> attachmentQw = new LambdaQueryWrapper<>();
+        attachmentQw.eq(Attachment::getAttachmentCode, attachmentCode);
+        attachmentService.remove(attachmentQw);
 
         // 删除redis定时任务 TODO
 
@@ -75,14 +75,30 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      * 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
      *
      * @param  mainIds 主表id，
-     *         businessType 业务类型，参见innovationConst.DEPARTMENT_DARB_ID
+     * @param  idRbacDepartmentDuty 主责单位id
      * @return
      * @author qinhuan
      * @since 2019-10-09 14:42
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
-    public void batchDel(List<Long> mainIds, String businessType, List<String> attachmentCodes){
+    public void batchDel(List<Long> mainIds, Long idRbacDepartmentDuty, List<String> attachmentCodes){
 
+        // 删除日志
+        LambdaQueryWrapper<IplLog> logQw = new LambdaQueryWrapper<>();
+        logQw.eq(IplLog::getIdRbacDepartmentDuty, idRbacDepartmentDuty).in(IplLog::getIdIplMain, mainIds);
+        iplLogService.remove(logQw);
+
+        // 删除协同
+        LambdaQueryWrapper<IplAssist> assistQw = new LambdaQueryWrapper<>();
+        assistQw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).in(IplAssist::getIdIplMain, mainIds);
+        iplAssistService.remove(assistQw);
+
+        // 删除附件
+        LambdaQueryWrapper<Attachment> attachmentQw = new LambdaQueryWrapper<>();
+        attachmentQw.in(Attachment::getAttachmentCode, attachmentCodes);
+        attachmentService.remove(attachmentQw);
+
+        // 删除redis定时任务 TODO
     }
 
     /**
