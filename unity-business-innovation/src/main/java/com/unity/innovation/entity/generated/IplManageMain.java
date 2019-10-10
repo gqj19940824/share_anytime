@@ -115,7 +115,7 @@ public class IplManageMain extends BaseEntity{
          * 页面查询用提交时间
          **/
         @TableField(exist = false)
-        private String createTime;
+        private String submitTime;
 
         /**
          * 状态名称
@@ -123,6 +123,17 @@ public class IplManageMain extends BaseEntity{
         @TableField(exist = false)
         private String statusName;
 
+        /**
+         * 处理记录
+         * */
+        @TableField(exist = false)
+        private List<IplmManageLog> logList;
+
+        /**
+         * 处理节点
+         * */
+        @TableField(exist = false)
+        private List<IplmManageLog> processNodeList;
 
         /**
          * 企服局基础数据集合
