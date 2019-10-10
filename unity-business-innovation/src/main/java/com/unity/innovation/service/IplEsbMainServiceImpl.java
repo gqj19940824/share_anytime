@@ -1,6 +1,7 @@
 
 package com.unity.innovation.service;
 
+import com.alibaba.druid.support.json.JSONUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -17,16 +18,15 @@ import com.unity.common.ui.PageEntity;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.HashRedisUtils;
 import com.unity.common.utils.UUIDUtil;
+import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.IplEsbMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
-import com.unity.innovation.enums.IplStatusEnum;
-import com.unity.innovation.enums.ProcessStatusEnum;
-import com.unity.innovation.enums.SourceEnum;
-import com.unity.innovation.enums.SysCfgEnum;
+import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +66,8 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
     @Resource
     private HashRedisUtils hashRedisUtils;
 
+    @Resource
+    private IplManageMainServiceImpl iplManageMainService;
     /**
      * 功能描述 分页接口
      * @param search 查询条件
@@ -176,6 +178,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                         InnovationConstant.DEPARTMENT_ESB_ID,
                         0L,
                         "更新基本信息");
+                entity.setLatestProcess("更新基本信息");
             }
             updateById(entity);
         }
@@ -293,6 +296,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         //保存 主责日志
         iplLogService.saveLog(entity.getId(), IplStatusEnum.DEALING.getId(),
                 vo.getIdRbacDepartmentDuty(), 0L, sb.toString());
+        vo.setLatestProcess(sb.toString());
         //更新主表状态
         if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
             vo.setStatus(IplStatusEnum.DEALING.getId());
@@ -354,11 +358,12 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                     "主责单位开启协同邀请");
             //保存 主责日志
             iplLogService.saveLog(vo.getId(),IplStatusEnum.DEALING.getId(),vo.getIdRbacDepartmentDuty(), 0L,
-                    "主责单位开启协同邀请");
+                    "开启"+assistDeptName+"协同邀请");
             //更新主表状态
             if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
                 vo.setStatus(IplStatusEnum.DEALING.getId());
             }
+            vo.setLatestProcess("开启"+assistDeptName+"协同邀请");
             vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             updateById(vo);
             //更新协同单位状态
@@ -378,6 +383,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             //主表状态
             vo.setStatus(IplStatusEnum.DONE.getId());
             vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+            vo.setLatestProcess("关闭"+assistDeptName+"协同邀请");
             updateById(vo);
             //日志表状态
             entity.setDealStatus(IplStatusEnum.DONE.getId());
@@ -417,6 +423,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                     vo.setStatus(IplStatusEnum.DEALING.getId());
                 }
                 vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+                vo.setLatestProcess(entity.getDealMessage());
                 updateById(vo);
             } else if (IplStatusEnum.DONE.getId().equals(entity.getDealStatus())) {
                 //处理 未完成的协同单位数据
@@ -462,6 +469,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                 //保存 主责日志
                 iplLogService.saveLog(entity.getIdIplMain(), IplStatusEnum.DONE.getId(),
                         vo.getIdRbacDepartmentDuty(), 0L, entity.getDealMessage());
+                vo.setLatestProcess(entity.getDealMessage());
                 //更新主表状态
                 vo.setStatus(IplStatusEnum.DONE.getId());
                 vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
@@ -471,5 +479,93 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         //协同处理单位id不为 0 else {}
 
     }
+
+    /**
+     * 功能描述 分页接口
+     * @param search 查询条件
+     * @return  分页集合
+     * @author gengzhiqiang
+     * @date 2019/10/9 16:47
+     */
+    public IPage<IplManageMain> listForEsb(PageEntity<IplManageMain> search) {
+        LambdaQueryWrapper<IplManageMain> lqw = new LambdaQueryWrapper<>();
+        if (search != null) {
+            //提交时间
+            if (StringUtils.isNotBlank(search.getEntity().getCreateTime())) {
+                //gt 大于 lt 小于
+                long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), true);
+                lqw.gt(IplManageMain::getGmtSubmit, begin);
+                //gt 大于 lt 小于
+                long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), false);
+                lqw.lt(IplManageMain::getGmtSubmit, end);
+            }
+            //状态
+            if (search.getEntity().getStatus() != null) {
+                lqw.eq(IplManageMain::getStatus, search.getEntity().getStatus());
+            }
+        }
+        //企服局
+        lqw.eq(IplManageMain::getIdRbacDepartmentDuty, InnovationConstant.DEPARTMENT_ESB_ID);
+        //排序
+        lqw.orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified);
+        IPage<IplManageMain> list = iplManageMainService.page(search.getPageable(), lqw);
+        if (CollectionUtils.isNotEmpty(list.getRecords())) {
+            list.getRecords().forEach(p -> {
+                if (p.getStatus() != null) {
+                    if (WorkStatusAuditingStatusEnum.exist(p.getStatus())) {
+                        p.setStatusName(WorkStatusAuditingStatusEnum.of(p.getStatus()).getName());
+                    }
+                }
+            });
+        }
+        return list;
+    }
+
+    /**
+     * 功能描述 新增编辑
+     * @param entity 对象
+     * @author gengzhiqiang
+     * @date 2019/10/9 16:48
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void saveOrUpdateForPkg(IplManageMain entity) {
+        if (entity.getId() == null) {
+            //新增
+            entity.setAttachmentCode(UUIDUtil.getUUID().replace("-", ""));
+            //附件
+            attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachments());
+            //待提交
+            entity.setStatus(WorkStatusAuditingStatusEnum.TEN.getId());
+            //提交时间设置最大
+            entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
+            //快照数据
+            entity.setSnapshot(JSONUtils.toJSONString(entity.getIplEsbMainList()));
+            //企服局
+            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_ESB_ID);
+            //保存
+            iplManageMainService.save(entity);
+        } else {
+            //编辑
+            IplManageMain vo = iplManageMainService.getById(entity.getId());
+            if (vo == null) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                        .message("未获取到对象").build();
+            }
+            if (!(WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getStatus()) ||
+                    WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getStatus()))) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("只有待提交和已驳回状态下数据可编辑").build();
+            }
+            //快照数据
+            entity.setSnapshot(JSONUtils.toJSONString(entity.getIplEsbMainList()));
+            //附件
+            attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
+            //修改信息
+            iplManageMainService.updateById(entity);
+        }
+    }
+
 
 }

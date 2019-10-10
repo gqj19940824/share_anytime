@@ -12,6 +12,7 @@ import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.generated.IplAssist;
+import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.service.IplAssistServiceImpl;
 import com.unity.innovation.service.IplEsbMainServiceImpl;
@@ -77,7 +78,7 @@ public class IplEsbMainController extends BaseWebController {
                 }, IplEsbMain::getId, IplEsbMain::getIndustryCategory, IplEsbMain::getIndustryCategoryName, IplEsbMain::getEnterpriseName
                 , IplEsbMain::getSummary, IplEsbMain::getContactPerson, IplEsbMain::getContactWay, IplEsbMain::getGmtCreate
                 , IplEsbMain::getGmtModified, IplEsbMain::getSource, IplEsbMain::getSourceName, IplEsbMain::getStatus
-                , IplEsbMain::getStatusName, IplEsbMain::getProcessStatus, IplEsbMain::getProcessStatusName);
+                , IplEsbMain::getStatusName, IplEsbMain::getProcessStatus, IplEsbMain::getProcessStatusName, IplEsbMain::getLatestProcess);
     }
 
     /**
@@ -256,6 +257,70 @@ public class IplEsbMainController extends BaseWebController {
         service.updateStatus(entity);
         return success("操作成功");
     }
+
+
+    /**
+     * 功能描述 分页列表查询
+     * @param search 查询条件
+     * @return 分页数据
+     * @author gengzhiqiang
+     * @date 2019/9/17 13:36
+     */
+    @PostMapping("/listForPkg")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listForPkg(@RequestBody PageEntity<IplManageMain> search) {
+        IPage<IplManageMain> list = service.listForEsb(search);
+        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
+                .total(list.getTotal())
+                .items(convert2ListForPkg(list.getRecords())).build();
+        return success(result);
+    }
+
+    /**
+     * 功能描述 数据整理
+     * @param list 集合
+     * @return java.util.List 规范数据
+     * @author gengzhiqiang
+     * @date 2019/9/17 13:36
+     */
+    private List<Map<String, Object>> convert2ListForPkg(List<IplManageMain> list) {
+        return JsonUtil.<IplManageMain>ObjectToList(list,
+                (m, entity) -> {
+                }, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus,IplManageMain::getStatusName);
+    }
+
+
+    /**
+     * 功能描述 包的新增编辑
+     *
+     * @param entity 保存计划
+     * @return 成功返回成功信息
+     * @author gengzhiqiang
+     * @date 2019/7/26 16:12
+     */
+    @PostMapping("/saveOrUpdateForPkg")
+    public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdateForPkg(@RequestBody IplManageMain entity) {
+        Mono<ResponseEntity<SystemResponse<Object>>> obj = verifyParamForPkg(entity);
+        if (obj != null) {
+            return obj;
+        }
+        service.saveOrUpdateForPkg(entity);
+        return success("操作成功");
+    }
+
+    private Mono<ResponseEntity<SystemResponse<Object>>> verifyParamForPkg(IplManageMain entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getTitle, IplManageMain::getIplEsbMainList);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        if (entity.getTitle().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "标题字数限制50字");
+        }
+        if (StringUtils.isNotBlank(entity.getNotes()) && entity.getNotes().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注字数限制500字");
+        }
+        return null;
+    }
+
 
 }
 
