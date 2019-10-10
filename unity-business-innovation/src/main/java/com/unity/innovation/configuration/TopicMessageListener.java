@@ -29,7 +29,8 @@ public class TopicMessageListener implements MessageListener {
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        byte[] body = message.getBody();// 请使用valueSerializer
+        // 请使用valueSerializer
+        byte[] body = message.getBody();
         String itemValue = new String(body);
         // 请参考配置文件，本例中key，value的序列化方式均为string。
         log.info("itemValue:"+itemValue);
