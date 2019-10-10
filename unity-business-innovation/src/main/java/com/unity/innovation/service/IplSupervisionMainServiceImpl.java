@@ -4,8 +4,10 @@ package com.unity.innovation.service;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
@@ -14,6 +16,7 @@ import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.entity.generated.IplmManageLog;
 import com.unity.innovation.enums.IplCategoryEnum;
+import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +30,8 @@ import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparing;
 
 
 /**
@@ -70,7 +75,7 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
             }
             attachmentCode = UUIDUtil.getUUID();
             entity.setAttachmentCode(attachmentCode);
-            entity.setIdRbacDepartmentDuty(8L);
+            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_JJ_ID);
             //保存主表
             iplManageMainService.save(entity);
         } else {
@@ -89,7 +94,7 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
         attachmentService.updateAttachments(attachmentCode, entity.getAttachments());
         //提交、记录日志
         if (YesOrNoEnum.YES.getType() == entity.getIsCommit()) {
-            logService.saveLog(8L, WorkStatusAuditingStatusEnum.TWENTY.getId(), "", entity.getId());
+            logService.saveLog(InnovationConstant.DEPARTMENT_JJ_ID, WorkStatusAuditingStatusEnum.TWENTY.getId(), "", entity.getId());
         }
     }
 
@@ -104,10 +109,10 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
     private void setSnapShot(IplManageMain entity) {
         //保存快照数据
         List<IplSupervisionMain> snapShotList = entity.getSupervisionMainList();
-        snapShotList.stream()
-                .sorted(Comparator.comparing(IplSupervisionMain::getCategory))
-                .sorted(Comparator.comparing(IplSupervisionMain::getGmtCreate).reversed())
-                .forEach(n -> n.setCategoryName(IplCategoryEnum.ofName(n.getCategory())));
+        snapShotList.sort(comparing(IplSupervisionMain::getCategory)
+                    .reversed()
+                    .thenComparing(IplSupervisionMain::getGmtCreate)
+                    .reversed());
         String snapshot = JSON.toJSONString(snapShotList);
         entity.setSnapshot(snapshot);
     }
@@ -150,7 +155,7 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
             }
             iplManageMainService.updateById(old);
             //记录日志
-            logService.saveLog(8L, old.getStatus(), content, idIplManageMain);
+            logService.saveLog(InnovationConstant.DEPARTMENT_JJ_ID, old.getStatus(), content, idIplManageMain);
         } else {
             return "此状态不能不能审核";
         }
@@ -172,11 +177,16 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("数据不存在").build();
         }
+        iplManageMain.setSupervisionMainList(JSON.parseArray(iplManageMain.getSnapshot(),IplSupervisionMain.class));
         //操作记录
         List<IplmManageLog> logList = logService.list(new LambdaQueryWrapper<IplmManageLog>()
-                .eq(IplmManageLog::getIdRbacDepartment, 8L)
+                .eq(IplmManageLog::getIdRbacDepartment, InnovationConstant.DEPARTMENT_JJ_ID)
                 .eq(IplmManageLog::getIdIplManageMain, id)
                 .orderByDesc(IplmManageLog::getGmtCreate));
+        logList.forEach(n ->{
+            n.setStatusName(WorkStatusAuditingProcessEnum.of(n.getStatus()).getName());
+            n.setDepartmentName(InnovationUtil.getDeptNameById(n.getIdRbacDepartment()));
+        });
         iplManageMain.setLogList(logList);
         //按状态进行分组,同时只取时间最小的那一条数据
          Map<Integer,IplmManageLog> map = logList.stream()
@@ -240,5 +250,23 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
         res.put("snapshot",snapshot);
         return res;
     }
+    /**
+    * 清亲政商关系清单发布管理-纪检组 删除接口
+    *
+    * @param id 主键
+    * @author JH
+    * @date 2019/10/10 14:12
+    */
+    @Transactional(rollbackFor = Exception.class)
+    public void removeIplManageMainById(Long id) {
+        IplManageMain iplManageMain = iplManageMainService.getById(id);
+        String attachmentCode = iplManageMain.getAttachmentCode();
+        //删除附件
+        attachmentService.updateAttachments(attachmentCode,null);
+        //删除日志
+        logService.remove(new LambdaUpdateWrapper<IplmManageLog>().eq(IplmManageLog::getIdIplManageMain,id).eq(IplmManageLog::getIdRbacDepartment,InnovationConstant.DEPARTMENT_JJ_ID));
+        iplManageMainService.removeById(id);
+    }
+
 
 }

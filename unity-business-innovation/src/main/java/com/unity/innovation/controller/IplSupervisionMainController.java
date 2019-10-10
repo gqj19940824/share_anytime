@@ -5,6 +5,9 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.unity.common.constant.InnovationConstant;
+import com.unity.common.enums.YesOrNoEnum;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.ui.PageEntity;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.IplCategoryEnum;
@@ -172,6 +175,29 @@ public class IplSupervisionMainController extends BaseWebController {
     */
     private void validateIplManageMain(IplManageMain entity) {
 
+        if(StringUtils.isBlank(entity.getTitle())) {
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "标题不能为空");
+        }
+        if(CollectionUtils.isEmpty(entity.getSupervisionMainList())) {
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "内容不能为空");
+        }
+        //新增
+        if(entity.getId() == null) {
+            if(CollectionUtils.isEmpty(entity.getAttachments()) && YesOrNoEnum.YES.getType() == entity.getIsCommit()) {
+                throw new UnityRuntimeException(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "只有上传附件才可以提交");
+            }
+        //编辑
+        }else {
+            IplManageMain old = iplManageMainService.getById(entity.getId());
+            if(old == null) {
+                throw new UnityRuntimeException(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "数据不存在");
+            }else {
+                //只有待提交、已驳回可以提交
+                if(YesOrNoEnum.YES.getType() == entity.getIsCommit() && !WorkStatusAuditingStatusEnum.FORTY.getId().equals(old.getStatus()) && !WorkStatusAuditingStatusEnum.TEN.getId().equals(old.getStatus())) {
+                    throw new UnityRuntimeException(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "只有待提交、已驳回可以提交");
+                }
+            }
+        }
     }
 
 
@@ -216,7 +242,7 @@ public class IplSupervisionMainController extends BaseWebController {
     private LambdaQueryWrapper<IplManageMain> wrapperIplManageMain(IplManageMain entity){
         LambdaQueryWrapper<IplManageMain> ew = new LambdaQueryWrapper<>();
         //只查询纪检组
-        ew.eq(IplManageMain::getIdRbacDepartmentDuty,8L);
+        ew.eq(IplManageMain::getIdRbacDepartmentDuty, InnovationConstant.DEPARTMENT_JJ_ID);
         if(entity.getStatus() != null) {
             ew.eq(IplManageMain::getStatus,entity.getStatus());
         }
@@ -278,7 +304,7 @@ public class IplSupervisionMainController extends BaseWebController {
         if(entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR,"缺少id");
         }
-        iplManageMainService.removeById(entity.getId());
+        service.removeIplManageMainById(entity.getId());
         return success();
     }
 
