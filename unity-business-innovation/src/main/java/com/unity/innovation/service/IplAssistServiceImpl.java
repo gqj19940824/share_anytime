@@ -2,6 +2,7 @@ package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.util.InnovationUtil;
@@ -39,6 +40,30 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
     @Autowired
     private RedisSubscribeServiceImpl redisSubscribeService;
+
+    /**
+     * 新增协同单位
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019-10-09 19:27
+     */
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
+    public void addAssist(IplLog iplLog, List<IplAssist> assistList){
+        // 新增协同单位
+        iplAssistService.saveBatch(assistList);
+        // 保存处理日志
+        iplLogService.save(iplLog);
+
+        // 主表重设超时
+        redisSubscribeService.saveSubscribeInfo(iplLog.getIdIplMain() + "-0", ListTypeConstants.UPDATE_OVER_TIME, iplLog.getIdRbacDepartmentDuty());
+
+        // 设置协同单位超时
+        assistList.forEach(e->{
+            redisSubscribeService.saveSubscribeInfo(e.getId() + "-" + e.getIdRbacDepartmentAssist(), ListTypeConstants.DEAL_OVER_TIME, e.getIdRbacDepartmentDuty());
+        });
+    }
 
     /**
      * 删除主表附带的日志、协同、附件，调用方法必须要有事物
@@ -81,7 +106,11 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         attachmentQw.in(Attachment::getAttachmentCode, attachmentCodes);
         attachmentService.remove(attachmentQw);
 
-        // 删除redis定时任务 TODO
+        // 删除redis定时任务
+        mainIds.forEach(e->{
+            redisSubscribeService.removeRecordInfo(e + "-0", idRbacDepartmentDuty);
+        });
+
     }
 
     /**
