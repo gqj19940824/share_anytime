@@ -15,13 +15,11 @@ public class ReflectionUtils {
      * @param parameterTypes : 父类中的方法参数类型
      * @return 父类中的方法对象
      */
-
     public static Method getDeclaredMethod(Object object, String methodName, Class<?> ... parameterTypes){
-        Method method = null ;
 
         for(Class<?> clazz = object.getClass() ; clazz != Object.class ; clazz = clazz.getSuperclass()) {
             try {
-                method = clazz.getDeclaredMethod(methodName, parameterTypes) ;
+                Method method = clazz.getDeclaredMethod(methodName, parameterTypes) ;
                 if (method != null){
                     return method;
                 }
