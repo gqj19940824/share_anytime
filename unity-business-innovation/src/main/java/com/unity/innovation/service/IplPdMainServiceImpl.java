@@ -312,11 +312,6 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
      * @since 2019/10/08 10:49
      */
     public List<Map<String,Object>> getIndustryCategoryList() {
-        List<SysCfg> cfgList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
-                .eq(SysCfg::getCfgType, SysCfgEnum.THREE.getId())
-                .eq(SysCfg::getUseStatus, YesOrNoEnum.YES.getType()));
-        return JsonUtil.ObjectToList(cfgList,
-                null
-                ,SysCfg::getId,SysCfg::getCfgVal);
+        return sysCfgService.getSysList1(SysCfgEnum.THREE.getId());
     }
 }

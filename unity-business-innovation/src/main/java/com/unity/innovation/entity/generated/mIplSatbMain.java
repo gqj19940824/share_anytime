@@ -144,6 +144,13 @@ public class mIplSatbMain extends BaseEntity {
     @CommentTarget("主责单位id")
     @TableField("id_rbac_department_duty")
     private Long idRbacDepartmentDuty;
+
+    /**
+     * 状态
+     **/
+    @CommentTarget("状态")
+    @TableField("process_status")
+    private Integer processStatus;
 }
 
 

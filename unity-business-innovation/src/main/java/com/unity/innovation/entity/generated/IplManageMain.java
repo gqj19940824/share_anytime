@@ -4,6 +4,7 @@ package com.unity.innovation.entity.generated;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplEsbMain;
+import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.IplSupervisionMain;
 import lombok.*;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -141,6 +142,13 @@ public class IplManageMain extends BaseEntity{
         @CommentTarget("企业创新发展数据集合")
         @TableField(exist = false)
         private List<IplEsbMain> iplEsbMainList;
+
+        /**
+         * 科技局基础数据集合
+         **/
+        @CommentTarget("科技局数据集合")
+        @TableField(exist = false)
+        private List<IplSatbMain> iplSatbMainList;
 
 }
 

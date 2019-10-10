@@ -2,6 +2,8 @@ package com.unity.innovation.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.unity.common.base.CommentTarget;
+import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.mIplSatbMain;
 import lombok.*;
 
@@ -27,5 +29,12 @@ public class IplSatbMain extends mIplSatbMain {
      */
     @TableField(exist = false)
     private List<Attachment> attachmentList;
+
+    /**
+     * 协同事项集合
+     */
+    @CommentTarget("协同事项集合")
+    @TableField(exist = false)
+    private  List<IplAssist> assistList;
 }
 
