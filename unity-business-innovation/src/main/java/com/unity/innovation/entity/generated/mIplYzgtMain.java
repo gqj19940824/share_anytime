@@ -30,7 +30,7 @@ public class mIplYzgtMain extends BaseEntity{
         **/
         @CommentTarget("行业类别")
         @TableField("industry_category")
-        private Integer industryCategory ;
+        private Long industryCategory ;
         
         
         
@@ -103,17 +103,6 @@ public class mIplYzgtMain extends BaseEntity{
         @CommentTarget("来源")
         @TableField("source")
         private Integer source ;
-        
-        
-        
-        /**
-        * 状态
-        **/
-        /*@CommentTarget("状态")
-        @TableField("status")
-        private Integer status ;*/
-        
-        
         
         /**
         * 职务

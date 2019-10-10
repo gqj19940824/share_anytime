@@ -52,7 +52,7 @@ public class AttachmentServiceImpl extends BaseServiceImpl<AttachmentDao, Attach
      * @author gengzhiqiang
      * @date 2019/7/5 16:24
      */
-    @Transactional(rollbackFor = Exception.class)
+    //@Transactional(rollbackFor = Exception.class)
     public String updateAttachments(String attachmentCode, List<Attachment> attachments) {
         if (attachments == null){ attachments = Lists.newArrayList();}
         List<Attachment> attachmentList = this.list(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode, attachmentCode));
