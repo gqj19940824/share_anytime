@@ -203,15 +203,15 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      */
     @Transactional(rollbackFor = Exception.class)
     public IplManageMain setLogs(IplManageMain iplManageMain) {
-         iplManageMain = getById(iplManageMain.getId());
+        IplManageMain vo = getById(iplManageMain.getId());
         if (iplManageMain == null) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("数据不存在").build();
         }
         //操作记录
         List<IplmManageLog> logList = logService.list(new LambdaQueryWrapper<IplmManageLog>()
-                .eq(IplmManageLog::getIdRbacDepartment, iplManageMain.getIdRbacDepartmentDuty())
-                .eq(IplmManageLog::getIdIplManageMain, iplManageMain.getId())
+                .eq(IplmManageLog::getIdRbacDepartment, vo.getIdRbacDepartmentDuty())
+                .eq(IplmManageLog::getIdIplManageMain, vo.getId())
                 .orderByDesc(IplmManageLog::getGmtCreate));
         iplManageMain.setLogList(logList);
         //按状态进行分组,同时只取时间最小的那一条数据
