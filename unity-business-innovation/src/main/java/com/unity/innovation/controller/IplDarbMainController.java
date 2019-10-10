@@ -130,7 +130,7 @@ public class IplDarbMainController extends BaseWebController {
         }
 
         // 新增协同单位并记录日志
-        service.addAssistant(assists, entity);
+        iplAssistService.addAssistant(assists, entity);
         
         return success(InnovationConstant.SUCCESS);
     }
