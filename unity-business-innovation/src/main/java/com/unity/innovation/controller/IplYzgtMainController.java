@@ -16,6 +16,7 @@ import com.unity.common.util.DateUtils;
 import com.unity.common.util.JKDates;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
+import com.unity.common.utils.DateUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplYzgtMain;
@@ -249,7 +250,7 @@ public class IplYzgtMainController extends BaseWebController {
      */
     @RequestMapping({"/export/excel"})
     public void exportExcel(HttpServletRequest req, HttpServletResponse res) {
-        String fileName = "投资机构信息";
+        String fileName = "投资机构信息"+ DateUtil.getStringDate();
         ExportEntity<IplYzgtMain> excel = ExcelEntity.exportEntity(res);
         try {
             LambdaQueryWrapper<IplYzgtMain> ew = wrapper(req);
