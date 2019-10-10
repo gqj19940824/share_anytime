@@ -78,7 +78,7 @@ public class IplEsbMainController extends BaseWebController {
                 }, IplEsbMain::getId, IplEsbMain::getIndustryCategory, IplEsbMain::getIndustryCategoryName, IplEsbMain::getEnterpriseName
                 , IplEsbMain::getSummary, IplEsbMain::getContactPerson, IplEsbMain::getContactWay, IplEsbMain::getGmtCreate
                 , IplEsbMain::getGmtModified, IplEsbMain::getSource, IplEsbMain::getSourceName, IplEsbMain::getStatus
-                , IplEsbMain::getStatusName, IplEsbMain::getProcessStatus, IplEsbMain::getProcessStatusName, IplEsbMain::getLatestProcess);
+                , IplEsbMain::getStatusName, IplEsbMain::getProcessStatus, IplEsbMain::getProcessStatusName, IplEsbMain::getLatestProcess,IplEsbMain::getNewProductAndTech);
     }
 
     /**
@@ -150,6 +150,7 @@ public class IplEsbMainController extends BaseWebController {
         }
         return null;
     }
+
     /**
      * 功能描述 批量删除
      *
@@ -319,6 +320,40 @@ public class IplEsbMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注字数限制500字");
         }
         return null;
+    }
+
+    /**
+     * 功能描述 发改局包详情接口
+     *
+     * @param entity 对象
+     * @return 返回信息
+     * @author gengzhiqiang
+     * @date 2019/9/17 15:51
+     */
+    @PostMapping("/detailByIdForPkg")
+    public Mono<ResponseEntity<SystemResponse<Object>>> detailByIdForPkg(@RequestBody IplManageMain entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getId);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        return success(service.detailByIdForPkg(entity));
+    }
+
+    /**
+     * 功能描述 批量删除包
+     *
+     * @param ids id集合
+     * @return 成功返回成功信息
+     * @author gengzhiqiang
+     * @date 2019/7/26 16:17
+     */
+    @PostMapping("/removeByIdsForPkg")
+    public Mono<ResponseEntity<SystemResponse<Object>>> removeByIdsForPkg(@RequestBody List<Long> ids) {
+        if (ids == null) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
+        }
+        service.removeByIdsForPkg(ids);
+        return success("删除成功");
     }
 
 

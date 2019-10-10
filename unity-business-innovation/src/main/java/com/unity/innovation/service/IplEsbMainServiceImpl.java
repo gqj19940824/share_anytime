@@ -1,7 +1,7 @@
 
 package com.unity.innovation.service;
 
-import com.alibaba.druid.support.json.JSONUtils;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -134,6 +134,14 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             if (is.getStatus() != null) {
                 is.setStatusName(IplStatusEnum.ofName(is.getStatus()));
             }
+            StringBuilder stringBuilder = new StringBuilder();
+            if (StringUtils.isNotBlank(is.getNewProduct())) {
+                stringBuilder.append("新产品：").append(System.getProperty(InnovationConstant.LINE_SEPARATOR)).append(is.getNewProduct()).append(System.getProperty(InnovationConstant.LINE_SEPARATOR));
+            }
+            if (StringUtils.isNotBlank(is.getNewTech())) {
+                stringBuilder.append("新技术：").append(System.getProperty(InnovationConstant.LINE_SEPARATOR)).append(is.getNewTech());
+            }
+            is.setNewProductAndTech(stringBuilder.toString());
         });
         return list;
     }
@@ -436,7 +444,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                     List<IplLog> logs = Lists.newArrayList();
                     StringBuffer sb = new StringBuffer();
                     sb.append(entity.getDealMessage());
-                    sb.append(System.getProperty("line.separator"));
+                    sb.append(System.getProperty(InnovationConstant.LINE_SEPARATOR));
                     sb.append("关闭");
                     dealData.forEach(d -> {
                         //遍历单位名称，拼接日志记录
@@ -491,12 +499,12 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         LambdaQueryWrapper<IplManageMain> lqw = new LambdaQueryWrapper<>();
         if (search != null) {
             //提交时间
-            if (StringUtils.isNotBlank(search.getEntity().getCreateTime())) {
+            if (StringUtils.isNotBlank(search.getEntity().getSubmitTime())) {
                 //gt 大于 lt 小于
-                long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), true);
+                long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), true);
                 lqw.gt(IplManageMain::getGmtSubmit, begin);
                 //gt 大于 lt 小于
-                long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), false);
+                long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), false);
                 lqw.lt(IplManageMain::getGmtSubmit, end);
             }
             //状态
@@ -539,7 +547,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             //提交时间设置最大
             entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
             //快照数据
-            entity.setSnapshot(JSONUtils.toJSONString(entity.getIplEsbMainList()));
+            entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
             //企服局
             entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_ESB_ID);
             //保存
@@ -559,7 +567,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                         .message("只有待提交和已驳回状态下数据可编辑").build();
             }
             //快照数据
-            entity.setSnapshot(JSONUtils.toJSONString(entity.getIplEsbMainList()));
+            entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
             //附件
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
             //修改信息
@@ -567,5 +575,60 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         }
     }
 
+    /**
+     * 功能描述 详情接口
+     * @param entity 实体
+     * @return com.unity.innovation.entity.generated.IplManageMain 对象
+     * @author gengzhiqiang
+     * @date 2019/10/9 19:50
+     */
+    public IplManageMain detailByIdForPkg(IplManageMain entity) {
+        entity = iplManageMainService.getById(entity.getId());
+        if (entity == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
+        //快照集合
+        List<IplEsbMain> list = JSON.parseArray(entity.getSnapshot(), IplEsbMain.class);
+        entity.setSnapshot("");
+        entity.setIplEsbMainList(list);
+        //附件
+        List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode, entity.getAttachmentCode()));
+        if (CollectionUtils.isNotEmpty(attachmentList)) {
+            entity.setAttachments(attachmentList);
+        }
+        //日志集合 日志节点集合
+        return entity;
+    }
+
+    /**
+     * 功能描述 删除包接口
+     * @param ids id集合
+     * @author gengzhiqiang
+     * @date 2019/10/10 13:47
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void removeByIdsForPkg(List<Long> ids) {
+        List<IplManageMain> list = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>().in(IplManageMain::getId, ids));
+
+        //状态为处理完毕 不可删除
+        List<Integer> stateList = Lists.newArrayList();
+        stateList.add(WorkStatusAuditingStatusEnum.TEN.getId());
+        stateList.add(WorkStatusAuditingStatusEnum.FORTY.getId());
+        //判断状态是否可操作
+        List<IplManageMain> list1 = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>()
+                .notIn(IplManageMain::getStatus, stateList).in(IplManageMain::getId, ids));
+        if (CollectionUtils.isNotEmpty(list1)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("该状态下数据不可删除").build();
+        }
+
+        List<String> codes = list.stream().map(IplManageMain::getAttachmentCode).collect(Collectors.toList());
+        //附件表
+        attachmentService.remove(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, codes));
+
+    }
 
 }

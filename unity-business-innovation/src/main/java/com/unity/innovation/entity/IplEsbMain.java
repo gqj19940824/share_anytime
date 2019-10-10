@@ -77,16 +77,13 @@ public class IplEsbMain extends mIplEsbMain{
     @CommentTarget("协同事项集合")
     @TableField(exist = false)
     private  List<IplAssist> assistList;
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-  
+
+    /**
+     * 新产品和新技术
+     **/
+    @TableField(exist = false)
+    private String newProductAndTech ;
+
+
 }
 
