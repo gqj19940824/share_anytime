@@ -19,9 +19,9 @@ import java.util.Set;
 public interface SysCfgDao  extends BaseDao<SysCfg>{
 
     @Select("<script>" +
-            "       SELECT c.id, c.cfg_val FROM sys_cfg c WHERE c.is_deleted = 0 AND c.id IN" +
+            "       SELECT c.id, c.cfg_val AS cfgVal FROM sys_cfg c WHERE c.is_deleted = 0 AND c.id IN" +
             "        <foreach collection='ids' item='id' open='(' close=')' separator=','>#{id}</foreach>" +
             "</script>")
-    List<Map<String, Object>> getValues(@Param("ids") Set<Long> ids);
+    List<SysCfg> getValues(@Param("ids") Set<Long> ids);
 }
 

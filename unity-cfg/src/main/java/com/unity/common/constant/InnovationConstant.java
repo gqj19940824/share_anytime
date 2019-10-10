@@ -106,4 +106,14 @@ public class InnovationConstant {
      */
     public final static String DEPARTMENT_YZGT = "亦庄国投";
 
+    /**
+     * 工位宣传部 单位主键 ipl_pd_main
+     */
+    public final static Long DEPARTMENT_JJ_ID = 8L;
+
+    /**
+     * 换行符
+     */
+    public final static String LINE_SEPARATOR = "line.separator";
+
 }

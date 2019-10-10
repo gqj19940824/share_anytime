@@ -54,7 +54,19 @@ public class IplmManageLog extends BaseEntity{
         @CommentTarget("创新发布清单管理id")
         @TableField("id_ipl_manage_main")
         private Long idIplManageMain ;
-        
+
+        /**
+         * 单位名称
+         * */
+        @TableField(exist = false)
+        private String departmentName ;
+
+
+        /**
+         * 状态名称
+         * */
+        @TableField(exist = false)
+        private String statusName ;
         
 
 }

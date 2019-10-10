@@ -6,6 +6,8 @@ import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplEsbMain;
+import com.unity.innovation.entity.IplPdMain;
+import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.IplStatusEnum;
@@ -51,22 +53,30 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     @Autowired
     protected IplDarbMainServiceImpl iplDarbMainService;
 
+    @Autowired
+    private IplPdMainServiceImpl iplPdMainService;
+
+    @Autowired
+    private IplSatbMainServiceImpl iplSatbMainService;
+
+    @Autowired
+    private IplEsbMainServiceImpl iplEsbMainService;
+
     /**
      * 新增协同单位
      *
-     * @param assists map
+     * @param   assists map
      *                idRbacDepartmentAssist 协同单位id
      *                inviteInfo 邀请事项
-     * @return
+     * @param   entity 各对象（IplDarbMain、IplEsbMain、IplPdMain、IplSatbMain..）
      * @author qinhuan
      * @since 2019-09-25 18:52
      */
     @Transactional(rollbackFor = Exception.class)
     public <T>void addAssistant(List<IplAssist> assists, T entity){
-        try {
-            Class<?> aClass = entity.getClass();
+        try { // TODO 去掉try-catch
             // 主责单位id
-            Long idRbacDepartmentDuty = (Long) aClass.getDeclaredMethod("getIdRbacDepartmentDuty").invoke(entity);
+            Long idRbacDepartmentDuty = (Long) ReflectionUtils.getDeclaredMethod(entity,"getIdRbacDepartmentDuty").invoke(entity);
             // 主表id
             Long idIplMain = (Long) ReflectionUtils.getDeclaredMethod(entity,"getId").invoke(entity);
 
@@ -87,28 +97,31 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                 deptName.append(InnovationUtil.getUserNameById(idRbacDepartmentAssist) + "、");
             });
 
+            ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DEALING.getId());
+            ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
+
+            if (entity instanceof IplDarbMain){
+                IplDarbMain iplDarbMain = (IplDarbMain)entity;
+                iplDarbMainService.updateById(iplDarbMain);
+            }else if (entity instanceof IplEsbMain){
+                IplEsbMain iplEsbMain = (IplEsbMain) entity;
+                iplEsbMainService.updateById(iplEsbMain);
+            }else if (entity instanceof IplPdMain){
+                IplPdMain iplPdMain = (IplPdMain)entity;
+                iplPdMainService.updateById(iplPdMain);
+            }else if (entity instanceof IplSatbMain){
+                IplSatbMain iplSatbMain = (IplSatbMain) entity;
+                iplSatbMainService.updateById(iplSatbMain);
+            }// TODO 完善每个模块的更新
+
             // 拼接"处理进展"中的协同单位名称
             String nameStr = null;
             if(deptName.indexOf("、") > 0){
                 nameStr = deptName.subSequence(0, deptName.lastIndexOf("、")).toString();
             }
-
             // 计算日志的状态
             Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, idRbacDepartmentDuty);
-
             IplLog iplLog = IplLog.newInstance().idRbacDepartmentAssist(0L).processInfo("新增协同单位：" + nameStr).idIplMain(idIplMain).idRbacDepartmentDuty(idRbacDepartmentDuty).dealStatus(lastDealStatus).build();
-
-            aClass.getDeclaredMethod("setStatus", Integer.class).invoke(entity, IplStatusEnum.DEALING.getId());
-            aClass.getDeclaredMethod("setProcessStatus", Integer.class).invoke(entity, ProcessStatusEnum.NORMAL.getId());
-
-            // TODO 完善每个模块的更新
-            if (entity instanceof IplDarbMain){
-                IplDarbMain iplDarbMain = (IplDarbMain)entity;
-                iplDarbMainService.updateById(iplDarbMain);
-
-            }else if (entity instanceof IplEsbMain){
-                IplEsbMain iplEsbMain = (IplEsbMain) entity;
-            }
 
             // 新增协同单位、保存处理日志、主表重设超时、设置协同单位超时
             iplAssistService.addAssist(iplLog, assistList);

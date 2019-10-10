@@ -2,6 +2,7 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
@@ -13,9 +14,11 @@ import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
+import com.unity.innovation.entity.generated.mSysCfg;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.ProcessStatusEnum;
 import com.unity.innovation.enums.SourceEnum;
@@ -65,13 +68,12 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/updateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> updateStatus(@RequestBody IplLog iplLog) {
-        Long idIplMain = iplLog.getIdIplMain();
-        IplDarbMain entity = service.getById(idIplMain);
+        IplDarbMain entity = service.getById(iplLog.getIdIplMain());
         if (entity == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
 
-        service.updateStatus(entity, iplLog);
+        iplLogService.updateStatus(entity, iplLog);
 
         return success(InnovationConstant.SUCCESS);
     }
@@ -95,21 +97,16 @@ public class IplDarbMainController extends BaseWebController {
         if (entity == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        // 主责单位id
-        Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
-
-        LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, idRbacDepartmentAssist);
-        IplAssist iplAssist = iplAssistService.getOne(qw);
 
         // 修改状态、插入日志
-        service.updateStatusByDuty(iplAssist, iplLog, idRbacDepartmentDuty, idRbacDepartmentAssist, idIplMain);
+        iplLogService.updateStatusByDuty(entity.getIdRbacDepartmentDuty(), entity.getId(), iplLog);
+
         return success(InnovationConstant.SUCCESS);
     }
 
     /**
      * 新增协同事项
-     * @param map
+     * @param iplDarbMain
      *          idIplMain：主表id
      *          assists：协同单位map
      *              idRbacDepartmentAssist 协同单位id
@@ -117,14 +114,13 @@ public class IplDarbMainController extends BaseWebController {
      * @return
      */
     @PostMapping("/addAssistant")
-    public Mono<ResponseEntity<SystemResponse<Object>>> addAssistant(@RequestBody IplDarbMain map) {
-        // 主表id
-        Long idIplMain = map.getId();
-        IplDarbMain entity = service.getById(idIplMain);
+    public Mono<ResponseEntity<SystemResponse<Object>>> addAssistant(@RequestBody IplDarbMain iplDarbMain) {
+        // 主表数据
+        IplDarbMain entity = service.getById(iplDarbMain.getId());
         if(entity == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST,SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        List<IplAssist> assists = map.getIplAssists();
+        List<IplAssist> assists = iplDarbMain.getIplAssists();
         if (CollectionUtils.isEmpty(assists)){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
@@ -134,59 +130,6 @@ public class IplDarbMainController extends BaseWebController {
         
         return success(InnovationConstant.SUCCESS);
     }
-//    /**
-//     * 新增协同事项
-//     * @param map 统一查询条件
-//     * @return
-//     */
-//    @PostMapping("/addAssistant")
-//    public Mono<ResponseEntity<SystemResponse<Object>>> addAssistant(@RequestBody Map map) {
-//        // 主表id
-//        Long idIplMain = MapUtils.getLong(map, "idIplMain");
-//        IplDarbMain entity = service.getById(idIplMain);
-//        if(entity == null){
-//            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST,SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
-//        }
-//        List<Map> assists = (List<Map>) map.get("assists");
-//        if (CollectionUtils.isEmpty(assists)){
-//            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
-//        }
-//
-//        Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
-//        List<IplAssist> assistList = new ArrayList<>();
-//        StringBuilder deptName = new StringBuilder();
-//
-//        // 遍历协同单位组装数据
-//        assists.forEach(e->{
-//            Long idRbacDepartmentAssist = MapUtils.getLong(e, "idRbacDepartmentAssist");
-//            IplAssist assist = IplAssist.newInstance()
-//                    .idRbacDepartmentDuty(idRbacDepartmentDuty)
-//                    .dealStatus(IplStatusEnum.DEALING.getId())
-//                    .dealStatus(ProcessStatusEnum.NORMAL.getId())
-//                    .idIplMain(idIplMain)
-//                    .idRbacDepartmentAssist(idRbacDepartmentAssist)
-//                    .inviteInfo(MapUtils.getString(e, "inviteInfo"))
-//                    .build();
-//            assistList.add(assist);
-//            deptName.append(InnovationUtil.getUserNameById(idRbacDepartmentAssist) + "、");
-//        });
-//
-//        // 拼接"处理进展"中的协同单位名称
-//        String nameStr = null;
-//        if(deptName.indexOf("、") > 0){
-//            nameStr = deptName.subSequence(0, deptName.lastIndexOf("、")).toString();
-//        }
-//
-//        // 计算日志的状态
-//        Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, idRbacDepartmentDuty);
-//
-//        IplLog iplLog = IplLog.newInstance().idRbacDepartmentAssist(0L).processInfo("新增协同单位：" + nameStr).idIplMain(idIplMain).idRbacDepartmentDuty(idRbacDepartmentDuty).dealStatus(lastDealStatus).build();
-//
-//        // 新增协同单位并记录日志
-//        service.addAssistant(iplLog, assistList, entity);
-//
-//        return success(InnovationConstant.SUCCESS);
-//    }
 
     /**
      * 获取一页数据
@@ -288,9 +231,12 @@ public class IplDarbMainController extends BaseWebController {
             });
         }
 
+        List<SysCfg> values = sysCfgService.getValues(ids);
+        Map<Long, Object> collect = values.stream().collect(Collectors.toMap(BaseEntity::getId, mSysCfg::getCfgVal,(k1, k2)->k2));
+
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
-                    adapterField(m, entity, ids);
+                    adapterField(m, entity, collect);
                 }
                 ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay,IplDarbMain::getAttachmentCode
         );
@@ -303,9 +249,12 @@ public class IplDarbMainController extends BaseWebController {
      */
     private Map<String, Object> convert2Map(IplDarbMain ent){
         Set<Long> ids = new HashSet<>(Arrays.asList(ent.getDemandCategory(), ent.getDemandItem(), ent.getIndustryCategory()));
+        List<SysCfg> values = sysCfgService.getValues(ids);
+        Map<Long, Object> collect = values.stream().collect(Collectors.toMap(BaseEntity::getId, mSysCfg::getCfgVal,(k1, k2)->k2));
+
         return JsonUtil.<IplDarbMain>ObjectToMap(ent,
                 (m, entity) -> {
-                    adapterField(m,entity, ids);
+                    adapterField(m,entity, collect);
                 }
                 ,IplDarbMain::getId,IplDarbMain::getEnterpriseName,IplDarbMain::getProjectName,IplDarbMain::getContent,IplDarbMain::getTotalInvestment,IplDarbMain::getProjectProgress,IplDarbMain::getTotalAmount,IplDarbMain::getBank,IplDarbMain::getBond,IplDarbMain::getSelfRaise,IplDarbMain::getIncreaseTrustType,IplDarbMain::getWhetherIntroduceSocialCapital,IplDarbMain::getConstructionCategory,IplDarbMain::getConstructionStage,IplDarbMain::getConstructionModel,IplDarbMain::getContactPerson,IplDarbMain::getContactWay,IplDarbMain::getAttachmentCode
                 ,IplDarbMain::getIndustryCategory,IplDarbMain::getDemandItem,IplDarbMain::getDemandCategory
@@ -317,11 +266,8 @@ public class IplDarbMainController extends BaseWebController {
      * @param m 适配的结果
      * @param entity 需要适配的实体
      */
-    private void adapterField(Map<String, Object> m, IplDarbMain entity, Set<Long> ids){
+    private void adapterField(Map<String, Object> m, IplDarbMain entity, Map<Long, Object> collect){
 
-        List<Map<String, Object>> values = sysCfgService.getValues(ids);
-
-        Map<Long, Object> collect = values.stream().collect(Collectors.toMap(e -> MapUtils.getLong(e, "id"), e -> MapUtils.getString(e, "cfg_val"),(k1,k2)->k2));
         m.put("industryCategoryId", entity.getIndustryCategory());
         m.put("demandItemId", entity.getDemandItem());
         m.put("demandCategoryId", entity.getDemandCategory());

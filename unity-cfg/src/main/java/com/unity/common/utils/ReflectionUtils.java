@@ -19,12 +19,9 @@ public class ReflectionUtils {
 
         for(Class<?> clazz = object.getClass() ; clazz != Object.class ; clazz = clazz.getSuperclass()) {
             try {
-                Method method = clazz.getDeclaredMethod(methodName, parameterTypes) ;
-                if (method != null){
-                    return method;
-                }
+                return clazz.getDeclaredMethod(methodName, parameterTypes) ;
             } catch (Exception e) {
-                log.info("在" + clazz.getName() + "中没有找到" + methodName + "方法");
+                log.info("在" + clazz.getName() + "中没有找到方法：" + methodName);
             }
         }
 
@@ -70,17 +67,12 @@ public class ReflectionUtils {
      * @param fieldName : 父类中     * @return 父类中     */
 
     public static Field getDeclaredField(Object object, String fieldName){
-        Field field = null ;
 
-        Class<?> clazz = object.getClass() ;
-
-        for(; clazz != Object.class ; clazz = clazz.getSuperclass()) {
+        for(Class<?> clazz = object.getClass(); clazz != Object.class ; clazz = clazz.getSuperclass()) {
             try {
-                field = clazz.getDeclaredField(fieldName) ;
-                return field ;
+                return clazz.getDeclaredField(fieldName) ;
             } catch (Exception e) {
-                //这里甚么都不能抛出去。
-                //如果这里的异常打印或者往外抛，则就不会进入
+                log.info("在" + clazz.getName() + "中没有找到字段：" + fieldName);
             }
         }
 
@@ -98,7 +90,7 @@ public class ReflectionUtils {
         Field field = getDeclaredField(object, fieldName) ;
 
         //抑制Java对其的检查
-        field.setAccessible(true) ;
+        field.setAccessible(true);
 
         try {
             //将 object 中 field 所代表的值 设置为 value
