@@ -97,15 +97,10 @@ public class IplDarbMainController extends BaseWebController {
         if (entity == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        // 主责单位id
-        Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
-
-        LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, idRbacDepartmentAssist);
-        IplAssist iplAssist = iplAssistService.getOne(qw);
 
         // 修改状态、插入日志
-        service.updateStatusByDuty(iplAssist, iplLog, idRbacDepartmentDuty, idRbacDepartmentAssist, idIplMain);
+        service.updateStatusByDuty(entity.getIdRbacDepartmentDuty(), entity.getId(), iplLog);
+
         return success(InnovationConstant.SUCCESS);
     }
 

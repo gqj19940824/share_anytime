@@ -6,6 +6,7 @@ import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.generated.IplAssist;
@@ -117,19 +118,36 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         iplAssistService.batchDel(mainIds, InnovationConstant.DEPARTMENT_DARB_ID, attachmentCodes);
     }
 
+    /**
+     * 修改状态、插入日志
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019-10-10 19:05
+     */
     @Transactional(rollbackFor = Exception.class)
-    public void updateStatusByDuty(IplAssist iplAssist, IplLog iplLog, Long idRbacDepartmentDuty, Long idRbacDepartmentAssist, Long idIplMain) {
+    public <T> void updateStatusByDuty(Long idRbacDepartmentDuty, Long idIplMain, IplLog iplLog) {
+        LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
+        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, iplLog.getIdRbacDepartmentAssist());
+        IplAssist iplAssist = iplAssistService.getOne(qw);
+
+        if(iplAssist == null){
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName()).build();
+        }
+        // 修改状态、插入日志
         iplAssist.setDealStatus(iplLog.getDealStatus());
         iplAssistService.updateById(iplAssist);
 
         // 主责单位改变协同单位的状态需要向协同单位和主责单位的操作日志中同时插入一条记录
-        IplLog assistDeptLog = IplLog.newInstance().dealStatus(iplLog.getDealStatus()).idRbacDepartmentDuty(idRbacDepartmentDuty).idIplMain(idIplMain).processInfo("主责单位改变状态").idRbacDepartmentAssist(idRbacDepartmentAssist).build();
-        IplLog dutyDeptLog = IplLog.newInstance().dealStatus(iplLog.getDealStatus()).idRbacDepartmentDuty(idRbacDepartmentDuty).idIplMain(idIplMain).processInfo("主责单位改变状态").idRbacDepartmentAssist(0L).build();
+        IplLog assistDeptLog = IplLog.newInstance().dealStatus(iplAssist.getDealStatus()).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo("主责单位改变状态").idRbacDepartmentAssist(iplAssist.getIdRbacDepartmentAssist()).build();
+        IplLog dutyDeptLog = IplLog.newInstance().dealStatus(iplAssist.getDealStatus()).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo("主责单位改变状态").idRbacDepartmentAssist(0L).build();
 
         iplLogService.save(assistDeptLog);
         iplLogService.save(dutyDeptLog);
 
-        // TODO 更新redis
+        // 更新redis
+        redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + iplAssist.getIdRbacDepartmentAssist(), ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
     }
 
     /**
