@@ -1,24 +1,20 @@
 package com.unity.innovation.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
-import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.ProcessStatusEnum;
-import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,52 +47,6 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
 
     @Autowired
     private RedisSubscribeServiceImpl redisSubscribeService;
-
-    public void updateStatus(IplDarbMain entity, IplLog iplLog){
-        // 主责单位id
-        Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
-        Long id = entity.getId();
-
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        Long customerIdRbacDepartment = customer.getIdRbacDepartment();
-        // 主责单位
-        if (idRbacDepartmentDuty.equals(customerIdRbacDepartment)){
-//            iplLog.setIdRbacDepartmentAssist(0L);
-
-            // 判断状态，如果主责单位把主表完结，需要改主表状态 TODO 并且改协同表状态，各插入一个日志和协同表的redis
-            Integer dealStatus = iplLog.getDealStatus();
-            if (IplStatusEnum.DONE.getId().equals(dealStatus)){
-                // 更新主表状态
-                entity.setStatus(IplStatusEnum.DONE.getId());
-                updateById(entity);
-
-                StringBuilder builder = new StringBuilder("关闭");
-
-                List<IplAssist> assists = iplAssistService.getAssists(idRbacDepartmentDuty, id);
-                assists.forEach(e->{
-                    builder.append(e.getNameRbacDepartmentAssist()).append("、");
-                    e.setDealStatus(IplStatusEnum.DONE.getId());
-                });
-                if (builder.indexOf("、")>0){
-                    builder.deleteCharAt(builder.length()-1);
-                }
-                builder.append("协同邀请");
-
-                // 批量更新协同单位状态
-                iplAssistService.updateBatchById(assists);
-
-                // 主责记录日志
-                IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty).idRbacDepartmentAssist(0L).idIplMain(id).processInfo(builder.toString());
-
-
-            }
-        }else {
-            iplLog.setIdRbacDepartmentAssist(customerIdRbacDepartment);
-        }
-
-        iplLog.setIdRbacDepartmentDuty(idRbacDepartmentDuty);
-        iplLogService.save(iplLog); // TODO 更改redis
-    }
 
     @Transactional(rollbackFor = Exception.class)
     public Long add(IplDarbMain entity) {

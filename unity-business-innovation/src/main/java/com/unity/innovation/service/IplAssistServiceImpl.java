@@ -74,7 +74,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      */
     @Transactional(rollbackFor = Exception.class)
     public <T>void addAssistant(List<IplAssist> assists, T entity){
-        try {
+        try { // TODO 去掉try-catch
             // 主责单位id
             Long idRbacDepartmentDuty = (Long) ReflectionUtils.getDeclaredMethod(entity,"getIdRbacDepartmentDuty").invoke(entity);
             // 主表id

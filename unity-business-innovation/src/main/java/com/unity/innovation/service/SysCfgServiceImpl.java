@@ -45,7 +45,7 @@ public class SysCfgServiceImpl extends BaseServiceImpl<SysCfgDao, SysCfg> {
      * @author qinhuan
      * @since 2019-09-26 13:48
      */
-    public List<Map<String, Object>> getValues(Set<Long> ids){
+    public List<SysCfg> getValues(Set<Long> ids){
         return baseMapper.getValues(ids);
     }
 
