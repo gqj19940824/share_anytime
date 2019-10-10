@@ -117,20 +117,20 @@ public class IplDarbMainController extends BaseWebController {
      * @return
      */
     @PostMapping("/addAssistant")
-    public Mono<ResponseEntity<SystemResponse<Object>>> addAssistant(@RequestBody Map map) {
+    public Mono<ResponseEntity<SystemResponse<Object>>> addAssistant(@RequestBody IplDarbMain map) {
         // 主表id
-        Long idIplMain = MapUtils.getLong(map, "idIplMain");
+        Long idIplMain = map.getId();
         IplDarbMain entity = service.getById(idIplMain);
         if(entity == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST,SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        List<Map> assists = (List<Map>) map.get("assists");
+        List<IplAssist> assists = map.getIplAssists();
         if (CollectionUtils.isEmpty(assists)){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
 
         // 新增协同单位并记录日志
-        service.addAssistant(assists, entity, entity.getId());
+        service.addAssistant(assists, entity);
         
         return success(InnovationConstant.SUCCESS);
     }

@@ -245,6 +245,9 @@ public class IplDarbMain extends BaseEntity{
         @TableField(exist = false)
         private String updateTime;
 
+        @TableField(exist = false)
+        private List<IplAssist> iplAssists;
+
 }
 
 

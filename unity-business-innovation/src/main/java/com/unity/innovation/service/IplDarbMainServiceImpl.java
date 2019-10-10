@@ -5,6 +5,7 @@ import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplEsbMain;
@@ -212,24 +213,26 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
      * @since 2019-09-25 18:52
      */
     @Transactional(rollbackFor = Exception.class)
-    public <T>void addAssistant(List<Map> assists, T entity, Long idIplMain){
+    public <T>void addAssistant(List<IplAssist> assists, T entity){
         try {
             Class<?> aClass = entity.getClass();
             // 主责单位id
             Long idRbacDepartmentDuty = (Long) aClass.getDeclaredMethod("getIdRbacDepartmentDuty").invoke(entity);
+            // 主表id
+            Long idIplMain = (Long) ReflectionUtils.getDeclaredMethod(entity,"getId").invoke(entity);
 
             // 遍历协同单位组装数据
             List<IplAssist> assistList = new ArrayList<>();
             StringBuilder deptName = new StringBuilder();
             assists.forEach(e->{
-                Long idRbacDepartmentAssist = MapUtils.getLong(e, "idRbacDepartmentAssist");
+                Long idRbacDepartmentAssist = e.getIdRbacDepartmentAssist();
                 IplAssist assist = IplAssist.newInstance()
                         .idRbacDepartmentDuty(idRbacDepartmentDuty)
                         .dealStatus(IplStatusEnum.DEALING.getId())
                         .dealStatus(ProcessStatusEnum.NORMAL.getId())
                         .idIplMain(idIplMain)
                         .idRbacDepartmentAssist(idRbacDepartmentAssist)
-                        .inviteInfo(MapUtils.getString(e, "inviteInfo"))
+                        .inviteInfo(e.getInviteInfo())
                         .build();
                 assistList.add(assist);
                 deptName.append(InnovationUtil.getUserNameById(idRbacDepartmentAssist) + "、");
