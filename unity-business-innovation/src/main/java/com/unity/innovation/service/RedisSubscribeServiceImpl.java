@@ -24,8 +24,7 @@ public class RedisSubscribeServiceImpl {
 
     @Resource
     private DicUtils dicUtils;
-    @Resource
-    private IplTimeOutLogServiceImpl iplTimeOutLogService;
+
 
 
     /**
@@ -49,19 +48,16 @@ public class RedisSubscribeServiceImpl {
                         .concat(RedisConstants.KEY_JOINER)
                         .concat(id);
                 log.info("【记录redis存储的key:】" + key);
-                String[] idArrays = id.split("-");
+                //String[] idArrays = id.split("-");
                 //超时未处理
                 if (ListTypeConstants.DEAL_OVER_TIME.equals(overTimeType)) {
-                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600));
+                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 10));
                     //超时未更新
                 } else if (ListTypeConstants.UPDATE_OVER_TIME.equals(overTimeType)) {
                     removeRecordInfo(id, ListTypeConstants.DEAL_OVER_TIME, departmentId);
                     result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600 * 24));
                 } else {
                     log.info("请确认参数");
-                }
-                if ("OK".equals(result)) {
-                    recordTimeOutLog(departmentId, overTimeType, idArrays);
                 }
             }
         } catch (Exception e) {
@@ -70,31 +66,7 @@ public class RedisSubscribeServiceImpl {
         return result;
     }
 
-    /**
-     * 记录超时日志
-     *
-     * @param overTimeType 超时类别
-     * @param idArrays     id数组
-     * @param departmentId 主责部门id
-     * @author zhangxiaogang
-     * @since 2019/10/8 18:37
-     */
-    private void recordTimeOutLog(Long departmentId, String overTimeType, String... idArrays) {
-        IplTimeOutLog iplTimeOutLog = new IplTimeOutLog();
-        iplTimeOutLog.setMainId(Long.valueOf(idArrays[0]));
-        Long aLong = Long.valueOf(idArrays[1]);
-        //主责
-        if (aLong.intValue() == 0) {
-            iplTimeOutLog.setUnitCategory(UnitCategoryEnum.MAIN.getId());
-            iplTimeOutLog.setDepartmentId(departmentId);
-            //协同
-        } else {
-            iplTimeOutLog.setUnitCategory(UnitCategoryEnum.COORDINATION.getId());
-            iplTimeOutLog.setDepartmentId(aLong);
-        }
-        iplTimeOutLog.setTimeType(overTimeType);
-        iplTimeOutLogService.save(iplTimeOutLog);
-    }
+
 
     /**
      * 删除清单超时处理信息

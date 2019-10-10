@@ -13,26 +13,26 @@ import java.util.Arrays;
 @AllArgsConstructor
 public enum ListCategoryEnum {
 
-    CITYCONTROL(InnovationConstant.DEPARTMENT_DARB_ID,"DEPARTMENT_DARB_CONTROL"),
-    INNOVATIONCONTROL(InnovationConstant.DEPARTMENT_ESB_ID,"DEPARTMENT_ESB_CONTROL"),
-    TARGETCONTROL(InnovationConstant.DEPARTMENT_SATB_ID,"DEPARTMENT_SATB_CONTROL"),
-    INTELLIGENCECONTROL(InnovationConstant.DEPARTMENT_OD_ID,"DEPARTMENT_OD_CONTROL"),
+    DEPARTMENT_DARB(InnovationConstant.DEPARTMENT_DARB_ID,"DEPARTMENT_DARB_CONTROL"),
+    DEPARTMENT_ESB(InnovationConstant.DEPARTMENT_ESB_ID,"DEPARTMENT_ESB_CONTROL"),
+    DEPARTMENT_SATB(InnovationConstant.DEPARTMENT_SATB_ID,"DEPARTMENT_SATB_CONTROL"),
+    DEPARTMENT_OD(InnovationConstant.DEPARTMENT_OD_ID,"DEPARTMENT_OD_CONTROL"),
     ;
     
     
     public static ListCategoryEnum of(Long id) {
 
-        if (id.equals(CITYCONTROL.getId())) {
-            return CITYCONTROL;
+        if (id.equals(DEPARTMENT_OD.getId())) {
+            return DEPARTMENT_OD;
         }
-        if (id.equals(INNOVATIONCONTROL.getId())) {
-            return INNOVATIONCONTROL;
+        if (id.equals(DEPARTMENT_DARB.getId())) {
+            return DEPARTMENT_DARB;
         }
-        if (id.equals(TARGETCONTROL.getId())) {
-            return TARGETCONTROL;
+        if (id.equals(DEPARTMENT_ESB.getId())) {
+            return DEPARTMENT_ESB;
         }
-        if (id.equals(INTELLIGENCECONTROL.getId())) {
-            return INTELLIGENCECONTROL;
+        if (id.equals(DEPARTMENT_SATB.getId())) {
+            return DEPARTMENT_SATB;
         }
        return null;
     }
