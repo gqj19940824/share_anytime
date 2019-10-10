@@ -13,9 +13,13 @@ import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.util.DateUtils;
+import com.unity.common.util.FileReaderUtil;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.utils.ExcelStyleUtil;
 import com.unity.common.utils.HashRedisUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
@@ -30,10 +34,22 @@ import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.RegionUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,6 +84,10 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
 
     @Resource
     private IplManageMainServiceImpl iplManageMainService;
+
+    @Resource
+    private SystemConfiguration systemConfiguration;
+
     /**
      * 功能描述 分页接口
      * @param search 查询条件
@@ -488,46 +508,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
 
     }
 
-    /**
-     * 功能描述 分页接口
-     * @param search 查询条件
-     * @return  分页集合
-     * @author gengzhiqiang
-     * @date 2019/10/9 16:47
-     */
-    public IPage<IplManageMain> listForEsb(PageEntity<IplManageMain> search) {
-        LambdaQueryWrapper<IplManageMain> lqw = new LambdaQueryWrapper<>();
-        if (search != null) {
-            //提交时间
-            if (StringUtils.isNotBlank(search.getEntity().getSubmitTime())) {
-                //gt 大于 lt 小于
-                long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), true);
-                lqw.gt(IplManageMain::getGmtSubmit, begin);
-                //gt 大于 lt 小于
-                long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), false);
-                lqw.lt(IplManageMain::getGmtSubmit, end);
-            }
-            //状态
-            if (search.getEntity().getStatus() != null) {
-                lqw.eq(IplManageMain::getStatus, search.getEntity().getStatus());
-            }
-        }
-        //企服局
-        lqw.eq(IplManageMain::getIdRbacDepartmentDuty, InnovationConstant.DEPARTMENT_ESB_ID);
-        //排序
-        lqw.orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified);
-        IPage<IplManageMain> list = iplManageMainService.page(search.getPageable(), lqw);
-        if (CollectionUtils.isNotEmpty(list.getRecords())) {
-            list.getRecords().forEach(p -> {
-                if (p.getStatus() != null) {
-                    if (WorkStatusAuditingStatusEnum.exist(p.getStatus())) {
-                        p.setStatusName(WorkStatusAuditingStatusEnum.of(p.getStatus()).getName());
-                    }
-                }
-            });
-        }
-        return list;
-    }
+
 
     /**
      * 功能描述 新增编辑
@@ -599,36 +580,141 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             entity.setAttachments(attachmentList);
         }
         //日志集合 日志节点集合
+        entity = iplManageMainService.setLogs(entity);
         return entity;
     }
 
+
+
     /**
-     * 功能描述 删除包接口
-     * @param ids id集合
+     * 功能描述 导出接口
+     *
+     * @param entity 对象
+     * @return byte[] 返回数据流
      * @author gengzhiqiang
-     * @date 2019/10/10 13:47
+     * @date 2019/7/8 10:15
      */
-    @Transactional(rollbackFor = Exception.class)
-    public void removeByIdsForPkg(List<Long> ids) {
-        List<IplManageMain> list = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>().in(IplManageMain::getId, ids));
-
-        //状态为处理完毕 不可删除
-        List<Integer> stateList = Lists.newArrayList();
-        stateList.add(WorkStatusAuditingStatusEnum.TEN.getId());
-        stateList.add(WorkStatusAuditingStatusEnum.FORTY.getId());
-        //判断状态是否可操作
-        List<IplManageMain> list1 = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>()
-                .notIn(IplManageMain::getStatus, stateList).in(IplManageMain::getId, ids));
-        if (CollectionUtils.isNotEmpty(list1)) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                    .message("该状态下数据不可删除").build();
+    public byte[] export(IplManageMain entity) {
+        byte[] content;
+        String templatePath = systemConfiguration.getUploadPath() + File.separator + "iplManageEsb" + File.separator;
+        String templateFile = templatePath + File.separator + "iplManageEsb.xls";
+        File dir = new File(templatePath);
+        if (!dir.exists()) {
+            dir.mkdirs();
         }
-
-        List<String> codes = list.stream().map(IplManageMain::getAttachmentCode).collect(Collectors.toList());
-        //附件表
-        attachmentService.remove(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, codes));
-
+        FileOutputStream out = null;
+        try {
+            //定义表格对象
+            HSSFWorkbook workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet(entity.getTitle());
+            HSSFRow row;
+            //表头
+            Map<String, CellStyle> styleMap = ExcelStyleUtil.createProjectStyles(workbook);
+            workbook.createCellStyle();
+            row = sheet.createRow(0);
+            String[] title = { "行业类别", "企业名称", "企业简介", "创新内容", "联系人","联系方式","创建时间","更新时间","来源","状态","最新进展"};
+            for (int j = 0; j < title.length; j++) {
+                Cell cell = row.createCell(j);
+                cell.setCellValue(title[j]);
+                cell.setCellStyle(styleMap.get("title"));
+                sheet.autoSizeColumn(j, true);
+            }
+            //填充数据
+            addData(sheet, entity, styleMap);
+            out = new FileOutputStream(templateFile);
+            // 输出excel
+            workbook.write(out);
+            out.close();
+            File file = new File(templateFile);
+            content = FileReaderUtil.getBytes(file);
+            if (file.exists()) {
+                file.delete();
+            }
+        } catch (Exception e) {
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.SERVER_ERROR, "导出失败");
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return content;
     }
+
+    private void addData(HSSFSheet sheet, IplManageMain entity, Map<String,CellStyle> styleMap) {
+        List<IplEsbMain> list = JSON.parseArray(entity.getSnapshot(), IplEsbMain.class);
+        CellStyle sty = styleMap.get("data");
+        int rowNum = 1;
+        for (int j = 0; j < list.size(); j++) {
+            HSSFRow row = sheet.createRow(rowNum++);
+            HSSFCell cell0 = row.createCell(0);
+            HSSFCell cell1 = row.createCell(1);
+            HSSFCell cell2 = row.createCell(2);
+            HSSFCell cell3 = row.createCell(3);
+            HSSFCell cell4 = row.createCell(4);
+            HSSFCell cell5 = row.createCell(5);
+            HSSFCell cell6 = row.createCell(6);
+            HSSFCell cell7 = row.createCell(7);
+            HSSFCell cell8 = row.createCell(8);
+            HSSFCell cell9 = row.createCell(9);
+            HSSFCell cell10 = row.createCell(10);
+            cell0.setCellStyle(sty);
+            sheet.setColumnWidth(0, 60*256);
+            cell1.setCellStyle(sty);
+            sheet.setColumnWidth(1, 60*256);
+            cell2.setCellStyle(sty);
+            sheet.setColumnWidth(2, 60*256);
+            cell3.setCellStyle(sty);
+            sheet.setColumnWidth(3, 60*256);
+            cell4.setCellStyle(sty);
+            sheet.setColumnWidth(4, 60*256);
+            cell5.setCellStyle(sty);
+            sheet.setColumnWidth(5, 60*256);
+            cell6.setCellStyle(sty);
+            sheet.setColumnWidth(6, 60*256);
+            cell7.setCellStyle(sty);
+            sheet.setColumnWidth(7, 60*256);
+            cell8.setCellStyle(sty);
+            sheet.setColumnWidth(8, 60*256);
+            cell9.setCellStyle(sty);
+            sheet.setColumnWidth(9, 60*256);
+            cell10.setCellStyle(sty);
+            sheet.setColumnWidth(10, 60*256);
+            cell0.setCellValue(list.get(j).getIndustryCategoryName());
+            cell1.setCellValue(list.get(j).getEnterpriseName());
+            cell2.setCellValue(list.get(j).getEnterpriseProfile());
+            if (StringUtils.isNotBlank(list.get(j).getNewProductAndTech())) {
+                cell3.setCellValue(list.get(j).getNewProductAndTech());
+            }
+            cell4.setCellValue(list.get(j).getContactPerson());
+            cell5.setCellValue(list.get(j).getContactWay());
+            cell6.setCellValue(DateUtils.timeStamp2Date(list.get(j).getGmtCreate()));
+            cell7.setCellValue(DateUtils.timeStamp2Date(list.get(j).getGmtModified()));
+            cell8.setCellValue(list.get(j).getSourceName());
+            cell9.setCellValue(list.get(j).getStatusName());
+            if (StringUtils.isNotBlank(list.get(j).getLatestProcess())) {
+                cell10.setCellValue(list.get(j).getLatestProcess());
+            }
+        }
+        Row titleRow = sheet.createRow(list.size() + 1);
+        Cell titleCell = titleRow.createCell(0);
+        CellStyle style = styleMap.get("note");
+        titleCell.setCellStyle(style);
+        if (StringUtils.isNotBlank(entity.getNotes())) {
+            titleCell.setCellValue("备注："+entity.getNotes());
+        }else{
+            titleCell.setCellValue("备注：");
+        }
+        CellRangeAddress range = new CellRangeAddress(list.size() + 1, list.size() + 1, 0, 10);
+        sheet.addMergedRegion(range);
+        RegionUtil.setBorderLeft(1, range, sheet);
+        RegionUtil.setBorderBottom(1, range, sheet);
+        RegionUtil.setBorderRight(1, range, sheet);
+        RegionUtil.setBorderTop(1, range, sheet);
+    }
+
 
 }

@@ -1,26 +1,30 @@
 package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.ui.PageEntity;
 import com.unity.common.utils.UUIDUtil;
+import com.unity.innovation.dao.IplManageMainDao;
 import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.generated.IplDarbMain;
-import com.unity.innovation.entity.generated.IplDarbMainSnapshot;
-import com.unity.innovation.entity.generated.IplmMainIplMain;
+import com.unity.innovation.entity.generated.*;
 import com.unity.innovation.enums.IplmStatusEnum;
+import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.dao.IplManageMainDao;
-
-import java.util.ArrayList;
-import java.util.List;
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * ClassName: IplManageMainService
@@ -41,6 +45,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     @Autowired
     private AttachmentServiceImpl attachmentService;
 
+    @Resource
+    private IplmManageLogServiceImpl logService;
 
     @Transactional(rollbackFor = Exception.class)
     public void add(IplManageMain entity) {
@@ -114,5 +120,149 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         if(CollectionUtils.isNotEmpty(attachments)){
             attachmentService.bachSave(uuid, attachments);
         }
+    }
+
+    /**
+     * 功能描述 公共分页接口
+     * @param search 查询条件
+     * @return  分页集合
+     * @author gengzhiqiang
+     * @date 2019/10/9 16:47
+     */
+    public IPage<IplManageMain> listForPkg(PageEntity<IplManageMain> search,Long department) {
+        LambdaQueryWrapper<IplManageMain> lqw = new LambdaQueryWrapper<>();
+        if (search != null) {
+            //提交时间
+            if (StringUtils.isNotBlank(search.getEntity().getSubmitTime())) {
+                //gt 大于 lt 小于
+                long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), true);
+                lqw.gt(IplManageMain::getGmtSubmit, begin);
+                //gt 大于 lt 小于
+                long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), false);
+                lqw.lt(IplManageMain::getGmtSubmit, end);
+            }
+            //状态
+            if (search.getEntity().getStatus() != null) {
+                lqw.eq(IplManageMain::getStatus, search.getEntity().getStatus());
+            }
+        }
+        //各局
+        lqw.eq(IplManageMain::getIdRbacDepartmentDuty, department);
+        //排序
+        lqw.orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified);
+        IPage<IplManageMain> list = page(search.getPageable(), lqw);
+        if (CollectionUtils.isNotEmpty(list.getRecords())) {
+            list.getRecords().forEach(p -> {
+                if (p.getStatus() != null) {
+                    if (WorkStatusAuditingStatusEnum.exist(p.getStatus())) {
+                        p.setStatusName(WorkStatusAuditingStatusEnum.of(p.getStatus()).getName());
+                    }
+                }
+            });
+        }
+        return list;
+    }
+
+    /**
+     * 功能描述 删除包接口
+     * @param ids id集合
+     * @author gengzhiqiang
+     * @date 2019/10/10 13:47
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void removeByIdsForPkg(List<Long> ids,Long department) {
+        List<IplManageMain> list = list(new LambdaQueryWrapper<IplManageMain>().in(IplManageMain::getId, ids));
+        //状态为处理完毕 不可删除
+        List<Integer> stateList = com.google.common.collect.Lists.newArrayList();
+        stateList.add(WorkStatusAuditingStatusEnum.TEN.getId());
+        stateList.add(WorkStatusAuditingStatusEnum.FORTY.getId());
+        List<IplManageMain> list1 = list.stream().filter(l -> stateList.contains(l.getStatus())).collect(Collectors.toList());
+        //判断状态是否可操作
+        if (CollectionUtils.isNotEmpty(list1)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("该状态下数据不可删除").build();
+        }
+        List<String> codes = list.stream().map(IplManageMain::getAttachmentCode).collect(Collectors.toList());
+        //附件表
+        attachmentService.remove(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, codes));
+        //删除主表
+        removeByIds(ids);
+        //删除日志
+        logService.remove(new LambdaQueryWrapper<IplmManageLog>()
+                .eq(IplmManageLog::getIdRbacDepartment, department)
+                .in(IplmManageLog::getIdIplManageMain, ids));
+    }
+
+    /**
+     * 功能描述 日志和日志节点
+     * @param iplManageMain 主表对象
+     * @return com.unity.innovation.entity.generated.IplManageMain 填充了日志和日志节点对象
+     * @author gengzhiqiang
+     * @date 2019/10/10 15:10
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public IplManageMain setLogs(IplManageMain iplManageMain) {
+         iplManageMain = getById(iplManageMain.getId());
+        if (iplManageMain == null) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("数据不存在").build();
+        }
+        //操作记录
+        List<IplmManageLog> logList = logService.list(new LambdaQueryWrapper<IplmManageLog>()
+                .eq(IplmManageLog::getIdRbacDepartment, iplManageMain.getIdRbacDepartmentDuty())
+                .eq(IplmManageLog::getIdIplManageMain, iplManageMain.getId())
+                .orderByDesc(IplmManageLog::getGmtCreate));
+        iplManageMain.setLogList(logList);
+        //按状态进行分组,同时只取时间最小的那一条数据
+        Map<Integer, IplmManageLog> map = logList.stream()
+                .filter(n -> !WorkStatusAuditingStatusEnum.FORTY.getId().equals(n.getStatus()))
+                .collect(Collectors.toMap(IplmManageLog::getStatus, Function.identity(), BinaryOperator.minBy(Comparator.comparingLong(IplmManageLog::getGmtCreate))));
+        Set<Integer> statusSet = map.keySet();
+        List<IplmManageLog> processNodeList = Lists.newArrayList();
+        for (int status : statusSet) {
+            IplmManageLog log = map.get(status);
+            processNodeList.add(log);
+        }
+        iplManageMain.setProcessNodeList(processNodeList);
+        return iplManageMain;
+    }
+
+    /**
+     * 功能描述  提交公共方法
+     * @param entity 实体
+     * @author gengzhiqiang
+     * @date 2019/10/10 15:30
+     */
+    public void submit(IplManageMain entity) {
+        IplManageMain vo = getById(entity.getId());
+        if (vo == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
+        List<Attachment> attachment = attachmentService.list(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, vo.getAttachmentCode()));
+        if (CollectionUtils.isEmpty(attachment)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未上传领导签字文件").build();
+        }
+        if (!(WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getStatus())
+                || WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getStatus()))) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("该状态下不可提交").build();
+        }
+        //待提交>>>>>待审核
+        vo.setGmtSubmit(System.currentTimeMillis());
+        vo.setStatus(WorkStatusAuditingStatusEnum.TWENTY.getId());
+        updateById(vo);
+        //日志记录
+        IplmManageLog log = IplmManageLog.newInstance().build();
+        log.setIdRbacDepartment(vo.getIdRbacDepartmentDuty());
+        log.setIdIplManageMain(vo.getId());
+        log.setStatus(WorkStatusAuditingStatusEnum.TWENTY.getId());
+        log.setContent("提交发布需求");
+        logService.save(log);
     }
 }
