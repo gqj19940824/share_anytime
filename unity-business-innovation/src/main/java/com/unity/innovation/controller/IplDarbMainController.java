@@ -99,7 +99,7 @@ public class IplDarbMainController extends BaseWebController {
         }
 
         // 修改状态、插入日志
-        service.updateStatusByDuty(entity.getIdRbacDepartmentDuty(), entity.getId(), iplLog);
+        iplLogService.updateStatusByDuty(entity.getIdRbacDepartmentDuty(), entity.getId(), iplLog);
 
         return success(InnovationConstant.SUCCESS);
     }

@@ -116,38 +116,6 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
     }
 
     /**
-     * 修改状态、插入日志
-     *
-     * @param
-     * @return
-     * @author qinhuan
-     * @since 2019-10-10 19:05
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public <T> void updateStatusByDuty(Long idRbacDepartmentDuty, Long idIplMain, IplLog iplLog) {
-        LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, iplLog.getIdRbacDepartmentAssist());
-        IplAssist iplAssist = iplAssistService.getOne(qw);
-
-        if(iplAssist == null){
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName()).build();
-        }
-        // 修改状态、插入日志
-        iplAssist.setDealStatus(iplLog.getDealStatus());
-        iplAssistService.updateById(iplAssist);
-
-        // 主责单位改变协同单位的状态需要向协同单位和主责单位的操作日志中同时插入一条记录
-        IplLog assistDeptLog = IplLog.newInstance().dealStatus(iplAssist.getDealStatus()).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo("主责单位改变状态").idRbacDepartmentAssist(iplAssist.getIdRbacDepartmentAssist()).build();
-        IplLog dutyDeptLog = IplLog.newInstance().dealStatus(iplAssist.getDealStatus()).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo("主责单位改变状态").idRbacDepartmentAssist(0L).build();
-
-        iplLogService.save(assistDeptLog);
-        iplLogService.save(dutyDeptLog);
-
-        // 更新redis
-        redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + iplAssist.getIdRbacDepartmentAssist(), ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
-    }
-
-    /**
      * 新增协同单位
      *
      * @param
