@@ -261,7 +261,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     @Transactional(rollbackFor = Exception.class)
     public IplManageMain setLogs(IplManageMain iplManageMain) {
         IplManageMain vo = getById(iplManageMain.getId());
-        if (iplManageMain == null) {
+        if (vo == null) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("数据不存在").build();
         }
