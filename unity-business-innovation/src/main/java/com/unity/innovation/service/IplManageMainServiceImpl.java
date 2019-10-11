@@ -233,7 +233,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         List<Integer> stateList = com.google.common.collect.Lists.newArrayList();
         stateList.add(WorkStatusAuditingStatusEnum.TEN.getId());
         stateList.add(WorkStatusAuditingStatusEnum.FORTY.getId());
-        List<IplManageMain> list1 = list.stream().filter(l -> stateList.contains(l.getStatus())).collect(Collectors.toList());
+        List<IplManageMain> list1 = list.stream().filter(l -> !stateList.contains(l.getStatus())).collect(Collectors.toList());
         //判断状态是否可操作
         if (CollectionUtils.isNotEmpty(list1)) {
             throw UnityRuntimeException.newInstance()
