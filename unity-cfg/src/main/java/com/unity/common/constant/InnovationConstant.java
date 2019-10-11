@@ -101,6 +101,10 @@ public class InnovationConstant {
      * 工位宣传部 单位主键 ipl_pd_main
      */
     public final static Long DEPARTMENT_PD_ID = 3L;
+    /**
+     * 亦庄国投 单位主键 ipl_pd_main
+     */
+    public final static String DEPARTMENT_YZGT = "亦庄国投";
 
     /**
      * 工位宣传部 单位主键 ipl_pd_main

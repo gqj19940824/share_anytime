@@ -13,6 +13,16 @@ public enum SourceEnum {
     ENTERPRISE(1, "企业"),
     SELF(2, "各局");
 
+    public static SourceEnum of(Integer id) {
+        if (ENTERPRISE.getId().equals(id)) {
+            return ENTERPRISE;
+        }
+        if (SELF.getId().equals(id)) {
+            return SELF;
+        }
+        return null;
+    }
+
     private Integer id;
     private String name;
 
