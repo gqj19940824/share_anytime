@@ -3,6 +3,7 @@ package com.unity.innovation.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.SystemResponse;
 import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
@@ -81,10 +82,16 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             // 主表id
             Long idIplMain = (Long) ReflectionUtils.getDeclaredMethod(entity,"getId").invoke(entity);
 
+            List<IplAssist> assists1 = getAssists(idRbacDepartmentDuty, idIplMain);
+            List<Long> collect = assists1.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
+
             // 遍历协同单位组装数据
             List<IplAssist> assistList = new ArrayList<>();
             StringBuilder deptName = new StringBuilder();
             assists.forEach(e->{
+                if (collect.contains(e.getIdRbacDepartmentAssist())){
+                    throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.MODIFY_DATA_ALREADY_EXISTS).message("含重复添加数据").build();
+                }
                 Long idRbacDepartmentAssist = e.getIdRbacDepartmentAssist();
                 IplAssist assist = IplAssist.newInstance()
                         .idRbacDepartmentDuty(idRbacDepartmentDuty)
@@ -112,6 +119,8 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
             // 新增协同单位、保存处理日志、主表重设超时、设置协同单位超时
             iplAssistService.addAssist(iplLog, assistList);
+        } catch (UnityRuntimeException e) {
+            throw e;
         } catch (Exception e) {
             log.error("新增协同项出错" + e.getMessage(),e);
             throw UnityRuntimeException.newInstance().build();
