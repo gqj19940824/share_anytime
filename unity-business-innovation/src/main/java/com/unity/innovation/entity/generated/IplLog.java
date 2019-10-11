@@ -40,6 +40,15 @@ public class IplLog extends BaseEntity{
         @CommentTarget("处理进展")
         @TableField("process_info")
         private String processInfo ;
+
+
+
+        /**
+         * 主责单位id
+         **/
+        @CommentTarget("完成额度")
+        @TableField("complete_num")
+        private Double completeNum ;
         
         
         
@@ -72,14 +81,6 @@ public class IplLog extends BaseEntity{
          */
         @TableField(exist = false)
         private String statusName;
-
-        /**
-         * 主责单位id
-         **/
-        @CommentTarget("完成额度")
-        @TableField("complete_num")
-        private Double completeNum ;
-
 }
 
 

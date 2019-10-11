@@ -16,6 +16,10 @@ public class ParamConstants {
      * 数据校验最大值20
      */
     public final static Integer PARAM_MAX_LENGTH_20 = 20;
+    /**
+     * 数据校验最大值18
+     */
+    public final static Integer PARAM_MAX_LENGTH_18 = 18;
 
     /**
      * 数据校验最大值50

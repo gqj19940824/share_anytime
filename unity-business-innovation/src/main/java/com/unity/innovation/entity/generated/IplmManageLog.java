@@ -1,14 +1,9 @@
 package com.unity.innovation.entity.generated;
 
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.*;
 import com.baomidou.mybatisplus.annotation.TableField;
-
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
 
@@ -17,22 +12,15 @@ import com.unity.common.base.CommentTarget;
  * @author zhang
  * 生成时间 2019-09-21 15:45:34
  */
-@Data
+@Builder(builderMethodName = "newInstance")
+@AllArgsConstructor
 @NoArgsConstructor
+@Data
 @EqualsAndHashCode(callSuper=false)
+@TableName(value = "iplm_manage_log")
 public class IplmManageLog extends BaseEntity{
 
 
-        
-        /**
-        * 编号_创新发布清单-发布管理主表
-        **/
-        @CommentTarget("编号_创新发布清单-发布管理主表")
-        @TableField("id_ipl_manage_main2")
-        private Long idIplManageMain2 ;
-        
-        
-        
         /**
         * 单位
         **/
@@ -66,7 +54,19 @@ public class IplmManageLog extends BaseEntity{
         @CommentTarget("创新发布清单管理id")
         @TableField("id_ipl_manage_main")
         private Long idIplManageMain ;
-        
+
+        /**
+         * 单位名称
+         * */
+        @TableField(exist = false)
+        private String departmentName ;
+
+
+        /**
+         * 状态名称
+         * */
+        @TableField(exist = false)
+        private String statusName ;
         
 
 }

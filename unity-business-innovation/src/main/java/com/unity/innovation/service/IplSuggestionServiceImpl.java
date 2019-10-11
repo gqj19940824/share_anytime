@@ -123,8 +123,6 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             entity.setStatus(IplStatusEnum.UNDEAL.getId());
             //进展状态设为进展正常
             entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
-            //来源为纪检组
-            entity.setSource(SourceEnum.SELF.getId());
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
             save(entity);
             return entity.getId();

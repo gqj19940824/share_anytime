@@ -14,23 +14,17 @@ import java.util.List;
 
 @Builder(builderMethodName = "newInstance")
 @AllArgsConstructor
-
+@NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper=false)
 @TableName(value = "ipl_yzgt_main")
 public class IplYzgtMain extends mIplYzgtMain{
 
     /**
-     * 更新时间
+     * 创建时间 yyyy-MM
      */
     @TableField(exist = false)
-    private String modifiedTime;
-
-    /**
-     * 创建时间
-     */
-    @TableField(exist = false)
-    private String createTime;
+    private String createDate;
 
 
     /**
@@ -41,12 +35,17 @@ public class IplYzgtMain extends mIplYzgtMain{
 
 
     /**
-     * 单位名称
+     * 来源名称
      */
     @TableField(exist = false)
-    private String deptName;
-        
-        
+    private String sourceTitle;
+    /**
+     * 行业类别名称
+     */
+    @TableField(exist = false)
+    private String industryCategoryTitle;
+
+
         
         
         

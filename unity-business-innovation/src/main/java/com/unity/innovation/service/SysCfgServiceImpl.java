@@ -45,7 +45,7 @@ public class SysCfgServiceImpl extends BaseServiceImpl<SysCfgDao, SysCfg> {
      * @author qinhuan
      * @since 2019-09-26 13:48
      */
-    public List<Map<String, Object>> getValues(Set<Long> ids){
+    public List<SysCfg> getValues(Set<Long> ids){
         return baseMapper.getValues(ids);
     }
 
@@ -124,10 +124,8 @@ public class SysCfgServiceImpl extends BaseServiceImpl<SysCfgDao, SysCfg> {
      */
     public Map<Long, String> getSysCfgMap(Integer cfgType) {
         List<SysCfg> cfgList = this.list(new LambdaQueryWrapper<SysCfg>()
-                .eq(SysCfg::getCfgType, cfgType)
-                .eq(SysCfg::getUseStatus, YesOrNoEnum.YES.getType()));
-        return cfgList.stream()
-                .collect(groupingBy(SysCfg::getId, mapping(SysCfg::getCfgVal, joining())));
+                .eq(SysCfg::getCfgType, cfgType));
+        return cfgList.stream().collect(toMap(SysCfg::getId, SysCfg::getCfgVal));
     }
 
 }
