@@ -1,12 +1,15 @@
 package com.unity.innovation.service;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.utils.UUIDUtil;
+import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.IplManageMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.generated.*;
@@ -163,6 +166,60 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         return list;
     }
 
+
+    /**
+     * 功能描述 新增编辑
+     * @param entity 对象
+     * @param department 四大单位
+     * @author gengzhiqiang
+     * @date 2019/10/9 16:48
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void saveOrUpdateForPkg(IplManageMain entity, Long department) {
+        if (entity.getId() == null) {
+            //新增
+            entity.setAttachmentCode(UUIDUtil.getUUID().replace("-", ""));
+            //附件
+            attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachments());
+            //待提交
+            entity.setStatus(WorkStatusAuditingStatusEnum.TEN.getId());
+            //提交时间设置最大
+            entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
+            //快照数据 根据不同单位 切换不同vo
+            if (InnovationConstant.DEPARTMENT_ESB_ID.equals(department)) {
+                entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
+            }
+            entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
+            //各局
+            entity.setIdRbacDepartmentDuty(department);
+            //保存
+            save(entity);
+        } else {
+            //编辑
+            IplManageMain vo = getById(entity.getId());
+            if (vo == null) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                        .message("未获取到对象").build();
+            }
+            if (!(WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getStatus()) ||
+                    WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getStatus()))) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("只有待提交和已驳回状态下数据可编辑").build();
+            }
+            //快照数据 根据不同单位 切换不同vo
+            if (InnovationConstant.DEPARTMENT_ESB_ID.equals(department)) {
+                entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
+            }
+            //附件
+            attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
+            //修改信息
+            updateById(entity);
+        }
+    }
+
+
     /**
      * 功能描述 删除包接口
      * @param ids id集合
@@ -176,7 +233,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         List<Integer> stateList = com.google.common.collect.Lists.newArrayList();
         stateList.add(WorkStatusAuditingStatusEnum.TEN.getId());
         stateList.add(WorkStatusAuditingStatusEnum.FORTY.getId());
-        List<IplManageMain> list1 = list.stream().filter(l -> stateList.contains(l.getStatus())).collect(Collectors.toList());
+        List<IplManageMain> list1 = list.stream().filter(l -> !stateList.contains(l.getStatus())).collect(Collectors.toList());
         //判断状态是否可操作
         if (CollectionUtils.isNotEmpty(list1)) {
             throw UnityRuntimeException.newInstance()
@@ -204,7 +261,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     @Transactional(rollbackFor = Exception.class)
     public IplManageMain setLogs(IplManageMain iplManageMain) {
         IplManageMain vo = getById(iplManageMain.getId());
-        if (iplManageMain == null) {
+        if (vo == null) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("数据不存在").build();
         }
@@ -213,6 +270,12 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                 .eq(IplmManageLog::getIdRbacDepartment, vo.getIdRbacDepartmentDuty())
                 .eq(IplmManageLog::getIdIplManageMain, vo.getId())
                 .orderByDesc(IplmManageLog::getGmtCreate));
+        //日志名称
+        logList.forEach(p->{
+            if (WorkStatusAuditingStatusEnum.exist(p.getStatus())) {
+                p.setStatusName(WorkStatusAuditingStatusEnum.of(p.getStatus()).getName());
+            }
+        });
         iplManageMain.setLogList(logList);
         //按状态进行分组,同时只取时间最小的那一条数据
         Map<Integer, IplmManageLog> map = logList.stream()

@@ -109,7 +109,7 @@ public class InnovationConstant {
     /**
      * 工位宣传部 单位主键 ipl_pd_main
      */
-    public final static Long DEPARTMENT_JJ_ID = 8L;
+    public final static Long DEPARTMENT_SUGGESTION_ID = 8L;
 
     /**
      * 换行符
