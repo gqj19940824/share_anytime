@@ -270,6 +270,12 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                 .eq(IplmManageLog::getIdRbacDepartment, vo.getIdRbacDepartmentDuty())
                 .eq(IplmManageLog::getIdIplManageMain, vo.getId())
                 .orderByDesc(IplmManageLog::getGmtCreate));
+        //日志名称
+        logList.forEach(p->{
+            if (WorkStatusAuditingStatusEnum.exist(p.getStatus())) {
+                p.setStatusName(WorkStatusAuditingStatusEnum.of(p.getStatus()).getName());
+            }
+        });
         iplManageMain.setLogList(logList);
         //按状态进行分组,同时只取时间最小的那一条数据
         Map<Integer, IplmManageLog> map = logList.stream()
