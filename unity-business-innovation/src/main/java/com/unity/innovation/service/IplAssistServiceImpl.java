@@ -2,6 +2,7 @@ package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
@@ -74,7 +75,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      */
     @Transactional(rollbackFor = Exception.class)
     public <T>void addAssistant(List<IplAssist> assists, T entity){
-        try { // TODO 去掉try-catch
+        try {
             // 主责单位id
             Long idRbacDepartmentDuty = (Long) ReflectionUtils.getDeclaredMethod(entity,"getIdRbacDepartmentDuty").invoke(entity);
             // 主表id
@@ -88,7 +89,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                 IplAssist assist = IplAssist.newInstance()
                         .idRbacDepartmentDuty(idRbacDepartmentDuty)
                         .dealStatus(IplStatusEnum.DEALING.getId())
-                        .dealStatus(ProcessStatusEnum.NORMAL.getId())
+                        .processStatus(ProcessStatusEnum.NORMAL.getId())
                         .idIplMain(idIplMain)
                         .idRbacDepartmentAssist(idRbacDepartmentAssist)
                         .inviteInfo(e.getInviteInfo())
@@ -97,22 +98,8 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                 deptName.append(InnovationUtil.getUserNameById(idRbacDepartmentAssist) + "、");
             });
 
-            ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DEALING.getId());
-            ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
-
-            if (entity instanceof IplDarbMain){
-                IplDarbMain iplDarbMain = (IplDarbMain)entity;
-                iplDarbMainService.updateById(iplDarbMain);
-            }else if (entity instanceof IplEsbMain){
-                IplEsbMain iplEsbMain = (IplEsbMain) entity;
-                iplEsbMainService.updateById(iplEsbMain);
-            }else if (entity instanceof IplPdMain){
-                IplPdMain iplPdMain = (IplPdMain)entity;
-                iplPdMainService.updateById(iplPdMain);
-            }else if (entity instanceof IplSatbMain){
-                IplSatbMain iplSatbMain = (IplSatbMain) entity;
-                iplSatbMainService.updateById(iplSatbMain);
-            }// TODO 完善每个模块的更新
+            // 将状数据态置为"处理中"，将超时状态置为"进展正常"
+            iplLogService.updateStatus(entity);
 
             // 拼接"处理进展"中的协同单位名称
             String nameStr = null;
@@ -127,6 +114,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             iplAssistService.addAssist(iplLog, assistList);
         } catch (Exception e) {
             log.error("新增协同项出错" + e.getMessage(),e);
+            throw UnityRuntimeException.newInstance().build();
         }
     }
 
@@ -223,6 +211,13 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             // 按照协同单位的id分成子logs
             LinkedHashMap<Long, List<IplLog>> collect = logs.stream()
                     .collect(Collectors.groupingBy(IplLog::getIdRbacDepartmentAssist, LinkedHashMap::new, Collectors.toList()));
+
+            // 主责单位处理日志
+            Map<String, Object> mapDuty = new HashMap<>();
+            mapDuty.put("department", InnovationUtil.getDeptNameById(idRbacDepartmentDuty));
+            mapDuty.put("processStatus", processStatus);
+            mapDuty.put("logs", collect.get(0L)); // 在日志表的协同单位字段中，主责单位的日志记录在该字段中存为0
+            processList.add(mapDuty);
 
             // 协同单位处理日志
             if (CollectionUtils.isNotEmpty(assists)) {

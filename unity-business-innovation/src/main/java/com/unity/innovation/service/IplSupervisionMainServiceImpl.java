@@ -75,7 +75,7 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
             }
             attachmentCode = UUIDUtil.getUUID();
             entity.setAttachmentCode(attachmentCode);
-            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_JJ_ID);
+            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_SUGGESTION_ID);
             //保存主表
             iplManageMainService.save(entity);
         } else {
@@ -94,7 +94,7 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
         attachmentService.updateAttachments(attachmentCode, entity.getAttachments());
         //提交、记录日志
         if (YesOrNoEnum.YES.getType() == entity.getIsCommit()) {
-            logService.saveLog(InnovationConstant.DEPARTMENT_JJ_ID, WorkStatusAuditingStatusEnum.TWENTY.getId(), "", entity.getId());
+            logService.saveLog(InnovationConstant.DEPARTMENT_SUGGESTION_ID, WorkStatusAuditingStatusEnum.TWENTY.getId(), "", entity.getId());
         }
     }
 
@@ -155,7 +155,7 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
             }
             iplManageMainService.updateById(old);
             //记录日志
-            logService.saveLog(InnovationConstant.DEPARTMENT_JJ_ID, old.getStatus(), content, idIplManageMain);
+            logService.saveLog(InnovationConstant.DEPARTMENT_SUGGESTION_ID, old.getStatus(), content, idIplManageMain);
         } else {
             return "此状态不能不能审核";
         }
@@ -180,7 +180,7 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
         iplManageMain.setSupervisionMainList(JSON.parseArray(iplManageMain.getSnapshot(),IplSupervisionMain.class));
         //操作记录
         List<IplmManageLog> logList = logService.list(new LambdaQueryWrapper<IplmManageLog>()
-                .eq(IplmManageLog::getIdRbacDepartment, InnovationConstant.DEPARTMENT_JJ_ID)
+                .eq(IplmManageLog::getIdRbacDepartment, InnovationConstant.DEPARTMENT_SUGGESTION_ID)
                 .eq(IplmManageLog::getIdIplManageMain, id)
                 .orderByDesc(IplmManageLog::getGmtCreate));
         logList.forEach(n ->{
@@ -264,7 +264,7 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
         //删除附件
         attachmentService.updateAttachments(attachmentCode,null);
         //删除日志
-        logService.remove(new LambdaUpdateWrapper<IplmManageLog>().eq(IplmManageLog::getIdIplManageMain,id).eq(IplmManageLog::getIdRbacDepartment,InnovationConstant.DEPARTMENT_JJ_ID));
+        logService.remove(new LambdaUpdateWrapper<IplmManageLog>().eq(IplmManageLog::getIdIplManageMain,id).eq(IplmManageLog::getIdRbacDepartment,InnovationConstant.DEPARTMENT_SUGGESTION_ID));
         iplManageMainService.removeById(id);
     }
 

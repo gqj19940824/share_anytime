@@ -242,7 +242,7 @@ public class IplSupervisionMainController extends BaseWebController {
     private LambdaQueryWrapper<IplManageMain> wrapperIplManageMain(IplManageMain entity){
         LambdaQueryWrapper<IplManageMain> ew = new LambdaQueryWrapper<>();
         //只查询纪检组
-        ew.eq(IplManageMain::getIdRbacDepartmentDuty, InnovationConstant.DEPARTMENT_JJ_ID);
+        ew.eq(IplManageMain::getIdRbacDepartmentDuty, InnovationConstant.DEPARTMENT_SUGGESTION_ID);
         if(entity.getStatus() != null) {
             ew.eq(IplManageMain::getStatus,entity.getStatus());
         }

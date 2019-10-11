@@ -107,9 +107,9 @@ public class InnovationConstant {
     public final static String DEPARTMENT_YZGT = "亦庄国投";
 
     /**
-     * 工位宣传部 单位主键 ipl_pd_main
+     * 纪检 单位主键 ipl_suggestion_main
      */
-    public final static Long DEPARTMENT_JJ_ID = 8L;
+    public final static Long DEPARTMENT_SUGGESTION_ID = 8L;
 
     /**
      * 换行符
