@@ -8,7 +8,6 @@ import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
-import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
@@ -259,7 +258,7 @@ public class DailyWorkStatusPackageController extends BaseWebController {
         HttpHeaders headers = new HttpHeaders();
         try {
             //根据flag 判断导出类型
-            content = service.export(entity);
+            content = service.export(id);
             //处理乱码
             headers.setContentDispositionFormData("工作动态详情", new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1) + ".xls");
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);

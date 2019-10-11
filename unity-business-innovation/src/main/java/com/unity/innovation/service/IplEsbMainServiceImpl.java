@@ -597,7 +597,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
     }
 
     private void addData(HSSFSheet sheet, IplManageMain entity, Map<String,CellStyle> styleMap) {
-        List<IplEsbMain> list = JSON.parseArray(entity.getSnapshot(), IplEsbMain.class);
+        List<IplEsbMain> list = entity.getIplEsbMainList();
         CellStyle sty = styleMap.get("data");
         int rowNum = 1;
         for (int j = 0; j < list.size(); j++) {
