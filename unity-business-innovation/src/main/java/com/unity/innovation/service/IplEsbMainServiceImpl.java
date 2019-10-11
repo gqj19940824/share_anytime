@@ -508,54 +508,6 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
 
     }
 
-
-
-    /**
-     * 功能描述 新增编辑
-     * @param entity 对象
-     * @author gengzhiqiang
-     * @date 2019/10/9 16:48
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public void saveOrUpdateForPkg(IplManageMain entity) {
-        if (entity.getId() == null) {
-            //新增
-            entity.setAttachmentCode(UUIDUtil.getUUID().replace("-", ""));
-            //附件
-            attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachments());
-            //待提交
-            entity.setStatus(WorkStatusAuditingStatusEnum.TEN.getId());
-            //提交时间设置最大
-            entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
-            //快照数据
-            entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
-            //企服局
-            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_ESB_ID);
-            //保存
-            iplManageMainService.save(entity);
-        } else {
-            //编辑
-            IplManageMain vo = iplManageMainService.getById(entity.getId());
-            if (vo == null) {
-                throw UnityRuntimeException.newInstance()
-                        .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                        .message("未获取到对象").build();
-            }
-            if (!(WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getStatus()) ||
-                    WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getStatus()))) {
-                throw UnityRuntimeException.newInstance()
-                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("只有待提交和已驳回状态下数据可编辑").build();
-            }
-            //快照数据
-            entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
-            //附件
-            attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
-            //修改信息
-            iplManageMainService.updateById(entity);
-        }
-    }
-
     /**
      * 功能描述 详情接口
      * @param entity 实体
