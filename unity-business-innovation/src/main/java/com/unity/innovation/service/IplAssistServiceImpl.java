@@ -76,6 +76,10 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      */
     @Transactional(rollbackFor = Exception.class)
     public <T>void addAssistant(List<IplAssist> assists, T entity){
+        if (CollectionUtils.isEmpty(assists)){
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName()).build();
+        }
         try {
             // 主责单位id
             Long idRbacDepartmentDuty = (Long) ReflectionUtils.getDeclaredMethod(entity,"getIdRbacDepartmentDuty").invoke(entity);
@@ -102,7 +106,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                         .inviteInfo(e.getInviteInfo())
                         .build();
                 assistList.add(assist);
-                deptName.append(InnovationUtil.getUserNameById(idRbacDepartmentAssist) + "、");
+                deptName.append(InnovationUtil.getDeptNameById(idRbacDepartmentAssist) + "、");
             });
 
             // 将状数据态置为"处理中"，将超时状态置为"进展正常"
@@ -250,7 +254,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     public List<IplAssist> getAssists(Long idRbacDepartmentDuty, Long mainId){
         // 查询协同单位列表
         LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId).orderByDesc(IplAssist::getGmtCreate);
+        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId).orderByAsc(IplAssist::getGmtCreate);
 
         List<IplAssist> assists = list(qw);
 
