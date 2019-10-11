@@ -189,7 +189,6 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             if (InnovationConstant.DEPARTMENT_ESB_ID.equals(department)) {
                 entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
             }
-            entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
             //各局
             entity.setIdRbacDepartmentDuty(department);
             //保存

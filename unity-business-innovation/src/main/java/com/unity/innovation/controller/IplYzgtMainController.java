@@ -109,11 +109,13 @@ public class IplYzgtMainController extends BaseWebController {
                 (m, entity) -> {
                     if (SourceEnum.SELF.getId().equals(entity.getSource())) {
                         m.put("sourceTitle", InnovationConstant.DEPARTMENT_YZGT);
-                    } else if (SourceEnum.SELF.getId().equals(entity.getSource())) {
+                    } else if (SourceEnum.ENTERPRISE.getId().equals(entity.getSource())) {
                         m.put("sourceTitle", SourceEnum.ENTERPRISE.getName());
                     }
                     if (flag) {
                         m.put("attachmentCode", MapUtils.isEmpty(map) ? "" : map.get(entity.getAttachmentCode()));
+                        m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
+                        m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
                     }
                     m.put("industryCategoryTitle", sysCfgMap.get(entity.getIndustryCategory()));
                 },
@@ -137,12 +139,12 @@ public class IplYzgtMainController extends BaseWebController {
                 (m, entity) -> {
                     if (SourceEnum.SELF.getId().equals(entity.getSource())) {
                         m.put("sourceTitle", InnovationConstant.DEPARTMENT_YZGT);
-                    } else if (SourceEnum.SELF.getId().equals(entity.getSource())) {
+                    } else if (SourceEnum.ENTERPRISE.getId().equals(entity.getSource())) {
                         m.put("sourceTitle", SourceEnum.ENTERPRISE.getName());
                     }
                     m.put("industryCategoryTitle", sysCfgMap.get(entity.getIndustryCategory()));
                 },
-                IplYzgtMain::getId, IplYzgtMain::getContactPerson, IplYzgtMain::getContactWay, IplYzgtMain::getEnterpriseName,
+                IplYzgtMain::getId, IplYzgtMain::getContactPerson, IplYzgtMain::getContactWay, IplYzgtMain::getEnterpriseName,IplYzgtMain::getIndustryCategory,
                 IplYzgtMain::getEnterpriseIntroduction, IplYzgtMain::getPost, IplYzgtMain::getSpecificCause, IplYzgtMain::getGmtCreate, IplYzgtMain::getAttachmentCode,
                 IplYzgtMain::getGmtModified, IplYzgtMain::getNotes, IplYzgtMain::getIdCard, IplYzgtMain::getSource, IplYzgtMain::getEnterpriseIntroduction
         );
@@ -177,7 +179,7 @@ public class IplYzgtMainController extends BaseWebController {
      * @date 2019/9/27 15:49
      */
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(IplYzgtMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplYzgtMain::getEnterpriseName, IplYzgtMain::getIndustryCategory, IplYzgtMain::getIdCard,
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplYzgtMain::getEnterpriseName, IplYzgtMain::getIndustryCategory, IplYzgtMain::getIdCard, IplYzgtMain::getSource,
                 IplYzgtMain::getSpecificCause, IplYzgtMain::getEnterpriseIntroduction, IplYzgtMain::getContactPerson, IplYzgtMain::getContactWay, IplYzgtMain::getPost);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -200,7 +202,7 @@ public class IplYzgtMainController extends BaseWebController {
         if (entity.getPost().length() > ParamConstants.PARAM_MAX_LENGTH_20) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "职位限制50字");
         }
-        if (entity.getIdCard().length() >= ParamConstants.PARAM_MAX_LENGTH_18) {
+        if (entity.getIdCard().length() > ParamConstants.PARAM_MAX_LENGTH_18) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "身份证限制18位");
         }
         return null;
