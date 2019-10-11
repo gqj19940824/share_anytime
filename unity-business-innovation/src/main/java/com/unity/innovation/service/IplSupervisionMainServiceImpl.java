@@ -10,7 +10,11 @@ import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.util.DateUtils;
+import com.unity.common.util.FileReaderUtil;
+import com.unity.common.utils.ExcelStyleUtil;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.generated.IplManageMain;
@@ -19,13 +23,24 @@ import com.unity.innovation.enums.IplCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.unity.innovation.entity.IplSupervisionMain;
 import com.unity.innovation.dao.IplSupervisionMainDao;
+
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -49,6 +64,8 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
 
     @Resource
     private IplmManageLogServiceImpl logService;
+    @Resource
+    private SystemConfiguration systemConfiguration;
 
 
     /**
@@ -110,9 +127,9 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
         //保存快照数据
         List<IplSupervisionMain> snapShotList = entity.getSupervisionMainList();
         snapShotList.sort(comparing(IplSupervisionMain::getCategory)
-                    .reversed()
-                    .thenComparing(IplSupervisionMain::getGmtCreate)
-                    .reversed());
+                .reversed()
+                .thenComparing(IplSupervisionMain::getGmtCreate)
+                .reversed());
         String snapshot = JSON.toJSONString(snapShotList);
         entity.setSnapshot(snapshot);
     }
@@ -164,38 +181,38 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
     }
 
     /**
-    * 详情接口
-    *
-    * @param id 主键
-    * @return com.unity.innovation.entity.generated.IplManageMain
-    * @author JH
-    * @date 2019/10/10 10:56
-    */
+     * 详情接口
+     *
+     * @param id 主键
+     * @return com.unity.innovation.entity.generated.IplManageMain
+     * @author JH
+     * @date 2019/10/10 10:56
+     */
     public IplManageMain detailIplManageMainById(Long id) {
         IplManageMain iplManageMain = iplManageMainService.getById(id);
-        if(iplManageMain == null) {
+        if (iplManageMain == null) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("数据不存在").build();
         }
-        iplManageMain.setSupervisionMainList(JSON.parseArray(iplManageMain.getSnapshot(),IplSupervisionMain.class));
+        iplManageMain.setSupervisionMainList(JSON.parseArray(iplManageMain.getSnapshot(), IplSupervisionMain.class));
         //操作记录
         List<IplmManageLog> logList = logService.list(new LambdaQueryWrapper<IplmManageLog>()
                 .eq(IplmManageLog::getIdRbacDepartment, InnovationConstant.DEPARTMENT_SUGGESTION_ID)
                 .eq(IplmManageLog::getIdIplManageMain, id)
                 .orderByDesc(IplmManageLog::getGmtCreate));
-        logList.forEach(n ->{
-            n.setStatusName(WorkStatusAuditingProcessEnum.of(n.getStatus()).getName());
+        logList.forEach(n -> {
+            n.setStatusName(Objects.requireNonNull(WorkStatusAuditingProcessEnum.of(n.getStatus())).getName());
             n.setDepartmentName(InnovationUtil.getDeptNameById(n.getIdRbacDepartment()));
         });
         iplManageMain.setLogList(logList);
         //按状态进行分组,同时只取时间最小的那一条数据
-         Map<Integer,IplmManageLog> map = logList.stream()
+        Map<Integer, IplmManageLog> map = logList.stream()
                 .filter(n -> !WorkStatusAuditingStatusEnum.FORTY.getId().equals(n.getStatus()))
                 .collect(Collectors.toMap(IplmManageLog::getStatus, Function.identity(), BinaryOperator.minBy(Comparator.comparingLong(IplmManageLog::getGmtCreate))));
         Set<Integer> statusSet = map.keySet();
         List<IplmManageLog> processNodeList = Lists.newArrayList();
         for (int status : statusSet) {
-           IplmManageLog log = map.get(status);
+            IplmManageLog log = map.get(status);
             processNodeList.add(log);
         }
         iplManageMain.setProcessNodeList(processNodeList);
@@ -210,10 +227,10 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
      * @author JH
      * @date 2019/9/26 13:54
      */
-    public LambdaQueryWrapper<IplSupervisionMain> wrapper(IplSupervisionMain entity){
+    public LambdaQueryWrapper<IplSupervisionMain> wrapper(IplSupervisionMain entity) {
         LambdaQueryWrapper<IplSupervisionMain> ew = new LambdaQueryWrapper<>();
-        if(entity.getCategory() != null) {
-            ew.eq(IplSupervisionMain::getCategory,entity.getCategory());
+        if (entity.getCategory() != null) {
+            ew.eq(IplSupervisionMain::getCategory, entity.getCategory());
         }
         //创建时间
         if (StringUtils.isNotBlank(entity.getCreateTime())) {
@@ -223,49 +240,195 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
             ew.lt(IplSupervisionMain::getGmtCreate, end);
             ew.gt(IplSupervisionMain::getGmtCreate, begin);
         }
-        if(entity.getDescription() != null) {
-            ew.like(IplSupervisionMain::getDescription,entity.getDescription());
+        if (entity.getDescription() != null) {
+            ew.like(IplSupervisionMain::getDescription, entity.getDescription());
         }
         return ew;
     }
-    
+
     /**
-    * 返回可选择的基础数据以及已选择的数据
-    *
-    * @param entity 查询条件
-    * @return java.util.List<com.unity.innovation.entity.IplSupervisionMain>
-    * @author JH
-    * @date 2019/10/10 11:35
-    */
-    public  Map<String,List<IplSupervisionMain>> listSupervisionToAdd(IplSupervisionMain entity) {
-        Map<String,List<IplSupervisionMain>> res = new HashMap<>(16);
+     * 返回可选择的基础数据以及已选择的数据
+     *
+     * @param entity 查询条件
+     * @return java.util.List<com.unity.innovation.entity.IplSupervisionMain>
+     * @author JH
+     * @date 2019/10/10 11:35
+     */
+    public Map<String, List<IplSupervisionMain>> listSupervisionToAdd(IplSupervisionMain entity) {
+        Map<String, List<IplSupervisionMain>> res = new HashMap<>(16);
         LambdaQueryWrapper<IplSupervisionMain> ew = wrapper(entity);
         //基础数据
         List<IplSupervisionMain> base = super.list(ew);
-        res.put("base",base);
+        res.put("base", base);
         IplManageMain iplManageMain = iplManageMainService.getById(entity.getId());
         String s = iplManageMain.getSnapshot();
         //快照数据
         List<IplSupervisionMain> snapshot = JSON.parseArray(s, IplSupervisionMain.class);
-        res.put("snapshot",snapshot);
+        res.put("snapshot", snapshot);
         return res;
     }
+
     /**
-    * 清亲政商关系清单发布管理-纪检组 删除接口
-    *
-    * @param id 主键
-    * @author JH
-    * @date 2019/10/10 14:12
-    */
+     * 清亲政商关系清单发布管理-纪检组 删除接口
+     *
+     * @param id 主键
+     * @author JH
+     * @date 2019/10/10 14:12
+     */
     @Transactional(rollbackFor = Exception.class)
     public void removeIplManageMainById(Long id) {
         IplManageMain iplManageMain = iplManageMainService.getById(id);
         String attachmentCode = iplManageMain.getAttachmentCode();
         //删除附件
-        attachmentService.updateAttachments(attachmentCode,null);
+        attachmentService.updateAttachments(attachmentCode, null);
         //删除日志
-        logService.remove(new LambdaUpdateWrapper<IplmManageLog>().eq(IplmManageLog::getIdIplManageMain,id).eq(IplmManageLog::getIdRbacDepartment,InnovationConstant.DEPARTMENT_SUGGESTION_ID));
+        logService.remove(new LambdaUpdateWrapper<IplmManageLog>().eq(IplmManageLog::getIdIplManageMain, id).eq(IplmManageLog::getIdRbacDepartment, InnovationConstant.DEPARTMENT_SUGGESTION_ID));
         iplManageMainService.removeById(id);
+    }
+
+    /**
+     * 下载接口
+     *
+     * @param entity 实体
+     * @return byte[] 字节流
+     * @author JH
+     * @date 2019/10/11 11:10
+     */
+    public byte[] download(IplManageMain entity) {
+        //查询模板信息
+        byte[] content;
+        String templatePath = systemConfiguration.getUploadPath() + File.separator + "清亲政商" + File.separator;
+        String templateFile = templatePath + File.separator + "清亲政商.xls";
+        File dir = new File(templatePath);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        FileOutputStream out = null;
+        try {
+            // excel对象
+            HSSFWorkbook wb = new HSSFWorkbook();
+            // sheet对象
+            HSSFSheet sheet = wb.createSheet(entity.getTitle());
+            //创建导出参数
+            createExcelParam(entity, wb, sheet);
+            out = new FileOutputStream(templateFile);
+            // 输出excel
+            wb.write(out);
+            out.close();
+            File file = new File(templateFile);
+            content = FileReaderUtil.getBytes(file);
+            if (file.exists()) {
+                file.delete();
+            }
+        } catch (Exception e) {
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.SERVER_ERROR, "下载失败");
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return content;
+    }
+
+    /**
+     * 创建导出信息
+     *
+     * @param entity 实体
+     * @param wb     HSSFWorkbook
+     * @param sheet  HSSFSheet
+     * @author JH
+     * @date 2019/10/11 11:11
+     */
+    private void createExcelParam(IplManageMain entity, HSSFWorkbook wb, HSSFSheet sheet) {
+        String header = entity.getTitle();
+        String[] title = {"清单类别", "内容", "创建时间"};
+        Map<String, CellStyle> styleMap = ExcelStyleUtil.createProjectStyles(wb);
+        //header
+        Row headerRow = sheet.createRow(0);
+        Cell titleCell = headerRow.createCell(0);
+        titleCell.setCellStyle(styleMap.get("title"));
+        titleCell.setCellValue(header);
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, title.length - 1));
+        //表头
+        Row titleRow = sheet.createRow(1);
+        for (int j = 0; j < title.length; j++) {
+            Cell cell = titleRow.createCell(j);
+            cell.setCellStyle(styleMap.get("title"));
+            sheet.setColumnWidth(j, title[j].getBytes().length * 2 * 256);
+            cell.setCellValue(title[j]);
+        }
+        //快照数据
+        List<IplSupervisionMain> iplSupervisionMains = JSON.parseArray(entity.getSnapshot(), IplSupervisionMain.class);
+        //按清单类别分组
+        Map<Integer, List<IplSupervisionMain>> map = iplSupervisionMains.stream().collect(Collectors.groupingBy(IplSupervisionMain::getCategory));
+        List<IplSupervisionMain> zmqd = map.get(IplCategoryEnum.ZMQD.getId()) == null ? new ArrayList<>() : map.get(IplCategoryEnum.ZMQD.getId());
+        List<IplSupervisionMain> fmqd = map.get(IplCategoryEnum.FMQD.getId()) == null ? new ArrayList<>() : map.get(IplCategoryEnum.FMQD.getId());
+        List<IplSupervisionMain> ydqd = map.get(IplCategoryEnum.YDQD.getId()) == null ? new ArrayList<>() : map.get(IplCategoryEnum.YDQD.getId());
+        int num = 2;
+        //内容
+        for (int i = 2; i < iplSupervisionMains.size() + 2; i++) {
+            IplSupervisionMain supervisionMain = iplSupervisionMains.get(i - 2);
+            String categoryName = "";
+            if (CollectionUtils.isNotEmpty(zmqd) && supervisionMain.getId().equals(zmqd.get(0).getId())) {
+                categoryName = "正面清单";
+            } else if (CollectionUtils.isNotEmpty(fmqd) && supervisionMain.getId().equals(fmqd.get(0).getId())) {
+                categoryName = "负面清单";
+            } else if (CollectionUtils.isNotEmpty(ydqd) && supervisionMain.getId().equals(ydqd.get(0).getId())) {
+                categoryName = "引导清单";
+            }
+            Map<Integer, String> params = getIndexParam(iplSupervisionMains.get(i - 2), categoryName);
+            Row row = sheet.createRow(num);
+            for (int j = 0; j < title.length; j++) {
+                Cell cell = row.createCell(j);
+                sheet.setColumnWidth(j, title[j].getBytes().length * 2 * 256);
+                cell.setCellStyle(styleMap.get("data"));
+                cell.setCellValue(params.get(j));
+            }
+            num++;
+        }
+        //合并清单类型的单元格
+        if (zmqd.size() > 1) {
+            sheet.addMergedRegion(new CellRangeAddress(2, 2 + zmqd.size() - 1, 0, 0));
+        }
+        if (fmqd.size() > 1) {
+            sheet.addMergedRegion(new CellRangeAddress(2 + zmqd.size(), 2 + zmqd.size() + fmqd.size() - 1, 0, 0));
+        }
+        if (ydqd.size() > 1) {
+            sheet.addMergedRegion(new CellRangeAddress(2 + zmqd.size() + fmqd.size(), 2 + zmqd.size() + fmqd.size() + ydqd.size() - 1, 0, 0));
+        }
+        //备注
+        Row notesRow = sheet.createRow(num);
+        for (int j = 0; j < title.length; j++) {
+            Cell cell = notesRow.createCell(j);
+            cell.setCellStyle(styleMap.get("data"));
+            sheet.setColumnWidth(j, title[j].getBytes().length * 2 * 256);
+            if (j == 0) {
+                cell.setCellValue(entity.getTitle());
+            }
+        }
+        sheet.addMergedRegion(new CellRangeAddress(num, num, 0, title.length - 1));
+    }
+
+    /**
+     * 获取单元格参数
+     *
+     * @param entity       实体
+     * @param categoryName 清单类型名称
+     * @return java.util.Map<java.lang.Integer, java.lang.String>
+     * @author JH
+     * @date 2019/10/11 11:11
+     */
+    private Map<Integer, String> getIndexParam(IplSupervisionMain entity, String categoryName) {
+        Map<Integer, String> map = new HashMap<>(16);
+        map.put(0, categoryName);
+        map.put(1, entity.getDescription());
+        map.put(2, DateUtils.timeStamp2Date(entity.getGmtCreate()));
+        return map;
     }
 
 
