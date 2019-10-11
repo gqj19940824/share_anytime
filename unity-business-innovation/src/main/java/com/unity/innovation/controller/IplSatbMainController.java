@@ -20,12 +20,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -307,6 +305,25 @@ public class IplSatbMainController extends BaseWebController {
         entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_SATB_ID);
         service.submit(entity);
         return success("操作成功");
+    }
+
+    /**
+     * 下载科技局实时清单资料到zip包
+     *
+     * @param  id 主数据id
+     * @return zip文件
+     * @author gengjiajia
+     * @since 2019/10/11 11:27  
+     */
+    @GetMapping("/downloadIplSatbMainDataToZip/{id}")
+    public Mono<ResponseEntity<byte[]>> downloadIplSatbMainDataToZip(@PathVariable("id") Long id) {
+        if(id == null){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("为获取到成长目标投资清单ID")
+                    .build();
+        }
+        return Mono.just(service.downloadIplSatbMainDataToZip(id));
     }
 }
 

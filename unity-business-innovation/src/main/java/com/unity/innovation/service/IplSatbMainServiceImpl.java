@@ -7,15 +7,20 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
+import com.unity.common.client.ReClient;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.FileDownload;
+import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
+import com.unity.common.util.FileReaderUtil;
 import com.unity.common.util.JKDates;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.utils.FileDownloadUtil;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.IplSatbMainDao;
@@ -25,19 +30,25 @@ import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.IplStatusEnum;
-import com.unity.innovation.enums.SourceEnum;
-import com.unity.innovation.enums.SysCfgEnum;
-import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
+import com.unity.innovation.enums.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * ClassName: IplSatbMainService
@@ -46,6 +57,7 @@ import java.util.stream.Collectors;
  * @author G
  * @since JDK 1.8
  */
+@Slf4j
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplSatbMain> {
@@ -62,6 +74,10 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     IplLogServiceImpl iplLogService;
     @Resource
     RbacClient rbacClient;
+    @Resource
+    SystemConfiguration systemConfiguration;
+    @Resource
+    ReClient reClient;
 
     /**
      * 获取清单列表
@@ -395,6 +411,8 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     private List<Map<String, Object>> convert2ListForPkg(List<IplManageMain> list) {
         return JsonUtil.<IplManageMain>ObjectToList(list,
                 (m, entity) -> {
+                    WorkStatusAuditingStatusEnum statusEnum = WorkStatusAuditingStatusEnum.of(entity.getStatus());
+                    m.put("statusName",statusEnum == null ? "" : statusEnum.getName());
                 }, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus, IplManageMain::getStatusName);
     }
 
@@ -502,5 +520,37 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         iplManageMainService.submit(entity);
     }
 
-
+    /**
+     * 下载科技局实时清单资料到zip包
+     *
+     * @param  id 主数据id
+     * @return zip文件
+     * @author gengjiajia
+     * @since 2019/10/11 11:27
+     */
+    public ResponseEntity<byte[]> downloadIplSatbMainDataToZip(Long id) {
+        IplSatbMain main = this.getById(id);
+        if(main == null){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("企业创新发展信息实时清单数据不存在")
+                    .build();
+        }
+        List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>()
+                .eq(Attachment::getAttachmentCode, main.getAttachmentCode()));
+        if(CollectionUtils.isEmpty(attachmentList)){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("企业创新发展信息实时清单无相关资料")
+                    .build();
+        }
+        List<FileDownload> list = attachmentList.stream().map(attachment ->
+             FileDownload.newInstance()
+                    .url(attachment.getUrl())
+                    .name(attachment.getName())
+                    .build()
+        ).collect(Collectors.toList());
+        final String zipFileName = "企业创新发展信息实时清单-相关资料.zip";
+        return FileDownloadUtil.downloadFileToZip(list,zipFileName);
+    }
 }

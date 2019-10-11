@@ -15,7 +15,7 @@ jar {
 }
 dependencies {
 //    compile project(':unity-common')
-    compile "com.unity:unity-common:1.0.105.IPA.RELEASE"
+    compile "com.unity:unity-common:1.0.107.IPA.RELEASE"
 
     compile "org.springframework.boot:spring-boot-configuration-processor"
     compile "org.springframework.boot:spring-boot-autoconfigure"
