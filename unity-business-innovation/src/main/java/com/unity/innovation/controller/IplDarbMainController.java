@@ -155,6 +155,9 @@ public class IplDarbMainController extends BaseWebController {
     @GetMapping("/detailById/{id}")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@PathVariable("id") Long id) {
         IplDarbMain entity = service.getById(id);
+        if (entity == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
 
         Map<String, Object> resultMap = iplAssistService.totalProcessAndAssists(id, entity.getIdRbacDepartmentDuty(), entity.getProcessStatus());
         resultMap.put("baseInfo", convert2Map(entity));
