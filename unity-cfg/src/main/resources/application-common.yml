@@ -36,7 +36,7 @@ system:
     upload-path: D:/test_dir/develTemp/
     multipart-path: "D:/test_dir/develTemp/"
     domain-name: http://localhost/
-    fastdfs-file-read-path-head: https://innovation-test.jingcaiwang.cn/
+    fastdfs-file-read-path-head: https://security-test.jingcaiwang.cn/
 
 
 spring:

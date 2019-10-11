@@ -234,7 +234,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             if (count > 0) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("当前列表存在已提请数据").build();
+                        .message("所添加数据中存在已提请发布的数据，请重新添加！").build();
             }
             workMPackageService.updateWorkPackage(entity.getId(), works);
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
@@ -455,12 +455,12 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
     /**
      * 功能描述 导出接口
      *
-     * @param entity 对象
+     * @param id 查询条件
      * @return byte[] 返回数据流
      * @author gengzhiqiang
      * @date 2019/7/8 10:15
      */
-    public byte[] export(DailyWorkStatusPackage entity) {
+    public byte[] export(Long id) {
         //查询模板信息
         byte[] content;
         String templatePath = systemConfiguration.getUploadPath() + File.separator + "workStatus" + File.separator;
@@ -473,13 +473,22 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         try {
             //定义表格对象
             HSSFWorkbook workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet(entity.getTitle());
+            HSSFSheet sheet = workbook.createSheet();
             HSSFRow row;
             //表头
+            DailyWorkStatusPackage entity = DailyWorkStatusPackage.newInstance().build();
+            entity.setId(id);
+            entity = detailById(entity);
+            String top=entity.getTitle();
             Map<String, CellStyle> styleMap = ExcelStyleUtil.createProjectStyles(workbook);
             workbook.createCellStyle();
-            row = sheet.createRow(0);
+            Row titleRow = sheet.createRow(0);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellStyle(styleMap.get("title"));
+            titleCell.setCellValue(top);
+            row = sheet.createRow(1);
             String[] title = { "标题", "工作类别", "关键字", "主题", "内容描述","备注","附件","创建时间"};
+            sheet.addMergedRegion(new CellRangeAddress(0,0, 0, title.length-1));
             for (int j = 0; j < title.length; j++) {
                 //创建每列
                 Cell cell = row.createCell(j);
@@ -517,7 +526,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
     private void addData(HSSFSheet sheet, DailyWorkStatusPackage entity, Map<String,CellStyle> styleMap) {
 
         CellStyle sty = styleMap.get("data");
-        int rowNum = 1;
+        int rowNum = 2;
         for (int j = 0; j < entity.getDataList().size(); j++) {
             HSSFRow row = sheet.createRow(rowNum++);
             HSSFCell cell0 = row.createCell(0);
@@ -559,7 +568,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             }
             cell7.setCellValue(DateUtils.timeStamp2Date(entity.getDataList().get(j).getGmtCreate()));
         }
-        Row titleRow = sheet.createRow(entity.getDataList().size() + 1);
+        Row titleRow = sheet.createRow(entity.getDataList().size() + 2);
         Cell titleCell = titleRow.createCell(0);
         CellStyle style = styleMap.get("note");
         titleCell.setCellStyle(style);
@@ -568,7 +577,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         }else{
             titleCell.setCellValue("备注：");
         }
-        CellRangeAddress range = new CellRangeAddress(entity.getDataList().size() + 1, entity.getDataList().size() + 1, 0, 7);
+        CellRangeAddress range = new CellRangeAddress(entity.getDataList().size() + 2, entity.getDataList().size() + 2, 0, 7);
         sheet.addMergedRegion(range);
         RegionUtil.setBorderLeft(1, range, sheet);
         RegionUtil.setBorderBottom(1, range, sheet);

@@ -150,7 +150,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
         // 设置协同单位超时
         assistList.forEach(e->{
-            redisSubscribeService.saveSubscribeInfo(e.getId() + "-" + e.getIdRbacDepartmentAssist(), ListTypeConstants.DEAL_OVER_TIME, e.getIdRbacDepartmentDuty());
+            redisSubscribeService.saveSubscribeInfo(iplLog.getIdIplMain() + "-" + e.getIdRbacDepartmentAssist(), ListTypeConstants.DEAL_OVER_TIME, e.getIdRbacDepartmentDuty());
         });
     }
 

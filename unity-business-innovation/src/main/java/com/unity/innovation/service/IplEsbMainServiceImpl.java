@@ -508,54 +508,6 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
 
     }
 
-
-
-    /**
-     * 功能描述 新增编辑
-     * @param entity 对象
-     * @author gengzhiqiang
-     * @date 2019/10/9 16:48
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public void saveOrUpdateForPkg(IplManageMain entity) {
-        if (entity.getId() == null) {
-            //新增
-            entity.setAttachmentCode(UUIDUtil.getUUID().replace("-", ""));
-            //附件
-            attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachments());
-            //待提交
-            entity.setStatus(WorkStatusAuditingStatusEnum.TEN.getId());
-            //提交时间设置最大
-            entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
-            //快照数据
-            entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
-            //企服局
-            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_ESB_ID);
-            //保存
-            iplManageMainService.save(entity);
-        } else {
-            //编辑
-            IplManageMain vo = iplManageMainService.getById(entity.getId());
-            if (vo == null) {
-                throw UnityRuntimeException.newInstance()
-                        .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                        .message("未获取到对象").build();
-            }
-            if (!(WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getStatus()) ||
-                    WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getStatus()))) {
-                throw UnityRuntimeException.newInstance()
-                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("只有待提交和已驳回状态下数据可编辑").build();
-            }
-            //快照数据
-            entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
-            //附件
-            attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
-            //修改信息
-            iplManageMainService.updateById(entity);
-        }
-    }
-
     /**
      * 功能描述 详情接口
      * @param entity 实体
@@ -611,8 +563,13 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             //表头
             Map<String, CellStyle> styleMap = ExcelStyleUtil.createProjectStyles(workbook);
             workbook.createCellStyle();
-            row = sheet.createRow(0);
+            Row titleRow = sheet.createRow(0);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellStyle(styleMap.get("title"));
+            titleCell.setCellValue(entity.getTitle());
+            row = sheet.createRow(1);
             String[] title = { "行业类别", "企业名称", "企业简介", "创新内容", "联系人","联系方式","创建时间","更新时间","来源","状态","最新进展"};
+            sheet.addMergedRegion(new CellRangeAddress(0,0, 0, title.length-1));
             for (int j = 0; j < title.length; j++) {
                 Cell cell = row.createCell(j);
                 cell.setCellValue(title[j]);
@@ -645,9 +602,9 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
     }
 
     private void addData(HSSFSheet sheet, IplManageMain entity, Map<String,CellStyle> styleMap) {
-        List<IplEsbMain> list = JSON.parseArray(entity.getSnapshot(), IplEsbMain.class);
+        List<IplEsbMain> list = entity.getIplEsbMainList();
         CellStyle sty = styleMap.get("data");
-        int rowNum = 1;
+        int rowNum = 2;
         for (int j = 0; j < list.size(); j++) {
             HSSFRow row = sheet.createRow(rowNum++);
             HSSFCell cell0 = row.createCell(0);
@@ -662,27 +619,27 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             HSSFCell cell9 = row.createCell(9);
             HSSFCell cell10 = row.createCell(10);
             cell0.setCellStyle(sty);
-            sheet.setColumnWidth(0, 60*256);
+            sheet.setColumnWidth(0, 10*256);
             cell1.setCellStyle(sty);
-            sheet.setColumnWidth(1, 60*256);
+            sheet.setColumnWidth(1, 30*256);
             cell2.setCellStyle(sty);
             sheet.setColumnWidth(2, 60*256);
             cell3.setCellStyle(sty);
             sheet.setColumnWidth(3, 60*256);
             cell4.setCellStyle(sty);
-            sheet.setColumnWidth(4, 60*256);
+            sheet.setColumnWidth(4, 15*256);
             cell5.setCellStyle(sty);
-            sheet.setColumnWidth(5, 60*256);
+            sheet.setColumnWidth(5, 15*256);
             cell6.setCellStyle(sty);
-            sheet.setColumnWidth(6, 60*256);
+            sheet.setColumnWidth(6, 18*256);
             cell7.setCellStyle(sty);
-            sheet.setColumnWidth(7, 60*256);
+            sheet.setColumnWidth(7, 18*256);
             cell8.setCellStyle(sty);
-            sheet.setColumnWidth(8, 60*256);
+            sheet.setColumnWidth(8, 10*256);
             cell9.setCellStyle(sty);
-            sheet.setColumnWidth(9, 60*256);
+            sheet.setColumnWidth(9, 10*256);
             cell10.setCellStyle(sty);
-            sheet.setColumnWidth(10, 60*256);
+            sheet.setColumnWidth(10, 30*256);
             cell0.setCellValue(list.get(j).getIndustryCategoryName());
             cell1.setCellValue(list.get(j).getEnterpriseName());
             cell2.setCellValue(list.get(j).getEnterpriseProfile());
@@ -699,7 +656,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                 cell10.setCellValue(list.get(j).getLatestProcess());
             }
         }
-        Row titleRow = sheet.createRow(list.size() + 1);
+        Row titleRow = sheet.createRow(list.size() + 2);
         Cell titleCell = titleRow.createCell(0);
         CellStyle style = styleMap.get("note");
         titleCell.setCellStyle(style);
@@ -708,7 +665,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         }else{
             titleCell.setCellValue("备注：");
         }
-        CellRangeAddress range = new CellRangeAddress(list.size() + 1, list.size() + 1, 0, 10);
+        CellRangeAddress range = new CellRangeAddress(list.size() + 2, list.size() + 2, 0, 10);
         sheet.addMergedRegion(range);
         RegionUtil.setBorderLeft(1, range, sheet);
         RegionUtil.setBorderBottom(1, range, sheet);

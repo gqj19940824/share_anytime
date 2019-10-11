@@ -1,33 +1,54 @@
 
 package com.unity.innovation.service;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.client.RbacClient;
+import com.unity.common.client.ReClient;
+import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.FileDownload;
+import com.unity.common.pojos.SystemConfiguration;
+import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
+import com.unity.common.util.FileReaderUtil;
 import com.unity.common.util.JKDates;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.utils.FileDownloadUtil;
 import com.unity.common.utils.UUIDUtil;
+import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.IplSatbMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.SysCfg;
-import com.unity.innovation.enums.IplStatusEnum;
-import com.unity.innovation.enums.SourceEnum;
-import com.unity.innovation.enums.SysCfgEnum;
+import com.unity.innovation.entity.generated.IplAssist;
+import com.unity.innovation.entity.generated.IplLog;
+import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * ClassName: IplSatbMainService
@@ -36,6 +57,7 @@ import java.util.stream.Collectors;
  * @author G
  * @since JDK 1.8
  */
+@Slf4j
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplSatbMain> {
@@ -46,6 +68,16 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     SysCfgServiceImpl sysCfgService;
     @Resource
     IplAssistServiceImpl iplAssistService;
+    @Resource
+    IplManageMainServiceImpl iplManageMainService;
+    @Resource
+    IplLogServiceImpl iplLogService;
+    @Resource
+    RbacClient rbacClient;
+    @Resource
+    SystemConfiguration systemConfiguration;
+    @Resource
+    ReClient reClient;
 
     /**
      * 获取清单列表
@@ -217,7 +249,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         //关联删除附件
         IplSatbMain main = this.getById(id);
         //关联删除协同信息
-        iplAssistService.del(id,main.getIdRbacDepartmentDuty(),main.getAttachmentCode());
+        iplAssistService.del(id, main.getIdRbacDepartmentDuty(), main.getAttachmentCode());
         this.removeById(id);
     }
 
@@ -264,5 +296,261 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         );
         assists.put("detail", detail);
         return assists;
+    }
+
+    /**
+     * 获取系统类别
+     *
+     * @param cfgType 系统类型
+     * @return 类别列表
+     * @author gengjiajia
+     * @since 2019/10/09 19:35
+     */
+    public List<Map<String, Object>> getCategoryBySysType(Integer cfgType) {
+        return sysCfgService.getSysList1(cfgType);
+    }
+
+    /**
+     * 获取协同单位列表
+     *
+     * @return 协同单位列表
+     * @author gengjiajia
+     * @since 2019/10/10 10:23
+     */
+    public List<Map<String, Object>> getAssistDepartmentList(Long id) {
+        //主表id  数据集合
+        IplSatbMain satbMain = this.getById(id);
+        if (satbMain == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("未获取到成长目标投资信息").build();
+        }
+        List<DepartmentVO> departmentList = rbacClient.getAllDepartment();
+        List<IplAssist> assistList = iplAssistService.list(new LambdaQueryWrapper<IplAssist>()
+                .eq(IplAssist::getIdIplMain, id)
+                .eq(IplAssist::getIdRbacDepartmentDuty, satbMain.getIdRbacDepartmentDuty()));
+        List<Long> ids = assistList.stream()
+                .map(IplAssist::getIdRbacDepartmentAssist)
+                .collect(Collectors.toList());
+        List<DepartmentVO> voList = departmentList.stream()
+                .filter(d -> !ids.contains(d.getId()))
+                .collect(Collectors.toList());
+        return JsonUtil.ObjectToList(voList, null, DepartmentVO::getId, DepartmentVO::getName);
+    }
+
+    /**
+     * 保存协同单位信息
+     *
+     * @param id         主业务id
+     * @param assistList 协同单位信息列表
+     * @author gengjiajia
+     * @since 2019/10/10 10:59
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void saveAssistDepartmentList(Long id, List<IplAssist> assistList) {
+        IplSatbMain satbMain = this.getById(id);
+        if (satbMain == null) {
+            throw UnityRuntimeException.newInstance()
+                    .message("未获取到成长目标投资信息")
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .build();
+        }
+        iplAssistService.addAssistant(assistList, satbMain);
+    }
+
+    /**
+     * 实时更新
+     *
+     * @param entity 实时更新数据
+     * @author gengjiajia
+     * @since 2019/10/10 13:36
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void realTimeUpdateStatus(IplLog entity) {
+        IplSatbMain main = this.getById(entity.getIdIplMain());
+        iplLogService.updateStatus(main, entity);
+    }
+
+    /**
+     * 主责单位实时更新协同单位处理状态
+     *
+     * @param entity 包含状态及进展
+     * @author gengjiajia
+     * @since 2019/10/10 13:36
+     */
+    public void realTimeUpdateStatusByDuty(IplLog entity) {
+        IplSatbMain main = this.getById(entity.getIdIplMain());
+        iplLogService.updateStatusByDuty(main.getIdRbacDepartmentDuty(), main.getId(), entity);
+    }
+
+    /**
+     * 清单发布管理列表
+     *
+     * @param search           查询条件
+     * @param departmentSatbId 主责单位id
+     * @return 分页列表
+     * @author gengjiajia
+     * @since 2019/10/10 16:56
+     */
+    public PageElementGrid listForPkg(PageEntity<IplManageMain> search, Long departmentSatbId) {
+        IPage<IplManageMain> list = iplManageMainService.listForPkg(search, departmentSatbId);
+        return PageElementGrid.<Map<String, Object>>newInstance()
+                .total(list.getTotal())
+                .items(convert2ListForPkg(list.getRecords())).build();
+
+    }
+
+    /**
+     * 功能描述 数据整理
+     *
+     * @param list 集合
+     * @return java.util.List 规范数据
+     * @author gengzhiqiang
+     * @date 2019/9/17 13:36
+     */
+    private List<Map<String, Object>> convert2ListForPkg(List<IplManageMain> list) {
+        return JsonUtil.<IplManageMain>ObjectToList(list,
+                (m, entity) -> {
+                    WorkStatusAuditingStatusEnum statusEnum = WorkStatusAuditingStatusEnum.of(entity.getStatus());
+                    m.put("statusName",statusEnum == null ? "" : statusEnum.getName());
+                }, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus, IplManageMain::getStatusName);
+    }
+
+    /**
+     * 新增or修改清单发布
+     *
+     * @param entity 清单发布信息
+     * @author gengjiajia
+     * @since 2019/10/10 16:00
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void saveOrUpdateForPkg(IplManageMain entity) {
+        if (entity.getId() == null) {
+            //新增
+            entity.setAttachmentCode(UUIDUtil.getUUID());
+            //附件
+            attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachments());
+            //待提交
+            entity.setStatus(WorkStatusAuditingStatusEnum.TEN.getId());
+            //提交时间设置最大
+            entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
+            //快照数据
+            entity.setSnapshot(JSON.toJSONString(entity.getIplSatbMainList()));
+            //企服局
+            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_SATB_ID);
+            //保存
+            iplManageMainService.save(entity);
+        } else {
+            //编辑
+            IplManageMain vo = iplManageMainService.getById(entity.getId());
+            if (vo == null) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                        .message("未获取到发布清单信息").build();
+            }
+            if (!(WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getStatus())) ||
+                    WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getStatus())) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("只有待提交和已驳回状态下数据可编辑")
+                        .build();
+            }
+            //快照数据
+            entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
+            //附件
+            attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
+            //修改信息
+            iplManageMainService.updateById(entity);
+        }
+    }
+
+    /**
+     * 获取发布清单详情
+     *
+     * @param id 发布详情
+     * @return 发布清单详情
+     * @author gengjiajia
+     * @since 2019/10/10 17:10
+     */
+    public IplManageMain detailByIdForPkg(Long id) {
+        IplManageMain entity = iplManageMainService.getById(id);
+        if (entity == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到发布清单信息")
+                    .build();
+        }
+        //快照集合
+        List<IplSatbMain> list = JSON.parseArray(entity.getSnapshot(), IplSatbMain.class);
+        entity.setSnapshot("");
+        entity.setIplSatbMainList(list);
+        //附件
+        List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>()
+                .eq(Attachment::getAttachmentCode, entity.getAttachmentCode()));
+        if (CollectionUtils.isNotEmpty(attachmentList)) {
+            entity.setAttachments(attachmentList);
+        }
+        //日志集合 日志节点集合
+        entity = iplManageMainService.setLogs(entity);
+        return entity;
+    }
+
+    /**
+     * 删除发布信息
+     *
+     * @param ids              批量删除id集合
+     * @param departmentSatbId 科技局主责id
+     * @author gengjiajia
+     * @since 2019/10/10 17:12
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void removeByIdsForPkg(List<Long> ids, Long departmentSatbId) {
+        iplManageMainService.removeByIdsForPkg(ids, departmentSatbId);
+    }
+
+    /**
+     * 发布清单提交
+     *
+     * @param entity 发布清单信息
+     * @author gengjiajia
+     * @since 2019/10/10 17:14
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void submit(IplManageMain entity) {
+        iplManageMainService.submit(entity);
+    }
+
+    /**
+     * 下载科技局实时清单资料到zip包
+     *
+     * @param  id 主数据id
+     * @return zip文件
+     * @author gengjiajia
+     * @since 2019/10/11 11:27
+     */
+    public ResponseEntity<byte[]> downloadIplSatbMainDataToZip(Long id) {
+        IplSatbMain main = this.getById(id);
+        if(main == null){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("企业创新发展信息实时清单数据不存在")
+                    .build();
+        }
+        List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>()
+                .eq(Attachment::getAttachmentCode, main.getAttachmentCode()));
+        if(CollectionUtils.isEmpty(attachmentList)){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("企业创新发展信息实时清单无相关资料")
+                    .build();
+        }
+        List<FileDownload> list = attachmentList.stream().map(attachment ->
+             FileDownload.newInstance()
+                    .url(attachment.getUrl())
+                    .name(attachment.getName())
+                    .build()
+        ).collect(Collectors.toList());
+        final String zipFileName = "企业创新发展信息实时清单-相关资料.zip";
+        return FileDownloadUtil.downloadFileToZip(list,zipFileName);
     }
 }
