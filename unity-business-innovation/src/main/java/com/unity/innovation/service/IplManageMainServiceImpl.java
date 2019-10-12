@@ -226,7 +226,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @date 2019/10/10 13:47
      */
     @Transactional(rollbackFor = Exception.class)
-    public void removeByIdsForPkg(List<Long> ids,Long department) {
+    public void removeByIdsForPkg(List<Long> ids) {
         List<IplManageMain> list = list(new LambdaQueryWrapper<IplManageMain>().in(IplManageMain::getId, ids));
         //状态为处理完毕 不可删除
         List<Integer> stateList = com.google.common.collect.Lists.newArrayList();

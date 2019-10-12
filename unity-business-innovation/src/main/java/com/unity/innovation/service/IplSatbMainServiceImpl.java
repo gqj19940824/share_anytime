@@ -505,7 +505,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      */
     @Transactional(rollbackFor = Exception.class)
     public void removeByIdsForPkg(List<Long> ids, Long departmentSatbId) {
-        iplManageMainService.removeByIdsForPkg(ids, departmentSatbId);
+        iplManageMainService.removeByIdsForPkg(ids);
     }
 
     /**

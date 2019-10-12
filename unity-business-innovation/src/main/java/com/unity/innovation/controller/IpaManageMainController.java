@@ -138,7 +138,7 @@ public class IpaManageMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
         }
         //todo 删除单位
-        service.removeByIdsForPkg(ids,InnovationConstant.DEPARTMENT_ESB_ID);
+        service.removeByIdsForPkg(ids);
         return success("删除成功");
     }
 

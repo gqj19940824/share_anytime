@@ -361,7 +361,7 @@ public class IplEsbMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
         }
         //todo 回头删一下
-        iplManageMainService.removeByIdsForPkg(ids,InnovationConstant.DEPARTMENT_ESB_ID);
+        iplManageMainService.removeByIdsForPkg(ids);
         return success("删除成功");
     }
     /**
