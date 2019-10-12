@@ -276,6 +276,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/listForPkg")
     public Mono<ResponseEntity<SystemResponse<Object>>> listForPkg(@RequestBody PageEntity<IplManageMain> search) {
+      //todo
         IPage<IplManageMain> list= iplManageMainService.listForPkg(search,InnovationConstant.DEPARTMENT_ESB_ID);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
@@ -359,6 +360,7 @@ public class IplEsbMainController extends BaseWebController {
         if (ids == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
         }
+        //todo 回头删一下
         iplManageMainService.removeByIdsForPkg(ids,InnovationConstant.DEPARTMENT_ESB_ID);
         return success("删除成功");
     }

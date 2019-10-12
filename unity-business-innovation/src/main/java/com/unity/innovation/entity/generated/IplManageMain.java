@@ -1,15 +1,15 @@
 package com.unity.innovation.entity.generated;
 
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.unity.common.base.BaseEntity;
+import com.unity.common.base.CommentTarget;
 import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.IplSupervisionMain;
 import lombok.*;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.unity.common.base.BaseEntity;
-import com.unity.common.base.CommentTarget;
+
 import java.util.List;
 
 /**
@@ -141,7 +141,7 @@ public class IplManageMain extends BaseEntity{
          **/
         @CommentTarget("企业创新发展数据集合")
         @TableField(exist = false)
-        private List<IplEsbMain> iplEsbMainList;
+        private List iplEsbMainList;
 
         /**
          * 科技局基础数据集合
@@ -152,6 +152,14 @@ public class IplManageMain extends BaseEntity{
 
         @TableField(exist = false)
         private List snapShotList;
+
+        /**
+         * 查询类型
+         **/
+        @CommentTarget("查询类型")
+        @TableField(exist = false)
+        private String category;
+
 
 
 }
