@@ -26,7 +26,7 @@ import com.unity.innovation.service.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -155,6 +155,9 @@ public class IplDarbMainController extends BaseWebController {
     @GetMapping("/detailById/{id}")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@PathVariable("id") Long id) {
         IplDarbMain entity = service.getById(id);
+        if (entity == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
 
         Map<String, Object> resultMap = iplAssistService.totalProcessAndAssists(id, entity.getIdRbacDepartmentDuty(), entity.getProcessStatus());
         resultMap.put("baseInfo", convert2Map(entity));
@@ -222,6 +225,8 @@ public class IplDarbMainController extends BaseWebController {
      * @return
      */
     private List<Map<String, Object>> convert2List(List<IplDarbMain> list){
+
+        Map<Long, Object> collect_ = null;
         Set<Long> ids = new HashSet<>();
         if (CollectionUtils.isNotEmpty(list)){
             list.forEach(e->{
@@ -229,10 +234,12 @@ public class IplDarbMainController extends BaseWebController {
                 ids.add(e.getDemandCategory());
                 ids.add(e.getDemandItem());
             });
+
+            List<SysCfg> values = sysCfgService.getValues(ids);
+            collect_ = values.stream().collect(Collectors.toMap(BaseEntity::getId, mSysCfg::getCfgVal,(k1, k2)->k2));
         }
 
-        List<SysCfg> values = sysCfgService.getValues(ids);
-        Map<Long, Object> collect = values.stream().collect(Collectors.toMap(BaseEntity::getId, mSysCfg::getCfgVal,(k1, k2)->k2));
+        Map<Long, Object> collect = collect_;
 
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {

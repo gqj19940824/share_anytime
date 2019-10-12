@@ -1,11 +1,19 @@
 package com.unity.innovation.configuration;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constant.RedisConstants;
+import com.unity.innovation.constants.ListTypeConstants;
+import com.unity.innovation.entity.IplEsbMain;
+import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.IplTimeOutLog;
+import com.unity.innovation.entity.generated.IplAssist;
+import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.UnitCategoryEnum;
-import com.unity.innovation.service.IplTimeOutLogServiceImpl;
+import com.unity.innovation.service.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,6 +34,14 @@ public class TopicMessageListener implements MessageListener {
     private RedisTemplate<Object,Object> redisTemplate;
     @Resource
     private IplTimeOutLogServiceImpl iplTimeOutLogService;
+    @Resource
+    private IplAssistServiceImpl iplAssistService;
+    @Resource
+    protected IplDarbMainServiceImpl iplDarbMainService;
+    @Resource
+    private IplSatbMainServiceImpl iplSatbMainService;
+    @Resource
+    private IplEsbMainServiceImpl iplEsbMainService;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -42,10 +58,55 @@ public class TopicMessageListener implements MessageListener {
             if (listCategoryEnum != null) {
                 //日志记录
                 recordTimeOutLog(listCategoryEnum.getId(), itemValueArrays[2], itemValueArrays[3].split("-"));
-                //todo 更新清单
+
+                //更新清单
+                updateProcessStatus(itemValueArrays);
             }
         }
 
+    }
+
+    /**
+     * 更新清单
+     *
+     * @param  itemValueArrays redis的key
+     * @author qinhuan
+     * @since 2019-10-11 10:29
+     */
+    private void updateProcessStatus(String[] itemValueArrays) {
+        // 主表id
+        Long idIplMain = Long.parseLong(itemValueArrays[3].split("-")[0]);
+        // 主责单位id
+        Long idRbacDepartmentDuty = ListCategoryEnum.valueOfName(itemValueArrays[1]).getId();
+        // 超时类型
+        Integer processStatus = itemValueArrays[2].equals(ListTypeConstants.DEAL_OVER_TIME)?1:2;
+
+        // 更新主表
+        if(new Integer(0).equals(itemValueArrays[3].split("-")[1])){
+            if (InnovationConstant.DEPARTMENT_DARB_ID.equals(idRbacDepartmentDuty)){
+                iplDarbMainService.update(IplDarbMain.newInstance().processStatus(processStatus).build(), new LambdaQueryWrapper<IplDarbMain>().eq(IplDarbMain::getId, idIplMain));
+            }else if (InnovationConstant.DEPARTMENT_ESB_ID.equals(idRbacDepartmentDuty)){
+                IplEsbMain iplEsbMain = IplEsbMain.newInstance().build();
+                iplEsbMain.setProcessStatus(processStatus);
+                iplEsbMainService.update(iplEsbMain, new LambdaQueryWrapper<IplEsbMain>().eq(IplEsbMain::getId, idIplMain));
+            }else if (InnovationConstant.DEPARTMENT_SUGGESTION_ID.equals(idRbacDepartmentDuty)){
+                // TODO
+            }else if (InnovationConstant.DEPARTMENT_OD_ID.equals(idRbacDepartmentDuty)){
+                // TODO
+            }else if (InnovationConstant.DEPARTMENT_PD_ID.equals(idRbacDepartmentDuty)){
+                // TODO
+            }else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(idRbacDepartmentDuty)){
+                IplSatbMain iplSatbMain = new IplSatbMain();
+                iplSatbMain.setProcessStatus(processStatus);
+                iplSatbMainService.update(iplSatbMain, new LambdaQueryWrapper<IplSatbMain>().eq(IplSatbMain::getId, idIplMain));
+            }
+        // 更新协同表
+        }else {
+            Long idRbacDepartmentAssit = Long.parseLong(itemValueArrays[3].split("-")[1]);
+            LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
+            qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, idRbacDepartmentAssit);
+            iplAssistService.update(IplAssist.newInstance().processStatus(processStatus).build(), qw);
+        }
     }
 
     /**

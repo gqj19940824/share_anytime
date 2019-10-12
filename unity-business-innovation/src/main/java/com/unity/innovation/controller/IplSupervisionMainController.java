@@ -269,7 +269,7 @@ public class IplSupervisionMainController extends BaseWebController {
         if (entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "缺少id");
         }
-        return success(service.detailIplManageMainById(entity.getId()));
+        return success(iplManageMainService.detailIplManageMainById(entity.getId()));
     }
 
     /**

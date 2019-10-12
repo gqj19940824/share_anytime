@@ -16,8 +16,10 @@ import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.IplStatusEnum;
+import com.unity.innovation.enums.ProcessStatusEnum;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +69,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      * @since 2019-10-10 19:05
      */
     @Transactional(rollbackFor = Exception.class)
-    public <T> void updateStatusByDuty(Long idRbacDepartmentDuty, Long idIplMain, IplLog iplLog) {
+    public void updateStatusByDuty(Long idRbacDepartmentDuty, Long idIplMain, IplLog iplLog) {
         LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
         qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, iplLog.getIdRbacDepartmentAssist());
         IplAssist iplAssist = iplAssistService.getOne(qw);
@@ -120,9 +122,13 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                 iplLog.setIdRbacDepartmentAssist(0L);
                 iplLogService.save(iplLog);
 
+                // 将状数据态置为"处理中"，将超时状态置为"进展正常"
+                updateStatus(entity);
+
                 // 更新redis的超时
                 redisSubscribeService.saveSubscribeInfo(id+"-0", ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
             }
+        // 协同单位
         }else {
             if (IplStatusEnum.DONE.getId().equals(dealStatus)){
                 // 如果协同单位关闭了协同则修改协同状态
@@ -144,6 +150,32 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
     }
 
     /**
+     * 将状数据态置为"处理中"，将超时状态置为"进展正常"
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019-10-11 14:34
+     */
+    public <T> void updateStatus(T entity) {
+        Integer status = (Integer) ReflectionUtils.getFieldValue(entity, "status");
+        Integer processStatus = (Integer) ReflectionUtils.getFieldValue(entity, "processStatus");
+        boolean flag = false;
+        if (IplStatusEnum.UNDEAL.getId().equals(status)){
+            ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DEALING.getId());
+            flag = true;
+        }
+        if (!ProcessStatusEnum.NORMAL.getId().equals(processStatus)){
+            ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
+            flag = true;
+        }
+
+        if (flag){
+            updateMain(entity);
+        }
+    }
+
+    /**
      * 休改主表状态 并休改协同表状态，各插入一个日志、各清除redis超时
      *
      * @param
@@ -153,7 +185,8 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      */
     private <T> void dutyDone(T entity, Long idRbacDepartmentDuty, Long id, Integer dealStatus) {
         // 更新主表状态、删除主表的redis超时设置
-        updateMainStatus(entity);
+        ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DONE.getId());
+        updateMain(entity);
         // 删除主表的redis超时设置
         redisSubscribeService.removeRecordInfo(id+"-0", idRbacDepartmentDuty);
 
@@ -193,9 +226,8 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      * @author qinhuan
      * @since 2019-10-10 16:28
      */
-    private <T> void updateMainStatus(T entity) {
+    public <T> void updateMain(T entity) {
         // 更新主表状态
-        ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DONE.getId());
         if (entity instanceof IplDarbMain){
             IplDarbMain iplDarbMain = (IplDarbMain)entity;
             iplDarbMainService.updateById(iplDarbMain);
