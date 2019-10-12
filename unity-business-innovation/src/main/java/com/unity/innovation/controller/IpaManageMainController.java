@@ -94,7 +94,7 @@ public class IpaManageMainController extends BaseWebController {
     }
 
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(IplManageMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getTitle, IplManageMain::getIplEsbMainList);
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getTitle, IplManageMain::getDataList);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
         }

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
+import com.google.gson.reflect.TypeToken;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
@@ -18,6 +19,7 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.FileReaderUtil;
+import com.unity.common.util.GsonUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.ExcelStyleUtil;
 import com.unity.common.utils.HashRedisUtils;
@@ -525,7 +527,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         //快照集合
         List<IplEsbMain> list = JSON.parseArray(entity.getSnapshot(), IplEsbMain.class);
         entity.setSnapshot("");
-        entity.setIplEsbMainList(list);
+       // entity.setIplEsbMainList(list);
         //附件
         List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode, entity.getAttachmentCode()));
         if (CollectionUtils.isNotEmpty(attachmentList)) {
@@ -602,7 +604,8 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
     }
 
     private void addData(HSSFSheet sheet, IplManageMain entity, Map<String,CellStyle> styleMap) {
-        List<IplEsbMain> list = entity.getIplEsbMainList();
+        List<IplEsbMain> list = GsonUtils.parse(entity.getSnapshot(), new TypeToken<List<IplEsbMain>>() {
+        });
         CellStyle sty = styleMap.get("data");
         int rowNum = 2;
         for (int j = 0; j < list.size(); j++) {

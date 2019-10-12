@@ -134,9 +134,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      */
     public IPage<IplManageMain> listForPkg(PageEntity<IplManageMain> search,Long department) {
         LambdaQueryWrapper<IplManageMain> lqw = new LambdaQueryWrapper<>();
-        if (search != null) {
+        if (search != null && search.getEntity() != null) {
             //提交时间
-            //todo entity!=null
             if (StringUtils.isNotBlank(search.getEntity().getSubmitTime())) {
                 //gt 大于 lt 小于
                 long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), true);
@@ -187,11 +186,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
             //快照数据 根据不同单位 切换不同vo
             if (InnovationConstant.DEPARTMENT_ESB_ID.equals(department)) {
-                entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
-                //todo Gsonutil
-                // DataList
-                GsonUtils.format(entity.getIplEsbMainList());
-               // GsonUtils.parse()
+                //数据集合
+                entity.setSnapshot(GsonUtils.format(entity.getDataList()));
             }
             //各局
             entity.setIdRbacDepartmentDuty(department);
@@ -213,7 +209,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             }
             //快照数据 根据不同单位 切换不同vo
             if (InnovationConstant.DEPARTMENT_ESB_ID.equals(department)) {
-                entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
+                entity.setSnapshot( GsonUtils.format(entity.getDataList()));
             }
             //附件
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());

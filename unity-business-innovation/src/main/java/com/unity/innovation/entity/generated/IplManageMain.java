@@ -137,11 +137,11 @@ public class IplManageMain extends BaseEntity{
         private List<IplmManageLog> processNodeList;
 
         /**
-         * 企服局基础数据集合
+         * 数据集合
          **/
-        @CommentTarget("企业创新发展数据集合")
+        @CommentTarget("数据集合")
         @TableField(exist = false)
-        private List iplEsbMainList;
+        private List dataList;
 
         /**
          * 科技局基础数据集合

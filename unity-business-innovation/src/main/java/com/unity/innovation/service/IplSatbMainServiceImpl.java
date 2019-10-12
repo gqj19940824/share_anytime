@@ -456,7 +456,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                         .build();
             }
             //快照数据
-            entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
+            entity.setSnapshot(JSON.toJSONString(entity.getDataList()));
             //附件
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
             //修改信息
