@@ -1,10 +1,12 @@
 package com.unity.innovation.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
@@ -14,6 +16,7 @@ import com.unity.innovation.dao.IplManageMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.generated.*;
 import com.unity.innovation.enums.IplmStatusEnum;
+import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,10 +33,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * ClassName: IplManageMainService
- * Function: TODO ADD FUNCTION
- * Reason: TODO ADD REASON(可选)
- * date: 2019-09-21 15:45:37
  *
  * @author zhang
  * @since JDK 1.8
@@ -327,4 +326,80 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         log.setContent("提交发布需求");
         logService.save(log);
     }
+
+
+    /**
+     * 详情接口
+     *
+     * @param id 主键
+     * @return com.unity.innovation.entity.generated.IplManageMain
+     * @author JH
+     * @date 2019/10/10 10:56
+     */
+    public IplManageMain detailIplManageMainById(Long id) {
+        IplManageMain iplManageMain = super.getById(id);
+        if (iplManageMain == null) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("数据不存在").build();
+        }
+        String attachmentCode = iplManageMain.getAttachmentCode();
+        iplManageMain.setAttachments(attachmentService.list(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode,attachmentCode)));
+        iplManageMain.setSnapShotList(JSONArray.parseArray(iplManageMain.getSnapshot(),Map.class));
+        iplManageMain.setSnapshot("");
+        //操作记录
+        List<IplmManageLog> logList = logService.list(new LambdaQueryWrapper<IplmManageLog>()
+                .eq(IplmManageLog::getIdRbacDepartment, InnovationConstant.DEPARTMENT_SUGGESTION_ID)
+                .eq(IplmManageLog::getIdIplManageMain, id)
+                .orderByDesc(IplmManageLog::getGmtCreate));
+        logList.forEach(n -> {
+            n.setStatusName(Objects.requireNonNull(WorkStatusAuditingProcessEnum.of(n.getStatus())).getName());
+            n.setDepartmentName(InnovationUtil.getDeptNameById(n.getIdRbacDepartment()));
+        });
+        iplManageMain.setLogList(logList);
+        //按状态进行分组,同时只取时间最小的那一条数据
+        Map<Integer, IplmManageLog> map = logList.stream()
+                .filter(n -> !WorkStatusAuditingStatusEnum.FORTY.getId().equals(n.getStatus()))
+                .collect(Collectors.toMap(IplmManageLog::getStatus, Function.identity(), BinaryOperator.minBy(Comparator.comparingLong(IplmManageLog::getGmtCreate))));
+        Set<Integer> statusSet = map.keySet();
+        List<IplmManageLog> processNodeList = Lists.newArrayList();
+        for (int status : statusSet) {
+            IplmManageLog log = map.get(status);
+            processNodeList.add(log);
+        }
+        iplManageMain.setProcessNodeList(processNodeList);
+        return iplManageMain;
+    }
+
+    /**
+     * 通过/驳回
+     *
+     * @param idIplManageMain 发布清单主表id
+     * @param yesOrNo         1：通过 0:驳回
+     * @param content         意见
+     * @return 错误信息 成功返回success
+     * @author JH
+     * @date 2019/10/9 16:47
+     */
+    public void passOrReject(Long idIplManageMain, Integer yesOrNo, String content) {
+        IplManageMain old = super.getById(idIplManageMain);
+        //待审核才能审核
+        if (WorkStatusAuditingStatusEnum.TWENTY.getId().equals(old.getStatus())) {
+            //通过
+            if (YesOrNoEnum.YES.getType() == yesOrNo) {
+                old.setStatus(WorkStatusAuditingStatusEnum.THIRTY.getId());
+                //驳回
+            } else {
+                old.setStatus(WorkStatusAuditingStatusEnum.FORTY.getId());
+            }
+            super.updateById(old);
+            //记录日志
+            logService.saveLog(InnovationConstant.DEPARTMENT_SUGGESTION_ID, old.getStatus(), content, idIplManageMain);
+        } else {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("此状态不能不能审核").build();
+        }
+
+    }
+
+
 }

@@ -20,7 +20,6 @@ import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.entity.generated.IplmManageLog;
 import com.unity.innovation.enums.IplCategoryEnum;
-import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
@@ -31,19 +30,15 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.unity.innovation.entity.IplSupervisionMain;
 import com.unity.innovation.dao.IplSupervisionMainDao;
-
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
@@ -149,75 +144,8 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
     }
 
 
-    /**
-     * 通过/驳回
-     *
-     * @param idIplManageMain 发布清单主表id
-     * @param yesOrNo         1：通过 0:驳回
-     * @param content         意见
-     * @return 错误信息 成功返回success
-     * @author JH
-     * @date 2019/10/9 16:47
-     */
-    public String passOrReject(Long idIplManageMain, Integer yesOrNo, String content) {
-        IplManageMain old = iplManageMainService.getById(idIplManageMain);
-        //待审核才能审核
-        if (WorkStatusAuditingStatusEnum.TWENTY.getId().equals(old.getStatus())) {
-            //通过
-            if (YesOrNoEnum.YES.getType() == yesOrNo) {
-                old.setStatus(WorkStatusAuditingStatusEnum.THIRTY.getId());
-                //驳回
-            } else {
-                old.setStatus(WorkStatusAuditingStatusEnum.FORTY.getId());
-            }
-            iplManageMainService.updateById(old);
-            //记录日志
-            logService.saveLog(InnovationConstant.DEPARTMENT_SUGGESTION_ID, old.getStatus(), content, idIplManageMain);
-        } else {
-            return "此状态不能不能审核";
-        }
 
-        return "success";
-    }
 
-    /**
-     * 详情接口
-     *
-     * @param id 主键
-     * @return com.unity.innovation.entity.generated.IplManageMain
-     * @author JH
-     * @date 2019/10/10 10:56
-     */
-    public IplManageMain detailIplManageMainById(Long id) {
-        IplManageMain iplManageMain = iplManageMainService.getById(id);
-        if (iplManageMain == null) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("数据不存在").build();
-        }
-        iplManageMain.setSupervisionMainList(JSON.parseArray(iplManageMain.getSnapshot(), IplSupervisionMain.class));
-        //操作记录
-        List<IplmManageLog> logList = logService.list(new LambdaQueryWrapper<IplmManageLog>()
-                .eq(IplmManageLog::getIdRbacDepartment, InnovationConstant.DEPARTMENT_SUGGESTION_ID)
-                .eq(IplmManageLog::getIdIplManageMain, id)
-                .orderByDesc(IplmManageLog::getGmtCreate));
-        logList.forEach(n -> {
-            n.setStatusName(Objects.requireNonNull(WorkStatusAuditingProcessEnum.of(n.getStatus())).getName());
-            n.setDepartmentName(InnovationUtil.getDeptNameById(n.getIdRbacDepartment()));
-        });
-        iplManageMain.setLogList(logList);
-        //按状态进行分组,同时只取时间最小的那一条数据
-        Map<Integer, IplmManageLog> map = logList.stream()
-                .filter(n -> !WorkStatusAuditingStatusEnum.FORTY.getId().equals(n.getStatus()))
-                .collect(Collectors.toMap(IplmManageLog::getStatus, Function.identity(), BinaryOperator.minBy(Comparator.comparingLong(IplmManageLog::getGmtCreate))));
-        Set<Integer> statusSet = map.keySet();
-        List<IplmManageLog> processNodeList = Lists.newArrayList();
-        for (int status : statusSet) {
-            IplmManageLog log = map.get(status);
-            processNodeList.add(log);
-        }
-        iplManageMain.setProcessNodeList(processNodeList);
-        return iplManageMain;
-    }
 
     /**
      * 查询条件转换

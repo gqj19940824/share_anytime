@@ -150,6 +150,10 @@ public class IplManageMain extends BaseEntity{
         @TableField(exist = false)
         private List<IplSatbMain> iplSatbMainList;
 
+        @TableField(exist = false)
+        private List snapShotList;
+
+
 }
 
 
