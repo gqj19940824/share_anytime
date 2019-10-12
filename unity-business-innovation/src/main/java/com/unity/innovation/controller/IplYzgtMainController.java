@@ -199,7 +199,7 @@ public class IplYzgtMainController extends BaseWebController {
         if (StringUtils.isNotBlank(entity.getEnterpriseName()) && entity.getEnterpriseName().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "企业名称限制50字");
         }
-        if (entity.getPost().length() > ParamConstants.PARAM_MAX_LENGTH_20) {
+        if (entity.getPost().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "职位限制50字");
         }
         if (entity.getIdCard().length() > ParamConstants.PARAM_MAX_LENGTH_18) {
