@@ -10,6 +10,7 @@ import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.util.GsonUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.IplManageMainDao;
@@ -133,7 +134,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      */
     public IPage<IplManageMain> listForPkg(PageEntity<IplManageMain> search,Long department) {
         LambdaQueryWrapper<IplManageMain> lqw = new LambdaQueryWrapper<>();
-        if (search != null) {
+        if (search != null && search.getEntity() != null) {
             //提交时间
             if (StringUtils.isNotBlank(search.getEntity().getSubmitTime())) {
                 //gt 大于 lt 小于
@@ -156,9 +157,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         if (CollectionUtils.isNotEmpty(list.getRecords())) {
             list.getRecords().forEach(p -> {
                 if (p.getStatus() != null) {
-                    if (WorkStatusAuditingStatusEnum.exist(p.getStatus())) {
-                        p.setStatusName(WorkStatusAuditingStatusEnum.of(p.getStatus()).getName());
-                    }
+                    WorkStatusAuditingStatusEnum aa = WorkStatusAuditingStatusEnum.of(p.getStatus());
+                    p.setStatusName(aa!=null? aa.getName():null);
                 }
             });
         }
@@ -177,7 +177,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     public void saveOrUpdateForPkg(IplManageMain entity, Long department) {
         if (entity.getId() == null) {
             //新增
-            entity.setAttachmentCode(UUIDUtil.getUUID().replace("-", ""));
+            entity.setAttachmentCode(UUIDUtil.getUUID());
             //附件
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachments());
             //待提交
@@ -186,7 +186,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
             //快照数据 根据不同单位 切换不同vo
             if (InnovationConstant.DEPARTMENT_ESB_ID.equals(department)) {
-                entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
+                //数据集合
+                entity.setSnapshot(GsonUtils.format(entity.getDataList()));
             }
             //各局
             entity.setIdRbacDepartmentDuty(department);
@@ -208,7 +209,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             }
             //快照数据 根据不同单位 切换不同vo
             if (InnovationConstant.DEPARTMENT_ESB_ID.equals(department)) {
-                entity.setSnapshot(JSON.toJSONString(entity.getIplEsbMainList()));
+                entity.setSnapshot( GsonUtils.format(entity.getDataList()));
             }
             //附件
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
@@ -225,7 +226,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @date 2019/10/10 13:47
      */
     @Transactional(rollbackFor = Exception.class)
-    public void removeByIdsForPkg(List<Long> ids,Long department) {
+    public void removeByIdsForPkg(List<Long> ids) {
         List<IplManageMain> list = list(new LambdaQueryWrapper<IplManageMain>().in(IplManageMain::getId, ids));
         //状态为处理完毕 不可删除
         List<Integer> stateList = com.google.common.collect.Lists.newArrayList();
@@ -245,7 +246,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         removeByIds(ids);
         //删除日志
         logService.remove(new LambdaQueryWrapper<IplmManageLog>()
-                .eq(IplmManageLog::getIdRbacDepartment, department)
+                .eq(IplmManageLog::getIdRbacDepartment, list.get(0).getIdRbacDepartmentDuty())
                 .in(IplmManageLog::getIdIplManageMain, ids));
     }
 
@@ -348,7 +349,6 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         iplManageMain.setSnapshot("");
         //操作记录
         List<IplmManageLog> logList = logService.list(new LambdaQueryWrapper<IplmManageLog>()
-                .eq(IplmManageLog::getIdRbacDepartment, InnovationConstant.DEPARTMENT_SUGGESTION_ID)
                 .eq(IplmManageLog::getIdIplManageMain, id)
                 .orderByDesc(IplmManageLog::getGmtCreate));
         logList.forEach(n -> {

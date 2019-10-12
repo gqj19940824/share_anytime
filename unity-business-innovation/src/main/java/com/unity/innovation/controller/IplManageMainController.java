@@ -1,30 +1,25 @@
 package com.unity.innovation.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constant.InnovationConstant;
-import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
-import com.unity.common.ui.SearchCondition;
-import com.unity.common.ui.SearchElementGrid;
-import com.unity.common.ui.excel.ExcelEntity;
-import com.unity.common.ui.excel.ExportEntity;
-import com.unity.common.util.ConvertUtil;
-import com.unity.common.util.DateUtils;
+import com.unity.common.ui.PageEntity;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.util.ValidFieldUtil;
+import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.service.IplManageMainServiceImpl;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import reactor.core.publisher.Mono;
 
-import javax.servlet.http.HttpServletResponse;
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
@@ -36,188 +31,142 @@ import java.util.Map;
 @Controller
 @RequestMapping("/iplmanagemain")
 public class IplManageMainController extends BaseWebController {
-    @Autowired
+    @Resource
     IplManageMainServiceImpl service;
 
-     /**
-     * 获取一页数据
-     * @param search 统一查询条件
-     * @return
+    /**
+     * 功能描述 分页列表查询
+     * @param search 查询条件
+     * @return 分页数据
+     * @author gengzhiqiang
+     * @date 2019/9/17 13:36
      */
     @PostMapping("/listByPage")
-    @ResponseBody
-    public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody SearchElementGrid search) {
-    
-        LambdaQueryWrapper<IplManageMain> ew = wrapper(search);
-
-        IPage p = service.page(search.getPageable(), ew);
-        PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
-                .total(p.getTotal())
-                .items(convert2List(p.getRecords())).build();
+    public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplManageMain> search) {
+        Long category = 0L;
+        if (search != null && search.getEntity() != null) {
+            category = getCategory(search.getEntity());
+        }
+        IPage<IplManageMain> list= service.listForPkg(search,category);
+        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
+                .total(list.getTotal())
+                .items(convert2ListForPkg(list.getRecords())).build();
         return success(result);
-
-    }
-    
-         /**
-     * 添加或修改
-     * @param entity 创新发布清单-发布管理主表实体
-     * @return
-     */
-    @PostMapping("/saveOrUpdate")
-    @ResponseBody
-    public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IplManageMain entity) {
-
-        if (entity.getId() == null){
-            service.add(entity);
-        }else {
-
-        }
-
-        return success(InnovationConstant.SUCCESS);
-    }
-    
-    @RequestMapping({"/export/excel"})
-    public void exportExcel(HttpServletResponse res, String cond) {
-        String fileName="创新发布清单-发布管理主表";
-        ExportEntity<IplManageMain> excel =  ExcelEntity.exportEntity(res);
-
-        try {
-            SearchElementGrid search = new SearchElementGrid();
-            search.setCond(JSON.parseObject(cond, SearchCondition.class));
-            LambdaQueryWrapper<IplManageMain> ew = wrapper(search);
-            List<IplManageMain> list = service.list(ew);
-     
-            excel
-                .addColumn(IplManageMain::getId,"编号")
-                .addColumn(IplManageMain::getNotes,"备注")
-                .addColumn(IplManageMain::getEditor,"修改人")
-                .addColumn(IplManageMain::getTitle,"标题")
-                .addColumn(IplManageMain::getStatus,"状态")
-                .addColumn(IplManageMain::getAttachmentCode,"附件")
-                .addColumn(IplManageMain::getIdRbacDepartmentDuty,"单位id")
-                .addColumn(IplManageMain::getPublishResult,"发布结果")
-                 .export(fileName,convert2List(list));
-        }
-        catch (Exception ex){
-            excel.exportError(fileName,ex);
-        }
-    }
-
-    
-     /**
-     * 获取数据
-     * @param search 统一查询条件
-     * @return
-     */
-    @PostMapping("/list")
-    @ResponseBody
-    public Mono<ResponseEntity<SystemResponse<Object>>> list(@RequestBody SearchElementGrid search) {
-    
-        LambdaQueryWrapper<IplManageMain> ew = wrapper(search);
-
-        List list = service.list(ew);
-        PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
-                .total(Long.valueOf(list.size()))
-                .items(convert2List(list)).build();
-        return success(result);
-
     }
 
     /**
-     * 查询条件转换
-     * @param search 统一查询对象
-     * @return
+     * 功能描述 数据整理
+     * @param list 集合
+     * @return java.util.List 规范数据
+     * @author gengzhiqiang
+     * @date 2019/9/17 13:36
      */
-    private LambdaQueryWrapper<IplManageMain> wrapper(SearchElementGrid search){
-        LambdaQueryWrapper<IplManageMain> ew = null;
-        if(search!=null){
-            if(search.getCond()!=null){
-                search.getCond().findRule(IplManageMain::getGmtCreate).forEach(r->{
-                   r.setData(DateUtils.parseDate(r.getData()).getTime());
-                });
-                search.getCond().findRule(IplManageMain::getGmtModified).forEach(r->{
-                   r.setData(DateUtils.parseDate(r.getData()).getTime());
-                });
-            }
-            ew = search.toEntityLambdaWrapper(IplManageMain.class);
-
-        }
-        else{
-            ew = new LambdaQueryWrapper<IplManageMain>();
-        }
-
-        ew.orderBy(true, false,IplManageMain::getSort);
-        
-        return ew;
-    }
-    
-    
-    
-     /**
-     * 将实体列表 转换为List Map
-     * @param list 实体列表
-     * @return
-     */
-    private List<Map<String, Object>> convert2List(List<IplManageMain> list){
-       
+    private List<Map<String, Object>> convert2ListForPkg(List<IplManageMain> list) {
         return JsonUtil.<IplManageMain>ObjectToList(list,
                 (m, entity) -> {
-                    adapterField(m, entity);
-                }
-                ,IplManageMain::getId,IplManageMain::getSort,IplManageMain::getNotes,IplManageMain::getTitle,IplManageMain::getStatus,IplManageMain::getAttachmentCode,IplManageMain::getIdRbacDepartmentDuty,IplManageMain::getPublishResult
-        );
+                }, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus,IplManageMain::getStatusName);
     }
-    
-     /**
-     * 将实体 转换为 Map
-     * @param ent 实体
-     * @return
-     */
-    private Map<String, Object> convert2Map(IplManageMain ent){
-        return JsonUtil.<IplManageMain>ObjectToMap(ent,
-                (m, entity) -> {
-                    adapterField(m,entity);
-                }
-                , IplManageMain::getId,IplManageMain::getIsDeleted,IplManageMain::getSort,IplManageMain::getNotes,IplManageMain::getTitle,IplManageMain::getStatus,IplManageMain::getAttachmentCode,IplManageMain::getIdRbacDepartmentDuty,IplManageMain::getPublishResult
-        );
-    }
-    
+
+
+
     /**
-     * 字段适配
-     * @param m 适配的结果
-     * @param entity 需要适配的实体
+     * 功能描述 包的新增编辑
+     *
+     * @param entity 保存计划
+     * @return 成功返回成功信息
+     * @author gengzhiqiang
+     * @date 2019/7/26 16:12
      */
-    private void adapterField(Map<String, Object> m,IplManageMain entity){
-        if(!StringUtils.isEmpty(entity.getCreator())) {
-            if(entity.getCreator().indexOf(ConstString.SEPARATOR_POINT)>-1) {
-                m.put("creator", entity.getCreator().split(ConstString.SPLIT_POINT)[1]);
-            }
-            else {
-                m.put("creator", entity.getCreator());
+    @PostMapping("/saveOrUpdate")
+    public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody IplManageMain entity) {
+        Mono<ResponseEntity<SystemResponse<Object>>> obj = verifyParam(entity);
+        if (obj != null) {
+            return obj;
+        }
+        Long category = getCategory(entity);
+        service.saveOrUpdateForPkg(entity,category);
+        return success("操作成功");
+    }
+
+    private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(IplManageMain entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getTitle, IplManageMain::getDataList);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        if (StringUtils.isNotBlank(entity.getNotes()) && entity.getNotes().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注字数限制500字");
+        }
+        if (entity.getTitle().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "标题字数限制50字");
+        }
+        return null;
+    }
+
+    /**
+     * 功能描述 发改局包详情接口
+     *
+     * @param entity 对象
+     * @return 返回信息
+     * @author gengzhiqiang
+     * @date 2019/9/17 15:51
+     */
+    @PostMapping("/detailById")
+    public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody IplManageMain entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getId);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        return success(service.detailIplManageMainById(entity.getId()));
+    }
+
+    /**
+     * 功能描述 批量删除包
+     *
+     * @param ids id集合
+     * @return 成功返回成功信息
+     * @author gengzhiqiang
+     * @date 2019/7/26 16:17
+     */
+    @PostMapping("/removeByIds")
+    public Mono<ResponseEntity<SystemResponse<Object>>> removeByIds(@RequestBody List<Long> ids) {
+        if (ids == null) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
+        }
+        //todo 删除单位
+        service.removeByIdsForPkg(ids);
+        return success("删除成功");
+    }
+
+    /**
+     * 功能描述 提交接口
+     *
+     * @param entity 实体
+     * @return 成功返回成功信息
+     * @author gengzhiqiang
+     * @date 2019/7/26 16:12
+     */
+    @PostMapping("/submit")
+    public Mono<ResponseEntity<SystemResponse<Object>>> submit(@RequestBody IplManageMain entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity,IplManageMain::getId,IplManageMain::getCategory);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        Long category = getCategory(entity);
+        entity.setIdRbacDepartmentDuty(category);
+        service.submit(entity);
+        return success("操作成功");
+    }
+
+
+    private Long getCategory(IplManageMain entity) {
+        Long category = 0L;
+        if (entity != null) {
+            ListCategoryEnum categoryEnum = ListCategoryEnum.valueOfName(entity.getCategory());
+            if (categoryEnum != null) {
+                category = categoryEnum.getId();
             }
         }
-        if(!StringUtils.isEmpty(entity.getEditor())) {
-            if(entity.getEditor().indexOf(ConstString.SEPARATOR_POINT)>-1) {
-                m.put("editor", entity.getEditor().split(ConstString.SPLIT_POINT)[1]);
-            }
-            else {
-                m.put("editor", entity.getEditor());
-            }
-        }
-        
-        m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
-        m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
-    }
-    
-    /**
-     * 批量删除
-     * @param ids id列表用英文逗号分隔
-     * @return
-     */
-    @DeleteMapping("/del/{ids}")
-    public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
-        service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(InnovationConstant.SUCCESS);
+        return category;
     }
 }
 
