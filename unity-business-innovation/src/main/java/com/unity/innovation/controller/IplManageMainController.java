@@ -2,6 +2,7 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -10,6 +11,7 @@ import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.ListCategoryEnum;
+import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.IplManageMainServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +64,7 @@ public class IplManageMainController extends BaseWebController {
      * @date 2019/9/17 13:36
      */
     private List<Map<String, Object>> convert2ListForPkg(List<IplManageMain> list) {
-        return JsonUtil.<IplManageMain>ObjectToList(list,
+        return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
                 }, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus,IplManageMain::getStatusName);
     }
@@ -168,5 +170,27 @@ public class IplManageMainController extends BaseWebController {
         }
         return category;
     }
+
+
+    /**
+    * 通过/驳回
+    *
+    * @param entity 实体
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/10/12 17:28
+    */
+    @PostMapping("/passOrReject")
+    public Mono<ResponseEntity<SystemResponse<Object>>> passOrReject(@RequestBody IplManageMain entity) {
+        IplManageMain old = service.getById(entity.getId());
+        //待审核才能审核
+        if(!WorkStatusAuditingStatusEnum.TWENTY.getId().equals(old.getStatus())) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("此状态不能不能审核").build();
+        }
+        service.passOrReject(entity,old);
+        return success();
+    }
+
 }
 

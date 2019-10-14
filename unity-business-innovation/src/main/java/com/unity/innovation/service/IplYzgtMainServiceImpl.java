@@ -9,15 +9,11 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JKDates;
-import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.IplYzgtMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplYzgtMain;
-import com.unity.innovation.entity.IplYzgtMain;
 import com.unity.innovation.enums.SourceEnum;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,10 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.*;
 
 /**
  * 亦庄国投业务处理
@@ -75,7 +68,7 @@ public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplY
         if (entity.getSource() != null) {
             lqw.eq(IplYzgtMain::getSource, entity.getSource());
         }
-        //时间段
+        //时间段 todo
         if (StringUtils.isNotBlank(entity.getCreateDate())) {
             String createTime = entity.getCreateDate();
             String[] dateArr = createTime.split("-");

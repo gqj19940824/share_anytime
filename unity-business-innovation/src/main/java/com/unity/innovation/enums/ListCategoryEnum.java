@@ -17,6 +17,8 @@ public enum ListCategoryEnum {
     DEPARTMENT_ESB(InnovationConstant.DEPARTMENT_ESB_ID,"DEPARTMENT_ESB_CONTROL"),
     DEPARTMENT_SATB(InnovationConstant.DEPARTMENT_SATB_ID,"DEPARTMENT_SATB_CONTROL"),
     DEPARTMENT_OD(InnovationConstant.DEPARTMENT_OD_ID,"DEPARTMENT_OD_CONTROL"),
+    DEPARTMENT_SUGGESTION_ID(InnovationConstant.DEPARTMENT_SUGGESTION_ID,"DEPARTMENT_SUGGESTION_CONTROL"),
+
     ;
     
     
@@ -33,6 +35,9 @@ public enum ListCategoryEnum {
         }
         if (id.equals(DEPARTMENT_SATB.getId())) {
             return DEPARTMENT_SATB;
+        }
+        if (id.equals(DEPARTMENT_SUGGESTION_ID.getId())) {
+            return DEPARTMENT_SUGGESTION_ID;
         }
        return null;
     }

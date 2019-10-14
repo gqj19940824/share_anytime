@@ -4,9 +4,7 @@ import com.unity.common.constant.RedisConstants;
 import com.unity.common.pojos.Dic;
 import com.unity.common.utils.DicUtils;
 import com.unity.innovation.constants.ListTypeConstants;
-import com.unity.innovation.entity.IplTimeOutLog;
 import com.unity.innovation.enums.ListCategoryEnum;
-import com.unity.innovation.enums.UnitCategoryEnum;
 import com.unity.innovation.util.RedisPoolUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -51,7 +49,7 @@ public class RedisSubscribeServiceImpl {
                 //String[] idArrays = id.split("-");
                 //超时未处理
                 if (ListTypeConstants.DEAL_OVER_TIME.equals(overTimeType)) {
-                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 10));
+                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600));
                     //超时未更新
                 } else if (ListTypeConstants.UPDATE_OVER_TIME.equals(overTimeType)) {
                     removeRecordInfo(id, ListTypeConstants.DEAL_OVER_TIME, departmentId);
