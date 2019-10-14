@@ -31,8 +31,6 @@ import javax.annotation.Resource;
 public class TopicMessageListener implements MessageListener {
 
     @Resource
-    private RedisTemplate<Object,Object> redisTemplate;
-    @Resource
     private IplTimeOutLogServiceImpl iplTimeOutLogService;
     @Resource
     private IplAssistServiceImpl iplAssistService;
@@ -42,6 +40,8 @@ public class TopicMessageListener implements MessageListener {
     private IplSatbMainServiceImpl iplSatbMainService;
     @Resource
     private IplEsbMainServiceImpl iplEsbMainService;
+    @Resource
+    private SysMessageReadLogServiceImpl sysMessageReadLogService;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -61,6 +61,8 @@ public class TopicMessageListener implements MessageListener {
 
                 //更新清单
                 updateProcessStatus(itemValueArrays);
+                //todo 发送给那些人消息
+                //sysMessageReadLogService.updateMessageNumToUserIdList();
             }
         }
 
