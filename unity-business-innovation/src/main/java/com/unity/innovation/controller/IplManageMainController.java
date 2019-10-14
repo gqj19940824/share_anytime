@@ -29,7 +29,7 @@ import java.util.Map;
  * 生成时间 2019-09-21 15:45:37
  */
 @Controller
-@RequestMapping("/iplmanagemain")
+@RequestMapping("/iplManageMain")
 public class IplManageMainController extends BaseWebController {
     @Resource
     IplManageMainServiceImpl service;
