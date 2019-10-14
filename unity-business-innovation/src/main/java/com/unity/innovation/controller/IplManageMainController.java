@@ -14,12 +14,11 @@ import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.IplManageMainServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +28,7 @@ import java.util.Map;
  * @author zhang
  * 生成时间 2019-09-21 15:45:37
  */
-@Controller
+@RestController
 @RequestMapping("/iplManageMain")
 public class IplManageMainController extends BaseWebController {
     @Resource
@@ -169,6 +168,18 @@ public class IplManageMainController extends BaseWebController {
         }
         service.passOrReject(entity,old);
         return success();
+    }
+
+    /**
+    * 提交单位下拉框数据
+    *
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/10/14 14:19
+    */
+    @PostMapping("/submitDepartmentList")
+    public Mono<ResponseEntity<SystemResponse<Object>>> submitDepartmentList() {
+        return success(service.submitDepartmentList());
     }
 
 }
