@@ -150,6 +150,13 @@ public class IplManageMain extends BaseEntity{
         @TableField(exist = false)
         private List<IplSatbMain> iplSatbMainList;
 
+        /**
+         * 企服局基础数据集合
+         **/
+        @CommentTarget("企服局数据集合")
+        @TableField(exist = false)
+        private List<IplDarbMain> iplDarbMainList;
+
 }
 
 

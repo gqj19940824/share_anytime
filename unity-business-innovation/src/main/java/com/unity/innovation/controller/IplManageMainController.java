@@ -58,24 +58,6 @@ public class IplManageMainController extends BaseWebController {
 
     }
     
-         /**
-     * 添加或修改
-     * @param entity 创新发布清单-发布管理主表实体
-     * @return
-     */
-    @PostMapping("/saveOrUpdate")
-    @ResponseBody
-    public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IplManageMain entity) {
-
-        if (entity.getId() == null){
-            service.add(entity);
-        }else {
-
-        }
-
-        return success(InnovationConstant.SUCCESS);
-    }
-    
     @RequestMapping({"/export/excel"})
     public void exportExcel(HttpServletResponse res, String cond) {
         String fileName="创新发布清单-发布管理主表";
