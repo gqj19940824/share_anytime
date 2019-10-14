@@ -14,12 +14,11 @@ import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.generated.IplAssist;
+import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.SysCfgEnum;
-import com.unity.innovation.service.IplAssistServiceImpl;
-import com.unity.innovation.service.IplEsbMainServiceImpl;
-import com.unity.innovation.service.IplManageMainServiceImpl;
-import com.unity.innovation.service.SysCfgServiceImpl;
+import com.unity.innovation.service.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -55,6 +54,9 @@ public class IplEsbMainController extends BaseWebController {
 
     @Resource
     private IplManageMainServiceImpl iplManageMainService;
+
+    @Resource
+    private IplLogServiceImpl iplLogService;
 
     /**
      * 功能描述 分页列表查询
@@ -215,55 +217,71 @@ public class IplEsbMainController extends BaseWebController {
     /**
      * 功能描述 添加 协同事项 接口
      *
-     * @param entity 对象
+     * @param iplDarbMain 对象
      * @return 返回信息
      * @author gengzhiqiang
      * @date 2019/9/17 15:51
      */
     @PostMapping("/addAssist")
-    public Mono<ResponseEntity<SystemResponse<Object>>> addAssist(@RequestBody IplEsbMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplEsbMain::getId, IplEsbMain::getAssistList);
-        if (StringUtils.isNotBlank(msg)) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+    public Mono<ResponseEntity<SystemResponse<Object>>> addAssistant(@RequestBody IplEsbMain iplDarbMain) {
+        // 主表数据
+        IplEsbMain entity = service.getById(iplDarbMain.getId());
+        if(entity == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST,SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        service.addAssist(entity);
-        return success("操作成功");
+        List<IplAssist> assists = iplDarbMain.getAssistList();
+        if (CollectionUtils.isEmpty(assists)){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
+        }
+
+        // 新增协同单位并记录日志
+        iplAssistService.addAssistant(assists, entity);
+
+        return success(InnovationConstant.SUCCESS);
     }
 
     /**
      * 功能描述 主责单位开启关闭协同单位接口
      *
-     * @param entity 对象
+     * @param iplLog 对象
      * @return 返回信息
      * @author gengzhiqiang
      * @date 2019/9/17 15:51
      */
     @PostMapping("/dealAssist")
-    public Mono<ResponseEntity<SystemResponse<Object>>> dealAssist(@RequestBody IplAssist entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplAssist::getIdRbacDepartmentAssist, IplAssist::getIdIplMain, IplAssist::getDealStatus);
-        if (StringUtils.isNotBlank(msg)) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+    public Mono<ResponseEntity<SystemResponse<Object>>> updateStatusByDuty(@RequestBody IplLog iplLog) {
+        // 协助单位id
+        Long idRbacDepartmentAssist = iplLog.getIdRbacDepartmentAssist();
+        if (idRbacDepartmentAssist == null){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
-        service.dealAssist(entity);
-        return success("操作成功");
+        // 主表id
+        Long idIplMain = iplLog.getIdIplMain();
+        IplEsbMain entity = service.getById(idIplMain);
+        if (entity == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        // 修改状态、插入日志
+        iplLogService.updateStatusByDuty(entity.getIdRbacDepartmentDuty(), entity.getId(), iplLog);
+        return success(InnovationConstant.SUCCESS);
     }
 
     /**
      * 功能描述 主责单位 实时更新 接口
      *
-     * @param entity 对象
+     * @param iplLog 对象
      * @return 返回信息
      * @author gengzhiqiang
      * @date 2019/9/17 15:51
      */
     @PostMapping("/updateStatus")
-    public Mono<ResponseEntity<SystemResponse<Object>>> updateStatus(@RequestBody IplAssist entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplAssist::getIdIplMain, IplAssist::getDealStatus, IplAssist::getIdRbacDepartmentAssist,IplAssist::getDealMessage);
-        if (StringUtils.isNotBlank(msg)) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+    public Mono<ResponseEntity<SystemResponse<Object>>> updateStatus(@RequestBody IplLog iplLog) {
+        IplEsbMain entity = service.getById(iplLog.getIdIplMain());
+        if (entity == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        service.updateStatus(entity);
-        return success("操作成功");
+        iplLogService.updateStatus(entity, iplLog);
+        return success(InnovationConstant.SUCCESS);
     }
 
 
