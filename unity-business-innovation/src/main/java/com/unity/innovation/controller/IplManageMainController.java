@@ -143,12 +143,10 @@ public class IplManageMainController extends BaseWebController {
      */
     @PostMapping("/submit")
     public Mono<ResponseEntity<SystemResponse<Object>>> submit(@RequestBody IplManageMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity,IplManageMain::getId,IplManageMain::getCategory);
+        String msg = ValidFieldUtil.checkEmptyStr(entity,IplManageMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
         }
-        Long category = service.getDepartmentId(entity);
-        entity.setIdRbacDepartmentDuty(category);
         service.submit(entity);
         return success("操作成功");
     }
