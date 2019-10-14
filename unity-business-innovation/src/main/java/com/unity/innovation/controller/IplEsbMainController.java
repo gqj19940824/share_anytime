@@ -295,7 +295,7 @@ public class IplEsbMainController extends BaseWebController {
     @PostMapping("/listForPkg")
     public Mono<ResponseEntity<SystemResponse<Object>>> listForPkg(@RequestBody PageEntity<IplManageMain> search) {
       //todo
-        IPage<IplManageMain> list= iplManageMainService.listForPkg(search,InnovationConstant.DEPARTMENT_ESB_ID);
+        IPage<IplManageMain> list= iplManageMainService.listForPkg(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
                 .items(convert2ListForPkg(list.getRecords())).build();
