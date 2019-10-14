@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
 import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.IplSupervisionMain;
 import lombok.*;
@@ -150,8 +151,23 @@ public class IplManageMain extends BaseEntity{
         @TableField(exist = false)
         private List<IplSatbMain> iplSatbMainList;
 
+        /**
+         * 反给页面的快照数据
+         **/
         @TableField(exist = false)
         private List snapShotList;
+
+        /**
+         * 通过/驳回  1:通过 0：驳回
+         **/
+        @TableField(exist = false)
+        private Integer passOrReject;
+
+        /**
+         * 审批意见
+         **/
+        @TableField(exist = false)
+        private String content;
 
         /**
          * 查询类型
