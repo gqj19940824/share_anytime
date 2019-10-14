@@ -69,36 +69,6 @@ public class IplDarbMainController extends BaseWebController {
     @Autowired
     private IplManageMainServiceImpl iplManageMainService;
 
-
-    /**
-     * 功能描述 分页列表查询
-     * @param search 查询条件
-     * @return 分页数据
-     * @author gengzhiqiang
-     * @date 2019/9/17 13:36
-     */
-    @PostMapping("/listForPkg")
-    public Mono<ResponseEntity<SystemResponse<Object>>> listForPkg(@RequestBody PageEntity<IplManageMain> search) {
-        IPage<IplManageMain> list= iplManageMainService.listForPkg(search,InnovationConstant.DEPARTMENT_DARB_ID);
-        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
-                .total(list.getTotal())
-                .items(convert2ListForPkg(list.getRecords())).build();
-        return success(result);
-    }
-
-    /**
-     * 功能描述 数据整理
-     * @param list 集合
-     * @return java.util.List 规范数据
-     * @author gengzhiqiang
-     * @date 2019/9/17 13:36
-     */
-    private List<Map<String, Object>> convert2ListForPkg(List<IplManageMain> list) {
-        return JsonUtil.<IplManageMain>ObjectToList(list,
-                (m, entity) -> {
-                }, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus,IplManageMain::getStatusName);
-    }
-
     /**
      * 功能描述 包的新增编辑
      *
@@ -109,26 +79,12 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdateForPkg")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdateForPkg(@RequestBody IplManageMain entity) {
-        Mono<ResponseEntity<SystemResponse<Object>>> obj = verifyParamForPkg(entity);
-        if (obj != null) {
-            return obj;
-        }
-        iplManageMainService.saveOrUpdateForPkg(entity,InnovationConstant.DEPARTMENT_ESB_ID);
+//        Mono<ResponseEntity<SystemResponse<Object>>> obj = verifyParamForPkg(entity);
+//        if (obj != null) {
+//            return obj;
+//        }
+//        iplManageMainService.saveOrUpdateForPkg(entity,InnovationConstant.DEPARTMENT_ESB_ID);
         return success("操作成功");
-    }
-
-    private Mono<ResponseEntity<SystemResponse<Object>>> verifyParamForPkg(IplManageMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getTitle, IplManageMain::getIplEsbMainList);
-        if (StringUtils.isNotBlank(msg)) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
-        }
-        if (entity.getTitle().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
-            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "标题字数限制50字");
-        }
-        if (StringUtils.isNotBlank(entity.getNotes()) && entity.getNotes().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
-            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注字数限制500字");
-        }
-        return null;
     }
 
     /**
@@ -148,22 +104,6 @@ public class IplDarbMainController extends BaseWebController {
         return success(service.detailByIdForPkg(entity.getId()));
     }
 
-    /**
-     * 功能描述 批量删除包
-     *
-     * @param ids id集合
-     * @return 成功返回成功信息
-     * @author gengzhiqiang
-     * @date 2019/7/26 16:17
-     */
-    @PostMapping("/removeByIdsForPkg")
-    public Mono<ResponseEntity<SystemResponse<Object>>> removeByIdsForPkg(@RequestBody List<Long> ids) {
-        if (ids == null) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
-        }
-        iplManageMainService.removeByIdsForPkg(ids,InnovationConstant.DEPARTMENT_ESB_ID);
-        return success("删除成功");
-    }
     /**
      * 功能描述 提交接口
      *
