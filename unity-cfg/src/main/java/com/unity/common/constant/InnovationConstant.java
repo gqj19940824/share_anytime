@@ -69,13 +69,13 @@ public class InnovationConstant {
     public static final String YMD_DATE = "yyyy-MM-dd";
 
     /**
-     * 集团安全部员工角色
+     * 宣传部普通角色 A
      * */
-    public static final  Long GROUP_SECURITY_ROLE = 32L;
+    public static final  Long PUBLICITY_DEPARTMENT_A_ROLE = 1L;
     /**
-     * 集团安全部领导角色
+     * 宣传部审批角色 B
      * */
-    public static final  Long GROUP_SECURITY_MANAGER_ROLE = 31L;
+    public static final  Long PUBLICITY_DEPARTMENT_B_ROLE = 2L;
 
     /**
      * 发改局 单位主键 ipl_darb_main

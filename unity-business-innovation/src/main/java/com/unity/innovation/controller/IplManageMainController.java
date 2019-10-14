@@ -10,7 +10,6 @@ import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.IplManageMainServiceImpl;
 import org.apache.commons.lang3.StringUtils;
@@ -45,11 +44,7 @@ public class IplManageMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplManageMain> search) {
-        Long category = 0L;
-        if (search != null && search.getEntity() != null) {
-            category = getCategory(search.getEntity());
-        }
-        IPage<IplManageMain> list= service.listForPkg(search,category);
+        IPage<IplManageMain> list= service.listForPkg(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
                 .items(convert2ListForPkg(list.getRecords())).build();
@@ -85,7 +80,7 @@ public class IplManageMainController extends BaseWebController {
         if (obj != null) {
             return obj;
         }
-        Long category = getCategory(entity);
+        Long category =service.getDepartmentId(entity);
         service.saveOrUpdateForPkg(entity,category);
         return success("操作成功");
     }
@@ -134,7 +129,6 @@ public class IplManageMainController extends BaseWebController {
         if (ids == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
         }
-        //todo 删除单位
         service.removeByIdsForPkg(ids);
         return success("删除成功");
     }
@@ -153,24 +147,11 @@ public class IplManageMainController extends BaseWebController {
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
         }
-        Long category = getCategory(entity);
+        Long category = service.getDepartmentId(entity);
         entity.setIdRbacDepartmentDuty(category);
         service.submit(entity);
         return success("操作成功");
     }
-
-
-    private Long getCategory(IplManageMain entity) {
-        Long category = 0L;
-        if (entity != null) {
-            ListCategoryEnum categoryEnum = ListCategoryEnum.valueOfName(entity.getCategory());
-            if (categoryEnum != null) {
-                category = categoryEnum.getId();
-            }
-        }
-        return category;
-    }
-
 
     /**
     * 通过/驳回
