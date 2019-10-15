@@ -424,7 +424,12 @@ public class IplEsbMainController extends BaseWebController {
         }
         IplManageMain entity = IplManageMain.newInstance().build();
         entity.setId(id);
-        entity = service.detailByIdForPkg(entity);
+        entity = iplManageMainService.getById(entity.getId());
+        if (entity == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
         String filename = entity.getTitle();
         byte[] content;
         HttpHeaders headers = new HttpHeaders();
