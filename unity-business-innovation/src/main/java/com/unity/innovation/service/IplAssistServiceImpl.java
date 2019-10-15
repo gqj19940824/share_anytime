@@ -2,8 +2,11 @@ package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.client.RbacClient;
+import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.dao.IplAssistDao;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,6 +67,9 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
     @Autowired
     private IplEsbMainServiceImpl iplEsbMainService;
+
+    @Resource
+    private RbacClient rbacClient;
 
     /**
      * 新增协同单位
@@ -277,4 +284,24 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         }
         return assists;
     }
+
+    /**
+     * 功能描述 获取协同单位下拉列表
+     *
+     * @return 单位id及其集合
+     * @author gengzhiqiang
+     * @date 2019/7/26 16:03
+     */
+    public List<Map<String, Object>> getAssistList(Long idIplMain,Long idDuty) {
+        //主表id  数据集合
+        List<DepartmentVO> departmentList = rbacClient.getAllDepartment();
+        departmentList = departmentList.stream().filter(d -> !d.getId().equals(idDuty)).collect(Collectors.toList());
+        List<IplAssist> assistList = iplAssistService.list(new LambdaQueryWrapper<IplAssist>()
+                .eq(IplAssist::getIdIplMain, idIplMain)
+                .eq(IplAssist::getIdRbacDepartmentDuty, idDuty));
+        List<Long> ids = assistList.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
+        departmentList = departmentList.stream().filter(d -> !ids.contains(d.getId())).collect(Collectors.toList());
+        return JsonUtil.ObjectToList(departmentList, new String[]{"id", "name"}, null);
+    }
+
 }
