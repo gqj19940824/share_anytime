@@ -80,8 +80,7 @@ public class IplManageMainController extends BaseWebController {
             return obj;
         }
         Long category =service.getDepartmentId(entity);
-        service.saveOrUpdateForPkg(entity,category);
-        return success("操作成功");
+        return success(service.saveOrUpdateForPkg(entity,category));
     }
 
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(IplManageMain entity) {

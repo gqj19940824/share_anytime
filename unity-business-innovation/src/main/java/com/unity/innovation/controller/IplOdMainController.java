@@ -15,19 +15,22 @@ import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.IplOdMain;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
+import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.entity.generated.mIplOdMain;
 import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.service.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -86,7 +89,9 @@ public class IplOdMainController extends BaseWebController {
                 (m, entity) -> {
                 },
                 IplOdMain::getId, IplOdMain::getIndustryCategory, IplOdMain::getIndustryCategoryName, IplOdMain::getEnterpriseName,
-                IplOdMain::getJdName,IplOdMain::getJobDemandNum, IplOdMain::getContactPerson, IplOdMain::getContactWay,
+                IplOdMain::getJdName,IplOdMain::getJobDemandNum, IplOdMain::getMajorDemand, IplOdMain::getEnterpriseIntroduction,
+                IplOdMain::getDuty,IplOdMain::getQualification, IplOdMain::getSpecificCause,
+                IplOdMain::getContactPerson, IplOdMain::getContactWay,IplOdMain::getEmail,
                 IplOdMain::getGmtCreate, IplOdMain::getGmtModified, IplOdMain::getSource, IplOdMain::getSourceName,
                 IplOdMain::getStatus, IplOdMain::getStatusName, IplOdMain::getProcessStatus, IplOdMain::getProcessStatusName, IplOdMain::getLatestProcess);
     }
@@ -300,6 +305,45 @@ public class IplOdMainController extends BaseWebController {
         }
         iplLogService.updateStatus(entity, iplLog);
         return success(InnovationConstant.SUCCESS);
+    }
+    /**
+     * 功能描述  导出接口
+     * @param id 数据id
+     * @return 数据流
+     * @author gengzhiqiang
+     * @date 2019/10/11 11:07
+     */
+    @GetMapping({"/export/excel"})
+    public Mono<ResponseEntity<byte[]>> exportExcel(@RequestParam("id") Long id) {
+        if (id == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到要导出的id").build();
+        }
+        IplManageMain entity = new IplManageMain();
+        entity.setId(id);
+        entity = iplManageMainService.getById(entity.getId());
+        if (entity == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
+        String filename = entity.getTitle();
+        byte[] content;
+        HttpHeaders headers = new HttpHeaders();
+        try {
+            content = service.export(entity);
+            //处理乱码
+            headers.setContentDispositionFormData("高端才智需求实时清单", new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1) + ".xls");
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        } catch (Exception e) {
+            throw UnityRuntimeException.newInstance()
+                    .message(e.getMessage())
+                    .code(SystemResponse.FormalErrorCode.SERVER_ERROR)
+                    .build();
+        }
+        return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
+
     }
 
 }

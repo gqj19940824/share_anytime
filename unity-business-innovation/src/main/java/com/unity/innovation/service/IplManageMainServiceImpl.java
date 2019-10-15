@@ -161,7 +161,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @date 2019/10/9 16:48
      */
     @Transactional(rollbackFor = Exception.class)
-    public void saveOrUpdateForPkg(IplManageMain entity, Long department) {
+    public Long saveOrUpdateForPkg(IplManageMain entity, Long department) {
         //快照数据 根据不同单位 切换不同vo
         String snapshot = GsonUtils.format(entity.getDataList());
         //纪检组需要进行排序
@@ -190,6 +190,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             entity.setIdRbacDepartmentDuty(department);
             //保存
             save(entity);
+            return entity.getId();
         } else {
             //编辑
             IplManageMain vo = getById(entity.getId());
@@ -209,6 +210,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
             //修改信息
             updateById(entity);
+            return vo.getId();
         }
     }
 
