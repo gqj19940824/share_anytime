@@ -67,18 +67,7 @@ public class InnovationConstant {
      * 应急值守值班日期格式化
      */
     public static final String YMD_DATE = "yyyy-MM-dd";
-    /**
-     * 角色字典组编码
-     */
-    public static final  String ROLE_GROUP = "ROLE_GROUP";
-    /**
-     * 宣传部普通角色 A
-     * */
-    public static final  String PD_A_ROLE = "PD_A_ROLE";
-    /**
-     * 宣传部审批角色 B
-     * */
-    public static final  String PD_B_ROLE = "PD_B_ROLE";
+
 
     /**
      * 发改局 单位主键 ipl_darb_main
