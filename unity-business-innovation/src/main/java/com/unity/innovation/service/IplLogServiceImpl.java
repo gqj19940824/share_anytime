@@ -10,6 +10,7 @@ import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.dao.IplLogDao;
 import com.unity.innovation.entity.IplEsbMain;
+import com.unity.innovation.entity.IplOdMain;
 import com.unity.innovation.entity.IplPdMain;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.generated.IplAssist;
@@ -59,7 +60,8 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
 
     @Autowired
     private IplSatbMainServiceImpl iplSatbMainService;
-
+    @Autowired
+    private IplOdMainServiceImpl iplOdMainService;
     /**
      * 修改状态、插入日志
      *
@@ -243,6 +245,9 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         }else if (entity instanceof IplSatbMain){
             IplSatbMain iplSatbMain = (IplSatbMain) entity;
             iplSatbMainService.updateById(iplSatbMain);
+        }else if (entity instanceof IplOdMain){
+            IplOdMain iplOdMain = (IplOdMain) entity;
+            iplOdMainService.updateById(iplOdMain);
         }// TODO 完善每个模块的更新
     }
 

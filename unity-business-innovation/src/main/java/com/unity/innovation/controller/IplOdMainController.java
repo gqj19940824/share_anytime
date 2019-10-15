@@ -86,7 +86,7 @@ public class IplOdMainController extends BaseWebController {
                 (m, entity) -> {
                 },
                 IplOdMain::getId, IplOdMain::getIndustryCategory, IplOdMain::getIndustryCategoryName, IplOdMain::getEnterpriseName,
-                IplOdMain::getJdName,IplOdMain::getJobDemandNum, IplOdMain::getMajorDemand,
+                IplOdMain::getJdName,IplOdMain::getJobDemandNum, IplOdMain::getMajorDemand, IplOdMain::getEnterpriseIntroduction,
                 IplOdMain::getDuty,IplOdMain::getQualification, IplOdMain::getSpecificCause,
                 IplOdMain::getContactPerson, IplOdMain::getContactWay,IplOdMain::getEmail,
                 IplOdMain::getGmtCreate, IplOdMain::getGmtModified, IplOdMain::getSource, IplOdMain::getSourceName,
