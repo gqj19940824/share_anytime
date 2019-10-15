@@ -14,7 +14,9 @@ public enum SysCfgEnum {
     ONE(1,"工作类别"),
     TWO(2,"关键字"),
     THREE(3,"产业类型"),
-    FOUR(4,"需求类型")
+    FOUR(4,"需求类型"),
+    FIVE(5,"需求名目"),
+    SIX(6,"企业性质")
     ;
 
     /**
@@ -37,7 +39,12 @@ public enum SysCfgEnum {
         if (id.equals(FOUR.getId())) {
             return FOUR;
         }
-
+        if (id.equals(FIVE.getId())) {
+            return FIVE;
+        }
+        if (id.equals(SIX.getId())) {
+            return SIX;
+        }
         return null;
     }
 
