@@ -128,7 +128,7 @@ public class IplEsbMainController extends BaseWebController {
      * @date 2019/9/17 15:49
      */
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(IplEsbMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplEsbMain::getIndustryCategory, IplEsbMain::getEnterpriseName
+        String msg = ValidFieldUtil.checkEmptyStr(entity,IplEsbMain::getSource,  IplEsbMain::getIndustryCategory, IplEsbMain::getEnterpriseName
                 , IplEsbMain::getEnterpriseProfile, IplEsbMain::getSummary, IplEsbMain::getContactPerson, IplEsbMain::getContactWay);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -211,7 +211,14 @@ public class IplEsbMainController extends BaseWebController {
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
         }
-        return success(service.getAssistList(entity));
+        //主表id  数据集合
+        IplEsbMain vo = service.getById(entity.getId());
+        if (vo == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
+        return success(iplAssistService.getAssistList(vo.getId(),vo.getIdRbacDepartmentDuty()));
     }
 
     /**
@@ -295,7 +302,7 @@ public class IplEsbMainController extends BaseWebController {
     @PostMapping("/listForPkg")
     public Mono<ResponseEntity<SystemResponse<Object>>> listForPkg(@RequestBody PageEntity<IplManageMain> search) {
       //todo
-        IPage<IplManageMain> list= iplManageMainService.listForPkg(search,InnovationConstant.DEPARTMENT_ESB_ID);
+        IPage<IplManageMain> list= iplManageMainService.listForPkg(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
                 .items(convert2ListForPkg(list.getRecords())).build();

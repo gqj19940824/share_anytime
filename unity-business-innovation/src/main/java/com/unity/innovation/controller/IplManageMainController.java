@@ -10,17 +10,15 @@ import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.IplManageMainServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +28,7 @@ import java.util.Map;
  * @author zhang
  * 生成时间 2019-09-21 15:45:37
  */
-@Controller
+@RestController
 @RequestMapping("/iplManageMain")
 public class IplManageMainController extends BaseWebController {
     @Resource
@@ -45,11 +43,7 @@ public class IplManageMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplManageMain> search) {
-        Long category = 0L;
-        if (search != null && search.getEntity() != null) {
-            category = getCategory(search.getEntity());
-        }
-        IPage<IplManageMain> list= service.listForPkg(search,category);
+        IPage<IplManageMain> list= service.listForPkg(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
                 .items(convert2ListForPkg(list.getRecords())).build();
@@ -85,7 +79,7 @@ public class IplManageMainController extends BaseWebController {
         if (obj != null) {
             return obj;
         }
-        Long category = getCategory(entity);
+        Long category =service.getDepartmentId(entity);
         service.saveOrUpdateForPkg(entity,category);
         return success("操作成功");
     }
@@ -134,7 +128,6 @@ public class IplManageMainController extends BaseWebController {
         if (ids == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
         }
-        //todo 删除单位
         service.removeByIdsForPkg(ids);
         return success("删除成功");
     }
@@ -149,28 +142,13 @@ public class IplManageMainController extends BaseWebController {
      */
     @PostMapping("/submit")
     public Mono<ResponseEntity<SystemResponse<Object>>> submit(@RequestBody IplManageMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity,IplManageMain::getId,IplManageMain::getCategory);
+        String msg = ValidFieldUtil.checkEmptyStr(entity,IplManageMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
         }
-        Long category = getCategory(entity);
-        entity.setIdRbacDepartmentDuty(category);
         service.submit(entity);
         return success("操作成功");
     }
-
-
-    private Long getCategory(IplManageMain entity) {
-        Long category = 0L;
-        if (entity != null) {
-            ListCategoryEnum categoryEnum = ListCategoryEnum.valueOfName(entity.getCategory());
-            if (categoryEnum != null) {
-                category = categoryEnum.getId();
-            }
-        }
-        return category;
-    }
-
 
     /**
     * 通过/驳回
@@ -190,6 +168,18 @@ public class IplManageMainController extends BaseWebController {
         }
         service.passOrReject(entity,old);
         return success();
+    }
+
+    /**
+    * 提交单位下拉框数据
+    *
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/10/14 14:19
+    */
+    @PostMapping("/submitDepartmentList")
+    public Mono<ResponseEntity<SystemResponse<Object>>> submitDepartmentList() {
+        return success(service.submitDepartmentList());
     }
 
 }

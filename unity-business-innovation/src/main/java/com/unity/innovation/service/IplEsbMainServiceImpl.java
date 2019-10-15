@@ -24,7 +24,7 @@ import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.ExcelStyleUtil;
 import com.unity.common.utils.HashRedisUtils;
 import com.unity.common.utils.UUIDUtil;
-import com.unity.innovation.constants.ParamConstants;
+import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.dao.IplEsbMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplEsbMain;
@@ -32,7 +32,10 @@ import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.*;
+import com.unity.innovation.enums.IplStatusEnum;
+import com.unity.innovation.enums.ProcessStatusEnum;
+import com.unity.innovation.enums.SourceEnum;
+import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -90,6 +93,9 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
     @Resource
     private SystemConfiguration systemConfiguration;
 
+    @Resource
+    private RedisSubscribeServiceImpl redisSubscribeService;
+
     /**
      * 功能描述 分页接口
      * @param search 查询条件
@@ -131,7 +137,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         if (search.getEntity().getSummary() != null) {
             lqw.like(IplEsbMain::getSummary, search.getEntity().getSummary());
         }
-        lqw.orderByDesc(IplEsbMain::getGmtModified);
+        lqw.orderByDesc(IplEsbMain::getGmtCreate);
         IPage<IplEsbMain> list = page(search.getPageable(), lqw);
         List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, SysCfgEnum.THREE.getId()));
         Map<Long, String> collect = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
@@ -179,7 +185,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         if (entity.getId() == null) {
             entity.setAttachmentCode(UUIDUtil.getUUID());
             //来源为当前局
-            entity.setSource(SourceEnum.SELF.getId());
+            entity.setSource(entity.getSource());
             // 状态设为处理中
             entity.setStatus(IplStatusEnum.UNDEAL.getId());
             //主责单位设置为企服局  12
@@ -188,6 +194,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
             save(entity);
+            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_ESB_ID);
         } else {
             IplEsbMain vo = getById(entity.getId());
             if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {
@@ -200,6 +207,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             //待处理时
             if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME,InnovationConstant.DEPARTMENT_ESB_ID);
             }else if (IplStatusEnum.DEALING.getId().equals(vo.getStatus())) {
                 //处理中 如果超时 则置为进展正常
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
@@ -209,6 +217,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                         0L,
                         "更新基本信息");
                 entity.setLatestProcess("更新基本信息");
+                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME,InnovationConstant.DEPARTMENT_ESB_ID);
             }
             updateById(entity);
         }
@@ -233,18 +242,10 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                     .message("处理完毕的数据不可删除").build();
         }
         List<String> codes = list.stream().map(IplEsbMain::getAttachmentCode).collect(Collectors.toList());
-        //附件表
-        attachmentService.remove(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, codes));
-        //删除日志表
-        iplLogService.remove(new LambdaQueryWrapper<IplLog>()
-                .in(IplLog::getIdIplMain, ids)
-                .eq(IplLog::getIdRbacDepartmentDuty, InnovationConstant.DEPARTMENT_ESB_ID));
-        //删除协同单位
-        iplAssistService.remove(new LambdaQueryWrapper<IplAssist>()
-                .eq(IplAssist::getIdRbacDepartmentDuty,InnovationConstant.DEPARTMENT_ESB_ID)
-                .in(IplAssist::getIdIplMain,ids));
-        //主表
+        // 删除主表
         removeByIds(ids);
+        // 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
+        iplAssistService.batchDel(ids, InnovationConstant.DEPARTMENT_DARB_ID, codes);
     }
 
     /**

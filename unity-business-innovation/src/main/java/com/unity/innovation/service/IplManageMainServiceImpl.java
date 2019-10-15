@@ -1,7 +1,5 @@
 package com.unity.innovation.service;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.gson.reflect.TypeToken;
@@ -9,24 +7,25 @@ import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.GsonUtils;
+import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.IplManageMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplSupervisionMain;
 import com.unity.innovation.entity.generated.*;
-import com.unity.innovation.enums.IplmStatusEnum;
 import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,89 +44,14 @@ import static java.util.Comparator.comparing;
 @Service
 public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, IplManageMain> {
 
-    @Autowired
-    private IplDarbMainSnapshotServiceImpl iplDarbMainSnapshotService;
-    @Autowired
-    private IplDarbMainServiceImpl iplDarbMainService;
-    @Autowired
-    private AttachmentServiceImpl attachmentService;
 
+    @Resource
+    private AttachmentServiceImpl attachmentService;
     @Resource
     private IplmManageLogServiceImpl logService;
 
-    @Transactional(rollbackFor = Exception.class)
-    public void add(IplManageMain entity) {
-
-        String uuid = UUIDUtil.getUUID();
-        // 保存发改局
-        List<Long> idiplDarbMains = entity.getIdiplDarbMains();
-        if (CollectionUtils.isNotEmpty(idiplDarbMains)) {
-            LambdaQueryWrapper<IplDarbMain> lq = new LambdaQueryWrapper();
-            lq.in(IplDarbMain::getId, idiplDarbMains);
-            List<IplDarbMain> iplDarbMains = iplDarbMainService.list(lq);
-            List<IplDarbMainSnapshot> iplDarbMainSnapshots = new ArrayList<>();
-            if (CollectionUtils.isEmpty(iplDarbMains)) {
-                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                        .message(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName()).build();
-            }
-            // 复制snapshot   TODOset主表id
-            iplDarbMains.forEach(e -> iplDarbMainSnapshots.add(InnovationUtil.Copy(e, IplDarbMainSnapshot.newInstance().build())));
-            iplDarbMainSnapshotService.saveBatch(iplDarbMainSnapshots);
-
-            // 保存管理主表
-            entity.setAttachmentCode(uuid);
-            entity.setStatus(IplmStatusEnum.UNCOMMIT.getId());
-            save(entity);
-
-            // 保存关联表
-            iplDarbMainSnapshots.forEach(e -> {
-                IplmMainIplMain.newInstance().idIplMain(e.getId()).idIplmMain(entity.getId()).idRbacDepartmentDuty(e.getIdRbacDepartmentDuty());
-            });
-        }
-
-        // 保存附件
-        List<Attachment> attachments = entity.getAttachments();
-        if (CollectionUtils.isNotEmpty(attachments)) {
-            attachmentService.bachSave(uuid, attachments);
-        }
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public void edit(IplManageMain entity) {
-
-        String uuid = entity.getAttachmentCode();
-        // 保存发改局
-        List<Long> idiplDarbMains = entity.getIdiplDarbMains();
-        if (CollectionUtils.isNotEmpty(idiplDarbMains)) {
-            LambdaQueryWrapper<IplDarbMain> lq = new LambdaQueryWrapper();
-            lq.in(IplDarbMain::getId, idiplDarbMains);
-            List<IplDarbMain> iplDarbMains = iplDarbMainService.list(lq);
-            List<IplDarbMainSnapshot> iplDarbMainSnapshots = new ArrayList<>();
-            if (CollectionUtils.isEmpty(iplDarbMains)) {
-                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                        .message(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName()).build();
-            }
-            // 复制snapshot
-            iplDarbMains.forEach(e -> iplDarbMainSnapshots.add(InnovationUtil.Copy(e, IplDarbMainSnapshot.newInstance().build())));
-            iplDarbMainSnapshotService.saveBatch(iplDarbMainSnapshots);
-
-            // 保存管理主表
-            entity.setAttachmentCode(uuid);
-            entity.setStatus(IplmStatusEnum.UNCOMMIT.getId());
-            save(entity);
-
-            // 保存关联表
-            iplDarbMainSnapshots.forEach(e -> {
-                IplmMainIplMain.newInstance().idIplMain(e.getId()).idIplmMain(entity.getId()).idRbacDepartmentDuty(e.getIdRbacDepartmentDuty());
-            });
-        }
-
-        // 保存附件
-        List<Attachment> attachments = entity.getAttachments();
-        if (CollectionUtils.isNotEmpty(attachments)) {
-            attachmentService.bachSave(uuid, attachments);
-        }
-    }
+    @Resource
+    private DicUtils dicUtils;
 
     /**
      * 功能描述 公共分页接口
@@ -137,27 +61,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @author gengzhiqiang
      * @date 2019/10/9 16:47
      */
-    public IPage<IplManageMain> listForPkg(PageEntity<IplManageMain> search, Long department) {
-        LambdaQueryWrapper<IplManageMain> lqw = new LambdaQueryWrapper<>();
-        if (search != null && search.getEntity() != null) {
-            //提交时间
-            if (StringUtils.isNotBlank(search.getEntity().getSubmitTime())) {
-                //gt 大于 lt 小于
-                long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), true);
-                lqw.gt(IplManageMain::getGmtSubmit, begin);
-                //gt 大于 lt 小于
-                long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), false);
-                lqw.lt(IplManageMain::getGmtSubmit, end);
-            }
-            //状态
-            if (search.getEntity().getStatus() != null) {
-                lqw.eq(IplManageMain::getStatus, search.getEntity().getStatus());
-            }
-        }
-        //各局
-        lqw.eq(IplManageMain::getIdRbacDepartmentDuty, department);
-        //排序
-        lqw.orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified);
+    public IPage<IplManageMain> listForPkg(PageEntity<IplManageMain> search) {
+        LambdaQueryWrapper<IplManageMain> lqw = wrapper(search.getEntity());
         IPage<IplManageMain> list = page(search.getPageable(), lqw);
         if (CollectionUtils.isNotEmpty(list.getRecords())) {
             list.getRecords().forEach(p -> {
@@ -169,6 +74,82 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         }
         return list;
     }
+
+    /**
+    * 查询条件封装
+    *
+    * @param entity 实体
+    * @return com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.unity.innovation.entity.generated.IplManageMain>
+    * @author JH
+    * @date 2019/10/14 10:10
+    */
+    private LambdaQueryWrapper<IplManageMain> wrapper(IplManageMain entity) {
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        List<Long> roleList = customer.getRoleList();
+        LambdaQueryWrapper<IplManageMain> ew = new LambdaQueryWrapper<>();
+        if (entity != null) {
+            //提交时间
+            if (StringUtils.isNotBlank(entity.getSubmitTime())) {
+                //gt 大于 lt 小于
+                long begin = InnovationUtil.getFirstTimeInMonth(entity.getSubmitTime(), true);
+                ew.gt(IplManageMain::getGmtSubmit, begin);
+                //gt 大于 lt 小于
+                long end = InnovationUtil.getFirstTimeInMonth(entity.getSubmitTime(), false);
+                ew.lt(IplManageMain::getGmtSubmit, end);
+            }
+            //标识模块
+            if(StringUtils.isNotBlank(entity.getCategory())) {
+                ew.eq(IplManageMain::getIdRbacDepartmentDuty, getDepartmentId(entity));
+            }else {
+                //非宣传部审批角色必传category
+                if(!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(InnovationConstant.ROLE_GROUP,InnovationConstant.PD_B_ROLE)))) {
+                    throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                            .message("提交单位不能为空").build();
+                }
+            }
+            //宣传部审批角色不查看 待提交、已驳回
+            if(roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(InnovationConstant.ROLE_GROUP,InnovationConstant.PD_B_ROLE)))) {
+                ew.notIn(IplManageMain::getStatus, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(),WorkStatusAuditingStatusEnum.FORTY.getId()));
+            }
+            //状态
+            if (entity.getStatus() != null) {
+                ew.eq(IplManageMain::getStatus, entity.getStatus());
+            }
+            //排序
+            ew.orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified);
+        } else {
+            //只有宣传部角色可以查询所有单位数据
+            if(!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(InnovationConstant.ROLE_GROUP,InnovationConstant.PD_B_ROLE)))) {
+                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                        .message("提交单位不能为空").build();
+            }
+        }
+        return ew;
+    }
+
+    /**
+    * 根据提交单位字符串返回单位id
+    *
+    * @param entity 实体
+    * @return java.lang.Long
+    * @author JH
+    * @date 2019/10/14 10:13
+    */
+    public Long getDepartmentId(IplManageMain entity) {
+        if(entity == null || StringUtils.isBlank(entity.getCategory())) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("提交单位不能为空").build();
+        }
+        ListCategoryEnum listCategoryEnum = ListCategoryEnum.valueOfName(entity.getCategory());
+        if(listCategoryEnum != null) {
+            return listCategoryEnum.getId();
+        }else {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("提交单位错误").build();
+        }
+    }
+
+
 
 
     /**
@@ -260,7 +241,6 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         removeByIds(ids);
         //删除日志
         logService.remove(new LambdaQueryWrapper<IplmManageLog>()
-                .eq(IplmManageLog::getIdRbacDepartment, list.get(0).getIdRbacDepartmentDuty())
                 .in(IplmManageLog::getIdIplManageMain, ids));
     }
 
@@ -386,8 +366,6 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @date 2019/10/12 17:27
      */
     public void passOrReject(IplManageMain entity, IplManageMain old) {
-
-
         //通过
         if (YesOrNoEnum.YES.getType() == entity.getPassOrReject()) {
             old.setStatus(WorkStatusAuditingStatusEnum.THIRTY.getId());
@@ -397,8 +375,26 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         }
         super.updateById(old);
         //记录日志
-        logService.saveLog(InnovationConstant.DEPARTMENT_SUGGESTION_ID, old.getStatus(), entity.getContent(), entity.getId());
+        logService.saveLog(old.getIdRbacDepartmentDuty(), old.getStatus(), entity.getContent(), entity.getId());
 
+    }
+
+    /**
+    * 将枚举转为list 提交单位下拉框
+    *
+    * @return java.util.List
+    * @author JH
+    * @date 2019/10/14 14:14
+    */
+    public  List<Map<String, String>> submitDepartmentList() {
+        List<Map<String, String>> list = Lists.newArrayList();
+        for (ListCategoryEnum listCategoryEnum : ListCategoryEnum.values()) {
+            Map<String, String> map = new HashMap<>(16);
+            map.put("code", listCategoryEnum.getName());
+            map.put("name", InnovationUtil.getDeptNameById(listCategoryEnum.getId()));
+            list.add(map);
+        }
+        return list;
     }
 
 

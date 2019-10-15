@@ -1,22 +1,36 @@
 package com.unity.innovation.service;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.unity.common.base.BaseEntity;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.client.RbacClient;
+import com.unity.common.client.vo.DepartmentVO;
+import com.unity.common.base.ContextHolder;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.util.JsonUtil;
+import com.unity.common.ui.PageElementGrid;
+import com.unity.common.ui.PageEntity;
+import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.IplEsbMain;
-import com.unity.innovation.entity.IplPdMain;
-import com.unity.innovation.entity.IplSatbMain;
+import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
+import com.unity.innovation.entity.generated.mSysCfg;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.ProcessStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -25,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.dao.IplAssistDao;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -64,6 +79,38 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     @Autowired
     private IplEsbMainServiceImpl iplEsbMainService;
 
+    @Resource
+    private RbacClient rbacClient;
+
+    public PageElementGrid listAssistByPage(PageEntity<Map<String, Object>> pageEntity){
+        Customer customer = LoginContextHolder.getRequestAttributes();
+
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<Map<String, Object>> pageable = pageEntity.getPageable();
+        Page<Map<String, Object>> page = PageHelper.startPage((int)pageable.getCurrent(), (int)pageable.getSize(), true);
+        Map<String, Object> entity = pageEntity.getEntity();
+        String gmtCreate = MapUtils.getString(entity, "gmtCreate");
+        if (StringUtils.isNotBlank(gmtCreate)){
+            entity.put("gmtCreateStart", InnovationUtil.getFirstTimeInMonth(gmtCreate, true));
+            entity.put("gmtCreateEnd", InnovationUtil.getFirstTimeInMonth(gmtCreate, false));
+        }
+        entity.put("idRbacDepartmentAssist", customer.getIdRbacDepartment());
+        List<Map<String, Object>> maps = baseMapper.assistDarbList(entity);
+        PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
+                .total(page.getTotal())
+                .items(convert(maps)).build();
+
+        return result;
+    }
+
+    private List<Map<String,Object>> convert(List<Map<String,Object>> maps){
+        if (CollectionUtils.isNotEmpty(maps)){
+            maps.forEach(e->{
+                e.put("idRbacDepartmentDutyName", InnovationUtil.getDeptNameById(MapUtils.getLong(e, "idRbacDepartmentDuty")));
+            });
+        }
+        return maps;
+    }
+
     /**
      * 新增协同单位
      *
@@ -99,7 +146,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                 Long idRbacDepartmentAssist = e.getIdRbacDepartmentAssist();
                 IplAssist assist = IplAssist.newInstance()
                         .idRbacDepartmentDuty(idRbacDepartmentDuty)
-                        .dealStatus(IplStatusEnum.DEALING.getId())
+                        .dealStatus(IplStatusEnum.UNDEAL.getId())
                         .processStatus(ProcessStatusEnum.NORMAL.getId())
                         .idIplMain(idIplMain)
                         .idRbacDepartmentAssist(idRbacDepartmentAssist)
@@ -139,7 +186,6 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      * @author qinhuan
      * @since 2019-10-09 19:27
      */
-    @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
     public void addAssist(IplLog iplLog, List<IplAssist> assistList){
         // 新增协同单位
         iplAssistService.saveBatch(assistList);
@@ -196,10 +242,12 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         attachmentQw.in(Attachment::getAttachmentCode, attachmentCodes);
         attachmentService.remove(attachmentQw);
 
-        // 删除redis定时任务
+        // 删除redis定时任务  TODO 清除协同单位定时任务
         mainIds.forEach(e->{
             redisSubscribeService.removeRecordInfo(e + "-0", idRbacDepartmentDuty);
         });
+
+
 
     }
 
@@ -277,4 +325,24 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         }
         return assists;
     }
+
+    /**
+     * 功能描述 获取协同单位下拉列表
+     *
+     * @return 单位id及其集合
+     * @author gengzhiqiang
+     * @date 2019/7/26 16:03
+     */
+    public List<Map<String, Object>> getAssistList(Long idIplMain,Long idDuty) {
+        //主表id  数据集合
+        List<DepartmentVO> departmentList = rbacClient.getAllDepartment();
+        departmentList = departmentList.stream().filter(d -> !d.getId().equals(idDuty)).collect(Collectors.toList());
+        List<IplAssist> assistList = iplAssistService.list(new LambdaQueryWrapper<IplAssist>()
+                .eq(IplAssist::getIdIplMain, idIplMain)
+                .eq(IplAssist::getIdRbacDepartmentDuty, idDuty));
+        List<Long> ids = assistList.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
+        departmentList = departmentList.stream().filter(d -> !ids.contains(d.getId())).collect(Collectors.toList());
+        return JsonUtil.ObjectToList(departmentList, new String[]{"id", "name"}, null);
+    }
+
 }

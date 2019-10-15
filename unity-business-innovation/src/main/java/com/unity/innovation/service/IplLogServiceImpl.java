@@ -81,7 +81,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         iplAssist.setDealStatus(iplLog.getDealStatus());
         iplAssistService.updateById(iplAssist);
 
-        // 主责单位改变协同单位的状态需要向协同单位和主责单位的操作日志中同时插入一条记录
+        // 主责单位改变协同单位的状态需要向协同单位和主责单位的操作日志中同时插入一条记录 TODO processInfo修改
         IplLog assistDeptLog = IplLog.newInstance().dealStatus(iplAssist.getDealStatus()).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo("主责单位改变状态").idRbacDepartmentAssist(iplAssist.getIdRbacDepartmentAssist()).build();
         IplLog dutyDeptLog = IplLog.newInstance().dealStatus(iplAssist.getDealStatus()).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo("主责单位改变状态").idRbacDepartmentAssist(0L).build();
 
@@ -90,6 +90,8 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
 
         // 更新redis
         redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + iplAssist.getIdRbacDepartmentAssist(), ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
+
+        // TODO 修改主责单位超时redis和数据状态
     }
 
 
@@ -192,6 +194,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
 
         List<IplLog> iplLogs = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
+        // TODO 过滤已关闭的协同单位
         List<IplAssist> assists = iplAssistService.getAssists(idRbacDepartmentDuty, id);
         // 更新协同单位状态、删除协同单位的redis超时设置
         if (CollectionUtils.isNotEmpty(assists)){

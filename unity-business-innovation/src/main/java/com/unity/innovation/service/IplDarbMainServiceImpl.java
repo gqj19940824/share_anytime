@@ -1,13 +1,17 @@
 package com.unity.innovation.service;
 
+import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
+import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.ProcessStatusEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +49,39 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
     @Autowired
     private RedisSubscribeServiceImpl redisSubscribeService;
 
+    @Autowired
+    private IplManageMainServiceImpl iplManageMainService;
+
+    /**
+     * 功能描述 详情接口
+     * @param id 管理表id
+     * @return com.unity.innovation.entity.generated.IplManageMain 对象
+     * @author gengzhiqiang
+     * @date 2019/10/9 19:50
+     */
+    public IplManageMain detailByIdForPkg(Long id) {
+        IplManageMain entity = iplManageMainService.getById(id);
+        if (entity == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
+        //快照集合
+        List<IplDarbMain> list = JSON.parseArray(entity.getSnapshot(), IplDarbMain.class);
+        entity.setSnapshot("");
+        entity.setIplDarbMainList(list);
+        //附件
+        List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode, entity.getAttachmentCode()));
+        if (CollectionUtils.isNotEmpty(attachmentList)) {
+            entity.setAttachments(attachmentList);
+        }
+        //日志集合 日志节点集合
+        entity = iplManageMainService.setLogs(entity);
+        return entity;
+    }
+
+
+
     @Transactional(rollbackFor = Exception.class)
     public Long add(IplDarbMain entity) {
 
@@ -76,6 +113,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         }
 
         // 保存修改
+        entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
         updateById(entity);
 
         // 更新超时时间

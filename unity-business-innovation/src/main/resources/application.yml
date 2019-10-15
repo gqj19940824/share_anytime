@@ -18,8 +18,6 @@ spring.profiles.include:
   - amqp
   - common
   - redis
-
-
 spring:
   security:
     model: permit
@@ -30,3 +28,8 @@ spring:
       - /api/user/pushUcsUserToSecurity
       - /resource/saveRoleResource
       - /redisSubscribe/pushRedisSubscribeInfo
+pagehelper:
+  auto-dialect: mysql
+  params: count=countSql
+  support-methods-arguments: true
+  reasonable: true

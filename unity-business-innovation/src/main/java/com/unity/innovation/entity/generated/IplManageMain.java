@@ -152,6 +152,13 @@ public class IplManageMain extends BaseEntity{
         private List<IplSatbMain> iplSatbMainList;
 
         /**
+         * 企服局基础数据集合
+         **/
+        @CommentTarget("企服局数据集合")
+        @TableField(exist = false)
+        private List<IplDarbMain> iplDarbMainList;
+
+        /**
          * 反给页面的快照数据
          **/
         @TableField(exist = false)
