@@ -12,7 +12,6 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
-import com.unity.common.util.JKDates;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.UUIDUtil;
@@ -23,6 +22,7 @@ import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.enums.SysCfgEnum;
+import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -78,12 +77,9 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
                 wrapper.like(IplPdMain::getNotes, entity.getNotes());
             }
             if (StringUtils.isNotBlank(entity.getCreateDate())) {
-                String createTime = entity.getCreateDate();
-                String[] dateArr = createTime.split("-");
-                int maxDay = JKDates.getMaxDay(Integer.parseInt(dateArr[0]), Integer.parseInt(dateArr[1]));
-                Date startDate = DateUtils.parseDate(createTime.concat("-01 00:00:00"));
-                Date endDate = DateUtils.parseDate(createTime.concat("-").concat(String.valueOf(maxDay)).concat(" 23:59:59"));
-                wrapper.between(IplPdMain::getGmtCreate, startDate.getTime(), endDate.getTime());
+                wrapper.between(IplPdMain::getGmtCreate,
+                        InnovationUtil.getFirstTimeInMonth(entity.getCreateDate(), true),
+                        InnovationUtil.getFirstTimeInMonth(entity.getCreateDate(), false));
             }
         }
         IPage<IplPdMain> iPage = this.page(pageEntity.getPageable(), wrapper);
@@ -149,7 +145,7 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
     public void saveOrUpdateIplPdMain(IplPdMain entity) {
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplPdMain::getIndustryCategory, IplPdMain::getEnterpriseName,
                 IplPdMain::getContactPerson, IplPdMain::getContactWay, IplPdMain::getEnterpriseIntroduction,
-                IplPdMain::getIdCard, IplPdMain::getPost, IplPdMain::getSpecificCause);
+                IplPdMain::getIdCard, IplPdMain::getPost, IplPdMain::getSpecificCause,IplPdMain::getSource);
         if (StringUtils.isNotEmpty(msg)) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)

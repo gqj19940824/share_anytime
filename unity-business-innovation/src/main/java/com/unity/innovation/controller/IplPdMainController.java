@@ -63,7 +63,6 @@ public class IplPdMainController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody IplPdMain entity) {
-        entity.setSource(SourceEnum.SELF.getId());
         service.saveOrUpdateIplPdMain(entity);
         return success("提交成功");
     }

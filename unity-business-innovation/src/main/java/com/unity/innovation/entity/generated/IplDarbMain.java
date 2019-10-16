@@ -230,6 +230,13 @@ public class IplDarbMain extends BaseEntity{
         private Integer processStatus ;
 
         /**
+        * 备注状态
+        **/
+        @CommentTarget("最新进展")
+        @TableField("latest_process")
+        private Integer latestProcess ;
+
+        /**
         * 主责单位id
         **/
         @CommentTarget("主责单位id")

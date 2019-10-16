@@ -1,40 +1,47 @@
+
 package com.unity.innovation.controller;
 
 
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.apache.commons.lang3.StringUtils;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constant.InnovationConstant;
-import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
-import com.unity.innovation.entity.generated.IplmMainIplMain;
-import com.unity.innovation.service.IplmMainIplMainServiceImpl;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.unity.common.constants.ConstString;
 import java.util.Map;
+import java.util.List;
+import com.unity.innovation.service.PmInfoDeptServiceImpl;
+import com.unity.innovation.entity.PmInfoDept;
+
+
+
+
+
+
 
 /**
- * 企服局创新发展清单管理表一对多企服局创新发展清单表
+ * 企业信息发布管理
  * @author zhang
- * 生成时间 2019-09-21 15:45:34
+ * 生成时间 2019-10-15 15:33:01
  */
 @Controller
-@RequestMapping("/iplmmainiplmain")
-public class IplmMainIplMainController extends BaseWebController {
+@RequestMapping("/pminfodept")
+public class PmInfoDeptController extends BaseWebController {
     @Autowired
-    IplmMainIplMainServiceImpl service;
+    PmInfoDeptServiceImpl service;
     
+
      /**
      * 获取一页数据
      * @param search 统一查询条件
@@ -44,7 +51,7 @@ public class IplmMainIplMainController extends BaseWebController {
     @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody SearchElementGrid search) {
     
-        LambdaQueryWrapper<IplmMainIplMain> ew = wrapper(search);
+        LambdaQueryWrapper<PmInfoDept> ew = wrapper(search);
 
         IPage p = service.page(search.getPageable(), ew);
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
@@ -56,60 +63,43 @@ public class IplmMainIplMainController extends BaseWebController {
     
          /**
      * 添加或修改
-     * @param entity 企服局创新发展清单管理表一对多企服局创新发展清单表实体
+     * @param entity 企业信息发布管理实体
      * @return
      */
     @PostMapping("/save")
     @ResponseBody
-    public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody IplmMainIplMain entity) {
+    public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody PmInfoDept entity) {
         
         service.saveOrUpdate(entity);
-        return success(InnovationConstant.SUCCESS);
+        return success(null);
     }
     
-     /**
-     * 获取数据
-     * @param search 统一查询条件
-     * @return
-     */
-    @PostMapping("/list")
-    @ResponseBody
-    public Mono<ResponseEntity<SystemResponse<Object>>> list(@RequestBody SearchElementGrid search) {
-    
-        LambdaQueryWrapper<IplmMainIplMain> ew = wrapper(search);
 
-        List list = service.list(ew);
-        PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
-                .total(Long.valueOf(list.size()))
-                .items(convert2List(list)).build();
-        return success(result);
-
-    }
 
     /**
      * 查询条件转换
      * @param search 统一查询对象
      * @return
      */
-    private LambdaQueryWrapper<IplmMainIplMain> wrapper(SearchElementGrid search){
-        LambdaQueryWrapper<IplmMainIplMain> ew = null;
+    private LambdaQueryWrapper<PmInfoDept> wrapper(SearchElementGrid search){
+        LambdaQueryWrapper<PmInfoDept> ew = null;
         if(search!=null){
             if(search.getCond()!=null){
-                search.getCond().findRule(IplmMainIplMain::getGmtCreate).forEach(r->{
+                search.getCond().findRule(PmInfoDept::getGmtCreate).forEach(r->{
                    r.setData(DateUtils.parseDate(r.getData()).getTime());
                 });
-                search.getCond().findRule(IplmMainIplMain::getGmtModified).forEach(r->{
+                search.getCond().findRule(PmInfoDept::getGmtModified).forEach(r->{
                    r.setData(DateUtils.parseDate(r.getData()).getTime());
                 });
             }
-            ew = search.toEntityLambdaWrapper(IplmMainIplMain.class);
+            ew = search.toEntityLambdaWrapper(PmInfoDept.class);
 
         }
         else{
-            ew = new LambdaQueryWrapper<IplmMainIplMain>();
+            ew = new LambdaQueryWrapper<PmInfoDept>();
         }
 
-        ew.orderBy(true, false,IplmMainIplMain::getSort);
+        ew.orderBy(true, false,PmInfoDept::getSort);
         
         return ew;
     }
@@ -121,13 +111,13 @@ public class IplmMainIplMainController extends BaseWebController {
      * @param list 实体列表
      * @return
      */
-    private List<Map<String, Object>> convert2List(List<IplmMainIplMain> list){
+    private List<Map<String, Object>> convert2List(List<PmInfoDept> list){
        
-        return JsonUtil.<IplmMainIplMain>ObjectToList(list,
+        return JsonUtil.<PmInfoDept>ObjectToList(list,
                 (m, entity) -> {
                     adapterField(m, entity);
                 }
-                ,IplmMainIplMain::getId,IplmMainIplMain::getSort,IplmMainIplMain::getNotes,IplmMainIplMain::getIdIplMain,IplmMainIplMain::getIdIplmMain,IplmMainIplMain::getIdRbacDepartmentDuty
+                ,PmInfoDept::getId,PmInfoDept::getSort,PmInfoDept::getNotes,PmInfoDept::getTitle,PmInfoDept::getGmtSubmit,PmInfoDept::getStatus,PmInfoDept::getAttachmentCode,PmInfoDept::getIdRbacDepartment,PmInfoDept::getInfoType
         );
     }
     
@@ -136,12 +126,12 @@ public class IplmMainIplMainController extends BaseWebController {
      * @param ent 实体
      * @return
      */
-    private Map<String, Object> convert2Map(IplmMainIplMain ent){
-        return JsonUtil.<IplmMainIplMain>ObjectToMap(ent,
+    private Map<String, Object> convert2Map(PmInfoDept ent){
+        return JsonUtil.<PmInfoDept>ObjectToMap(ent,
                 (m, entity) -> {
                     adapterField(m,entity);
                 }
-                ,IplmMainIplMain::getId,IplmMainIplMain::getIsDeleted,IplmMainIplMain::getSort,IplmMainIplMain::getNotes,IplmMainIplMain::getIdIplMain,IplmMainIplMain::getIdIplmMain,IplmMainIplMain::getIdRbacDepartmentDuty
+                ,PmInfoDept::getId,PmInfoDept::getIsDeleted,PmInfoDept::getSort,PmInfoDept::getNotes,PmInfoDept::getTitle,PmInfoDept::getGmtSubmit,PmInfoDept::getStatus,PmInfoDept::getAttachmentCode,PmInfoDept::getIdRbacDepartment,PmInfoDept::getInfoType
         );
     }
     
@@ -150,7 +140,7 @@ public class IplmMainIplMainController extends BaseWebController {
      * @param m 适配的结果
      * @param entity 需要适配的实体
      */
-    private void adapterField(Map<String, Object> m,IplmMainIplMain entity){
+    private void adapterField(Map<String, Object> m,PmInfoDept entity){
         if(!StringUtils.isEmpty(entity.getCreator())) {
             if(entity.getCreator().indexOf(ConstString.SEPARATOR_POINT)>-1) {
                 m.put("creator", entity.getCreator().split(ConstString.SPLIT_POINT)[1]);
@@ -180,7 +170,8 @@ public class IplmMainIplMainController extends BaseWebController {
     @DeleteMapping("/del/{ids}")
     public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(InnovationConstant.SUCCESS);
+        return success(null);
     }
+
 }
 

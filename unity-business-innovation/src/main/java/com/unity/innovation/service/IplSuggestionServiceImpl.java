@@ -85,7 +85,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         if (search.getEntity().getProcessStatus() != null) {
             lqw.eq(IplSuggestion::getProcessStatus, search.getEntity().getProcessStatus());
         }
-        lqw.orderByDesc(IplSuggestion::getGmtModified);
+        lqw.orderByDesc(IplSuggestion::getGmtCreate);
         IPage<IplSuggestion> list = page(search.getPageable(), lqw);
         list.getRecords().forEach(is -> {
             //来源名称
