@@ -18,14 +18,15 @@ import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.ProcessStatusEnum;
+import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -71,7 +72,9 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      * @since 2019-10-10 19:05
      */
     @Transactional(rollbackFor = Exception.class)
-    public void updateStatusByDuty(Long idRbacDepartmentDuty, Long idIplMain, IplLog iplLog) {
+    public <T> void updateStatusByDuty(T entity, IplLog iplLog) {
+        Long idRbacDepartmentDuty = (Long) ReflectionUtils.getFieldValue(entity, "idRbacDepartmentDuty");
+        Long idIplMain = (Long) ReflectionUtils.getFieldValue(entity, "idIplMain");
         LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
         qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, iplLog.getIdRbacDepartmentAssist());
         IplAssist iplAssist = iplAssistService.getOne(qw);
@@ -83,17 +86,22 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         iplAssist.setDealStatus(iplLog.getDealStatus());
         iplAssistService.updateById(iplAssist);
 
-        // 主责单位改变协同单位的状态需要向协同单位和主责单位的操作日志中同时插入一条记录 TODO processInfo修改
-        IplLog assistDeptLog = IplLog.newInstance().dealStatus(iplAssist.getDealStatus()).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo("主责单位改变状态").idRbacDepartmentAssist(iplAssist.getIdRbacDepartmentAssist()).build();
-        IplLog dutyDeptLog = IplLog.newInstance().dealStatus(iplAssist.getDealStatus()).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo("主责单位改变状态").idRbacDepartmentAssist(0L).build();
+        // 主责单位改变协同单位的状态需要向协同单位和主责单位的操作日志中同时插入一条记录
+        Integer dealStatus = iplAssist.getDealStatus();
+        String switchType = IplStatusEnum.DEALING.getId().equals(dealStatus)?"开启":"关闭";
+        IplLog assistDeptLog = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo(String.format("主责单位%s协同邀请", switchType)).idRbacDepartmentAssist(iplAssist.getIdRbacDepartmentAssist()).build();
+        IplLog dutyDeptLog = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo(switchType + InnovationUtil.getDeptNameById(iplAssist.getIdRbacDepartmentAssist()) + "协同邀请").idRbacDepartmentAssist(0L).build();
 
         iplLogService.save(assistDeptLog);
         iplLogService.save(dutyDeptLog);
 
-        // 更新redis
+        // 重置协同单位redis超时
         redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + iplAssist.getIdRbacDepartmentAssist(), ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
 
-        // TODO 修改主责单位超时redis和数据状态
+        // 修改主责单位超时状态，重置redis超时
+        ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL);
+        updateMain(entity);
+        redisSubscribeService.saveSubscribeInfo(idIplMain + "-0", ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
     }
 
 
@@ -196,10 +204,17 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
 
         List<IplLog> iplLogs = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
-        // TODO 过滤已关闭的协同单位
         List<IplAssist> assists = iplAssistService.getAssists(idRbacDepartmentDuty, id);
         // 更新协同单位状态、删除协同单位的redis超时设置
         if (CollectionUtils.isNotEmpty(assists)){
+            // 过滤已关闭的协同单位
+            Iterator<IplAssist> iterator = assists.iterator();
+            while (iterator.hasNext()){
+                IplAssist next = iterator.next();
+                if (IplStatusEnum.DONE.getId().equals(next.getDealStatus())){
+                    iterator.remove();
+                }
+            }
             assists.forEach(e->{
                 builder.append(e.getNameRbacDepartmentAssist()).append("、");
                 e.setDealStatus(dealStatus);
@@ -231,7 +246,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      * @author qinhuan
      * @since 2019-10-10 16:28
      */
-    public <T> void updateMain(T entity) {
+    public <C> void updateMain(C entity) {
         // 更新主表状态
         if (entity instanceof IplDarbMain){
             IplDarbMain iplDarbMain = (IplDarbMain)entity;

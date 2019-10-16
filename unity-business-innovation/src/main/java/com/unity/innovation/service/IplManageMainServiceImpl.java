@@ -127,27 +127,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         return ew;
     }
 
-    /**
-    * 根据提交单位字符串返回单位id
-    *
-    * @param entity 实体
-    * @return java.lang.Long
-    * @author JH
-    * @date 2019/10/14 10:13
-    */
-    public Long getDepartmentId(IplManageMain entity) {
-        if(entity == null || StringUtils.isBlank(entity.getCategory())) {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("提交单位不能为空").build();
-        }
-        ListCategoryEnum listCategoryEnum = ListCategoryEnum.valueOfName(entity.getCategory());
-        if(listCategoryEnum != null) {
-            return listCategoryEnum.getId();
-        }else {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("提交单位错误").build();
-        }
-    }
+
 
 
 
@@ -397,6 +377,26 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         }
         return list;
     }
-
+    /**
+     * 根据提交单位字符串返回单位id
+     *
+     * @param entity 实体
+     * @return java.lang.Long
+     * @author JH
+     * @date 2019/10/14 10:13
+     */
+    public  Long getDepartmentId(IplManageMain entity) {
+        if(entity == null || StringUtils.isBlank(entity.getCategory())) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("提交单位不能为空").build();
+        }
+        ListCategoryEnum listCategoryEnum = ListCategoryEnum.valueOfName(entity.getCategory());
+        if(listCategoryEnum != null) {
+            return listCategoryEnum.getId();
+        }else {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("提交单位错误").build();
+        }
+    }
 
 }

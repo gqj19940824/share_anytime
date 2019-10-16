@@ -97,6 +97,12 @@ public class InnovationConstant {
      */
     public final static Long DEPARTMENT_SUGGESTION_ID = 8L;
 
+
+    /**
+     * 亦庄国投 单位id
+     */
+    public final static Long DEPARTMENT_YZGT_ID = 43L;
+
     /**
      * 换行符
      */

@@ -24,5 +24,35 @@ public class InfoDeptYzgt extends mInfoDeptYzgt{
     @TableField(exist = false)
      private List<Attachment> attachmentList;
 
+    /**
+     * 行业类别名称
+     */
+    @TableField(exist = false)
+     private String industryCategoryName;
+
+    /**
+     * 企业规模名称
+     */
+    @TableField(exist = false)
+    private String enterpriseScaleName;
+
+    /**
+     * 企业规模名称
+     */
+    @TableField(exist = false)
+    private String enterpriseNatureName;
+
+    /**
+     * 创建时间
+     */
+    @TableField(exist = false)
+    private String createTime;
+
+    /**
+     * 状态名
+     */
+    @TableField(exist = false)
+    private String statusName;
+
 }
 

@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.RedisConstants;
+import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.XyDates;
 import com.unity.common.utils.HashRedisUtils;
@@ -11,6 +13,8 @@ import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplDarbMainSnapshot;
+import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.ListCategoryEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
@@ -188,6 +192,7 @@ public class InnovationUtil {
         }
         return dest;
     }
+
 
 
 
