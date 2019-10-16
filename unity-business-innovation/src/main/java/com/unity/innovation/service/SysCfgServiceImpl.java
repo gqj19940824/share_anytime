@@ -50,6 +50,18 @@ public class SysCfgServiceImpl extends BaseServiceImpl<SysCfgDao, SysCfg> {
     }
 
     /**
+     * 功能描述 获取配置集合
+     *
+     * @param ids ids
+     * @return 数据集合
+     * @author gengzhiqiang
+     * @date 2019/10/16 14:50
+     */
+    public Map<Long, String> getListValues(Set<Long> ids) {
+        return baseMapper.getValues(ids).stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
+    }
+
+    /**
      * 功能描述 根据类型 获取列表
      *          类型 1：工作类别 2：关键字 3：产业类型 4：需求类型
      * @return java.util.List<java.util.Map   <   java.lang.String   ,   java.lang.Object>>
