@@ -24,9 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -189,6 +187,40 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         if (CollectionUtils.isNotEmpty(attachmentList)){
             vo.setAttachmentList(attachmentList);
         }
+        HashSet<Long> set = new HashSet();
+        //行业类型
+        if (vo.getIndustryCategory() != null) {
+            set.add(vo.getIndustryCategory());
+        }
+        //企业性质
+        if (vo.getEnterpriseNature() != null) {
+            set.add(vo.getEnterpriseNature());
+        }
+        if (CollectionUtils.isNotEmpty(set)) {
+            Map<Long, String> map = sysCfgService.getListValues(set);
+            //行业类型
+            if ((vo.getIndustryCategory() != null) && (map.get(vo.getIndustryCategory()) != null)) {
+                vo.setIndustryCategoryName(map.get(vo.getIndustryCategory()));
+            }
+            //企业性质
+            if ((vo.getEnterpriseNature() != null) && (map.get(vo.getEnterpriseNature()) != null)) {
+                vo.setEnterpriseNatureName(map.get(vo.getEnterpriseNature()));
+            }
+        }
+        //企业规模
+        if (vo.getEnterpriseScale() != null) {
+            Dic type = dicUtils.getDicByCode(DicConstants.ENTERPRISE_SCALE, vo.getEnterpriseScale().toString());
+            if (type != null && StringUtils.isNotBlank(type.getDicValue())) {
+                vo.setEnterpriseScaleName(type.getDicValue());
+            }
+        }
+        //成果创新水平
+        if (vo.getAchievementLevel() != null) {
+            Dic type = dicUtils.getDicByCode(DicConstants.ACHIEVEMENT_INNOVATI, vo.getAchievementLevel().toString());
+            if (type != null && StringUtils.isNotBlank(type.getDicValue())) {
+                vo.setAchievementLevelName(type.getDicValue());
+            }
+        }
         return vo;
     }
 
@@ -201,7 +233,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
     @Transactional(rollbackFor = Exception.class)
     public void removeById(List<Long> ids) {
         List<InfoDeptSatb> list = list(new LambdaQueryWrapper<InfoDeptSatb>().in(InfoDeptSatb::getId, ids));
-        List<InfoDeptSatb> list1 = list.stream().filter(i -> i.getStatus() == YesOrNoEnum.NO.getType()).collect(Collectors.toList());
+        List<InfoDeptSatb> list1 = list.stream().filter(i -> i.getStatus() == YesOrNoEnum.YES.getType()).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(list1)) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
