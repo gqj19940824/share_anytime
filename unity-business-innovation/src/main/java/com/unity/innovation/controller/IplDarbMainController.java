@@ -99,6 +99,7 @@ public class IplDarbMainController extends BaseWebController {
                         e.get("source"),
                         e.get("status"),
                         e.get("latestProcess"));
+
                 dataList.add(list);
             });
         }
