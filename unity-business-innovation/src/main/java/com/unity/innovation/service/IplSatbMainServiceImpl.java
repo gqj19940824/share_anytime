@@ -32,7 +32,6 @@ import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.util.InnovationUtil;
-import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -440,7 +439,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                     .build();
         }
         //TODO 判断数据状态是否可导出
-        @Cleanup InputStream inputStream = IplSatbMainServiceImpl.class.getClassLoader().getResourceAsStream("template" + File.separator + "iplsatbmain.xls");
+        InputStream inputStream = IplSatbMainServiceImpl.class.getClassLoader().getResourceAsStream("template" + File.separator + "iplsatbmain.xls");
         //查询模板信息
         byte[] content;
         String templatePath = systemConfiguration.getUploadPath() + File.separator + "iplsatbmain" + File.separator;
