@@ -269,7 +269,7 @@ public class IplEsbMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         // 修改状态、插入日志
-        iplLogService.updateStatusByDuty(entity.getIdRbacDepartmentDuty(), entity.getId(), iplLog);
+        iplLogService.updateStatusByDuty(entity, iplLog);
         return success(InnovationConstant.SUCCESS);
     }
 
