@@ -28,17 +28,13 @@ public class ExcelExportByTemplate {
         //读取了模板内图表所需数据
         XSSFSheet sheet = wb.getSheetAt(0);
         wb.setSheetName(0, header);
-        XSSFRow row1 = sheet.getRow(0);
-        System.out.println(row1.getLastCellNum());
-        XSSFCell cell1 = row1.getCell(0);
-        cell1.setCellValue(header);
+        XSSFRow headerRow = sheet.getRow(0);
+        headerRow.getCell(0).setCellValue(header);
         int dataListSize = dataList.size();
         int rowNum = 0;
-        int colNum = 0;
         for (; rowNum<dataListSize; rowNum++) {
             List<Object> rowData = dataList.get(rowNum);
             int colSize = rowData.size();
-            colNum = colSize;
             XSSFRow row = sheet.createRow(rowNum + startRowIndex);
             for (int celNum = 0; celNum<colSize; celNum++) {
                 XSSFCell cell = row.createCell(celNum);
@@ -47,9 +43,8 @@ public class ExcelExportByTemplate {
         }
 
         XSSFRow row = sheet.createRow(startRowIndex + rowNum);
-        System.out.println(row.getLastCellNum());
         row.createCell(0).setCellValue("备 注：" + footer);
-        CellRangeAddress cellRangeAddress = new CellRangeAddress(startRowIndex +rowNum, startRowIndex+rowNum, 0, colNum-1);
+        CellRangeAddress cellRangeAddress = new CellRangeAddress(startRowIndex +rowNum, startRowIndex+rowNum, 0, headerRow.getLastCellNum()-1);
         sheet.addMergedRegion(cellRangeAddress);
     }
 
