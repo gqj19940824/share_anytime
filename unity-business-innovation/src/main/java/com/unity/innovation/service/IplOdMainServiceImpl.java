@@ -87,7 +87,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         if (search != null && search.getEntity() != null) {
             //行业类型
             if (search.getEntity().getIndustryCategory() != null) {
-                lqw.like(IplOdMain::getIndustryCategory, search.getEntity().getIndustryCategory());
+                lqw.eq(IplOdMain::getIndustryCategory, search.getEntity().getIndustryCategory());
             }
             //企业名称
             if (StringUtils.isNotBlank(search.getEntity().getEnterpriseName())) {

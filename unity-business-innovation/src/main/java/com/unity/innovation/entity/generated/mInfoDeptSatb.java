@@ -138,9 +138,14 @@ public class mInfoDeptSatb extends BaseEntity{
         @CommentTarget("是否对外发布")
         @TableField("is_publish_first")
         private Integer isPublishFirst ;
-        
-        
 
+
+        /**
+         * 是否提请发布  1：已发布 0：未发布
+         **/
+        @CommentTarget("是否提请发布  1：已发布 0：未发布")
+        @TableField("status")
+        private Integer status ;
 }
 
 
