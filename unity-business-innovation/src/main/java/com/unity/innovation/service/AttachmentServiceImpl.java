@@ -1,4 +1,3 @@
-
 package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -9,7 +8,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -64,7 +62,7 @@ public class AttachmentServiceImpl extends BaseServiceImpl<AttachmentDao, Attach
             return attachmentCode;
         }
 
-        Set<Long> collect = attachments.stream().filter(a->a.getId() != null).map(Attachment::getId).collect(Collectors.toSet());
+        Set<Long> collect = attachments.stream().map(Attachment::getId).collect(Collectors.toSet());
         //新增的附件列表
         List<Attachment> attachmentAdds = attachments.stream().filter(i -> (i.getId() == null || i.getId() < 0) && StringUtils.isNotEmpty(i.getUrl())).collect(Collectors.toList());
         attachmentAdds.forEach(i->i.setAttachmentCode(attachmentCode));

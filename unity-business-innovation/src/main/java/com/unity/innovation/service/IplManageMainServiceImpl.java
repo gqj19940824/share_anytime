@@ -330,8 +330,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         }
         String attachmentCode = iplManageMain.getAttachmentCode();
         iplManageMain.setAttachments(attachmentService.list(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode, attachmentCode)));
-        iplManageMain.setSnapShotList(GsonUtils.parse(iplManageMain.getSnapshot(), new TypeToken<List>() {
-        }));
+        iplManageMain.setSnapShotList(GsonUtils.parse(iplManageMain.getSnapshot(), new TypeToken<List>() {}));
         iplManageMain.setSnapshot("");
         //操作记录
         List<IplmManageLog> logList = logService.list(new LambdaQueryWrapper<IplmManageLog>()

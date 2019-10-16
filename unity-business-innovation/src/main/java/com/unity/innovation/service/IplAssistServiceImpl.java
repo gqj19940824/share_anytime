@@ -76,8 +76,6 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     private IplEsbMainServiceImpl iplEsbMainService;
 
     public PageElementGrid listAssistByPage(PageEntity<Map<String, Object>> pageEntity){
-        Customer customer = LoginContextHolder.getRequestAttributes();
-
         com.baomidou.mybatisplus.extension.plugins.pagination.Page<Map<String, Object>> pageable = pageEntity.getPageable();
         Page<Map<String, Object>> page = PageHelper.startPage((int)pageable.getCurrent(), (int)pageable.getSize(), true);
         Map<String, Object> entity = pageEntity.getEntity();
@@ -86,6 +84,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             entity.put("gmtCreateStart", InnovationUtil.getFirstTimeInMonth(gmtCreate, true));
             entity.put("gmtCreateEnd", InnovationUtil.getFirstTimeInMonth(gmtCreate, false));
         }
+        Customer customer = LoginContextHolder.getRequestAttributes();
         entity.put("idRbacDepartmentAssist", customer.getIdRbacDepartment());
         List<Map<String, Object>> maps = baseMapper.assistDarbList(entity);
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
@@ -287,6 +286,18 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("totalProcess", processList);
+
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        // 非主责单位协同列表只查自己
+        if (!customer.getIdRbacDepartment().equals(idRbacDepartmentDuty)){
+            Iterator<IplAssist> iterator = assists.iterator();
+            while (iterator.hasNext()){
+                IplAssist next = iterator.next();
+                if (!next.getIdRbacDepartmentAssist().equals(customer.getIdRbacDepartment())){
+                    iterator.remove();
+                }
+            }
+        }
         resultMap.put("assists", assists);
 
         return resultMap;

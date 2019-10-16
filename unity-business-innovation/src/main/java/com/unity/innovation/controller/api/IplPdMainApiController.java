@@ -1,21 +1,16 @@
-
 package com.unity.innovation.controller.api;
-
 
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.innovation.entity.IplPdMain;
 import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.service.IplPdMainServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
 
 /**
  * 创新发布清单-宣传部-主表
@@ -25,6 +20,7 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 @RequestMapping("/api/iplpdmain")
+@Slf4j
 public class IplPdMainApiController extends BaseWebController {
     @Autowired
     IplPdMainServiceImpl service;
