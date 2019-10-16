@@ -11,6 +11,7 @@ import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.ui.PageEntity;
 import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.InfoTypeEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
@@ -87,11 +88,7 @@ public class PmInfoDeptController extends BaseWebController {
        
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
-                    if(entity.getIdRbacDepartment().equals(InnovationConstant.DEPARTMENT_YZGT_ID)) {
-                        m.put("infoTypeName","入区企业信息");
-                    }else {
-                        m.put("infoTypeName","路演企业信息");
-                    }
+                    m.put("infoTypeName", InfoTypeEnum.of(entity.getIdRbacDepartment()).getName());
                     m.put("departmentName",InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
 
                 }
