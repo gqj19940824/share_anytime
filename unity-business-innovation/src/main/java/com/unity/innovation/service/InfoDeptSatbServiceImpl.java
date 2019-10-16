@@ -5,14 +5,20 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.DicConstants;
+import com.unity.common.enums.YesOrNoEnum;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Dic;
+import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.utils.DicUtils;
+import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.InfoDeptSatbDao;
+import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.InfoDeptSatb;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.util.InnovationUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +42,9 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
 
     @Resource
     private DicUtils dicUtils;
+
+    @Resource
+    private AttachmentServiceImpl attachmentService;
 
     /**
      * 功能描述 分页接口
@@ -65,8 +74,8 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
                 lqw.eq(InfoDeptSatb::getEnterpriseNature, search.getEntity().getEnterpriseNature());
             }
             //创新成果
-            if (StringUtils.isNotBlank(search.getEntity().getInDetail())) {
-                lqw.like(InfoDeptSatb::getInDetail, search.getEntity().getInDetail());
+            if (StringUtils.isNotBlank(search.getEntity().getInGeneralSituation())) {
+                lqw.like(InfoDeptSatb::getInGeneralSituation, search.getEntity().getInGeneralSituation());
             }
             //创新水平
             if (search.getEntity().getAchievementLevel() != null) {
@@ -124,4 +133,84 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         }
         return list;
     }
+
+    /**
+     * 功能描述 新增编辑提交
+     * @param entity 实体
+     * @author gengzhiqiang
+     * @date 2019/10/16 10:40
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void saveEntity(InfoDeptSatb entity) {
+        if(entity.getId() == null) {
+            //默认为提请发布
+            entity.setStatus(YesOrNoEnum.NO.getType());
+            String attachmentCode = UUIDUtil.getUUID();
+            entity.setAttachmentCode(attachmentCode);
+            save(entity);
+            //保存附件
+            attachmentService.updateAttachments(attachmentCode,entity.getAttachmentList());
+        }else {
+            InfoDeptSatb old = getById(entity.getId());
+            if (old == null) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                        .message("未获取到对象").build();
+            }
+            if (YesOrNoEnum.YES.getType()==old.getStatus()) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("已提请发布状态下数据不可编辑").build();
+            }
+            String attachmentCode = old.getAttachmentCode();
+            updateById(entity);
+            //保存附件
+            attachmentService.updateAttachments(attachmentCode,entity.getAttachmentList());
+        }
+    }
+
+    /**
+     * 功能描述 详情接口
+     * @param entity 对象
+     * @return com.unity.innovation.entity.DailyWorkStatus 对象
+     * @author gengzhiqiang
+     * @date 2019/9/17 16:03
+     */
+    public InfoDeptSatb detailById(InfoDeptSatb entity) {
+        InfoDeptSatb vo = getById(entity.getId());
+        if (vo == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
+        //附件
+        List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
+                .eq(Attachment::getAttachmentCode,vo.getAttachmentCode()));
+        if (CollectionUtils.isNotEmpty(attachmentList)){
+            vo.setAttachmentList(attachmentList);
+        }
+        return vo;
+    }
+
+    /**
+     * 功能描述 批量删除
+     * @param ids id集合
+     * @author gengzhiqiang
+     * @date 2019/9/17 16:14
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void removeById(List<Long> ids) {
+        List<InfoDeptSatb> list = list(new LambdaQueryWrapper<InfoDeptSatb>().in(InfoDeptSatb::getId, ids));
+        List<InfoDeptSatb> list1 = list.stream().filter(i -> i.getStatus() == YesOrNoEnum.NO.getType()).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(list1)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("已提请发布状态下数据不可删除").build();
+        }
+        List<String> codes = list.stream().map(InfoDeptSatb::getAttachmentCode).collect(Collectors.toList());
+        //附件表
+        attachmentService.remove(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, codes));
+        removeByIds(ids);
+    }
+
 }

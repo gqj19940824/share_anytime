@@ -5,7 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.innovation.entity.generated.mInfoDeptSatb;
 import lombok.*;
 
-        
+import java.util.List;
+
 
 @Builder(builderMethodName = "newInstance")
 @AllArgsConstructor
@@ -27,11 +28,6 @@ public class InfoDeptSatb extends mInfoDeptSatb{
     @TableField(exist = false)
     private String createTime;
 
-    /**
-     * 状态名称
-     */
-    @TableField(exist = false)
-    private String statusName;
 
     /**
      * 企业规模 名称
@@ -51,5 +47,10 @@ public class InfoDeptSatb extends mInfoDeptSatb{
     @TableField(exist = false)
     private String achievementLevelName ;
 
+    /**
+     * 附件集合
+     */
+    @TableField(exist = false)
+    private List<Attachment> attachmentList;
 }
 
