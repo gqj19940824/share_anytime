@@ -81,7 +81,7 @@ public class InnovationUtil {
             calendar.set(Calendar.SECOND, 59);
             calendar.set(Calendar.MILLISECOND, 999);
         }
-        System.out.println(calendar.getTimeInMillis());
+        //System.out.println(calendar.getTimeInMillis());
         return calendar.getTimeInMillis();
     }
 
