@@ -71,8 +71,7 @@ public class IplDarbMainController extends BaseWebController {
         IplManageMain iplManageMain = iplManageMainService.getById(id);
         List<List<Object>> dataList = new ArrayList<>();
         String snapshot = iplManageMain.getSnapshot();
-//        if (StringUtils.isNoneBlank(snapshot)){
-        if (false){
+        if (StringUtils.isNoneBlank(snapshot)){
             List<Map> parse = JSON.parseObject(snapshot, List.class);
             parse.forEach(e->{
                 List<Object> list = Arrays.asList(

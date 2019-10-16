@@ -57,27 +57,26 @@
 
         FROM ${table} m INNER JOIN ipl_assist a ON a.id_ipl_main = m.id INNER JOIN sys_cfg s ON s.id = m.industry_category
         AND a.id_rbac_department_duty = #{idRbacDepartmentDuty} AND a.id_rbac_department_assist = #{idRbacDepartmentAssist}
-        <if test="industryCategory != null">
+        <if test="industryCategory != null and industryCategory != ''">
             AND m.industry_category = #{industryCategory}
         </if>
         <if test="enterpriseName != null and enterpriseName != ''">
             AND m.enterprise_name LIKE CONCAT('%',#{enterpriseName},'%')
         </if>
-        <if test="gmtCreateStart != null">
+        <if test="gmtCreateStart != null and gmtCreateStart != ''">
             AND m.gmt_create &gt;= #{gmtCreateStart}
         </if>
-        <if test="gmtCreateEnd != null">
+        <if test="gmtCreateEnd != null and gmtCreateEnd != ''">
             AND m.gmt_create $lt; #{gmtCreateEnd}
         </if>
-        <if test="source != null">
+        <if test="source != null and source != ''">
             AND m.source = #{source}
         </if>
-        <if test="status != null">
+        <if test="status != null and status != ''">
             AND m.`status` = #{status}
         </if>
-        <if test="processStatus != null">
+        <if test="processStatus != null and processStatus != ''">
             AND m.process_status = #{processStatus}
         </if>
-
     </sql>
 </mapper>
