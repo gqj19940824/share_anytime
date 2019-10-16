@@ -241,13 +241,15 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         attachmentQw.in(Attachment::getAttachmentCode, attachmentCodes);
         attachmentService.remove(attachmentQw);
 
-        // 删除redis定时任务  TODO 清除协同单位定时任务
+        // 清除主表定时任务
         mainIds.forEach(e->{
             redisSubscribeService.removeRecordInfo(e + "-0", idRbacDepartmentDuty);
         });
-
-
-
+        // 清除协同单位定时任务
+        List<IplAssist> iplAssists = iplAssistService.list(assistQw);
+        iplAssists.forEach(e->{
+            redisSubscribeService.removeRecordInfo(e.getIdIplMain() + "-" + e.getIdRbacDepartmentAssist(), e.getIdRbacDepartmentDuty());
+        });
     }
 
     /**
