@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.RedisConstants;
+import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.XyDates;
 import com.unity.common.utils.HashRedisUtils;
@@ -11,6 +13,8 @@ import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplDarbMainSnapshot;
+import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.ListCategoryEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
@@ -190,5 +194,26 @@ public class InnovationUtil {
     }
 
 
+    /**
+     * 根据提交单位字符串返回单位id
+     *
+     * @param entity 实体
+     * @return java.lang.Long
+     * @author JH
+     * @date 2019/10/14 10:13
+     */
+    public static Long getDepartmentId(IplManageMain entity) {
+        if(entity == null || StringUtils.isBlank(entity.getCategory())) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("提交单位不能为空").build();
+        }
+        ListCategoryEnum listCategoryEnum = ListCategoryEnum.valueOfName(entity.getCategory());
+        if(listCategoryEnum != null) {
+            return listCategoryEnum.getId();
+        }else {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("提交单位错误").build();
+        }
+    }
 
 }

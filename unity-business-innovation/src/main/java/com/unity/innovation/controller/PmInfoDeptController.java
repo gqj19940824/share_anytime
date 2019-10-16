@@ -4,6 +4,8 @@ package com.unity.innovation.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.unity.common.ui.PageEntity;
 import org.apache.commons.lang3.StringUtils;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
@@ -24,10 +26,7 @@ import java.util.List;
 import com.unity.innovation.service.PmInfoDeptServiceImpl;
 import com.unity.innovation.entity.PmInfoDept;
 
-
-
-
-
+import javax.annotation.Resource;
 
 
 /**
@@ -35,25 +34,22 @@ import com.unity.innovation.entity.PmInfoDept;
  * @author zhang
  * 生成时间 2019-10-15 15:33:01
  */
-@Controller
-@RequestMapping("/pminfodept")
+@RestController
+@RequestMapping("/pmInfoDept")
 public class PmInfoDeptController extends BaseWebController {
-    @Autowired
+
+    @Resource
     PmInfoDeptServiceImpl service;
     
 
-     /**
-     * 获取一页数据
-     * @param search 统一查询条件
-     * @return
-     */
-    @PostMapping("/listByPage")
-    @ResponseBody
-    public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody SearchElementGrid search) {
-    
-        LambdaQueryWrapper<PmInfoDept> ew = wrapper(search);
 
-        IPage p = service.page(search.getPageable(), ew);
+    @PostMapping("/listByPage")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<PmInfoDept> pageEntity) {
+        Page<PmInfoDept> pageable = pageEntity.getPageable();
+        PmInfoDept entity = pageEntity.getEntity();
+        LambdaQueryWrapper<PmInfoDept> ew = wrapper(entity);
+
+        IPage p = service.page(pageable, ew);
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
                 .total(p.getTotal())
                 .items(convert2List(p.getRecords())).build();
@@ -61,13 +57,8 @@ public class PmInfoDeptController extends BaseWebController {
 
     }
     
-         /**
-     * 添加或修改
-     * @param entity 企业信息发布管理实体
-     * @return
-     */
+
     @PostMapping("/save")
-    @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody PmInfoDept entity) {
         
         service.saveOrUpdate(entity);
@@ -76,31 +67,12 @@ public class PmInfoDeptController extends BaseWebController {
     
 
 
-    /**
-     * 查询条件转换
-     * @param search 统一查询对象
-     * @return
-     */
-    private LambdaQueryWrapper<PmInfoDept> wrapper(SearchElementGrid search){
-        LambdaQueryWrapper<PmInfoDept> ew = null;
-        if(search!=null){
-            if(search.getCond()!=null){
-                search.getCond().findRule(PmInfoDept::getGmtCreate).forEach(r->{
-                   r.setData(DateUtils.parseDate(r.getData()).getTime());
-                });
-                search.getCond().findRule(PmInfoDept::getGmtModified).forEach(r->{
-                   r.setData(DateUtils.parseDate(r.getData()).getTime());
-                });
-            }
-            ew = search.toEntityLambdaWrapper(PmInfoDept.class);
+
+    private LambdaQueryWrapper<PmInfoDept> wrapper(PmInfoDept entity){
+        LambdaQueryWrapper<PmInfoDept> ew = new LambdaQueryWrapper<>();
+        if(entity != null) {
 
         }
-        else{
-            ew = new LambdaQueryWrapper<PmInfoDept>();
-        }
-
-        ew.orderBy(true, false,PmInfoDept::getSort);
-        
         return ew;
     }
     
