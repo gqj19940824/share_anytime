@@ -99,7 +99,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             }
             //标识模块
             if(StringUtils.isNotBlank(entity.getCategory())) {
-                ew.eq(IplManageMain::getIdRbacDepartmentDuty, InnovationUtil.getDepartmentId(entity));
+                ew.eq(IplManageMain::getIdRbacDepartmentDuty, getDepartmentId(entity));
             }else {
                 //非宣传部审批角色必传category
                 if(!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP,DicConstants.PD_B_ROLE)))) {
@@ -377,6 +377,26 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         }
         return list;
     }
-
+    /**
+     * 根据提交单位字符串返回单位id
+     *
+     * @param entity 实体
+     * @return java.lang.Long
+     * @author JH
+     * @date 2019/10/14 10:13
+     */
+    public  Long getDepartmentId(IplManageMain entity) {
+        if(entity == null || StringUtils.isBlank(entity.getCategory())) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("提交单位不能为空").build();
+        }
+        ListCategoryEnum listCategoryEnum = ListCategoryEnum.valueOfName(entity.getCategory());
+        if(listCategoryEnum != null) {
+            return listCategoryEnum.getId();
+        }else {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("提交单位错误").build();
+        }
+    }
 
 }

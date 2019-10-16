@@ -5,7 +5,14 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.unity.common.constant.DicConstants;
+import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.ui.PageEntity;
+import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
+import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
@@ -14,6 +21,7 @@ import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
+import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -47,7 +55,7 @@ public class PmInfoDeptController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<PmInfoDept> pageEntity) {
         Page<PmInfoDept> pageable = pageEntity.getPageable();
         PmInfoDept entity = pageEntity.getEntity();
-        LambdaQueryWrapper<PmInfoDept> ew = wrapper(entity);
+        LambdaQueryWrapper<PmInfoDept> ew = service.wrapper(entity);
 
         IPage p = service.page(pageable, ew);
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
@@ -68,15 +76,6 @@ public class PmInfoDeptController extends BaseWebController {
 
 
 
-    private LambdaQueryWrapper<PmInfoDept> wrapper(PmInfoDept entity){
-        LambdaQueryWrapper<PmInfoDept> ew = new LambdaQueryWrapper<>();
-        if(entity != null) {
-
-        }
-        return ew;
-    }
-    
-    
     
      /**
      * 将实体列表 转换为List Map

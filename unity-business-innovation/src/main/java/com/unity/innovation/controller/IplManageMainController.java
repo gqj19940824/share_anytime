@@ -80,7 +80,7 @@ public class IplManageMainController extends BaseWebController {
         if (obj != null) {
             return obj;
         }
-        Long category = InnovationUtil.getDepartmentId(entity);
+        Long category = service.getDepartmentId(entity);
         return success(service.saveOrUpdateForPkg(entity,category));
     }
 
