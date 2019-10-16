@@ -27,6 +27,8 @@ public class PmInfoDept extends mPmInfoDept{
      **/
     @TableField(exist = false)
     private String category;
+
+
   
 }
 
