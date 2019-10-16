@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.gson.reflect.TypeToken;
 import com.unity.common.base.BaseServiceImpl;
-import com.unity.common.constant.InnovationConstant;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -102,13 +102,13 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                 ew.eq(IplManageMain::getIdRbacDepartmentDuty, getDepartmentId(entity));
             }else {
                 //非宣传部审批角色必传category
-                if(!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(InnovationConstant.ROLE_GROUP,InnovationConstant.PD_B_ROLE)))) {
+                if(!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP,DicConstants.PD_B_ROLE)))) {
                     throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                             .message("提交单位不能为空").build();
                 }
             }
             //宣传部审批角色不查看 待提交、已驳回
-            if(roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(InnovationConstant.ROLE_GROUP,InnovationConstant.PD_B_ROLE)))) {
+            if(roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP,DicConstants.PD_B_ROLE)))) {
                 ew.notIn(IplManageMain::getStatus, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(),WorkStatusAuditingStatusEnum.FORTY.getId()));
             }
             //状态
@@ -119,7 +119,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             ew.orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified);
         } else {
             //只有宣传部角色可以查询所有单位数据
-            if(!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(InnovationConstant.ROLE_GROUP,InnovationConstant.PD_B_ROLE)))) {
+            if(!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP,DicConstants.PD_B_ROLE)))) {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                         .message("提交单位不能为空").build();
             }
@@ -161,7 +161,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @date 2019/10/9 16:48
      */
     @Transactional(rollbackFor = Exception.class)
-    public void saveOrUpdateForPkg(IplManageMain entity, Long department) {
+    public Long saveOrUpdateForPkg(IplManageMain entity, Long department) {
         //快照数据 根据不同单位 切换不同vo
         String snapshot = GsonUtils.format(entity.getDataList());
         //纪检组需要进行排序
@@ -190,6 +190,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             entity.setIdRbacDepartmentDuty(department);
             //保存
             save(entity);
+            return entity.getId();
         } else {
             //编辑
             IplManageMain vo = getById(entity.getId());
@@ -209,6 +210,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
             //修改信息
             updateById(entity);
+            return vo.getId();
         }
     }
 
