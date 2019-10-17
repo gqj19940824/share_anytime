@@ -46,6 +46,12 @@ public class PmInfoDept extends mPmInfoDept{
     private List<Attachment> attachmentList;
 
 
+    /**
+     * 包数据集合
+     */
+    @TableField(exist = false)
+    private List dataList;
+
   
 }
 

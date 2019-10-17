@@ -367,5 +367,26 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         logService.save(log);
     }
 
+    /**
+    * 详情
+    *
+    * @param id 主键
+    * @return com.unity.innovation.entity.PmInfoDept
+    * @author JH
+    * @date 2019/10/17 15:34
+    */
+    public PmInfoDept detailById(Long id) {
+        PmInfoDept entity = super.getById(id);
+        Long departmentId = entity.getIdRbacDepartment();
+        if(InnovationConstant.DEPARTMENT_YZGT_ID.equals(departmentId)) {
+            entity.setDataList(yzgtService.convert2List(yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>().eq(InfoDeptYzgt::getIdPmInfoDept, id))));
+        }else if(InnovationConstant.DEPARTMENT_SATB_ID.equals(departmentId)){
+            List<InfoDeptSatb> satbList = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>().eq(InfoDeptSatb::getIdPmInfoDept, id));
+            satbService.dealData(satbList);
+            entity.setDataList(satbList);
+        }
+        return entity;
+    }
+
 
 }

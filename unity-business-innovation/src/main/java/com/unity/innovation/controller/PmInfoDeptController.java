@@ -7,9 +7,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.ui.PageEntity;
+import com.unity.innovation.entity.InfoDeptYzgt;
 import com.unity.innovation.entity.PmInfoDeptLog;
 import com.unity.innovation.enums.InfoTypeEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
+import com.unity.innovation.service.InfoDeptYzgtServiceImpl;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
@@ -46,6 +48,8 @@ public class PmInfoDeptController extends BaseWebController {
     PmInfoDeptServiceImpl service;
     @Resource
     InfoDeptSatbServiceImpl satbService;
+    @Resource
+    InfoDeptYzgtServiceImpl yzgtService;
 
 
     /**
@@ -190,6 +194,14 @@ public class PmInfoDeptController extends BaseWebController {
     }
 
 
+    /**
+    * 通过/驳回
+    *
+    * @param entity 实体
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/10/17 14:09
+    */
     @PostMapping("/passOrReject")
     public Mono<ResponseEntity<SystemResponse<Object>>> passOrReject(@RequestBody PmInfoDeptLog entity) {
         if(entity == null || entity.getId() == null) {
@@ -225,6 +237,41 @@ public class PmInfoDeptController extends BaseWebController {
         }
         service.submit(entity);
         return success("操作成功");
+    }
+
+
+    /**
+     * 功能描述 分页列表查询
+     *
+     * @param search 查询条件
+     * @return 分页数据
+     * @author gengzhiqiang
+     * @date 2019/9/17 13:36
+     */
+    @PostMapping("/listForYzgt")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listForYzgt(@RequestBody PageEntity<InfoDeptYzgt> search) {
+        IPage<InfoDeptYzgt> list = yzgtService.listForYzgt(search);
+        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
+                .total(list.getTotal())
+                .items(yzgtService.convert2List(list.getRecords())).build();
+        return success(result);
+    }
+
+
+    /**
+    * 详情接口
+    *
+    * @param entity 实体
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/10/17 15:34
+    */
+    @PostMapping("/detailById")
+    public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody PmInfoDept entity) {
+        if(entity.getId() == null) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "id不能为空");
+        }
+        return success(service.detailById(entity.getId()));
     }
 
 }
