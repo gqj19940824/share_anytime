@@ -104,6 +104,11 @@ public class InnovationConstant {
     public final static Long DEPARTMENT_YZGT_ID = 43L;
 
     /**
+     * 亦庄国投 单位主键 ipl_Yzgt_main
+     */
+    public final static Long DEPARTMENT_YZGT_ID = 43L;
+
+    /**
      * 换行符
      */
     public final static String LINE_SEPARATOR = "line.separator";

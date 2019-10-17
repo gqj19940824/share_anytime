@@ -14,6 +14,7 @@ import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
@@ -32,10 +33,7 @@ import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.IplStatusEnum;
-import com.unity.innovation.enums.ProcessStatusEnum;
-import com.unity.innovation.enums.SourceEnum;
-import com.unity.innovation.enums.SysCfgEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -95,6 +93,9 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
 
     @Resource
     private RedisSubscribeServiceImpl redisSubscribeService;
+
+    @Resource
+    private SysMessageHelpService sysMessageHelpService;
 
     /**
      * 功能描述 分页接口
@@ -195,6 +196,14 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
             save(entity);
             redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_ESB_ID);
+            //====企服局====企业新增填报实时清单需求========
+            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                    .sourceId(entity.getId())
+                    .idRbacDepartment(InnovationConstant.DEPARTMENT_ESB_ID)
+                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                    .title(entity.getEnterpriseName())
+                    .build());
         } else {
             IplEsbMain vo = getById(entity.getId());
             if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {
@@ -218,6 +227,17 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                         "更新基本信息");
                 entity.setLatestProcess("更新基本信息");
                 redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME,InnovationConstant.DEPARTMENT_ESB_ID);
+                //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
+                List<IplAssist> assists = iplAssistService.getAssists(entity.getIdRbacDepartmentDuty(), entity.getId());
+                List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
+                sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                        .sourceId(entity.getId())
+                        .idRbacDepartment(InnovationConstant.DEPARTMENT_ESB_ID)
+                        .dataSourceClass(SysMessageDataSourceClassEnum.DEVELOPING.getId())
+                        .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
+                        .title(entity.getEnterpriseName())
+                        .helpDepartmentIdList(assistsIdList)
+                        .build());
             }
             updateById(entity);
         }
@@ -238,10 +258,26 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(doneList)) {
             throw UnityRuntimeException.newInstance()
+                    .message("处理完毕的数据不可删除")
                     .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                    .message("处理完毕的数据不可删除").build();
+                    .build();
         }
         List<String> codes = list.stream().map(IplEsbMain::getAttachmentCode).collect(Collectors.toList());
+
+        //======处理中的数据，主责单位删除--清单协同处理--增加系统消息=======
+        list.forEach(entity ->{
+            List<IplAssist> assists = iplAssistService.getAssists(entity.getIdRbacDepartmentDuty(), entity.getId());
+            List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
+            sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
+                    .sourceId(entity.getId())
+                    .idRbacDepartment(entity.getIdRbacDepartmentDuty())
+                    .dataSourceClass(SysMessageDataSourceClassEnum.DEVELOPING.getId())
+                    .flowStatus(SysMessageFlowStatusEnum.FIVES.getId())
+                    .title(entity.getEnterpriseName())
+                    .helpDepartmentIdList(assistsIdList)
+                    .build());
+        });
+
         // 删除主表
         removeByIds(ids);
         // 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
