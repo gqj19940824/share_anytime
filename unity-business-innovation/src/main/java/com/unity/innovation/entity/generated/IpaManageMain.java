@@ -1,16 +1,12 @@
 package com.unity.innovation.entity.generated;
 
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
 import com.baomidou.mybatisplus.annotation.TableField;
-
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
+import lombok.*;
+
+import java.util.List;
 
 /**
  * 创新发布活动-管理-主表
@@ -19,6 +15,8 @@ import com.unity.common.base.CommentTarget;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(builderMethodName = "newInstance")
 @EqualsAndHashCode(callSuper=false)
 public class IpaManageMain extends BaseEntity{
 
@@ -39,16 +37,43 @@ public class IpaManageMain extends BaseEntity{
         @CommentTarget("状态")
         @TableField("status")
         private Integer status ;
-        
-        
-        
+
+
+
         /**
         * 发布效果
         **/
         @CommentTarget("发布效果")
         @TableField("publish_result")
         private String publishResult ;
-        
+
+
+
+        /**
+        * 与会企业信息一次包id
+        **/
+        @CommentTarget("与会企业信息一次包id")
+        @TableField(exist = false)
+        private List<Long> idPmpList ;
+
+
+
+        /**
+        * 工作动态一次包id
+        **/
+        @CommentTarget("工作动态一次包id")
+        @TableField(exist = false)
+        private List<Long> idDwspList ;
+
+
+
+        /**
+        * 创新发布清单一次包
+        **/
+        @CommentTarget("创新发布清单一次包id")
+        @TableField(exist = false)
+        private List<Long> idIplpList ;
+
         
 
 }

@@ -14,6 +14,7 @@ import java.util.List;
 
 @Builder(builderMethodName = "newInstance")
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper=false)
 @TableName(value = "pm_info_dept")

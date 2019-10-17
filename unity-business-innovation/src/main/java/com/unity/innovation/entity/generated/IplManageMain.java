@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
 import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.IplSupervisionMain;
 import lombok.*;
@@ -68,6 +67,13 @@ public class IplManageMain extends BaseEntity{
         @CommentTarget("发布结果")
         @TableField("publish_result")
         private String publishResult ;
+
+        /**
+        * 二次打包id
+        **/
+        @CommentTarget("二次打包id")
+        @TableField("id_ipa_main")
+        private Long idIpaMain ;
 
         /**
          * 提请时间
