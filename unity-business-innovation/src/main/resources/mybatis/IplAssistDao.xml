@@ -55,8 +55,10 @@
         m.gmt_create gmtCreate, m.gmt_modified gmtModified, m.source, m.id_rbac_department_duty idRbacDepartmentDuty, m.`status`,
         m.process_status processStatus, s.cfg_val industryCategoryName
 
-        FROM ${table} m INNER JOIN ipl_assist a ON a.id_ipl_main = m.id INNER JOIN sys_cfg s ON s.id = m.industry_category
+        FROM ${table} m INNER JOIN ipl_assist a ON m.id = a.id_ipl_main AND a.id_rbac_department_duty = m.id_rbac_department_duty
+        INNER JOIN sys_cfg s ON s.id = m.industry_category
         AND a.id_rbac_department_duty = #{idRbacDepartmentDuty} AND a.id_rbac_department_assist = #{idRbacDepartmentAssist}
+        AND a.is_deleted = 0 AND m.is_deleted = 0
         <if test="industryCategory != null and industryCategory != ''">
             AND m.industry_category = #{industryCategory}
         </if>
