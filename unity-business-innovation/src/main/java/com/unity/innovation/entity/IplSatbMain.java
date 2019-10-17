@@ -60,5 +60,11 @@ public class IplSatbMain extends mIplSatbMain {
      */
     @TableField(exist = false)
     private String statusTitle;
+
+    /**
+     * 数据状态名称
+     */
+    @TableField(exist = false)
+    private String processStatusTitle;
 }
 
