@@ -179,7 +179,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         if (StringUtils.isBlank(title)) {
             return;
         }
-        title = title.replace(MessageConstants.TITLE, msg.getTitle());
+        title = title.replace(MessageConstants.TITLE, StringUtils.isEmpty(msg.getTitle()) ? "未知" : msg.getTitle());
         if (StringUtils.isNotBlank(msg.getTime())) {
             title = title.replace(MessageConstants.TIME, msg.getTime());
         }

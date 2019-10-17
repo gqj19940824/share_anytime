@@ -36,6 +36,7 @@ import java.util.Map;
 
 /**
  * EnterpriseServiceBreau->esb;\r\nInnovationPublishList->ip
+ *
  * @author zhang
  * 生成时间 2019-09-25 14:51:39
  */
@@ -60,6 +61,7 @@ public class IplEsbMainController extends BaseWebController {
 
     /**
      * 功能描述 分页列表查询
+     *
      * @param search 查询条件
      * @return 分页数据
      * @author gengzhiqiang
@@ -76,8 +78,9 @@ public class IplEsbMainController extends BaseWebController {
 
     /**
      * 功能描述 数据整理
+     *
      * @param list 集合
-     * @return java.util.List<java.util.Map<java.lang.String,java.lang.Object>> 规范数据
+     * @return java.util.List<java.util.Map   <   java.lang.String   ,   java.lang.Object>> 规范数据
      * @author gengzhiqiang
      * @date 2019/9/17 13:36
      */
@@ -87,7 +90,7 @@ public class IplEsbMainController extends BaseWebController {
                 }, IplEsbMain::getId, IplEsbMain::getIndustryCategory, IplEsbMain::getIndustryCategoryName, IplEsbMain::getEnterpriseName
                 , IplEsbMain::getSummary, IplEsbMain::getContactPerson, IplEsbMain::getContactWay, IplEsbMain::getGmtCreate
                 , IplEsbMain::getGmtModified, IplEsbMain::getSource, IplEsbMain::getSourceName, IplEsbMain::getStatus
-                , IplEsbMain::getStatusName, IplEsbMain::getProcessStatus, IplEsbMain::getProcessStatusName, IplEsbMain::getLatestProcess,IplEsbMain::getNewProductAndTech);
+                , IplEsbMain::getStatusName, IplEsbMain::getProcessStatus, IplEsbMain::getProcessStatusName, IplEsbMain::getLatestProcess, IplEsbMain::getNewProductAndTech);
     }
 
     /**
@@ -113,7 +116,7 @@ public class IplEsbMainController extends BaseWebController {
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody IplEsbMain entity) {
         Mono<ResponseEntity<SystemResponse<Object>>> obj = verifyParam(entity);
-        if (obj!=null){
+        if (obj != null) {
             return obj;
         }
         service.saveEntity(entity);
@@ -122,13 +125,14 @@ public class IplEsbMainController extends BaseWebController {
 
     /**
      * 功能描述 数据校验
+     *
      * @param entity 实体
      * @return com.unity.common.exception.UnityRuntimeException
      * @author gengzhiqiang
      * @date 2019/9/17 15:49
      */
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(IplEsbMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity,IplEsbMain::getSource,  IplEsbMain::getIndustryCategory, IplEsbMain::getEnterpriseName
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplEsbMain::getSource, IplEsbMain::getIndustryCategory, IplEsbMain::getEnterpriseName
                 , IplEsbMain::getEnterpriseProfile, IplEsbMain::getSummary, IplEsbMain::getContactPerson, IplEsbMain::getContactWay);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -218,7 +222,7 @@ public class IplEsbMainController extends BaseWebController {
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                     .message("未获取到对象").build();
         }
-        return success(iplAssistService.getAssistList(vo.getId(),vo.getIdRbacDepartmentDuty()));
+        return success(iplAssistService.getAssistList(vo.getId(), vo.getIdRbacDepartmentDuty()));
     }
 
     /**
@@ -233,11 +237,11 @@ public class IplEsbMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> addAssistant(@RequestBody IplEsbMain iplDarbMain) {
         // 主表数据
         IplEsbMain entity = service.getById(iplDarbMain.getId());
-        if(entity == null){
-            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST,SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        if (entity == null) {
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         List<IplAssist> assists = iplDarbMain.getAssistList();
-        if (CollectionUtils.isEmpty(assists)){
+        if (CollectionUtils.isEmpty(assists)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
 
@@ -259,13 +263,13 @@ public class IplEsbMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> updateStatusByDuty(@RequestBody IplLog iplLog) {
         // 协助单位id
         Long idRbacDepartmentAssist = iplLog.getIdRbacDepartmentAssist();
-        if (idRbacDepartmentAssist == null){
+        if (idRbacDepartmentAssist == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
         // 主表id
         Long idIplMain = iplLog.getIdIplMain();
         IplEsbMain entity = service.getById(idIplMain);
-        if (entity == null){
+        if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         // 修改状态、插入日志
@@ -284,7 +288,7 @@ public class IplEsbMainController extends BaseWebController {
     @PostMapping("/updateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> updateStatus(@RequestBody IplLog iplLog) {
         IplEsbMain entity = service.getById(iplLog.getIdIplMain());
-        if (entity == null){
+        if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         iplLogService.updateStatus(entity, iplLog);
@@ -294,6 +298,7 @@ public class IplEsbMainController extends BaseWebController {
 
     /**
      * 功能描述 分页列表查询
+     *
      * @param search 查询条件
      * @return 分页数据
      * @author gengzhiqiang
@@ -301,8 +306,8 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/listForPkg")
     public Mono<ResponseEntity<SystemResponse<Object>>> listForPkg(@RequestBody PageEntity<IplManageMain> search) {
-      //todo
-        IPage<IplManageMain> list= iplManageMainService.listForPkg(search);
+        //todo
+        IPage<IplManageMain> list = iplManageMainService.listForPkg(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
                 .items(convert2ListForPkg(list.getRecords())).build();
@@ -311,6 +316,7 @@ public class IplEsbMainController extends BaseWebController {
 
     /**
      * 功能描述 数据整理
+     *
      * @param list 集合
      * @return java.util.List 规范数据
      * @author gengzhiqiang
@@ -319,7 +325,7 @@ public class IplEsbMainController extends BaseWebController {
     private List<Map<String, Object>> convert2ListForPkg(List<IplManageMain> list) {
         return JsonUtil.<IplManageMain>ObjectToList(list,
                 (m, entity) -> {
-                }, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus,IplManageMain::getStatusName);
+                }, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus, IplManageMain::getStatusName);
     }
 
 
@@ -337,7 +343,7 @@ public class IplEsbMainController extends BaseWebController {
         if (obj != null) {
             return obj;
         }
-        iplManageMainService.saveOrUpdateForPkg(entity,InnovationConstant.DEPARTMENT_ESB_ID);
+        iplManageMainService.saveOrUpdateForPkg(entity, InnovationConstant.DEPARTMENT_ESB_ID);
         return success("操作成功");
     }
 
@@ -389,6 +395,7 @@ public class IplEsbMainController extends BaseWebController {
         iplManageMainService.removeByIdsForPkg(ids);
         return success("删除成功");
     }
+
     /**
      * 功能描述 提交接口
      *
@@ -399,7 +406,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/submit")
     public Mono<ResponseEntity<SystemResponse<Object>>> submit(@RequestBody IplManageMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity,IplManageMain::getId);
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
         }
@@ -410,6 +417,7 @@ public class IplEsbMainController extends BaseWebController {
 
     /**
      * 功能描述  导出接口
+     *
      * @param id 数据id
      * @return 数据流
      * @author gengzhiqiang
