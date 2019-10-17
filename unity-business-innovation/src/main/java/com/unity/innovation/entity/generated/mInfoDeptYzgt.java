@@ -1,6 +1,7 @@
 package com.unity.innovation.entity.generated;
 
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -93,12 +94,12 @@ public class mInfoDeptYzgt extends BaseEntity{
         @CommentTarget("附件码")
         @TableField("attachment_code")
         private String attachmentCode ;
-        
-        
-        
+
+
+
         /**
-        * 入区企业信息发布管理id
-        **/
+         * 入区企业信息发布管理id
+         **/
         @CommentTarget("入区企业信息发布管理id")
         @TableField("id_pm_info_dept")
         private Long idPmInfoDept ;

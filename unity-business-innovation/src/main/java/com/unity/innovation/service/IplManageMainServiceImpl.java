@@ -346,6 +346,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @author JH
      * @date 2019/10/12 17:27
      */
+    @Transactional(rollbackFor = Exception.class)
     public void passOrReject(IplManageMain entity, IplManageMain old) {
         //通过
         if (YesOrNoEnum.YES.getType() == entity.getPassOrReject()) {

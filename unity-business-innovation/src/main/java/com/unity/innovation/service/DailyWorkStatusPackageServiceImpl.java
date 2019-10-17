@@ -205,6 +205,13 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             }
             //新增
             List<Long> works = entity.getWorkStatusList();
+            long count = (long) workMPackageService.list(new LambdaQueryWrapper<DailyWorkPackage>()
+                    .in(DailyWorkPackage::getIdDailyWorkStatus, works)).size();
+            if (count > 0) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("所添加数据中存在已提请发布的数据，请重新添加！").build();
+            }
             entity.setAttachmentCode(UUIDUtil.getUUID().replace("-", ""));
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
             entity.setState(WorkStatusAuditingStatusEnum.TEN.getId());
