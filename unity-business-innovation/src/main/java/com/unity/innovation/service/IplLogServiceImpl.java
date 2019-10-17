@@ -100,7 +100,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + iplAssist.getIdRbacDepartmentAssist(), ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
 
         // 修改主责单位超时状态，重置redis超时
-        ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL);
+        ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
         ReflectionUtils.setFieldValue(entity, "latestProcess", processInfo);
         updateMain(entity);
         redisSubscribeService.saveSubscribeInfo(idIplMain + "-0", ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
