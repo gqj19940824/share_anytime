@@ -263,6 +263,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @author gengzhiqiang
      * @date 2019/10/10 15:30
      */
+    @Transactional(rollbackFor = Exception.class)
     public void submit(IplManageMain entity) {
         IplManageMain vo = getById(entity.getId());
         if (vo == null) {

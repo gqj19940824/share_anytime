@@ -12,7 +12,6 @@ import com.unity.innovation.enums.InfoTypeEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.util.JsonUtil;
@@ -23,7 +22,6 @@ import com.unity.innovation.entity.PmInfoDept;
 import com.unity.innovation.service.InfoDeptSatbServiceImpl;
 import com.unity.innovation.service.PmInfoDeptServiceImpl;
 import org.apache.commons.collections4.CollectionUtils;
-import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -208,6 +206,25 @@ public class PmInfoDeptController extends BaseWebController {
         }
         service.passOrReject(entity,old);
         return success();
+    }
+
+
+    /**
+     * 功能描述 提交接口
+     *
+     * @param entity 实体
+     * @return 成功返回成功信息
+     * @author gengzhiqiang
+     * @date 2019/7/26 16:12
+     */
+    @PostMapping("/submit")
+    public Mono<ResponseEntity<SystemResponse<Object>>> submit(@RequestBody PmInfoDept entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity,PmInfoDept::getId);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        service.submit(entity);
+        return success("操作成功");
     }
 
 }

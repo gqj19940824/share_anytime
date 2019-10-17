@@ -326,4 +326,46 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
 
     }
 
+
+    /**
+     * 功能描述  提交公共方法
+     *
+     * @param entity 实体
+     * @author gengzhiqiang
+     * @date 2019/10/10 15:30
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void submit(PmInfoDept entity) {
+        PmInfoDept vo = getById(entity.getId());
+        if (vo == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
+        List<Attachment> attachment = attachmentService.list(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, vo.getAttachmentCode()));
+        if (CollectionUtils.isEmpty(attachment)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未上传领导签字文件").build();
+        }
+        if (!(WorkStatusAuditingStatusEnum.TEN.getId().equals(vo.getStatus())
+                || WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getStatus()))) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("该状态下不可提交").build();
+        }
+        //待提交>>>>>待审核
+        vo.setGmtSubmit(System.currentTimeMillis());
+        vo.setStatus(WorkStatusAuditingStatusEnum.TWENTY.getId());
+        updateById(vo);
+        //日志记录
+        PmInfoDeptLog log = new PmInfoDeptLog();
+        log.setIdRbacDepartment(vo.getIdRbacDepartment());
+        log.setIdPmInfoDept(vo.getId());
+        log.setStatus(WorkStatusAuditingStatusEnum.TWENTY.getId());
+        log.setContent("提交发布需求");
+        logService.save(log);
+    }
+
+
 }
