@@ -7,9 +7,10 @@ import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.innovation.constants.ListTypeConstants;
+import com.unity.innovation.dao.IplDarbMainDao;
 import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.generated.IplAssist;
+import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.IplStatusEnum;
@@ -20,9 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unity.innovation.entity.generated.IplDarbMain;
-import com.unity.innovation.dao.IplDarbMainDao;
-import java.util.*;
+import java.util.List;
 
 /**
  * ClassName: IplDarbMainService
@@ -112,12 +111,17 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
             attachmentService.updateAttachments(byId.getAttachmentCode(), attachments);
         }
 
-        // 保存修改
-        entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
-        updateById(entity);
-
         // 更新超时时间
         Integer status = entity.getStatus();
+
+        // 保存修改
+        entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+        if (IplStatusEnum.DEALING.getId().equals(status)){
+            // 非"待处理"状态才记录日志，该字段与日志处理相同
+            entity.setLatestProcess("更新基本信息");
+        }
+        updateById(entity);
+
         // 设置处理超时时间
         if (IplStatusEnum.UNDEAL.getId().equals(status)){
             redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, entity.getIdRbacDepartmentDuty());
