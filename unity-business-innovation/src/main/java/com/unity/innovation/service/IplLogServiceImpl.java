@@ -74,7 +74,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
     @Transactional(rollbackFor = Exception.class)
     public <T> void updateStatusByDuty(T entity, IplLog iplLog) {
         Long idRbacDepartmentDuty = (Long) ReflectionUtils.getFieldValue(entity, "idRbacDepartmentDuty");
-        Long idIplMain = (Long) ReflectionUtils.getFieldValue(entity, "idIplMain");
+        Long idIplMain = iplLog.getIdIplMain();
         LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
         qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, iplLog.getIdRbacDepartmentAssist());
         IplAssist iplAssist = iplAssistService.getOne(qw);
