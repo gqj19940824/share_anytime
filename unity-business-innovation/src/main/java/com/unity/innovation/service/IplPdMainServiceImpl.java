@@ -8,6 +8,7 @@ import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -19,9 +20,7 @@ import com.unity.innovation.dao.IplPdMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplPdMain;
 import com.unity.innovation.entity.SysCfg;
-import com.unity.innovation.enums.IplStatusEnum;
-import com.unity.innovation.enums.SourceEnum;
-import com.unity.innovation.enums.SysCfgEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -50,6 +49,8 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
     private AttachmentServiceImpl attachmentService;
     @Resource
     private SysCfgServiceImpl sysCfgService;
+    @Resource
+    private SysMessageHelpService sysMessageHelpService;
 
     /**
      * 发布会 列表数据
@@ -162,6 +163,14 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
             if(CollectionUtils.isNotEmpty(entity.getAttachmentList())){
                 attachmentService.updateAttachments(uuid, entity.getAttachmentList());
             }
+            //====宣传部====企业新增填报实时清单需求========
+            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                    .sourceId(entity.getId())
+                    .idRbacDepartment(InnovationConstant.DEPARTMENT_PD_ID)
+                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                    .title(entity.getEnterpriseName())
+                    .build());
         } else {
             IplPdMain main = this.getById(entity.getId());
             entity.setSource(main.getSource());

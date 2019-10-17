@@ -4,7 +4,9 @@ package com.unity.innovation.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
@@ -14,6 +16,8 @@ import com.unity.innovation.dao.IplYzgtMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplYzgtMain;
 import com.unity.innovation.enums.SourceEnum;
+import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
+import com.unity.innovation.enums.SysMessageFlowStatusEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +36,8 @@ import java.util.stream.Collectors;
 public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplYzgtMain> {
     @Resource
     private AttachmentServiceImpl attachmentService;
+    @Resource
+    private SysMessageHelpService sysMessageHelpService;
 
 
     /**
@@ -99,6 +105,14 @@ public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplY
             entity.setAttachmentCode(UUIDUtil.getUUID());
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
             save(entity);
+            //====亦庄国投====企业新增填报实时清单需求========
+            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                    .sourceId(entity.getId())
+                    .idRbacDepartment(InnovationConstant.DEPARTMENT_YZGT_ID)
+                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                    .title(entity.getEnterpriseName())
+                    .build());
         } else {
             IplYzgtMain iym = getById(entity.getId());
             attachmentService.updateAttachments(iym.getAttachmentCode(), entity.getAttachmentList());

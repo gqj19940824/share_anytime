@@ -1,58 +1,44 @@
 
 package com.unity.innovation.service;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
-import com.unity.common.client.ReClient;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.FileDownload;
+import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
-import com.unity.common.util.FileReaderUtil;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.FileDownloadUtil;
 import com.unity.common.utils.UUIDUtil;
+import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.dao.IplSatbMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
-import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.IplStatusEnum;
-import com.unity.innovation.enums.SourceEnum;
-import com.unity.innovation.enums.SysCfgEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -84,7 +70,9 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     @Resource
     SystemConfiguration systemConfiguration;
     @Resource
-    ReClient reClient;
+    RedisSubscribeServiceImpl redisSubscribeService;
+    @Resource
+    SysMessageHelpService sysMessageHelpService;
 
     /**
      * 获取清单列表
@@ -226,6 +214,14 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
             }
             entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_SATB_ID);
             this.save(entity);
+            //====科技局====企业新增填报实时清单需求========
+            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                    .sourceId(entity.getId())
+                    .idRbacDepartment(InnovationConstant.DEPARTMENT_SATB_ID)
+                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                    .title(entity.getEnterpriseName())
+                    .build());
         } else {
             IplSatbMain main = this.getById(entity.getId());
             entity.setAttachmentCode(main.getAttachmentCode());
@@ -237,6 +233,39 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 attachmentService.updateAttachments(main.getAttachmentCode(), entity.getAttachmentList());
             }
             this.updateById(entity);
+
+            // 更新超时时间
+            Integer status = entity.getStatus();
+            // 设置处理超时时间
+            if (IplStatusEnum.UNDEAL.getId().equals(status)) {
+                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME,
+                        entity.getIdRbacDepartmentDuty());
+                // 设置更新超时时间
+            } else if (IplStatusEnum.DEALING.getId().equals(status)) {
+                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME,
+                        entity.getIdRbacDepartmentDuty());
+                // 非"待处理"状态才记录日志
+                Integer lastDealStatus = iplLogService.getLastDealStatus(entity.getId(),
+                        entity.getIdRbacDepartmentDuty());
+                iplLogService.save(IplLog.newInstance()
+                        .idIplMain(entity.getId())
+                        .idRbacDepartmentAssist(0L)
+                        .processInfo("更新基本信息")
+                        .idRbacDepartmentDuty(entity.getIdRbacDepartmentDuty())
+                        .dealStatus(lastDealStatus)
+                        .build());
+                //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
+                List<IplAssist> assists = iplAssistService.getAssists(entity.getIdRbacDepartmentDuty(), entity.getId());
+                List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
+                sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                        .sourceId(entity.getId())
+                        .idRbacDepartment(InnovationConstant.DEPARTMENT_SATB_ID)
+                        .dataSourceClass(SysMessageDataSourceClassEnum.TARGET.getId())
+                        .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
+                        .title(entity.getEnterpriseName())
+                        .helpDepartmentIdList(assistsIdList)
+                        .build());
+            }
         }
 
     }
@@ -252,6 +281,24 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     public void deleteById(Long id) {
         //关联删除附件
         IplSatbMain main = this.getById(id);
+        if (main.getStatus().equals(IplStatusEnum.DONE.getId())) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("处理完毕的实时清单不可删除")
+                    .build();
+        }
+        //======处理中的数据，主责单位删除--清单协同处理--增加系统消息=======
+        List<IplAssist> assists = iplAssistService.getAssists(main.getIdRbacDepartmentDuty(), main.getId());
+        List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist)
+                .collect(Collectors.toList());
+        sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
+                .sourceId(main.getId())
+                .idRbacDepartment(main.getIdRbacDepartmentDuty())
+                .dataSourceClass(SysMessageDataSourceClassEnum.TARGET.getId())
+                .flowStatus(SysMessageFlowStatusEnum.FIVES.getId())
+                .title(main.getEnterpriseName())
+                .helpDepartmentIdList(assistsIdList)
+                .build());
         //关联删除协同信息
         iplAssistService.del(id, main.getIdRbacDepartmentDuty(), main.getAttachmentCode());
         this.removeById(id);
@@ -386,6 +433,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     public void realTimeUpdateStatusByDuty(IplLog entity) {
         IplSatbMain main = this.getById(entity.getIdIplMain());
         iplLogService.updateStatusByDuty(main, entity);
+        //iplLogService.updateStatusByDuty(main.getIdRbacDepartmentDuty(), main.getId(), entity, main.getEnterpriseName());
     }
 
     /**
@@ -431,7 +479,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @since 2019/10/11 11:27
      */
     public ResponseEntity<byte[]> downloadIplSatbMainDataPkgToExcel(Long id) {
-        IplManageMain main = iplManageMainService.getById(id);
+        /*IplManageMain main = iplManageMainService.getById(id);
         if (main == null || StringUtils.isEmpty(main.getSnapshot())) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
@@ -455,11 +503,11 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
             // 创建excel文件对象
             HSSFWorkbook wb = new HSSFWorkbook(inputStream);
             HSSFSheet sheet = wb.getSheet("成长目标投资清单发布需求详情");
-            /*// 创建excel文件对象
+            创建excel文件对象
             HSSFWorkbook wb = new HSSFWorkbook();
             // 创建sheet
             Sheet sheet = wb.createSheet("成长目标投资清单发布需求详情");
-            exportExcel(wb, sheet);*/
+            exportExcel(wb, sheet);*//*
             //快照集合
             List<IplSatbMain> list = JSON.parseArray(main.getSnapshot(), IplSatbMain.class);
             //设置表格数据
@@ -487,7 +535,8 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
             }
         }
 
-        return new ResponseEntity<>(content, headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(content, headers, HttpStatus.CREATED);*/
+        return null;
     }
 
     private void setTableData(Sheet sheet, List<IplSatbMain> list, String notes) {

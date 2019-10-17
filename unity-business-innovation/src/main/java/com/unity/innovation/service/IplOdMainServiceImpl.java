@@ -7,6 +7,7 @@ import com.google.gson.reflect.TypeToken;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
@@ -20,11 +21,9 @@ import com.unity.innovation.dao.IplOdMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplOdMain;
 import com.unity.innovation.entity.SysCfg;
+import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.IplStatusEnum;
-import com.unity.innovation.enums.ProcessStatusEnum;
-import com.unity.innovation.enums.SourceEnum;
-import com.unity.innovation.enums.SysCfgEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -73,6 +72,9 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
 
     @Resource
     private SystemConfiguration systemConfiguration;
+
+    @Resource
+    private SysMessageHelpService sysMessageHelpService;
 
     /**
      * 功能描述 分页接口
@@ -172,6 +174,14 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
             save(entity);
             redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_OD_ID);
+            //========企业新增填报实时清单需求========
+            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                    .sourceId(entity.getId())
+                    .idRbacDepartment(InnovationConstant.DEPARTMENT_OD_ID)
+                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                    .title(entity.getEnterpriseName())
+                    .build());
         } else {
             IplOdMain vo = getById(entity.getId());
             if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {
@@ -184,7 +194,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             //待处理时
             if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
-                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME,InnovationConstant.DEPARTMENT_OD_ID);
+                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, InnovationConstant.DEPARTMENT_OD_ID);
             } else if (IplStatusEnum.DEALING.getId().equals(vo.getStatus())) {
                 //处理中 如果超时 则置为进展正常
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
@@ -194,7 +204,18 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                         0L,
                         "更新基本信息");
                 entity.setLatestProcess("更新基本信息");
-                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME,InnovationConstant.DEPARTMENT_OD_ID);
+                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, InnovationConstant.DEPARTMENT_OD_ID);
+                //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
+                List<IplAssist> assists = iplAssistService.getAssists(entity.getIdRbacDepartmentDuty(), entity.getId());
+                List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
+                sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                        .sourceId(entity.getId())
+                        .idRbacDepartment(InnovationConstant.DEPARTMENT_OD_ID)
+                        .dataSourceClass(SysMessageDataSourceClassEnum.DEMAND.getId())
+                        .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
+                        .title(entity.getEnterpriseName())
+                        .helpDepartmentIdList(assistsIdList)
+                        .build());
             }
             updateById(entity);
         }
@@ -202,6 +223,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
 
     /**
      * 功能描述 删除接口
+     *
      * @param ids ids
      * @author gengzhiqiang
      * @date 2019/9/25 16:53
@@ -219,6 +241,19 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                     .message("处理完毕的数据不可删除").build();
         }
         List<String> codes = list.stream().map(IplOdMain::getAttachmentCode).collect(Collectors.toList());
+        //======处理中的数据，主责单位删除--清单协同处理--增加系统消息=======
+        list.forEach(entity ->{
+            List<IplAssist> assists = iplAssistService.getAssists(entity.getIdRbacDepartmentDuty(), entity.getId());
+            List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
+            sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
+                    .sourceId(entity.getId())
+                    .idRbacDepartment(entity.getIdRbacDepartmentDuty())
+                    .dataSourceClass(SysMessageDataSourceClassEnum.DEMAND.getId())
+                    .flowStatus(SysMessageFlowStatusEnum.FIVES.getId())
+                    .title(entity.getEnterpriseName())
+                    .helpDepartmentIdList(assistsIdList)
+                    .build());
+        });
         // 删除主表
         removeByIds(ids);
         // 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
@@ -227,6 +262,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
 
     /**
      * 功能描述 详情接口
+     *
      * @param entity 对象
      * @return entity 对象
      * @author gengzhiqiang
@@ -253,13 +289,14 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             vo.setIndustryCategoryName(industryCategory.getCfgVal());
         }
         //附件
-        List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
-                .eq(Attachment::getAttachmentCode,vo.getAttachmentCode()));
-        if (CollectionUtils.isNotEmpty(attachmentList)){
+        List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>()
+                .eq(Attachment::getAttachmentCode, vo.getAttachmentCode()));
+        if (CollectionUtils.isNotEmpty(attachmentList)) {
             vo.setAttachmentList(attachmentList);
         }
         return vo;
     }
+
     /**
      * 功能描述 导出接口
      *
@@ -292,7 +329,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             row = sheet.createRow(1);
             String[] title = {"行业类别", "企业名称", "企业简介", "岗位需求名称", "岗位需求数量", "需求人员专业领域",
                     "工作职责", "任职资格", "支持条件和福利待遇", "联系人", "联系方式", "创建时间", "更新时间", "来源", "状态", "最新进展"};
-            sheet.addMergedRegion(new CellRangeAddress(0,0, 0, title.length-1));
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, title.length - 1));
             for (int j = 0; j < title.length; j++) {
                 Cell cell = row.createCell(j);
                 cell.setCellValue(title[j]);
@@ -324,7 +361,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         return content;
     }
 
-    private void addData(HSSFSheet sheet, IplManageMain entity, Map<String,CellStyle> styleMap) {
+    private void addData(HSSFSheet sheet, IplManageMain entity, Map<String, CellStyle> styleMap) {
         List<IplOdMain> list = GsonUtils.parse(entity.getSnapshot(), new TypeToken<List<IplOdMain>>() {
         });
         CellStyle sty = styleMap.get("data");
@@ -348,37 +385,37 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             HSSFCell cell14 = row.createCell(14);
             HSSFCell cell15 = row.createCell(15);
             cell0.setCellStyle(sty);
-            sheet.setColumnWidth(0, 10*256);
+            sheet.setColumnWidth(0, 10 * 256);
             cell1.setCellStyle(sty);
-            sheet.setColumnWidth(1, 30*256);
+            sheet.setColumnWidth(1, 30 * 256);
             cell2.setCellStyle(sty);
-            sheet.setColumnWidth(2, 60*256);
+            sheet.setColumnWidth(2, 60 * 256);
             cell3.setCellStyle(sty);
-            sheet.setColumnWidth(3, 30*256);
+            sheet.setColumnWidth(3, 30 * 256);
             cell4.setCellStyle(sty);
-            sheet.setColumnWidth(4, 15*256);
+            sheet.setColumnWidth(4, 15 * 256);
             cell5.setCellStyle(sty);
-            sheet.setColumnWidth(5, 20*256);
+            sheet.setColumnWidth(5, 20 * 256);
             cell6.setCellStyle(sty);
-            sheet.setColumnWidth(6, 30*256);
+            sheet.setColumnWidth(6, 30 * 256);
             cell7.setCellStyle(sty);
-            sheet.setColumnWidth(7, 30*256);
+            sheet.setColumnWidth(7, 30 * 256);
             cell8.setCellStyle(sty);
-            sheet.setColumnWidth(8, 30*256);
+            sheet.setColumnWidth(8, 30 * 256);
             cell9.setCellStyle(sty);
-            sheet.setColumnWidth(9, 15*256);
+            sheet.setColumnWidth(9, 15 * 256);
             cell10.setCellStyle(sty);
-            sheet.setColumnWidth(10, 15*256);
+            sheet.setColumnWidth(10, 15 * 256);
             cell11.setCellStyle(sty);
-            sheet.setColumnWidth(11, 18*256);
+            sheet.setColumnWidth(11, 18 * 256);
             cell12.setCellStyle(sty);
-            sheet.setColumnWidth(12, 18*256);
+            sheet.setColumnWidth(12, 18 * 256);
             cell13.setCellStyle(sty);
-            sheet.setColumnWidth(13, 10*256);
+            sheet.setColumnWidth(13, 10 * 256);
             cell14.setCellStyle(sty);
-            sheet.setColumnWidth(14, 10*256);
+            sheet.setColumnWidth(14, 10 * 256);
             cell15.setCellStyle(sty);
-            sheet.setColumnWidth(15, 30*256);
+            sheet.setColumnWidth(15, 30 * 256);
             cell0.setCellValue(list.get(j).getIndustryCategoryName());
             cell1.setCellValue(list.get(j).getEnterpriseName());
             cell2.setCellValue(list.get(j).getEnterpriseIntroduction());
@@ -403,8 +440,8 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         CellStyle style = styleMap.get("note");
         titleCell.setCellStyle(style);
         if (StringUtils.isNotBlank(entity.getNotes())) {
-            titleCell.setCellValue("备注："+entity.getNotes());
-        }else{
+            titleCell.setCellValue("备注：" + entity.getNotes());
+        } else {
             titleCell.setCellValue("备注：");
         }
         CellRangeAddress range = new CellRangeAddress(list.size() + 2, list.size() + 2, 0, 15);

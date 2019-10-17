@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.utils.UUIDUtil;
@@ -14,9 +16,7 @@ import com.unity.innovation.dao.IplSuggestionDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplSuggestion;
 import com.unity.innovation.entity.generated.IplLog;
-import com.unity.innovation.enums.IplStatusEnum;
-import com.unity.innovation.enums.ProcessStatusEnum;
-import com.unity.innovation.enums.SourceEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
@@ -46,6 +46,8 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
     private AttachmentServiceImpl attachmentService;
     @Resource
     private IplLogServiceImpl iplLogService;
+    @Resource
+    private SysMessageHelpService sysMessageHelpService;
 
     /**
      * 功能描述 分页接口
@@ -125,6 +127,14 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
             save(entity);
+            //====纪检组====企业新增填报实时清单需求========
+            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                    .sourceId(entity.getId())
+                    .idRbacDepartment(InnovationConstant.DEPARTMENT_SUGGESTION_ID)
+                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                    .title(entity.getEnterpriseName())
+                    .build());
             return entity.getId();
         } else {
             IplSuggestion vo = getById(entity.getId());

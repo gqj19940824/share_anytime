@@ -8,6 +8,7 @@ import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -20,6 +21,8 @@ import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.ProcessStatusEnum;
+import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
+import com.unity.innovation.enums.SysMessageFlowStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -73,6 +76,9 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
     @Resource
     private RbacClient rbacClient;
+
+    @Resource
+    private SysMessageHelpService sysMessageHelpService;
 
     public PageElementGrid listAssistByPage(PageEntity<Map<String, Object>> pageEntity){
         com.baomidou.mybatisplus.extension.plugins.pagination.Page<Map<String, Object>> pageable = pageEntity.getPageable();
@@ -166,6 +172,18 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
             ReflectionUtils.setFieldValue(entity, "latestProcess", iplLog.getProcessInfo());
             iplLogService.updateMain(entity);
+
+            //====新增协同单位====增加系统通知========
+            String enterpriseName = ReflectionUtils.getDeclaredMethod(entity,"getEnterpriseName").invoke(entity).toString();
+            List<Long> list = assistList.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
+            sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
+                    .sourceId(idIplMain)
+                    .idRbacDepartment(idRbacDepartmentDuty)
+                    .dataSourceClass(SysMessageDataSourceClassEnum.HELP.getId())
+                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                    .title(enterpriseName)
+                    .helpDepartmentIdList(list)
+                    .build());
         } catch (UnityRuntimeException e) {
             throw e;
         } catch (Exception e) {
