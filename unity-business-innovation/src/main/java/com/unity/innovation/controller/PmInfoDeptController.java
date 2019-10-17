@@ -5,8 +5,11 @@ package com.unity.innovation.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.ui.PageEntity;
+import com.unity.innovation.entity.PmInfoDeptLog;
 import com.unity.innovation.enums.InfoTypeEnum;
+import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constants.ConstString;
@@ -186,6 +189,25 @@ public class PmInfoDeptController extends BaseWebController {
                 InfoDeptSatb::getIsPublishFirst, InfoDeptSatb::getContactPerson, InfoDeptSatb::getContactWay,
                 InfoDeptSatb::getGmtCreate, InfoDeptSatb::getGmtModified, InfoDeptSatb::getStatus
         );
+    }
+
+
+    @PostMapping("/passOrReject")
+    public Mono<ResponseEntity<SystemResponse<Object>>> passOrReject(@RequestBody PmInfoDeptLog entity) {
+        if(entity == null || entity.getId() == null) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "id不能为空");
+        }
+        PmInfoDept old = service.getById(entity.getId());
+        if(old == null) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "数据不存在");
+        }
+        //待审核才能审核
+        if(!WorkStatusAuditingStatusEnum.TWENTY.getId().equals(old.getStatus())) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("此状态不能不能审核").build();
+        }
+        service.passOrReject(entity,old);
+        return success();
     }
 
 }

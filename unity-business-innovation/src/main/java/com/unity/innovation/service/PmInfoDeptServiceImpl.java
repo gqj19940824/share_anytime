@@ -14,7 +14,6 @@ import com.unity.common.utils.DicUtils;
 import com.unity.innovation.entity.*;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
-import com.unity.innovation.entity.*;
 import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
@@ -299,6 +298,32 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             satbService.updateBatchById(satbList);
 
         }
+    }
+    /**
+     * 通过/驳回
+     *
+     * @param entity 实体
+     * @param old    原有数据
+     * @author JH
+     * @date 2019/10/12 17:27
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void passOrReject(PmInfoDeptLog entity, PmInfoDept old) {
+        //通过
+        if (YesOrNoEnum.NO.getType() == entity.getPassOrReject()) {
+            old.setStatus(WorkStatusAuditingStatusEnum.FORTY.getId());
+            //驳回
+        } else {
+            old.setStatus(WorkStatusAuditingStatusEnum.THIRTY.getId());
+        }
+        super.updateById(old);
+        //记录日志
+        entity.setStatus(old.getStatus());
+        entity.setIdRbacDepartment(old.getIdRbacDepartment());
+        entity.setIdPmInfoDept(old.getId());
+        entity.setId(null);
+        logService.save(entity);
+
     }
 
 }

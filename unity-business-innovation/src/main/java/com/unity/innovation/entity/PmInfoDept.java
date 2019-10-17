@@ -44,6 +44,8 @@ public class PmInfoDept extends mPmInfoDept{
      */
     @TableField(exist = false)
     private List<Attachment> attachmentList;
+
+
   
 }
 
