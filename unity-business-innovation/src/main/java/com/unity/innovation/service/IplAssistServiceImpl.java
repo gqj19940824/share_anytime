@@ -6,6 +6,7 @@ import com.github.pagehelper.PageHelper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.InventoryMessage;
@@ -91,7 +92,20 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         }
         Customer customer = LoginContextHolder.getRequestAttributes();
         entity.put("idRbacDepartmentAssist", customer.getIdRbacDepartment());
-        List<Map<String, Object>> maps = baseMapper.assistDarbList(entity);
+        Long idRbacDepartmentDuty = MapUtils.getLong(entity, "idRbacDepartmentDuty");
+        List<Map<String, Object>> maps;
+        if (InnovationConstant.DEPARTMENT_ESB_ID.equals(idRbacDepartmentDuty)){
+            maps = baseMapper.assistEsbList(entity);
+        }else if (InnovationConstant.DEPARTMENT_DARB_ID.equals(idRbacDepartmentDuty)){
+            maps = baseMapper.assistDarbList(entity);
+        }else if (InnovationConstant.DEPARTMENT_OD_ID.equals(idRbacDepartmentDuty)){
+            maps = baseMapper.assistOdList(entity);
+        }else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(idRbacDepartmentDuty)){
+            maps = baseMapper.assistSatbList(entity);
+        } else {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("主责单位id错误").build();
+        }
+
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
                 .total(page.getTotal())
                 .items(convert(maps)).build();
