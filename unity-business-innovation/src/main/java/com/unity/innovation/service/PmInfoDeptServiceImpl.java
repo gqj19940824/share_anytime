@@ -15,6 +15,7 @@ import com.unity.innovation.entity.*;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.enums.ListCategoryEnum;
+import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
@@ -27,7 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.unity.innovation.dao.PmInfoDeptDao;
 
 import javax.annotation.Resource;
-import java.util.List;
+import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -385,6 +388,26 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             satbService.dealData(satbList);
             entity.setDataList(satbList);
         }
+        //操作记录
+        List<PmInfoDeptLog> logList = logService.list(new LambdaQueryWrapper<PmInfoDeptLog>()
+                .eq(PmInfoDeptLog::getIdPmInfoDept, id)
+                .orderByDesc(PmInfoDeptLog::getGmtCreate));
+        logList.forEach(n -> {
+            n.setDepartmentName(InnovationUtil.getDeptNameById(n.getIdRbacDepartment()));
+            n.setStatusName(Objects.requireNonNull(WorkStatusAuditingProcessEnum.of(n.getStatus())).getName());
+        });
+        entity.setLogList(logList);
+        //按状态进行分组,同时只取时间最小的那一条数据
+        Map<Integer, PmInfoDeptLog> map = logList.stream()
+                .filter(n -> !WorkStatusAuditingStatusEnum.FORTY.getId().equals(n.getStatus()))
+                .collect(Collectors.toMap(PmInfoDeptLog::getStatus, Function.identity(), BinaryOperator.minBy(Comparator.comparingLong(PmInfoDeptLog::getGmtCreate))));
+        Set<Integer> statusSet = map.keySet();
+        List<PmInfoDeptLog> processNodeList = Lists.newArrayList();
+        for (int status : statusSet) {
+            PmInfoDeptLog log = map.get(status);
+            processNodeList.add(log);
+        }
+        entity.setProcessNodeList(processNodeList);
         return entity;
     }
 
