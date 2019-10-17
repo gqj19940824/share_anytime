@@ -12,12 +12,15 @@ import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.util.ValidFieldUtil;
+import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.InfoDeptSatb;
 import com.unity.innovation.entity.PmInfoDept;
 import com.unity.innovation.enums.InfoTypeEnum;
 import com.unity.innovation.service.InfoDeptSatbServiceImpl;
 import com.unity.innovation.service.PmInfoDeptServiceImpl;
 import com.unity.innovation.util.InnovationUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -29,6 +32,7 @@ import java.util.Map;
 
 /**
  * 企业信息发布管理
+ *
  * @author zhang
  * 生成时间 2019-10-15 15:33:01
  */
@@ -49,55 +53,88 @@ public class PmInfoDeptController extends BaseWebController {
         LambdaQueryWrapper<PmInfoDept> ew = service.wrapper(entity);
 
         IPage<PmInfoDept> p = service.page(pageable, ew);
-        PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
+        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(p.getTotal())
                 .items(convert2List(p.getRecords())).build();
         return success(result);
 
     }
-    
 
-    @PostMapping("/save")
-    public Mono<ResponseEntity<SystemResponse<Object>>>  save(@RequestBody PmInfoDept entity) {
-        
-        service.saveOrUpdate(entity);
-        return success(null);
+
+    /**
+     * 功能描述
+     *
+     * @param entity 保存计划
+     * @return 成功返回成功信息
+     * @author gengzhiqiang
+     * @date 2019/7/26 16:12
+     */
+    @PostMapping("/saveOrUpdate")
+    public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody PmInfoDept entity) {
+        Mono<ResponseEntity<SystemResponse<Object>>> obj = verifyParam(entity);
+        if (obj != null) {
+            return obj;
+        }
+        service.saveEntity(entity);
+        return success("操作成功");
     }
-    
+
+    /**
+     * 功能描述 数据校验
+     *
+     * @param entity 实体
+     * @return 异常信息
+     * @author gengzhiqiang
+     * @date 2019/9/18 18:36
+     */
+    private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(PmInfoDept entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity, PmInfoDept::getTitle, PmInfoDept::getDataIdList, PmInfoDept::getCategory);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        if (StringUtils.isNotBlank(entity.getNotes()) && entity.getNotes().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注限制500字");
+        }
+        if (entity.getTitle().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "标题限制50字");
+        }
+        return null;
+    }
 
 
-
-    
-     /**
+    /**
      * 将实体列表 转换为List Map
+     *
      * @param list 实体列表
      * @return
      */
-    private List<Map<String, Object>> convert2List(List<PmInfoDept> list){
-       
+    private List<Map<String, Object>> convert2List(List<PmInfoDept> list) {
+
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
                     m.put("infoTypeName", InfoTypeEnum.of(entity.getIdRbacDepartment()).getName());
-                    m.put("departmentName",InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
+                    m.put("departmentName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
 
                 }
-                ,PmInfoDept::getId,PmInfoDept::getSort,PmInfoDept::getNotes,PmInfoDept::getTitle,PmInfoDept::getGmtSubmit,PmInfoDept::getStatus,PmInfoDept::getAttachmentCode,PmInfoDept::getIdRbacDepartment,PmInfoDept::getInfoType
+                , PmInfoDept::getId, PmInfoDept::getSort, PmInfoDept::getNotes, PmInfoDept::getTitle, PmInfoDept::getGmtSubmit, PmInfoDept::getStatus, PmInfoDept::getAttachmentCode, PmInfoDept::getIdRbacDepartment, PmInfoDept::getInfoType
         );
     }
 
     /**
      * 批量删除
+     *
      * @param ids id列表用英文逗号分隔
      * @return
      */
     @DeleteMapping("/del/{ids}")
-    public Mono<ResponseEntity<SystemResponse<Object>>>  del(@PathVariable("ids") String ids) {
+    public Mono<ResponseEntity<SystemResponse<Object>>> del(@PathVariable("ids") String ids) {
         service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
         return success(null);
     }
 
     /**
      * 功能描述 分页列表查询
+     *
      * @param search 查询条件
      * @return 分页数据
      * @author gengzhiqiang
@@ -114,8 +151,9 @@ public class PmInfoDeptController extends BaseWebController {
 
     /**
      * 功能描述 数据整理
+     *
      * @param list 集合
-     * @return java.util.List<java.util.Map<java.lang.String,java.lang.Object>> 规范数据
+     * @return java.util.List<java.util.Map   <   java.lang.String   ,   java.lang.Object>> 规范数据
      * @author gengzhiqiang
      * @date 2019/9/17 13:36
      */
