@@ -90,16 +90,18 @@ public class InfoDeptYzgtController extends BaseWebController {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("缺少参数").build();
         }else {
-            InfoDeptYzgt old = service.getById(entity.getId());
-            if (old == null) {
-                throw UnityRuntimeException.newInstance()
-                        .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                        .message("未获取到对象").build();
-            }
-            if (YesOrNoEnum.YES.getType()==old.getStatus()) {
-                throw UnityRuntimeException.newInstance()
-                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("已提请发布状态下数据不可编辑").build();
+            if(entity.getId() != null) {
+                InfoDeptYzgt old = service.getById(entity.getId());
+                if (old == null) {
+                    throw UnityRuntimeException.newInstance()
+                            .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                            .message("未获取到对象").build();
+                }
+                if (YesOrNoEnum.YES.getType()==old.getStatus()) {
+                    throw UnityRuntimeException.newInstance()
+                            .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                            .message("已提请发布状态下数据不可编辑").build();
+                }
             }
         }
         //非空校验

@@ -12,6 +12,7 @@ import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.IplManageMainServiceImpl;
+import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -79,7 +80,7 @@ public class IplManageMainController extends BaseWebController {
         if (obj != null) {
             return obj;
         }
-        Long category =service.getDepartmentId(entity);
+        Long category = service.getDepartmentId(entity);
         return success(service.saveOrUpdateForPkg(entity,category));
     }
 

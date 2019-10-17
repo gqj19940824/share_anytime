@@ -13,9 +13,7 @@ import com.unity.common.ui.PageEntity;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.InfoDeptSatbDao;
-import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.InfoDeptSatb;
-import com.unity.innovation.entity.SysCfg;
+import com.unity.innovation.entity.*;
 import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
@@ -24,9 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -134,6 +130,95 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         return list;
     }
 
+    public IPage<InfoDeptSatb> listForSatb(PageEntity<InfoDeptSatb> search) {
+        LambdaQueryWrapper<InfoDeptSatb> lqw = new LambdaQueryWrapper<>();
+        if (search != null && search.getEntity() != null) {
+            //企业名称
+            if (StringUtils.isNotBlank(search.getEntity().getEnterpriseName())) {
+                lqw.like(InfoDeptSatb::getEnterpriseName, search.getEntity().getEnterpriseName());
+            }
+            //行业类型
+            if (search.getEntity().getIndustryCategory() != null) {
+                lqw.eq(InfoDeptSatb::getIndustryCategory, search.getEntity().getIndustryCategory());
+            }
+            //企业规模
+            if (search.getEntity().getEnterpriseScale() != null) {
+                lqw.eq(InfoDeptSatb::getEnterpriseScale, search.getEntity().getEnterpriseScale());
+            }
+            //企业性质
+            if (search.getEntity().getEnterpriseNature() != null) {
+                lqw.eq(InfoDeptSatb::getEnterpriseNature, search.getEntity().getEnterpriseNature());
+            }
+            //创新成果
+            if (StringUtils.isNotBlank(search.getEntity().getInGeneralSituation())) {
+                lqw.like(InfoDeptSatb::getInGeneralSituation, search.getEntity().getInGeneralSituation());
+            }
+            //创新水平
+            if (search.getEntity().getAchievementLevel() != null) {
+                lqw.eq(InfoDeptSatb::getAchievementLevel, search.getEntity().getAchievementLevel());
+            }
+            //首次发布
+            if (search.getEntity().getIsPublishFirst() != null) {
+                lqw.eq(InfoDeptSatb::getIsPublishFirst, search.getEntity().getIsPublishFirst());
+            }
+            //创建时间
+            if (StringUtils.isNotBlank(search.getEntity().getCreateTime())) {
+                long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), true);
+                //gt 大于 lt 小于
+                lqw.gt(InfoDeptSatb::getGmtCreate, begin);
+                long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getCreateTime(), false);
+                lqw.lt(InfoDeptSatb::getGmtCreate, end);
+            }
+            //包内的和未提请的数据
+            if (search.getEntity().getIdPmInfoDept() != null) {
+                List<InfoDeptSatb> list = list(new LambdaQueryWrapper<InfoDeptSatb>()
+                        .eq(InfoDeptSatb::getIdPmInfoDept, search.getEntity().getIdPmInfoDept()));
+                List<Long> ids = list.stream().map(InfoDeptSatb::getId).collect(Collectors.toList());
+                lqw.and(w -> w
+                        .in(InfoDeptSatb::getId, ids)
+                        .or()
+                        .eq(InfoDeptSatb::getStatus, YesOrNoEnum.NO.getType()));
+            } else {
+                lqw.eq(InfoDeptSatb::getStatus, YesOrNoEnum.NO.getType());
+            }
+        }
+
+        //排序规则      未提请发布在前，已提请发布在后；各自按创建时间倒序
+        lqw.orderByDesc(InfoDeptSatb::getStatus,InfoDeptSatb::getGmtCreate);
+        IPage<InfoDeptSatb> list = null;
+        if (search != null) {
+            list = page(search.getPageable(), lqw);
+            List<Integer> enumList = Arrays.asList(new Integer[]{SysCfgEnum.THREE.getId(), SysCfgEnum.SIX.getId()});
+            List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>().in(SysCfg::getCfgType, enumList));
+            Map<Long, String> collect = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
+            list.getRecords().forEach(is -> {
+                //行业类型
+                if ((is.getIndustryCategory() != null) && (collect.get(is.getIndustryCategory()) != null)) {
+                    is.setIndustryCategoryName(collect.get(is.getIndustryCategory()));
+                }
+                //企业性质
+                if ((is.getEnterpriseNature() != null) && (collect.get(is.getEnterpriseNature()) != null)) {
+                    is.setEnterpriseNatureName(collect.get(is.getEnterpriseNature()));
+                }
+                //企业规模
+                if (is.getEnterpriseScale() != null) {
+                    Dic type = dicUtils.getDicByCode(DicConstants.ENTERPRISE_SCALE, is.getEnterpriseScale().toString());
+                    if (type != null && StringUtils.isNotBlank(type.getDicValue())) {
+                        is.setEnterpriseScaleName(type.getDicValue());
+                    }
+                }
+                //成果创新水平
+                if (is.getAchievementLevel() != null) {
+                    Dic type = dicUtils.getDicByCode(DicConstants.ACHIEVEMENT_INNOVATI, is.getAchievementLevel().toString());
+                    if (type != null && StringUtils.isNotBlank(type.getDicValue())) {
+                        is.setAchievementLevelName(type.getDicValue());
+                    }
+                }
+            });
+        }
+        return list;
+    }
+
     /**
      * 功能描述 新增编辑提交
      * @param entity 实体
@@ -189,6 +274,40 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         if (CollectionUtils.isNotEmpty(attachmentList)){
             vo.setAttachmentList(attachmentList);
         }
+        HashSet<Long> set = new HashSet();
+        //行业类型
+        if (vo.getIndustryCategory() != null) {
+            set.add(vo.getIndustryCategory());
+        }
+        //企业性质
+        if (vo.getEnterpriseNature() != null) {
+            set.add(vo.getEnterpriseNature());
+        }
+        if (CollectionUtils.isNotEmpty(set)) {
+            Map<Long, String> map = sysCfgService.getListValues(set);
+            //行业类型
+            if ((vo.getIndustryCategory() != null) && (map.get(vo.getIndustryCategory()) != null)) {
+                vo.setIndustryCategoryName(map.get(vo.getIndustryCategory()));
+            }
+            //企业性质
+            if ((vo.getEnterpriseNature() != null) && (map.get(vo.getEnterpriseNature()) != null)) {
+                vo.setEnterpriseNatureName(map.get(vo.getEnterpriseNature()));
+            }
+        }
+        //企业规模
+        if (vo.getEnterpriseScale() != null) {
+            Dic type = dicUtils.getDicByCode(DicConstants.ENTERPRISE_SCALE, vo.getEnterpriseScale().toString());
+            if (type != null && StringUtils.isNotBlank(type.getDicValue())) {
+                vo.setEnterpriseScaleName(type.getDicValue());
+            }
+        }
+        //成果创新水平
+        if (vo.getAchievementLevel() != null) {
+            Dic type = dicUtils.getDicByCode(DicConstants.ACHIEVEMENT_INNOVATI, vo.getAchievementLevel().toString());
+            if (type != null && StringUtils.isNotBlank(type.getDicValue())) {
+                vo.setAchievementLevelName(type.getDicValue());
+            }
+        }
         return vo;
     }
 
@@ -201,7 +320,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
     @Transactional(rollbackFor = Exception.class)
     public void removeById(List<Long> ids) {
         List<InfoDeptSatb> list = list(new LambdaQueryWrapper<InfoDeptSatb>().in(InfoDeptSatb::getId, ids));
-        List<InfoDeptSatb> list1 = list.stream().filter(i -> i.getStatus() == YesOrNoEnum.NO.getType()).collect(Collectors.toList());
+        List<InfoDeptSatb> list1 = list.stream().filter(i -> i.getStatus() == YesOrNoEnum.YES.getType()).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(list1)) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
@@ -212,5 +331,6 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         attachmentService.remove(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, codes));
         removeByIds(ids);
     }
+
 
 }

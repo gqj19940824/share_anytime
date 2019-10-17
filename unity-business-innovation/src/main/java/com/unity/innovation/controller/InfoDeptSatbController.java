@@ -108,8 +108,26 @@ public class InfoDeptSatbController extends BaseWebController {
         if (StringUtils.isNotBlank(msg)){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
         }
+        if (entity.getEnterpriseName().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "企业名称限制50字");
+        }
+        if (entity.getEnterpriseIntroduction().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "企业简介限制500字");
+        }
+        if (entity.getInGeneralSituation().length() > ParamConstants.PARAM_MAX_LENGTH_20) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "概况限制20字");
+        }
+        if (StringUtils.isNotBlank(entity.getInDetail()) && entity.getInDetail().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "详情限制500字");
+        }
         if (StringUtils.isNotBlank(entity.getNotes()) && entity.getNotes().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注限制500字");
+        }
+        if (StringUtils.isNotBlank(entity.getContactPerson()) && entity.getContactPerson().length() > ParamConstants.PARAM_MAX_LENGTH_20) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "联系人限制20字");
+        }
+        if (StringUtils.isNotBlank(entity.getContactWay()) && entity.getContactWay().length() > ParamConstants.PARAM_MAX_LENGTH_20) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "联系方式限制20字");
         }
         return null;
     }

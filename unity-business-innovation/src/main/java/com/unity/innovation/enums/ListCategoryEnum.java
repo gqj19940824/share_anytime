@@ -22,7 +22,7 @@ public enum ListCategoryEnum {
     DEPARTMENT_SATB(InnovationConstant.DEPARTMENT_SATB_ID,"DEPARTMENT_SATB_CONTROL"),
     DEPARTMENT_OD(InnovationConstant.DEPARTMENT_OD_ID,"DEPARTMENT_OD_CONTROL"),
     DEPARTMENT_SUGGESTION_ID(InnovationConstant.DEPARTMENT_SUGGESTION_ID,"DEPARTMENT_SUGGESTION_CONTROL"),
-
+    DEPARTMENT_YZGT(InnovationConstant.DEPARTMENT_YZGT_ID,"DEPARTMENT_YZGT_CONTROL"),
     ;
 
     public static ListCategoryEnum of(Long id) {
@@ -41,6 +41,9 @@ public enum ListCategoryEnum {
         }
         if (id.equals(DEPARTMENT_SUGGESTION_ID.getId())) {
             return DEPARTMENT_SUGGESTION_ID;
+        }
+        if (id.equals(DEPARTMENT_YZGT.getId())) {
+            return DEPARTMENT_YZGT;
         }
        return null;
     }
