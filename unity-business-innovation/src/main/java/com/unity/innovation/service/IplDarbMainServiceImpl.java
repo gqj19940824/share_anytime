@@ -14,10 +14,7 @@ import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.IplStatusEnum;
-import com.unity.innovation.enums.ProcessStatusEnum;
-import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
-import com.unity.innovation.enums.SysMessageFlowStatusEnum;
+import com.unity.innovation.enums.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,14 +96,16 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, entity.getIdRbacDepartmentDuty());
 
         //====发改局====企业新增填报实时清单需求========
-        sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
-                .sourceId(entity.getId())
-                .idRbacDepartment(InnovationConstant.DEPARTMENT_DARB_ID)
-                .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
-                .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
-                .title(entity.getEnterpriseName())
-                .build());
-
+        if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())){
+            //企业需求填报才进行系统通知
+            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                    .sourceId(entity.getId())
+                    .idRbacDepartment(InnovationConstant.DEPARTMENT_DARB_ID)
+                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                    .title(entity.getEnterpriseName())
+                    .build());
+        }
         return entity.getId();
     }
 

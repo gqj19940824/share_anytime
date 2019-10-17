@@ -215,13 +215,16 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
             entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_SATB_ID);
             this.save(entity);
             //====科技局====企业新增填报实时清单需求========
-            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
-                    .sourceId(entity.getId())
-                    .idRbacDepartment(InnovationConstant.DEPARTMENT_SATB_ID)
-                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
-                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
-                    .title(entity.getEnterpriseName())
-                    .build());
+            if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
+                //企业需求填报才进行系统通知
+                sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                        .sourceId(entity.getId())
+                        .idRbacDepartment(InnovationConstant.DEPARTMENT_SATB_ID)
+                        .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                        .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                        .title(entity.getEnterpriseName())
+                        .build());
+            }
         } else {
             IplSatbMain main = this.getById(entity.getId());
             entity.setAttachmentCode(main.getAttachmentCode());

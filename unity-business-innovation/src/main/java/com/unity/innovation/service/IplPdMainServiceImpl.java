@@ -164,13 +164,16 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
                 attachmentService.updateAttachments(uuid, entity.getAttachmentList());
             }
             //====宣传部====企业新增填报实时清单需求========
-            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
-                    .sourceId(entity.getId())
-                    .idRbacDepartment(InnovationConstant.DEPARTMENT_PD_ID)
-                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
-                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
-                    .title(entity.getEnterpriseName())
-                    .build());
+            if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
+                //企业需求填报才进行系统通知
+                sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                        .sourceId(entity.getId())
+                        .idRbacDepartment(InnovationConstant.DEPARTMENT_PD_ID)
+                        .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                        .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                        .title(entity.getEnterpriseName())
+                        .build());
+            }
         } else {
             IplPdMain main = this.getById(entity.getId());
             entity.setSource(main.getSource());
