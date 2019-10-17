@@ -2,11 +2,9 @@
 package com.unity.innovation.service;
 
 import com.unity.common.base.BaseServiceImpl;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.unity.innovation.entity.IpaManageMain;
 import com.unity.innovation.dao.IpaManageMainDao;
+import com.unity.innovation.entity.generated.IpaManageMain;
+import org.springframework.stereotype.Service;
 
  /**
  * 
@@ -20,7 +18,7 @@ import com.unity.innovation.dao.IpaManageMainDao;
  * @since JDK 1.8
  */
 @Service
-public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao,IpaManageMain>{
+public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, IpaManageMain>{
 
      
 }

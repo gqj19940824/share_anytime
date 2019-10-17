@@ -1,16 +1,12 @@
 package com.unity.innovation.entity.generated;
 
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.unity.innovation.entity.Attachment;
-import lombok.*;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
 import com.baomidou.mybatisplus.annotation.TableField;
-
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
+import com.unity.innovation.entity.Attachment;
+import lombok.*;
 
 import java.util.List;
 
@@ -234,7 +230,7 @@ public class IplDarbMain extends BaseEntity{
         **/
         @CommentTarget("最新进展")
         @TableField("latest_process")
-        private Integer latestProcess ;
+        private String latestProcess ;
 
         /**
         * 主责单位id

@@ -51,7 +51,7 @@
     </select>
 
     <sql id="publicFile">
-        m.enterprise_name enterpriseName, m.contact_person contactPerson, m.contact_way contactWay,
+        m.id idIplMain, m.enterprise_name enterpriseName, m.contact_person contactPerson, m.contact_way contactWay,
         m.gmt_create gmtCreate, m.gmt_modified gmtModified, m.source, m.id_rbac_department_duty idRbacDepartmentDuty, m.`status`,
         m.process_status processStatus, s.cfg_val industryCategoryName
 

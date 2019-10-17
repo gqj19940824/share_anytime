@@ -90,7 +90,8 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         Integer dealStatus = iplAssist.getDealStatus();
         String switchType = IplStatusEnum.DEALING.getId().equals(dealStatus)?"开启":"关闭";
         IplLog assistDeptLog = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo(String.format("主责单位%s协同邀请", switchType)).idRbacDepartmentAssist(iplAssist.getIdRbacDepartmentAssist()).build();
-        IplLog dutyDeptLog = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo(switchType + InnovationUtil.getDeptNameById(iplAssist.getIdRbacDepartmentAssist()) + "协同邀请").idRbacDepartmentAssist(0L).build();
+        String processInfo = switchType + InnovationUtil.getDeptNameById(iplAssist.getIdRbacDepartmentAssist()) + "协同邀请";
+        IplLog dutyDeptLog = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo(processInfo).idRbacDepartmentAssist(0L).build();
 
         iplLogService.save(assistDeptLog);
         iplLogService.save(dutyDeptLog);
@@ -100,6 +101,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
 
         // 修改主责单位超时状态，重置redis超时
         ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL);
+        ReflectionUtils.setFieldValue(entity, "latestProcess", processInfo);
         updateMain(entity);
         redisSubscribeService.saveSubscribeInfo(idIplMain + "-0", ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
     }
@@ -135,7 +137,9 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                 iplLogService.save(iplLog);
 
                 // 将状数据态置为"处理中"，将超时状态置为"进展正常"
-                updateStatus(entity);
+                ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DEALING.getId());
+                ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
+                updateMain(entity);
 
                 // 更新redis的超时
                 redisSubscribeService.saveSubscribeInfo(id+"-0", ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
@@ -172,19 +176,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
     public <T> void updateStatus(T entity) {
         Integer status = (Integer) ReflectionUtils.getFieldValue(entity, "status");
         Integer processStatus = (Integer) ReflectionUtils.getFieldValue(entity, "processStatus");
-        boolean flag = false;
-        if (IplStatusEnum.UNDEAL.getId().equals(status)){
-            ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DEALING.getId());
-            flag = true;
-        }
-        if (!ProcessStatusEnum.NORMAL.getId().equals(processStatus)){
-            ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
-            flag = true;
-        }
 
-        if (flag){
-            updateMain(entity);
-        }
     }
 
     /**
@@ -196,18 +188,13 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      * @since 2019-10-10 17:10
      */
     private <T> void dutyDone(T entity, Long idRbacDepartmentDuty, Long id, Integer dealStatus) {
-        // 更新主表状态、删除主表的redis超时设置
-        ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DONE.getId());
-        updateMain(entity);
-        // 删除主表的redis超时设置
-        redisSubscribeService.removeRecordInfo(id+"-0", idRbacDepartmentDuty);
 
         List<IplLog> iplLogs = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
+        // 查询主表的协同单位
         List<IplAssist> assists = iplAssistService.getAssists(idRbacDepartmentDuty, id);
-        // 更新协同单位状态、删除协同单位的redis超时设置
         if (CollectionUtils.isNotEmpty(assists)){
-            // 过滤已关闭的协同单位
+            // 过滤掉已关闭的协同单位
             Iterator<IplAssist> iterator = assists.iterator();
             while (iterator.hasNext()){
                 IplAssist next = iterator.next();
@@ -215,6 +202,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                     iterator.remove();
                 }
             }
+            // 更新协同单位状态、删除协同单位的redis超时设置
             assists.forEach(e->{
                 builder.append(e.getNameRbacDepartmentAssist()).append("、");
                 e.setDealStatus(dealStatus);
@@ -232,10 +220,19 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         }
 
         // 主责记录日志
+        String processInfo = String.format("关闭%s协同邀请", builder.toString());
         IplLog iplLogDuty = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty)
-                .idRbacDepartmentAssist(0L).idIplMain(id).processInfo(String.format("关闭%s协同邀请", builder.toString())).build();
+                .idRbacDepartmentAssist(0L).idIplMain(id).processInfo(processInfo).build();
         iplLogs.add(iplLogDuty);
         iplLogService.saveBatch(iplLogs);
+
+        // 删除主表的redis超时设置
+        redisSubscribeService.removeRecordInfo(id+"-0", idRbacDepartmentDuty);
+
+        // 更新主表状态、删除主表的redis超时设置
+        ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DONE.getId());
+        ReflectionUtils.setFieldValue(entity, "latestProcess", processInfo);
+        updateMain(entity);
     }
 
     /**

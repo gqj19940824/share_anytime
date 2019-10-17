@@ -1,28 +1,23 @@
 package com.unity.innovation.service;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.unity.common.base.BaseEntity;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
-import com.unity.common.base.ContextHolder;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
-import com.unity.common.util.JsonUtil;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
+import com.unity.innovation.dao.IplAssistDao;
 import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.SysCfg;
-import com.unity.innovation.entity.generated.IplDarbMain;
+import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
-import com.unity.innovation.entity.generated.mSysCfg;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.ProcessStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
@@ -35,9 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.unity.innovation.entity.generated.IplAssist;
-import com.unity.innovation.dao.IplAssistDao;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -155,8 +147,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                 deptName.append(InnovationUtil.getDeptNameById(idRbacDepartmentAssist) + "、");
             });
 
-            // 将状数据态置为"处理中"，将超时状态置为"进展正常"
-            iplLogService.updateStatus(entity);
+
 
             // 拼接"处理进展"中的协同单位名称
             String nameStr = null;
@@ -169,6 +160,12 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
             // 新增协同单位、保存处理日志、主表重设超时、设置协同单位超时
             iplAssistService.addAssist(iplLog, assistList);
+
+            // 将状数据态置为"处理中"，将超时状态置为"进展正常"
+            ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DEALING.getId());
+            ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
+            ReflectionUtils.setFieldValue(entity, "latestProcess", iplLog.getProcessInfo());
+            iplLogService.updateMain(entity);
         } catch (UnityRuntimeException e) {
             throw e;
         } catch (Exception e) {
