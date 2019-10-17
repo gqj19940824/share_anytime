@@ -418,7 +418,6 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                 addSatb(sheet, entity, styleMap);
             } else if (ListCategoryEnum.DEPARTMENT_SATB.getId().equals(idRbacDepartment)) {
                 addSatb(sheet, entity, styleMap);
-            } else {
             }
             out = new FileOutputStream(templateFile);
             // 输出excel
@@ -461,6 +460,10 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         List<InfoDeptSatb> list = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>()
                 .eq(InfoDeptSatb::getIdPmInfoDept, entity.getId()));
         satbService.dealData(list);
+        List<String> collect = list.stream().map(InfoDeptSatb::getAttachmentCode).collect(Collectors.toList());
+        List<Attachment> attachments = attachmentService.list(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, collect));
+        Map<String, List<Attachment>> collect1 = attachments.stream().collect(Collectors.groupingBy(Attachment::getAttachmentCode));
+        list.forEach(s -> s.setAttachmentList(collect1.get(s.getAttachmentCode())));
         CellStyle sty = styleMap.get("data");
         int rowNum = 2;
         for (int j = 0; j < list.size(); j++) {
@@ -479,21 +482,21 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             HSSFCell cell11 = row.createCell(11);
             HSSFCell cell12 = row.createCell(12);
             cell0.setCellStyle(sty);
-            sheet.setColumnWidth(0, 10 * 256);
+            sheet.setColumnWidth(0, 30 * 256);
             cell1.setCellStyle(sty);
-            sheet.setColumnWidth(1, 30 * 256);
+            sheet.setColumnWidth(1, 10 * 256);
             cell2.setCellStyle(sty);
-            sheet.setColumnWidth(2, 60 * 256);
+            sheet.setColumnWidth(2, 10 * 256);
             cell3.setCellStyle(sty);
-            sheet.setColumnWidth(3, 30 * 256);
+            sheet.setColumnWidth(3, 10 * 256);
             cell4.setCellStyle(sty);
-            sheet.setColumnWidth(4, 15 * 256);
+            sheet.setColumnWidth(4, 30 * 256);
             cell5.setCellStyle(sty);
-            sheet.setColumnWidth(5, 20 * 256);
+            sheet.setColumnWidth(5, 30 * 256);
             cell6.setCellStyle(sty);
-            sheet.setColumnWidth(6, 30 * 256);
+            sheet.setColumnWidth(6, 15 * 256);
             cell7.setCellStyle(sty);
-            sheet.setColumnWidth(7, 30 * 256);
+            sheet.setColumnWidth(7, 18 * 256);
             cell8.setCellStyle(sty);
             sheet.setColumnWidth(8, 30 * 256);
             cell9.setCellStyle(sty);
@@ -501,7 +504,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             cell10.setCellStyle(sty);
             sheet.setColumnWidth(10, 15 * 256);
             cell11.setCellStyle(sty);
-            sheet.setColumnWidth(11, 18 * 256);
+            sheet.setColumnWidth(11, 90 * 256);
             cell12.setCellStyle(sty);
             sheet.setColumnWidth(12, 18 * 256);
             cell0.setCellValue(list.get(j).getEnterpriseName());
@@ -509,30 +512,37 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             cell2.setCellValue(list.get(j).getEnterpriseScaleName());
             cell3.setCellValue(list.get(j).getEnterpriseNatureName());
             cell4.setCellValue(list.get(j).getEnterpriseIntroduction());
-            cell5.setCellValue(list.get(j).getInDetail());
+            if (StringUtils.isNotBlank(list.get(j).getInDetail())) {
+                cell5.setCellValue(list.get(j).getInDetail());
+            }
             cell6.setCellValue(list.get(j).getAchievementLevelName());
             cell7.setCellValue(list.get(j).getIsPublishFirst() == YesOrNoEnum.YES.getType() ? "是" : "否");
-            cell8.setCellValue(list.get(j).getNotes());
+            if (StringUtils.isNotBlank(list.get(j).getNotes())) {
+                cell8.setCellValue(list.get(j).getNotes());
+            }
             cell9.setCellValue(list.get(j).getContactPerson());
             cell10.setCellValue(list.get(j).getContactWay());
-            cell11.setCellValue(list.get(j).getAttachmentCode());
-            cell12.setCellValue(DateUtils.timeStamp2Date(list.get(j).getGmtCreate()));
-            Row titleRow = sheet.createRow(list.size() + 2);
-            Cell titleCell = titleRow.createCell(0);
-            CellStyle style = styleMap.get("note");
-            titleCell.setCellStyle(style);
-            if (StringUtils.isNotBlank(entity.getNotes())) {
-                titleCell.setCellValue("备注：" + entity.getNotes());
-            } else {
-                titleCell.setCellValue("备注：");
+            if (CollectionUtils.isNotEmpty(list.get(j).getAttachmentList())){
+                String u = list.get(j).getAttachmentList().stream().map(Attachment::getUrl).collect(Collectors.joining(System.getProperty(InnovationConstant.LINE_SEPARATOR)));
+                cell11.setCellValue(u);
             }
-            CellRangeAddress range = new CellRangeAddress(list.size() + 2, list.size() + 2, 0, 12);
-            sheet.addMergedRegion(range);
-            RegionUtil.setBorderLeft(1, range, sheet);
-            RegionUtil.setBorderBottom(1, range, sheet);
-            RegionUtil.setBorderRight(1, range, sheet);
-            RegionUtil.setBorderTop(1, range, sheet);
+            cell12.setCellValue(DateUtils.timeStamp2Date(list.get(j).getGmtCreate()));
         }
+        Row titleRow = sheet.createRow(list.size() + 2);
+        Cell titleCell = titleRow.createCell(0);
+        CellStyle style = styleMap.get("note");
+        titleCell.setCellStyle(style);
+        if (StringUtils.isNotBlank(entity.getNotes())) {
+            titleCell.setCellValue("备注：" + entity.getNotes());
+        } else {
+            titleCell.setCellValue("备注：");
+        }
+        CellRangeAddress range = new CellRangeAddress(list.size() + 2, list.size() + 2, 0, 12);
+        sheet.addMergedRegion(range);
+        RegionUtil.setBorderLeft(1, range, sheet);
+        RegionUtil.setBorderBottom(1, range, sheet);
+        RegionUtil.setBorderRight(1, range, sheet);
+        RegionUtil.setBorderTop(1, range, sheet);
     }
 
     /**
