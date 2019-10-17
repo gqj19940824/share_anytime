@@ -151,6 +151,12 @@ public class mIplSatbMain extends BaseEntity {
     @CommentTarget("状态")
     @TableField("process_status")
     private Integer processStatus;
+
+    /**
+     * 最新进展
+     **/
+    @TableField("latest_process")
+    private String latestProcess ;
 }
 
 
