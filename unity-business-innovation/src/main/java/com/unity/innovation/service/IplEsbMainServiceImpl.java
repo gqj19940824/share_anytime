@@ -197,13 +197,16 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             save(entity);
             redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_ESB_ID);
             //====企服局====企业新增填报实时清单需求========
-            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
-                    .sourceId(entity.getId())
-                    .idRbacDepartment(InnovationConstant.DEPARTMENT_ESB_ID)
-                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
-                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
-                    .title(entity.getEnterpriseName())
-                    .build());
+            if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
+                //企业需求填报才进行系统通知
+                sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                        .sourceId(entity.getId())
+                        .idRbacDepartment(InnovationConstant.DEPARTMENT_ESB_ID)
+                        .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                        .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                        .title(entity.getEnterpriseName())
+                        .build());
+            }
         } else {
             IplEsbMain vo = getById(entity.getId());
             if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {

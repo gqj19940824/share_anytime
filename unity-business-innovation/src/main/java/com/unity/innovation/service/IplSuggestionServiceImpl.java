@@ -128,13 +128,16 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
             save(entity);
             //====纪检组====企业新增填报实时清单需求========
-            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
-                    .sourceId(entity.getId())
-                    .idRbacDepartment(InnovationConstant.DEPARTMENT_SUGGESTION_ID)
-                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
-                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
-                    .title(entity.getEnterpriseName())
-                    .build());
+            if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
+                //企业需求填报才进行系统通知
+                sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                        .sourceId(entity.getId())
+                        .idRbacDepartment(InnovationConstant.DEPARTMENT_SUGGESTION_ID)
+                        .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                        .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                        .title(entity.getEnterpriseName())
+                        .build());
+            }
             return entity.getId();
         } else {
             IplSuggestion vo = getById(entity.getId());

@@ -3,11 +3,14 @@ package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.ui.PageEntity;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
@@ -15,7 +18,9 @@ import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.enums.IsCommitEnum;
 import com.unity.innovation.enums.SysCfgEnum;
+import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -143,5 +148,56 @@ public class InfoDeptYzgtServiceImpl extends BaseServiceImpl<InfoDeptYzgtDao, In
                 }
                 ,InfoDeptYzgt::getId,InfoDeptYzgt::getSort,InfoDeptYzgt::getNotes,InfoDeptYzgt::getEnterpriseName,InfoDeptYzgt::getIndustryCategory,InfoDeptYzgt::getEnterpriseScale,InfoDeptYzgt::getEnterpriseNature,InfoDeptYzgt::getContactPerson,InfoDeptYzgt::getContactWay,InfoDeptYzgt::getEnterpriseIntroduction,InfoDeptYzgt::getAttachmentCode,InfoDeptYzgt::getIdPmInfoDept,InfoDeptYzgt::getStatus
         );
+    }
+
+
+    public IPage<InfoDeptYzgt> listForYzgt(PageEntity<InfoDeptYzgt> search) {
+        LambdaQueryWrapper<InfoDeptYzgt> ew = new LambdaQueryWrapper<>();
+        Page<InfoDeptYzgt> pageable = search.getPageable();
+        InfoDeptYzgt entity = search.getEntity();
+        if (entity != null) {
+            //企业名称
+            if (StringUtils.isNotBlank(entity.getEnterpriseName())) {
+                ew.like(InfoDeptYzgt::getEnterpriseName, entity.getEnterpriseName());
+            }
+            //企业规模
+            if (entity.getEnterpriseScale() != null) {
+                ew.eq(InfoDeptYzgt::getEnterpriseScale, entity.getEnterpriseScale());
+            }
+            //行业类型
+            if (entity.getIndustryCategory() != null) {
+                ew.eq(InfoDeptYzgt::getIndustryCategory, entity.getIndustryCategory());
+            }
+            //企业性质
+            if (entity.getEnterpriseNature() != null) {
+                ew.eq(InfoDeptYzgt::getEnterpriseNature, entity.getEnterpriseNature());
+            }
+            //状态
+            if (entity.getStatus() != null) {
+                ew.eq(InfoDeptYzgt::getStatus, entity.getStatus());
+            }
+            //创建时间
+            if (StringUtils.isNotBlank(entity.getCreateTime())) {
+                long end = InnovationUtil.getFirstTimeInMonth(entity.getCreateTime(), false);
+                ew.lt(InfoDeptYzgt::getGmtCreate, end);
+                long begin = InnovationUtil.getFirstTimeInMonth(entity.getCreateTime(), true);
+                ew.gt(InfoDeptYzgt::getGmtCreate, begin);
+            }
+            //包内的和未提请的数据
+            if (entity.getIdPmInfoDept() != null) {
+                List<InfoDeptYzgt> list = list(new LambdaQueryWrapper<InfoDeptYzgt>()
+                        .eq(InfoDeptYzgt::getIdPmInfoDept, entity.getIdPmInfoDept()));
+                List<Long> ids = list.stream().map(InfoDeptYzgt::getId).collect(Collectors.toList());
+                ew.and(w -> w
+                        .in(InfoDeptYzgt::getId, ids)
+                        .or()
+                        .eq(InfoDeptYzgt::getStatus, YesOrNoEnum.NO.getType()));
+            } else {
+                ew.eq(InfoDeptYzgt::getStatus, YesOrNoEnum.NO.getType());
+            }
+        }
+        //排序规则      未提请发布在前，已提请发布在后；各自按创建时间倒序
+        ew.orderByDesc(InfoDeptYzgt::getStatus,InfoDeptYzgt::getGmtCreate);
+        return page(pageable, ew);
     }
 }

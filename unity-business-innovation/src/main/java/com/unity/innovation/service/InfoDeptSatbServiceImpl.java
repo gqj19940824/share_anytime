@@ -99,36 +99,41 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         IPage<InfoDeptSatb> list = null;
         if (search != null) {
             list = page(search.getPageable(), lqw);
-            List<Integer> enumList = Arrays.asList(new Integer[]{SysCfgEnum.THREE.getId(), SysCfgEnum.SIX.getId()});
-            List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>().in(SysCfg::getCfgType, enumList));
-            Map<Long, String> collect = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
-            list.getRecords().forEach(is -> {
-                //行业类型
-                if ((is.getIndustryCategory() != null) && (collect.get(is.getIndustryCategory()) != null)) {
-                    is.setIndustryCategoryName(collect.get(is.getIndustryCategory()));
-                }
-                //企业规模
-                if (is.getEnterpriseScale() != null) {
-                    Dic type = dicUtils.getDicByCode(DicConstants.ENTERPRISE_SCALE, is.getEnterpriseScale().toString());
-                    if (type != null && StringUtils.isNotBlank(type.getDicValue())) {
-                        is.setEnterpriseScaleName(type.getDicValue());
-                    }
-                }
-                //企业性质
-                if ((is.getEnterpriseNature() != null) && (collect.get(is.getEnterpriseNature()) != null)) {
-                    is.setEnterpriseNatureName(collect.get(is.getEnterpriseNature()));
-                }
-                //成果创新水平
-                if (is.getAchievementLevel() != null) {
-                    Dic type = dicUtils.getDicByCode(DicConstants.ACHIEVEMENT_INNOVATI, is.getAchievementLevel().toString());
-                    if (type != null && StringUtils.isNotBlank(type.getDicValue())) {
-                        is.setAchievementLevelName(type.getDicValue());
-                    }
-                }
-            });
+            dealData(list.getRecords());
         }
         return list;
     }
+
+    public void dealData(List<InfoDeptSatb> records) {
+        List<Integer> enumList = Arrays.asList(new Integer[]{SysCfgEnum.THREE.getId(), SysCfgEnum.SIX.getId()});
+        List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>().in(SysCfg::getCfgType, enumList));
+        Map<Long, String> collect = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
+        records.forEach(is -> {
+            //行业类型
+            if ((is.getIndustryCategory() != null) && (collect.get(is.getIndustryCategory()) != null)) {
+                is.setIndustryCategoryName(collect.get(is.getIndustryCategory()));
+            }
+            //企业规模
+            if (is.getEnterpriseScale() != null) {
+                Dic type = dicUtils.getDicByCode(DicConstants.ENTERPRISE_SCALE, is.getEnterpriseScale().toString());
+                if (type != null && StringUtils.isNotBlank(type.getDicValue())) {
+                    is.setEnterpriseScaleName(type.getDicValue());
+                }
+            }
+            //企业性质
+            if ((is.getEnterpriseNature() != null) && (collect.get(is.getEnterpriseNature()) != null)) {
+                is.setEnterpriseNatureName(collect.get(is.getEnterpriseNature()));
+            }
+            //成果创新水平
+            if (is.getAchievementLevel() != null) {
+                Dic type = dicUtils.getDicByCode(DicConstants.ACHIEVEMENT_INNOVATI, is.getAchievementLevel().toString());
+                if (type != null && StringUtils.isNotBlank(type.getDicValue())) {
+                    is.setAchievementLevelName(type.getDicValue());
+                }
+            }
+        });
+    }
+
 
     public IPage<InfoDeptSatb> listForSatb(PageEntity<InfoDeptSatb> search) {
         LambdaQueryWrapper<InfoDeptSatb> lqw = new LambdaQueryWrapper<>();

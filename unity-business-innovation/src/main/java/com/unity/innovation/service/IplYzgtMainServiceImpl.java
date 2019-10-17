@@ -106,13 +106,16 @@ public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplY
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
             save(entity);
             //====亦庄国投====企业新增填报实时清单需求========
-            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
-                    .sourceId(entity.getId())
-                    .idRbacDepartment(InnovationConstant.DEPARTMENT_YZGT_ID)
-                    .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
-                    .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
-                    .title(entity.getEnterpriseName())
-                    .build());
+            if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
+                //企业需求填报才进行系统通知
+                sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                        .sourceId(entity.getId())
+                        .idRbacDepartment(InnovationConstant.DEPARTMENT_YZGT_ID)
+                        .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                        .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
+                        .title(entity.getEnterpriseName())
+                        .build());
+            }
         } else {
             IplYzgtMain iym = getById(entity.getId());
             attachmentService.updateAttachments(iym.getAttachmentCode(), entity.getAttachmentList());
