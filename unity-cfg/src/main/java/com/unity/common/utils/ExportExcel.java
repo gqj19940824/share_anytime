@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
-import com.unity.common.util.Encodes;
 import com.unity.common.util.Reflections;
 import com.unity.common.util.annotation.ExcelField;
 import lombok.Getter;
@@ -16,9 +15,6 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.MediaType;
-import sun.management.resources.agent;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,7 +25,6 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**

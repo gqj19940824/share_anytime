@@ -1,16 +1,12 @@
 package com.unity.innovation.entity.generated;
 
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.unity.common.base.BaseEntity;
+import com.unity.common.base.CommentTarget;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
-import com.baomidou.mybatisplus.annotation.TableField;
-
-import com.unity.common.base.BaseEntity;
-import com.unity.common.base.CommentTarget;
 
 /**
  * 企业信息发布管理
@@ -75,9 +71,14 @@ public class mPmInfoDept extends BaseEntity{
         @CommentTarget("信息类型")
         @TableField("info_type")
         private Long infoType ;
-        
-        
 
+
+        /**
+         * 二次打包id
+         **/
+        @CommentTarget("二次打包id")
+        @TableField("id_ipa_main")
+        private Long idIpaMain ;
 }
 
 

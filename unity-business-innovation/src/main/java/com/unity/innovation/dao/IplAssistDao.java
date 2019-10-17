@@ -24,5 +24,8 @@ public interface IplAssistDao  extends BaseDao<IplAssist>{
      * @since 2019-10-14 13:58  
      */
     List<Map<String, Object>> assistDarbList(Map<String, Object> paramMap);
+    List<Map<String, Object>> assistEsbList(Map<String, Object> paramMap);
+    List<Map<String, Object>> assistSatbList(Map<String, Object> paramMap);
+    List<Map<String, Object>> assistOdList(Map<String, Object> paramMap);
 }
 

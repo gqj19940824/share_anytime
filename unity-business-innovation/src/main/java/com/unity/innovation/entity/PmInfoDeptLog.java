@@ -24,7 +24,20 @@ public class PmInfoDeptLog extends mPmInfoDeptLog{
      **/
     @TableField(exist = false)
     private Integer passOrReject;
-        
+
+
+    /**
+     * 单位名称
+     * */
+    @TableField(exist = false)
+    private String departmentName ;
+
+
+    /**
+     * 状态名称
+     * */
+    @TableField(exist = false)
+    private String statusName ;
   
 }
 

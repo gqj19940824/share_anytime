@@ -54,5 +54,19 @@ public class PmInfoDept extends mPmInfoDept{
     private List dataList;
 
 
+
+    /**
+     * 处理记录
+     * */
+    @TableField(exist = false)
+    private List<PmInfoDeptLog> logList;
+
+    /**
+     * 处理节点
+     * */
+    @TableField(exist = false)
+    private List<PmInfoDeptLog> processNodeList;
+
+
 }
 

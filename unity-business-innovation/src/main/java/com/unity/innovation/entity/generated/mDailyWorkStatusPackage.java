@@ -57,7 +57,13 @@ public class mDailyWorkStatusPackage extends BaseEntity{
          **/
         @TableField("gmt_submit")
         private Long gmtSubmit ;
-        
+
+        /**
+         * 二次打包id
+         **/
+        @CommentTarget("二次打包id")
+        @TableField("id_ipa_main")
+        private Long idIpaMain ;
 
 }
 
