@@ -1,6 +1,7 @@
 package com.unity.innovation.entity.generated;
 
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;

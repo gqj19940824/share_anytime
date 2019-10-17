@@ -2,13 +2,16 @@
 package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.DicConstants;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.utils.DicUtils;
+import com.unity.innovation.entity.*;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.*;
@@ -29,30 +32,33 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * ClassName: PmInfoDeptService
- * Function: TODO ADD FUNCTION
- * Reason: TODO ADD REASON(可选)
- * date: 2019-10-15 15:33:01
- *
  * @author zhang
  * @since JDK 1.8
  */
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfoDept> {
 
     @Resource
     private DicUtils dicUtils;
-
     @Resource
     private AttachmentServiceImpl attachmentService;
-
+    @Resource
+    private PmInfoDeptLogServiceImpl logService;
     @Resource
     private InfoDeptSatbServiceImpl satbService;
-
     @Resource
     private InfoDeptYzgtServiceImpl yzgtService;
 
+
+
+    /**
+    * 查询条件封装
+    *
+    * @param entity 实体
+    * @return com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.unity.innovation.entity.PmInfoDept>
+    * @author JH
+    * @date 2019/10/17 11:14
+    */
     public LambdaQueryWrapper<PmInfoDept> wrapper(PmInfoDept entity) {
         LambdaQueryWrapper<PmInfoDept> ew = new LambdaQueryWrapper<>();
         Customer customer = LoginContextHolder.getRequestAttributes();
@@ -96,6 +102,14 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         return ew;
     }
 
+    /**
+    * 根据单位名称字符串获取单位id
+    *
+    * @param category 单位名称字符串
+    * @return java.lang.Long
+    * @author JH
+    * @date 2019/10/17 11:11
+    */
     private Long getDepartmentId(String category) {
         if (StringUtils.isBlank(category)) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
@@ -244,5 +258,47 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         }
     }
 
+
+    /**
+    * 批量删除
+    *
+    * @param ids 主键集合
+    * @author JH
+    * @date 2019/10/17 11:12
+    */
+    @Transactional(rollbackFor = Exception.class)
+    public void removeDeptInfoByIds(List<Long> ids) {
+        List<PmInfoDept> list = (List<PmInfoDept>) super.listByIds(ids);
+        if(CollectionUtils.isEmpty(list)) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("数据不存在").build();
+        }
+        List<PmInfoDept> collect = list.stream().filter(n -> !WorkStatusAuditingStatusEnum.FORTY.getId().equals(n.getStatus()) && !WorkStatusAuditingStatusEnum.TEN.getId().equals(n.getStatus())).collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(collect)) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("该状态无法删除").build();
+        }
+        //删除主表
+        super.removeByIds(ids);
+        //附件集合
+        List<String> attachmentCodeList = list.stream().map(PmInfoDept::getAttachmentCode).collect(Collectors.toList());
+        //删除附件表
+        attachmentService.remove(new LambdaUpdateWrapper<Attachment>().in(Attachment::getAttachmentCode,attachmentCodeList));
+        //删除日志表
+        logService.remove(new LambdaUpdateWrapper<PmInfoDeptLog>().in(PmInfoDeptLog::getIdPmInfoDept,ids));
+        //单位id
+        Long departmentId = list.get(0).getIdRbacDepartment();
+        //修改基础数据表状态
+        if(InnovationConstant.DEPARTMENT_YZGT_ID.equals(departmentId)) {
+            List<InfoDeptYzgt> yzgtList = yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>().in(InfoDeptYzgt::getIdPmInfoDept, ids));
+            yzgtList.forEach(n->n.setIdPmInfoDept(0L));
+            yzgtService.updateBatchById(yzgtList);
+        }else if(InnovationConstant.DEPARTMENT_SATB_ID.equals(departmentId)){
+            List<InfoDeptSatb> satbList = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>().in(InfoDeptSatb::getIdPmInfoDept, ids));
+            satbList.forEach(n->n.setIdPmInfoDept(0L));
+            satbService.updateBatchById(satbList);
+
+        }
+    }
 
 }

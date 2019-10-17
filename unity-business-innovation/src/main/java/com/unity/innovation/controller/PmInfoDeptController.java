@@ -5,20 +5,21 @@ package com.unity.innovation.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.unity.common.ui.PageEntity;
+import com.unity.innovation.enums.InfoTypeEnum;
+import com.unity.innovation.util.InnovationUtil;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
-import com.unity.common.ui.PageEntity;
-import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.InfoDeptSatb;
 import com.unity.innovation.entity.PmInfoDept;
-import com.unity.innovation.enums.InfoTypeEnum;
 import com.unity.innovation.service.InfoDeptSatbServiceImpl;
 import com.unity.innovation.service.PmInfoDeptServiceImpl;
+import org.apache.commons.collections4.CollectionUtils;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +47,14 @@ public class PmInfoDeptController extends BaseWebController {
     InfoDeptSatbServiceImpl satbService;
 
 
+    /**
+    * 列表查询
+    *
+    * @param pageEntity 分页条件
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/10/17 11:15
+    */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<PmInfoDept> pageEntity) {
         Page<PmInfoDept> pageable = pageEntity.getPageable();
@@ -120,16 +129,23 @@ public class PmInfoDeptController extends BaseWebController {
         );
     }
 
+
+
     /**
-     * 批量删除
-     *
-     * @param ids id列表用英文逗号分隔
-     * @return
-     */
-    @DeleteMapping("/del/{ids}")
-    public Mono<ResponseEntity<SystemResponse<Object>>> del(@PathVariable("ids") String ids) {
-        service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(null);
+    * 批量删除
+    *
+    * @param ids 主键集合
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/10/17 11:15
+    */
+    @PostMapping("/removeByIds")
+    public Mono<ResponseEntity<SystemResponse<Object>>>  removeByIds(@RequestBody List<Long> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "id不能为空");
+        }
+        service.removeDeptInfoByIds(ids);
+        return success();
     }
 
     /**
