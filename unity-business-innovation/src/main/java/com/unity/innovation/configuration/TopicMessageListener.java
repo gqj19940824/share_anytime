@@ -166,7 +166,9 @@ public class TopicMessageListener implements MessageListener {
             } else if (InnovationConstant.DEPARTMENT_SUGGESTION_ID.equals(idRbacDepartmentDuty)) {
                 // TODO
             } else if (InnovationConstant.DEPARTMENT_OD_ID.equals(idRbacDepartmentDuty)) {
-                // TODO
+                IplOdMain iplOdMain = new IplOdMain();
+                iplOdMain.setProcessStatus(processStatus);
+                iplOdMainService.update(iplOdMain, new LambdaQueryWrapper<IplOdMain>().eq(IplOdMain::getId, idIplMain));
             } else if (InnovationConstant.DEPARTMENT_PD_ID.equals(idRbacDepartmentDuty)) {
                 // TODO
             } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(idRbacDepartmentDuty)) {
