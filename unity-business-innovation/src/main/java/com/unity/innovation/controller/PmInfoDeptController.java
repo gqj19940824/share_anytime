@@ -35,6 +35,7 @@ import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -131,7 +132,7 @@ public class PmInfoDeptController extends BaseWebController {
                 (m, entity) -> {
                     m.put("infoTypeName", InfoTypeEnum.of(entity.getIdRbacDepartment()).getName());
                     m.put("departmentName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
-
+                    m.put("statusName", Objects.requireNonNull(WorkStatusAuditingStatusEnum.of(entity.getStatus())).getName());
                 }
                 , PmInfoDept::getId, PmInfoDept::getSort, PmInfoDept::getNotes, PmInfoDept::getTitle, PmInfoDept::getGmtSubmit, PmInfoDept::getStatus, PmInfoDept::getAttachmentCode, PmInfoDept::getIdRbacDepartment, PmInfoDept::getInfoType
         );

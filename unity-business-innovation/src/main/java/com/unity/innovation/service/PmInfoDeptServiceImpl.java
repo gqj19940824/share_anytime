@@ -19,6 +19,7 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.PmInfoDeptDao;
 import com.unity.innovation.entity.*;
+import com.unity.innovation.enums.IsCommitEnum;
 import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
@@ -321,7 +322,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                     .message("数据不存在").build();
         }
         List<PmInfoDept> collect = list.stream().filter(n -> !WorkStatusAuditingStatusEnum.FORTY.getId().equals(n.getStatus()) && !WorkStatusAuditingStatusEnum.TEN.getId().equals(n.getStatus())).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(collect)) {
+        if (CollectionUtils.isNotEmpty(collect)) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("该状态无法删除").build();
         }
@@ -338,11 +339,17 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         //修改基础数据表状态
         if (InnovationConstant.DEPARTMENT_YZGT_ID.equals(departmentId)) {
             List<InfoDeptYzgt> yzgtList = yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>().in(InfoDeptYzgt::getIdPmInfoDept, ids));
-            yzgtList.forEach(n -> n.setIdPmInfoDept(0L));
+            yzgtList.forEach(n -> {
+                n.setIdPmInfoDept(0L);
+                n.setStatus(IsCommitEnum.NO.getId());
+            });
             yzgtService.updateBatchById(yzgtList);
         } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(departmentId)) {
             List<InfoDeptSatb> satbList = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>().in(InfoDeptSatb::getIdPmInfoDept, ids));
-            satbList.forEach(n -> n.setIdPmInfoDept(0L));
+            satbList.forEach(n -> {
+                n.setIdPmInfoDept(0L);
+                n.setStatus(IsCommitEnum.NO.getId());
+            });
             satbService.updateBatchById(satbList);
 
         }
