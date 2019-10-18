@@ -154,7 +154,6 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
     public void saveEntity(PmInfoDept entity) {
         Long departmentId = getDepartmentId(entity.getCategory());
         List<Long> ids = entity.getDataIdList();
-        attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
         if (entity.getId() == null) {
             //单位
             entity.setIdRbacDepartment(departmentId);
@@ -166,6 +165,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             save(entity);
             //处理集合数据
             updateIds(entity.getId(), ids, departmentId);
+            attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
         } else {
             //编辑
             PmInfoDept vo = getById(entity.getId());
@@ -182,6 +182,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             }
             updateIds(vo.getId(), ids, departmentId);
             updateById(entity);
+            attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
         }
     }
 
