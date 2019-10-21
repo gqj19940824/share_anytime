@@ -49,7 +49,7 @@ import java.util.Map;
  * 生成时间 2019-09-21 15:45:32
  */
 @Controller
-@RequestMapping("/ipamManageMain")
+@RequestMapping("/ipaManageMain")
 public class IpaManageMainController extends BaseWebController {
 
     @Resource
@@ -234,7 +234,7 @@ public class IpaManageMainController extends BaseWebController {
         Customer customer = LoginContextHolder.getRequestAttributes();
         // 新增
         if (entity.getId() == null){
-            ipaManageMainService.add(entity);
+            ipaManageMainService.add(entity); // TODO 列表是否需要自己写
         // 编辑
         }else {
             ipaManageMainService.edit(entity);

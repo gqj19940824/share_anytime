@@ -175,7 +175,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                 // 更新redis的超时
                 redisSubscribeService.saveSubscribeInfo(id + "-0", ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
             }
-            // 协同单位
+        // 协同单位
         } else {
             if (IplStatusEnum.DONE.getId().equals(dealStatus)) {
                 // 如果协同单位关闭了协同则修改协同状态
