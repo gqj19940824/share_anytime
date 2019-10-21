@@ -40,6 +40,8 @@ dependencies {
     compile 'com.alibaba:druid-spring-boot-starter:1.1.9'
     compile "com.alibaba:fastjson:1.2.54"
     compile 'mysql:mysql-connector-java:5.1.46'
+    compile 'com.aliyun:aliyun-java-sdk-core:3.7.1'
+    compile 'com.aliyun:aliyun-java-sdk-dysmsapi:1.1.0'
     
     compile group: 'org.apache.commons', name: 'commons-lang3'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'

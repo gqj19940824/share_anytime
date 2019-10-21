@@ -1,6 +1,7 @@
 
 package com.unity.innovation.service;
 
+import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Maps;
@@ -8,7 +9,6 @@ import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.UserVO;
 import com.unity.common.constant.RedisConstants;
-import com.unity.common.constants.ConstString;
 import com.unity.common.enums.MessageSaveFormEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
@@ -16,7 +16,9 @@ import com.unity.common.pojos.*;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
+import com.unity.common.util.GsonUtils;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.utils.AliSmsUtils;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.HashRedisUtils;
 import com.unity.innovation.constants.MessageConstants;
@@ -28,7 +30,7 @@ import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
 import com.unity.innovation.enums.SysMessageFlowStatusEnum;
 import com.unity.innovation.enums.SysMessageSendTypeEnum;
 import com.unity.springboot.support.holder.LoginContextHolder;
-import org.apache.commons.beanutils.ConvertUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,19 +52,22 @@ import java.util.stream.Collectors;
  * @author G
  * @since JDK 1.8
  */
+@Slf4j
 @Service
 public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMessage> {
 
     @Resource
     SysMessageReadLogServiceImpl sysMessageReadLogService;
     @Resource
-    DicUtils dicUtils;
-    @Resource
-    RbacClient rbacClient;
+    SysSendSmsLogServiceImpl sysSendSmsLogService;
     @Resource
     HashRedisUtils hashRedisUtils;
     @Resource
-    SysSendSmsLogServiceImpl sysSendSmsLogService;
+    AliSmsUtils aliSmsUtils;
+    @Resource
+    RbacClient rbacClient;
+    @Resource
+    DicUtils dicUtils;
 
     /**
      * 分页列表
@@ -392,6 +397,16 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         if(SysMessageFlowStatusEnum.ONE.getId().equals(msg.getFlowStatus())
                 || SysMessageFlowStatusEnum.SIX.getId().equals(msg.getFlowStatus())
                 || SysMessageFlowStatusEnum.SEVEN.getId().equals(msg.getFlowStatus())){
+            //TODO 组装短信模板参数体（json格式）及短信内容
+            String smsParem = "";
+
+            //获取对应模板 TODO
+            Dic smsTemplateDic = dicUtils.getDicByCode("", "");
+            if(smsTemplateDic == null || StringUtils.isEmpty(smsTemplateDic.getDicValue())){
+                //未获取到模板，不执行短信发送
+                log.error("======《创新发布实时清单短信通知发送失败》---未获取到短信模板ID======");
+                return;
+            }
             //筛选可接收短信的用户并遍历用户列表
             userList.stream().filter(u -> u.getReceiveSms().equals(YesOrNoEnum.YES.getType()))
                     .forEach(u -> {
@@ -403,9 +418,12 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
                         log.setSourceId(msg.getSourceId());
                         log.setIdRbacDepartment(msg.getIdRbacDepartment());
                         log.setContent(title);
+                        //发送短信 TODO 批量
+                        SendSmsResponse response = aliSmsUtils.sendSms(u.getPhone(), smsParem, smsTemplateDic.getDicValue());
+                        log.setSendStatus(response.getCode() != null && "OK".equals(response.getCode())
+                                ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType());
+                        log.setNotes(GsonUtils.format(response));
                         sysSendSmsLogService.save(log);
-                        //TODO 发送短信
-
                     });
         }
     }

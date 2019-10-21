@@ -169,6 +169,44 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
 
 
     /**
+     * 组装科技局excel数据
+     *
+     * @param snapshot 快照
+     * @return excel数据
+     * @author gengjiajia
+     * @since 2019/10/19 4:38 下午
+     */
+    public List<List<Object>> getSatbData(String snapshot){
+        List<List<Object>> dataList = new ArrayList<>();
+        if (StringUtils.isNoneBlank(snapshot)) {
+            List<Map> parse = JSON.parseObject(snapshot, List.class);
+            parse.forEach(e -> {
+                List<Object> list = Arrays.asList(
+                        e.get("industryCategoryTitle"),
+                        e.get("enterpriseName"),
+                        e.get("demandCategoryTitle"),
+                        e.get("projectName"),
+                        e.get("projectAddress"),
+                        e.get("projectIntroduce"),
+                        e.get("totalAmount"),
+                        e.get("bank"),
+                        e.get("bond"),
+                        e.get("raise"),
+                        e.get("techDemondInfo"),
+                        e.get("contactPerson"),
+                        e.get("contactWay"),
+                        e.get("gmtCreate"),
+                        e.get("gmtModified"),
+                        e.get("sourceTitle"),
+                        e.get("statusTitle"),
+                        e.get("latestProcess"));
+                dataList.add(list);
+            });
+        }
+        return dataList;
+    }
+
+    /**
      * 从二次打包中删除
      *
      * @param
