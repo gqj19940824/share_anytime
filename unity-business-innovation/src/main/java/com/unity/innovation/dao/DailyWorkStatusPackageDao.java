@@ -17,7 +17,7 @@ import java.util.List;
 public interface DailyWorkStatusPackageDao  extends BaseDao<DailyWorkStatusPackage>{
 
     @Update("<script>" +
-            "UPDATE daily_work_status_package p SET p.state = 30, p.id_ipa_main = NULL WHERE" +
+            "UPDATE daily_work_status_package p SET p.state = 30, p.id_ipa_main = NULL WHERE" + // TODO 空格
             "<if test='ids != null'>" +
             "p.id IN" +
             "<foreach collection='ids' item='id' open='(' close=')' separator=','>" +

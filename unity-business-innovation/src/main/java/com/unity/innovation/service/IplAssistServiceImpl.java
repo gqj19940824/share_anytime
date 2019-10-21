@@ -66,15 +66,6 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     @Autowired
     protected IplDarbMainServiceImpl iplDarbMainService;
 
-    @Autowired
-    private IplPdMainServiceImpl iplPdMainService;
-
-    @Autowired
-    private IplSatbMainServiceImpl iplSatbMainService;
-
-    @Autowired
-    private IplEsbMainServiceImpl iplEsbMainService;
-
     @Resource
     private RbacClient rbacClient;
 
@@ -83,7 +74,6 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
     public PageElementGrid listAssistByPage(PageEntity<Map<String, Object>> pageEntity){
         com.baomidou.mybatisplus.extension.plugins.pagination.Page<Map<String, Object>> pageable = pageEntity.getPageable();
-        Page<Map<String, Object>> page = PageHelper.startPage((int)pageable.getCurrent(), (int)pageable.getSize(), true);
         Map<String, Object> entity = pageEntity.getEntity();
         String gmtCreate = MapUtils.getString(entity, "gmtCreate");
         if (StringUtils.isNotBlank(gmtCreate)){
@@ -93,6 +83,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         Customer customer = LoginContextHolder.getRequestAttributes();
         entity.put("idRbacDepartmentAssist", customer.getIdRbacDepartment());
         Long idRbacDepartmentDuty = MapUtils.getLong(entity, "idRbacDepartmentDuty");
+        Page<Map<String, Object>> page = PageHelper.startPage((int)pageable.getCurrent(), (int)pageable.getSize(), true);
         List<Map<String, Object>> maps;
         if (InnovationConstant.DEPARTMENT_ESB_ID.equals(idRbacDepartmentDuty)){
             maps = baseMapper.assistEsbList(entity);
