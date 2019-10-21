@@ -494,13 +494,13 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         try {
             //定义表格对象
             HSSFWorkbook workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet();
-            HSSFRow row;
-            //表头
             DailyWorkStatusPackage entity = DailyWorkStatusPackage.newInstance().build();
             entity.setId(id);
             entity = detailById(entity);
             String top=entity.getTitle();
+            HSSFSheet sheet = workbook.createSheet(top);
+            HSSFRow row;
+            //表头
             Map<String, CellStyle> styleMap = ExcelStyleUtil.createProjectStyles(workbook);
             workbook.createCellStyle();
             Row titleRow = sheet.createRow(0);

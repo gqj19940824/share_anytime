@@ -9,4 +9,6 @@ gen
 classes
 build
 .gradle
-vcs.xml
+.idea
+.gitignore
+gradle
