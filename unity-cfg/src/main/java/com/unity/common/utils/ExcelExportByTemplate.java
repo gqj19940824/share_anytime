@@ -24,7 +24,7 @@ import java.util.List;
  */
 @Slf4j
 public class ExcelExportByTemplate {
-    public static void setData(List<List<Object>> dataList, String header, String footer, XSSFWorkbook wb, int startRowIndex) {
+    public static void setData(int startRowIndex, String header, List<List<Object>> dataList, String footer, XSSFWorkbook wb) {
         //读取了模板内图表所需数据
         XSSFSheet sheet = wb.getSheetAt(0);
         wb.setSheetName(0, header);

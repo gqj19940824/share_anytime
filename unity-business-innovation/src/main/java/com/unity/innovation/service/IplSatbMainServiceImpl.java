@@ -525,7 +525,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         }
         //判断状态，是否可以下载
         XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
-        ExcelExportByTemplate.setData(dataList, main.getTitle(), main.getNotes(), wb, 4);
+        ExcelExportByTemplate.setData(4,main.getTitle(), dataList, main.getNotes(), wb);
         ExcelExportByTemplate.download(request, response, wb, main.getTitle());
     }
 }

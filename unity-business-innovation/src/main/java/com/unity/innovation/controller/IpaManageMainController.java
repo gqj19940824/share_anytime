@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -39,7 +40,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +61,14 @@ public class IpaManageMainController extends BaseWebController {
     @Resource
     private PmInfoDeptServiceImpl pmInfoDeptService;
 
+    /**
+     * 二次打包一键下载
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/21 2:42 下午
+     */
     @GetMapping("batchExport")
     public void batchExport(HttpServletRequest request, HttpServletResponse response, @RequestParam("id") Long id) throws Exception{
         IpaManageMain entity = ipaManageMainService.getById(id);
@@ -77,26 +85,67 @@ public class IpaManageMainController extends BaseWebController {
         ZipUtil.createFile(filePaht + "创新发布清单/");
         ZipUtil.createFile(filePaht + "与会企业信息/");
 
-        //创建Excel文件;
-        List<IplManageMain> list = iplManageMainService
-                .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, entity.getId()));
-        List<List<List<Object>>> dataList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(list)){
-            list.forEach(e->{
-                List<List<Object>> data = iplManageMainService.getData(e.getSnapshot());
-                XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
-                // 从excel的第5行开始插入数据，并给excel的sheet和标题命名
-                ExcelExportByTemplate.setData(data, e.getTitle(), e.getNotes(), wb, 4);
-                ExcelExportByTemplate.downloadToPath("", wb); // TODO
+        Long idIpaMain = entity.getId();
+        // 创新发布清单的excel
+        iplExcel(idIpaMain, filePaht);
+        // 工作动态的excel
+        List<DailyWorkStatusPackage> dwspList = dailyWorkStatusPackageService
+                .list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain));
+        if (CollectionUtils.isNotEmpty(dwspList)) {
+            dwspList.forEach(e->{
+                // TODO
             });
         }
+        // 与会信息的excel
+        List<PmInfoDept> pmpList = pmInfoDeptService
+                .list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, idIpaMain));
+        if (CollectionUtils.isNotEmpty(pmpList)) {
+            pmpList.forEach(e->{
+                // TODO
+            });
+        }
+        
         //生成.zip文件;
         ZipUtil.zip(basePath + "创新发布.zip", filePaht);
-
         ExcelExportByTemplate.responseFile(request, response, "创新发布.zip");
 
         //删除目录下所有的文件;
-        //delFile(new File(basePath));
+//        ZipUtil.delFile(new File(basePath));  TODO
+    }
+    
+    private void iplExcel(Long idIpaMain, String filePaht) {
+        List<IplManageMain> list = iplManageMainService
+                .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
+        if (CollectionUtils.isNotEmpty(list)) {
+            list.forEach(e -> {
+                XSSFWorkbook wb;
+                // 发改局导出
+                if (InnovationConstant.DEPARTMENT_DARB_ID.equals(e.getIdRbacDepartmentDuty())) {
+                    List<List<Object>> data = iplManageMainService.getDarbData(e.getSnapshot());
+                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                    //  科技局导出
+                } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(e.getIdRbacDepartmentDuty())) {
+                    List<List<Object>> data = null; // TODO
+                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                    // 组织部导出
+                } else if (InnovationConstant.DEPARTMENT_OD_ID.equals(e.getIdRbacDepartmentDuty())) {
+                    List<List<Object>> data = null; // TODO
+                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                    //  企服局导出
+                } else if (InnovationConstant.DEPARTMENT_ESB_ID.equals(e.getIdRbacDepartmentDuty())) {
+                    List<List<Object>> data = null; // TODO
+                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                } else {
+                    throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
+                }
+
+                ExcelExportByTemplate.downloadToPath(filePaht + "创新发布清单/" + e.getTitle() + ".xlsx", wb);
+            });
+        }
     }
 
     /**
