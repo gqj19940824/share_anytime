@@ -16,7 +16,7 @@ import java.util.Map;
 public interface IplAssistDao  extends BaseDao<IplAssist>{
 
     /**
-     *
+     * 获取对应的协同事项列表
      *
      * @param  
      * @return 

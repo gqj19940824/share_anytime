@@ -239,8 +239,12 @@ public class UserController extends BaseWebController {
         if(user.getUserType() == null){
             return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择账号类别").build();
         }
-        if(UserTypeEnum.ORDINARY.getId().equals(user.getUserType()) &&  user.getReceiveSms() == null){
-            return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择是否接收短信").build();
+        if(UserTypeEnum.ORDINARY.getId().equals(user.getUserType())){
+            if(user.getReceiveSms() == null){
+                return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择是否接收短信").build();
+            } else if(user.getReceiveSysMsg() == null){
+                return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择是否接收系统消息").build();
+            }
         }
         //普通账号需选择单位
         if (UserTypeEnum.ORDINARY.getId().equals(user.getUserType()) && user.getIdRbacDepartment() == null) {

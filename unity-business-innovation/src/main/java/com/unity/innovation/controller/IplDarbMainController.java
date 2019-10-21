@@ -1,6 +1,5 @@
 package com.unity.innovation.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseEntity;
@@ -66,45 +65,24 @@ public class IplDarbMainController extends BaseWebController {
     @Autowired
     private IplManageMainServiceImpl iplManageMainService;
 
+    /**
+     * 导出excel
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/19 5:04 下午
+     */
     @GetMapping("exportExcel")
     public void outputEXcel(HttpServletRequest request, HttpServletResponse response, @RequestParam("id") Long id) {
         IplManageMain iplManageMain = iplManageMainService.getById(id);
-        List<List<Object>> dataList = new ArrayList<>();
-        String snapshot = iplManageMain.getSnapshot();
-        if (StringUtils.isNoneBlank(snapshot)) {
-            List<Map> parse = JSON.parseObject(snapshot, List.class);
-            parse.forEach(e -> {
-                List<Object> list = Arrays.asList(
-                        e.get("industryCategory"),
-                        e.get("enterpriseName"),
-                        e.get("demandItem"),
-                        e.get("demandCategory"),
-                        e.get("projectName"),
-                        e.get("content"),
-                        e.get("totalAmount"),
-                        e.get("projectProgress"),
-                        e.get("totalAmount"),
-                        e.get("bank"),
-                        e.get("bond"),
-                        e.get("selfRaise"),
-                        e.get("increaseTrustType"),
-                        e.get("whetherIntroduceSocialCapital"),
-                        e.get("constructionCategory"),
-                        e.get("constructionStage"),
-                        e.get("constructionModel"),
-                        e.get("contactPerson"),
-                        e.get("contactWay"),
-                        e.get("gmtCreate"),
-                        e.get("gmtModified"),
-                        e.get("source"),
-                        e.get("status"),
-                        e.get("latestProcess"));
-                dataList.add(list);
-            });
-        }
-
+        // 组装excel需要的数据
+        List<List<Object>> data = iplManageMainService.getData(iplManageMain.getSnapshot());
+        // 读取模板创建excel文件
         XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
-        ExcelExportByTemplate.setData(dataList, iplManageMain.getTitle(), iplManageMain.getNotes(), wb, 4);
+        // 从excel的第5行开始插入数据，并给excel的sheet和标题命名
+        ExcelExportByTemplate.setData(data, iplManageMain.getTitle(), iplManageMain.getNotes(), wb, 4);
+        // 将生成好的excel响应给用户
         ExcelExportByTemplate.download(request, response, wb, iplManageMain.getTitle());
     }
 

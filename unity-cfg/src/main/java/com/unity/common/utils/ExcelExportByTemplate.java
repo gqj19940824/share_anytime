@@ -32,11 +32,11 @@ public class ExcelExportByTemplate {
         headerRow.getCell(0).setCellValue(header);
         int dataListSize = dataList.size();
         int rowNum = 0;
-        for (; rowNum<dataListSize; rowNum++) {
+        for (; rowNum < dataListSize; rowNum++) {
             List<Object> rowData = dataList.get(rowNum);
             int colSize = rowData.size();
             XSSFRow row = sheet.createRow(rowNum + startRowIndex);
-            for (int celNum = 0; celNum<colSize; celNum++) {
+            for (int celNum = 0; celNum < colSize; celNum++) {
                 XSSFCell cell = row.createCell(celNum);
                 setCellData(cell, rowData.get(celNum));
             }
@@ -44,7 +44,7 @@ public class ExcelExportByTemplate {
 
         XSSFRow row = sheet.createRow(startRowIndex + rowNum);
         row.createCell(0).setCellValue("备 注：" + footer);
-        CellRangeAddress cellRangeAddress = new CellRangeAddress(startRowIndex +rowNum, startRowIndex+rowNum, 0, headerRow.getLastCellNum()-1);
+        CellRangeAddress cellRangeAddress = new CellRangeAddress(startRowIndex + rowNum, startRowIndex + rowNum, 0, headerRow.getLastCellNum() - 1);
         sheet.addMergedRegion(cellRangeAddress);
     }
 
@@ -92,7 +92,7 @@ public class ExcelExportByTemplate {
         return wb;
     }
 
-    public static void download(HttpServletRequest request, HttpServletResponse response, XSSFWorkbook wb, String fileName){
+    public static void responseFile(HttpServletRequest request, HttpServletResponse response, String fileName) {
         try {
             //下载时文件的名称
             String filename = getFileName(request, fileName + ".xlsx");
@@ -101,6 +101,33 @@ public class ExcelExportByTemplate {
             //导出文件的信息
             response.setHeader("Content-disposition", "attachment;filename=" + filename);
             OutputStream ouputStream = response.getOutputStream();
+            ouputStream.flush();
+            ouputStream.close();
+        } catch (IOException e) {
+            log.error("写出Excel IO异常", e);
+        }
+    }
+
+    public static void download(HttpServletRequest request, HttpServletResponse response, XSSFWorkbook wb, String fileName) {
+        try {
+            //下载时文件的名称
+            String filename = getFileName(request, fileName + ".xlsx");
+            //文件类型
+            response.setContentType("application/vnd.ms-excel");
+            //导出文件的信息
+            response.setHeader("Content-disposition", "attachment;filename=" + filename);
+            OutputStream ouputStream = response.getOutputStream();
+            wb.write(ouputStream);
+            ouputStream.flush();
+            ouputStream.close();
+        } catch (IOException e) {
+            log.error("写出Excel IO异常", e);
+        }
+    }
+
+    public static void downloadToPath(String fullName, XSSFWorkbook wb) {
+        try {
+            FileOutputStream ouputStream = new FileOutputStream(fullName);
             wb.write(ouputStream);
             ouputStream.flush();
             ouputStream.close();

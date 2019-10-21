@@ -4,6 +4,8 @@ package com.unity.innovation.entity.generated;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
+import com.unity.innovation.entity.DailyWorkStatusPackage;
+import com.unity.innovation.entity.PmInfoDept;
 import lombok.*;
 
 import java.util.List;
@@ -19,16 +21,21 @@ import java.util.List;
 @Builder(builderMethodName = "newInstance")
 @EqualsAndHashCode(callSuper=false)
 public class IpaManageMain extends BaseEntity{
-
-
         
+        /**
+        * 标题
+        **/
+        @CommentTarget("单位")
+        @TableField("id_rbac_department")
+        private String idRbacDepartment ;
+
         /**
         * 标题
         **/
         @CommentTarget("标题")
         @TableField("title")
         private String title ;
-        
+
         
         
         /**
@@ -74,8 +81,41 @@ public class IpaManageMain extends BaseEntity{
         @TableField(exist = false)
         private List<Long> idIplpList ;
 
-        
+        /**
+        * 与会企业信息一次包列表
+        **/
+        @CommentTarget("与会企业信息一次包列表")
+        @TableField(exist = false)
+        private List<PmInfoDept> pmpList ;
 
+
+
+        /**
+        * 工作动态一次包列表
+        **/
+        @CommentTarget("工作动态一次包列表")
+        @TableField(exist = false)
+        private List<DailyWorkStatusPackage> dwspList ;
+
+
+
+        /**
+        * 创新发布清单一次包列表
+        **/
+        @CommentTarget("创新发布清单一次包列表")
+        @TableField(exist = false)
+        private List<IplManageMain> iplpList ;
+
+        /**
+         * 创建时间（查询使用，YYYY-MM）
+         *
+         * @param
+         * @return
+         * @author qinhuan
+         * @since 2019/10/18 2:05 下午
+         */
+        @TableField(exist = false)
+        private String createDate;
 }
 
 

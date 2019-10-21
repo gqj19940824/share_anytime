@@ -1,19 +1,47 @@
 package com.unity.innovation.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constants.ConstString;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.ui.PageElementGrid;
+import com.unity.common.ui.PageEntity;
+import com.unity.common.util.ConvertUtil;
+import com.unity.common.util.JsonUtil;
+import com.unity.common.utils.ExcelExportByTemplate;
+import com.unity.common.utils.UUIDUtil;
+import com.unity.innovation.entity.DailyWorkStatusPackage;
+import com.unity.innovation.entity.PmInfoDept;
 import com.unity.innovation.entity.generated.IpaManageMain;
+import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.IpaStatusEnum;
+import com.unity.innovation.service.DailyWorkStatusPackageServiceImpl;
 import com.unity.innovation.service.IpaManageMainServiceImpl;
+import com.unity.innovation.service.IplManageMainServiceImpl;
+import com.unity.innovation.service.PmInfoDeptServiceImpl;
+import com.unity.innovation.util.InnovationUtil;
+import com.unity.innovation.util.ZipUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 创新发布活动-管理-主表
@@ -26,6 +54,122 @@ public class IpaManageMainController extends BaseWebController {
 
     @Resource
     private IpaManageMainServiceImpl ipaManageMainService;
+    @Resource
+    private IplManageMainServiceImpl iplManageMainService;
+    @Resource
+    private DailyWorkStatusPackageServiceImpl dailyWorkStatusPackageService;
+    @Resource
+    private PmInfoDeptServiceImpl pmInfoDeptService;
+
+    @GetMapping("batchExport")
+    public void batchExport(HttpServletRequest request, HttpServletResponse response, @RequestParam("id") Long id) throws Exception{
+        IpaManageMain entity = ipaManageMainService.getById(id);
+        if (entity == null){
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
+        }
+
+        // 创建文件夹
+        URL resource = Thread.currentThread().getContextClassLoader().getResource("");
+        String basePath = resource.getPath() + UUIDUtil.getUUID() + "/";
+        String filePaht = basePath + "创新发布/";
+        //创建文件夹;
+        ZipUtil.createFile(filePaht + "工作动态/");
+        ZipUtil.createFile(filePaht + "创新发布清单/");
+        ZipUtil.createFile(filePaht + "与会企业信息/");
+
+        //创建Excel文件;
+        List<IplManageMain> list = iplManageMainService
+                .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, entity.getId()));
+        List<List<List<Object>>> dataList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(list)){
+            list.forEach(e->{
+                List<List<Object>> data = iplManageMainService.getData(e.getSnapshot());
+                XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                // 从excel的第5行开始插入数据，并给excel的sheet和标题命名
+                ExcelExportByTemplate.setData(data, e.getTitle(), e.getNotes(), wb, 4);
+                ExcelExportByTemplate.downloadToPath("", wb); // TODO
+            });
+        }
+        //生成.zip文件;
+        ZipUtil.zip(basePath + "创新发布.zip", filePaht);
+
+        ExcelExportByTemplate.responseFile(request, response, "创新发布.zip");
+
+        //删除目录下所有的文件;
+        //delFile(new File(basePath));
+    }
+
+    /**
+     * 更新发布效果
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/19 11:32 上午
+     */
+    @PostMapping("/updatePublishResult")
+    public Mono<ResponseEntity<SystemResponse<Object>>> updatePublishResult(@RequestBody IpaManageMain entity) {
+        ipaManageMainService.update(new LambdaUpdateWrapper<IpaManageMain>().eq(IpaManageMain::getId, entity.getId()).set(IpaManageMain::getPublishResult, entity.getPublishResult()));
+        return success();
+    }
+
+    /**
+     * 批量删除
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/19 11:32 上午
+     */
+    @PostMapping("/removeByIds")
+    public Mono<ResponseEntity<SystemResponse<Object>>> removeByIds(@RequestBody Map<String, String> map) {
+        String ids = map.get("ids");
+        if (StringUtils.isBlank(ids)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
+        }
+        ipaManageMainService.delByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
+        return success();
+    }
+
+    /**
+     * 分页查询
+     *
+     * @param pageEntity 统一查询条件
+     * @returns
+     */
+    @PostMapping("/listByPage")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IpaManageMain> pageEntity) {
+
+        LambdaQueryWrapper<IpaManageMain> ew = new LambdaQueryWrapper<>();
+        IpaManageMain entity = pageEntity.getEntity();
+        if (entity != null){
+            String createDate = entity.getCreateDate();
+            if (StringUtils.isNotBlank(createDate)) {
+                ew.gt(IpaManageMain::getGmtCreate, InnovationUtil.getFirstTimeInMonth(createDate, true));
+                ew.lt(IpaManageMain::getGmtCreate, InnovationUtil.getFirstTimeInMonth(createDate, false));
+            }
+            Integer status = entity.getStatus();
+            if (status != null){
+                ew.eq(IpaManageMain::getStatus, status);
+            }
+        }
+        ew.orderByDesc(IpaManageMain::getGmtCreate);
+
+        IPage<IpaManageMain> p = ipaManageMainService.page(pageEntity.getPageable(), ew);
+        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
+                .total(p.getTotal())
+                .items(convert2List(p.getRecords())).build();
+        return success(result);
+    }
+
+    private List<Map<String, Object>> convert2List(List<IpaManageMain> list){
+        return JsonUtil.ObjectToList(list,
+                (m, entity) -> {
+                    m.put("statusName", IpaStatusEnum.getNameById(entity.getStatus()));
+                }
+                ,IpaManageMain::getTitle, BaseEntity::getGmtCreate, BaseEntity::getId, IpaManageMain::getStatus
+        );
+    }
 
     /**
      * 新增或者编辑活动管理
@@ -47,6 +191,43 @@ public class IpaManageMainController extends BaseWebController {
             ipaManageMainService.edit(entity);
         }
         return success();
+    }
+
+    /**
+     * 详情
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/19 11:33 上午
+     */
+    @GetMapping("/detailById/{id}")
+    public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@PathVariable("id") Long id) {
+
+        IpaManageMain entity = ipaManageMainService.getById(id);
+        if (entity == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+
+        // 清单一次包
+        LambdaQueryWrapper<IplManageMain> iplQw = new LambdaQueryWrapper<>();
+        iplQw.eq(IplManageMain::getIdIpaMain, entity.getId()).orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified);
+        List<IplManageMain> iplpList = iplManageMainService.list(iplQw);
+        entity.setIplpList(iplpList);
+
+        // 与会一次包
+        LambdaQueryWrapper<PmInfoDept> pmQw = new LambdaQueryWrapper<>();
+        pmQw.eq(PmInfoDept::getIdIpaMain, entity.getId()).orderByDesc(PmInfoDept::getGmtSubmit, PmInfoDept::getGmtModified);
+        List<PmInfoDept> pmpList = pmInfoDeptService.list(pmQw);
+        entity.setPmpList(pmpList);
+
+        // 工作动态一次包
+        LambdaQueryWrapper<DailyWorkStatusPackage> dwspQw = new LambdaQueryWrapper<>();
+        dwspQw.eq(DailyWorkStatusPackage::getIdIpaMain, entity.getId()).orderByDesc(DailyWorkStatusPackage::getGmtSubmit,DailyWorkStatusPackage::getGmtModified);
+        List<DailyWorkStatusPackage> dwspList = dailyWorkStatusPackageService.list(dwspQw);
+        entity.setDwspList(dwspList);
+
+        return success(entity);
     }
 }
 

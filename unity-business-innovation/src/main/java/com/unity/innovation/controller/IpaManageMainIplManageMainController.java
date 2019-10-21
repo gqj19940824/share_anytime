@@ -3,38 +3,36 @@ package com.unity.innovation.controller;
 
 
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.SystemClient;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
-import org.apache.commons.lang3.StringUtils;
-import com.alibaba.fastjson.JSON;
-import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.common.ui.PageElementGrid;
+import com.unity.common.ui.SearchCondition;
+import com.unity.common.ui.SearchElementGrid;
 import com.unity.common.ui.excel.ExcelEntity;
 import com.unity.common.ui.excel.ExportEntity;
-import com.unity.common.ui.PageElementGrid;
-import com.unity.common.ui.SearchElementGrid;
-import com.unity.common.ui.SearchCondition;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
-
+import com.unity.innovation.entity.IpaManageMainIplManageMain;
+import com.unity.innovation.service.IpaManageMainIplManageMainServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.unity.common.constants.ConstString;
 
-import java.util.Map;
-import java.util.List;
 import javax.servlet.http.HttpServletResponse;
-
-import com.unity.innovation.service.IpaManageMainIplManageMainServiceImpl;
-import com.unity.innovation.entity.IpaManageMainIplManageMain;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -170,9 +168,7 @@ public class IpaManageMainIplManageMainController extends BaseWebController {
     private List<Map<String, Object>> convert2List(List<IpaManageMainIplManageMain> list){
        
         return JsonUtil.<IpaManageMainIplManageMain>ObjectToList(list,
-                (m, entity) -> {
-                    adapterField(m, entity);
-                }
+                this::adapterField
                 ,IpaManageMainIplManageMain::getId,IpaManageMainIplManageMain::getIdIplManageMain2,IpaManageMainIplManageMain::getIdIpaManageMain2,IpaManageMainIplManageMain::getSort,IpaManageMainIplManageMain::getNotes,IpaManageMainIplManageMain::getIdIplManageMain,IpaManageMainIplManageMain::getIdIpaManageMain
         );
     }
@@ -184,9 +180,7 @@ public class IpaManageMainIplManageMainController extends BaseWebController {
      */
     private Map<String, Object> convert2Map(IpaManageMainIplManageMain ent){
         return JsonUtil.<IpaManageMainIplManageMain>ObjectToMap(ent,
-                (m, entity) -> {
-                    adapterField(m,entity);
-                }
+                this::adapterField
                 ,IpaManageMainIplManageMain::getId,IpaManageMainIplManageMain::getIdIplManageMain2,IpaManageMainIplManageMain::getIdIpaManageMain2,IpaManageMainIplManageMain::getIsDeleted,IpaManageMainIplManageMain::getSort,IpaManageMainIplManageMain::getNotes,IpaManageMainIplManageMain::getIdIplManageMain,IpaManageMainIplManageMain::getIdIpaManageMain
         );
     }

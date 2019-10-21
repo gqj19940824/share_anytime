@@ -39,11 +39,11 @@ public class mSysMessage extends BaseEntity{
 
 
         /**
-         * 数据来源:status:1 新增清单 add1,2 新增清单协同 add2,3 清单超时未处理 timeout1,4 清单协同超时未处理 timeout2,5 清单超时未更新进展 no_update1,6 清单协同超时未更新进展 no_update2,7 主责单位再次编辑基本信息 update,8 主责单位删除 delete,9 处理中->处理完毕 complete,10 处理完毕->处理中 continued
+         * 流程状态:status:1 新增清单/新增协同单位,2 超时未处理,3 超时未更新,4 清单删除,5 处理完毕,6 重新开启
          **/
-        @CommentTarget("数据来源")
-        @TableField("data_source")
-        private Integer dataSource ;
+        @CommentTarget("流程状态")
+        @TableField("flow_status")
+        private Integer flowStatus ;
         
         
         
