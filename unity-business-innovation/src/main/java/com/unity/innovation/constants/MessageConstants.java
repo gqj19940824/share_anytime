@@ -18,6 +18,10 @@ public class MessageConstants {
     public static Map<String,String> addInventoryHelpMsgTitleMap;
     /**发布审核*/
     public static Map<String,String> reviewMsgTitleMap;
+    /**通知主责单位短信内容*/
+    public static Map<String,String> sendSmsContentMap;
+    /**通知协同单位短信内容*/
+    public static Map<String,String> sendHelpSmsContentMap;
     /**清单数据来源类型对应角色字典组编码*/
     public static Map<Integer,String> inventoryDataSourceClassToRoleMap;
     /**审核数据来源类型对应角色字典组编码*/
@@ -98,6 +102,31 @@ public class MessageConstants {
         reviewMsgTitleMap.put("3","【TITLE】已通过！");
         reviewMsgTitleMap.put("4","【TITLE】已发布！");
         reviewMsgTitleMap.put("5","【TITLE】已更新发布效果！");
+
+        sendSmsContentMap = Maps.newHashMap();
+        sendSmsContentMap.put("11","【TITLE】正在寻求参与开发区建设，请前往【城市创新合作实时清单】模块处理！——北京亦庄创新发布线上工作平台");
+        sendSmsContentMap.put("21","【TITLE】正在寻求创新发展，请前往【企业创新发展实时清单】模块处理！——北京亦庄创新发布线上工作平台");
+        sendSmsContentMap.put("31","【TITLE】正在寻求资本支持，请前往【成长目标投资实时清单】模块处理！——北京亦庄创新发布线上工作平台");
+        sendSmsContentMap.put("41","【TITLE】正在寻求高端人才，请前往【高端才智需求实时清单】模块处理！——北京亦庄创新发布线上工作平台");
+        sendSmsContentMap.put("51","【TITLE】已反应意见和建议，请前往【意见和建议】模块处理！——北京亦庄创新发布线上工作平台");
+        sendSmsContentMap.put("61","【TITLE】报名参与发布会，请前往【发布会报名信息管理】模块处理！——北京亦庄创新发布线上工作平台");
+        sendSmsContentMap.put("71","【TITLE】正在寻找投资项目，请前往【投资机构信息管理】模块处理！——北京亦庄创新发布线上工作平台");
+
+        sendHelpSmsContentMap = Maps.newHashMap();
+        sendHelpSmsContentMap.put("11","【DEP_NAME】邀请协同处理【TITLE】寻求参与开发区建设的事项，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("21","【DEP_NAME】邀请协同处理【TITLE】寻求创新发展的事项，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("31","【DEP_NAME】邀请协同处理【TITLE】寻求资本支持的事项，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("41","【DEP_NAME】邀请协同处理【TITLE】寻求高端人才的事项，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
+
+        sendHelpSmsContentMap.put("16","【DEP_NAME】邀请协同处理【TITLE】寻求参与开发区建设的事项已被强制关闭，请知悉！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("26","【DEP_NAME】邀请协同处理【TITLE】寻求创新发展的事项已被强制关闭，请知悉！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("36","【DEP_NAME】邀请协同处理【TITLE】寻求资本支持的事项已被强制关闭，请知悉！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("46","【DEP_NAME】邀请协同处理【TITLE】寻求高端人才的事项已被强制关闭，请知悉！——北京亦庄创新发布线上工作平台");
+
+        sendHelpSmsContentMap.put("17","【DEP_NAME】邀请协同处理【TITLE】寻求参与开发区建设的事项已被重新开启，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("27","【DEP_NAME】邀请协同处理【TITLE】寻求创新发展的事项已被重新开启，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("37","【DEP_NAME】邀请协同处理【TITLE】寻求资本支持的事项已被重新开启，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("47","【DEP_NAME】邀请协同处理【TITLE】寻求高端人才的事项已被重新开启，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
 
         inventoryDataSourceClassToRoleMap = Maps.newHashMap();
         inventoryDataSourceClassToRoleMap.put(1,"devel_reform_role");

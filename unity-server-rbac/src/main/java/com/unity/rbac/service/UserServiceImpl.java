@@ -441,6 +441,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                 user.setLoginName(dto.getLoginName());
                 user.setPwd(Encryption.getEncryption(UserConstants.RESET_PWD,dto.getLoginName()));
             }
+            user.setReceiveSms(dto.getReceiveSms());
+            user.setReceiveSysMsg(dto.getReceiveSysMsg());
             super.updateById(user);
             //如果用户登录过 //生成保存token的key
             if (user.getLastLoginPlatform() != null) {

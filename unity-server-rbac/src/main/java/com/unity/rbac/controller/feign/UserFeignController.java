@@ -81,4 +81,20 @@ public class UserFeignController extends BaseWebController {
         return success(userIdList);
     }
 
+    /**
+     * 根据指定的单位id获取对应单位下的用户信息列表
+     *
+     * @param  departmentIdList 单位id集
+     * @return 用户信息列表
+     * @author gengjiajia
+     * @since 2019/10/18 16:41
+     */
+    @PostMapping("getUserListByDepIdList")
+    public List<User> getUserListByDepIdList(@RequestBody List<Long> departmentIdList) {
+        if(CollectionUtils.isEmpty(departmentIdList)){
+            return Lists.newArrayList();
+        }
+        return userService.list(new LambdaQueryWrapper<User>().in(User::getIdRbacDepartment, departmentIdList.toArray()));
+    }
+
 }

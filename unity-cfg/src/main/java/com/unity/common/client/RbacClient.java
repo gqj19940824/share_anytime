@@ -1,6 +1,7 @@
 package com.unity.common.client;
 
 import com.unity.common.client.vo.DepartmentVO;
+import com.unity.common.client.vo.UserVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -61,6 +62,17 @@ public interface RbacClient {
     @PostMapping("/feign/dept/getAllDepartment")
     List<DepartmentVO> getAllDepartment();
 
+    /**
+     * 根据指定的单位id获取对应单位下的用户信息列表
+     *
+     * @param  ids 单位id集
+     * @return 用户信息列表
+     * @author gengjiajia
+     * @since 2019/10/18 16:41
+     */
+    @PostMapping("/feign/user/getUserListByDepIdList")
+    List<UserVO> getUserListByDepIdList(@RequestBody List<Long> ids);
+
     @Component
     class HystrixClientFallback implements RbacClient {
 
@@ -76,6 +88,11 @@ public interface RbacClient {
 
         @Override
         public List<DepartmentVO> getAllDepartment() {
+            return null;
+        }
+
+        @Override
+        public List<UserVO> getUserListByDepIdList(List<Long> ids) {
             return null;
         }
 
