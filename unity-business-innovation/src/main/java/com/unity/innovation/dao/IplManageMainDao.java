@@ -18,7 +18,7 @@ import java.util.List;
 public interface IplManageMainDao  extends BaseDao<IplManageMain>{
 
     @Update("<script>" +
-            "UPDATE ipl_manage_main p SET p.id_ipa_main = NULL WHERE" +
+            "UPDATE ipl_manage_main p SET p.status = 30, p.id_ipa_main = NULL WHERE" +
             "<if test='ids != null'>" +
             "p.id IN" +
             "<foreach collection='ids' item='id' open='(' close=')' separator=','>" +

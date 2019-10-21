@@ -77,11 +77,11 @@ public class IplDarbMainController extends BaseWebController {
     public void outputEXcel(HttpServletRequest request, HttpServletResponse response, @RequestParam("id") Long id) {
         IplManageMain iplManageMain = iplManageMainService.getById(id);
         // 组装excel需要的数据
-        List<List<Object>> data = iplManageMainService.getData(iplManageMain.getSnapshot());
+        List<List<Object>> data = iplManageMainService.getDarbData(iplManageMain.getSnapshot());
         // 读取模板创建excel文件
         XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
         // 从excel的第5行开始插入数据，并给excel的sheet和标题命名
-        ExcelExportByTemplate.setData(data, iplManageMain.getTitle(), iplManageMain.getNotes(), wb, 4);
+        ExcelExportByTemplate.setData(4,iplManageMain.getTitle(), data, iplManageMain.getNotes(), wb);
         // 将生成好的excel响应给用户
         ExcelExportByTemplate.download(request, response, wb, iplManageMain.getTitle());
     }

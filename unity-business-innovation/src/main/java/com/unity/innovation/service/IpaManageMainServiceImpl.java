@@ -13,6 +13,7 @@ import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.IpaStatusEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -39,6 +40,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     @Resource
     private PmInfoDeptServiceImpl pmInfoDeptService;
 
+    @Transactional(rollbackFor = Exception.class)
     public void delByIds(List<Long> ids) {
         // 删除二次打包表
         removeByIds(ids);
@@ -49,7 +51,12 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
         iplManageMainService.updateIdIpaMain(null, ids);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void edit(IpaManageMain entity) {
+        IpaManageMain byId = getById(entity.getId());
+        if (byId == null){
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
+        }
         List<Long> idDwspList = entity.getIdDwspList();
         List<Long> idIplpList = entity.getIdIplpList();
         List<Long> idPmpList = entity.getIdPmpList();
@@ -83,6 +90,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
      * @author qinhuan
      * @since 2019/10/17 2:37 下午
      */
+    @Transactional(rollbackFor = Exception.class)
     public void add(IpaManageMain entity) {
         List<Long> idDwspList = entity.getIdDwspList();
         List<Long> idIplpList = entity.getIdIplpList();
@@ -110,7 +118,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
         // 创新发布清单
         if (CollectionUtils.isNotEmpty(idIplpList)) {
             checkUnique(countIplp(idIplpList));
-            saveIplp(ipaId, idDwspList);
+            saveIplp(ipaId, idIplpList);
         }
     }
 
@@ -122,14 +130,14 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     }
 
     private void saveIplp(Long idIpaMain, List<Long> toSaveIdList) { // TODO 是否缺少一种状态
-        iplManageMainService.update(IplManageMain.newInstance().idIpaMain(idIpaMain).status(IpaStatusEnum.UNPUBLISH.getId()).build()
+        iplManageMainService.update(IplManageMain.newInstance().idIpaMain(idIpaMain).build()
                 , new LambdaQueryWrapper<IplManageMain>().in(IplManageMain::getId, toSaveIdList));
     }
 
     private void savePmp(Long idIpaMain, List<Long> toSaveIdList) {
         PmInfoDept pmInfoDept = new PmInfoDept();
         pmInfoDept.setIdIpaMain(idIpaMain);
-        pmInfoDept.setStatus(IpaStatusEnum.UNPUBLISH.getId()); // TODO 是否缺少一种状态
+//        pmInfoDept.setStatus(IpaStatusEnum.UNPUBLISH.getId()); // TODO 是否缺少一种状态
         pmInfoDeptService.update(pmInfoDept
                 , new LambdaQueryWrapper<PmInfoDept>().in(PmInfoDept::getId, toSaveIdList));
     }
@@ -137,7 +145,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     private void saveDwsp(Long idIpaMain, List<Long> toSaveIdList) {
         DailyWorkStatusPackage dailyWorkStatusPackage = new DailyWorkStatusPackage();
         dailyWorkStatusPackage.setIdIpaMain(idIpaMain);
-        dailyWorkStatusPackage.setState(IpaStatusEnum.UNPUBLISH.getId()); // TODO 是否缺少一种状态
+//        dailyWorkStatusPackage.setState(IpaStatusEnum.UNPUBLISH.getId()); // TODO 是否缺少一种状态
         dailyWorkStatusPackageService.update(dailyWorkStatusPackage
                 , new LambdaQueryWrapper<DailyWorkStatusPackage>().in(DailyWorkStatusPackage::getId, toSaveIdList));
     }
@@ -157,75 +165,54 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     private void editIplp(Long ipaId, List<Long> idDwspList, List<Long> idIplpList) {
         List<IplManageMain> list = iplManageMainService
                 .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, ipaId));
-        // 全部新增
-        if (CollectionUtils.isEmpty(list)) {
-            checkUnique(countIplp(idIplpList));
-            // 保存
-            saveIplp(ipaId, idIplpList);
-        } else {
-            // 已存在的
-            List<Long> savedIdList = list.stream().map(BaseEntity::getId).collect(Collectors.toList());
-            // 需要新增的
-            List<Long> toSaveIdList = idIplpList.stream().filter(e -> !savedIdList.contains(e)).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(toSaveIdList)) {
-                checkUnique(countIplp(toSaveIdList));
-                saveIplp(ipaId, toSaveIdList);
-            }
-            // 需要删除的
-            List<Long> toDelIdList = savedIdList.stream().filter(e -> !idDwspList.contains(e)).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(toDelIdList)) {
-                iplManageMainService.updateIdIpaMain(toDelIdList, null);
-            }
+        // 已存在的
+        List<Long> savedIdList = list.stream().map(BaseEntity::getId).collect(Collectors.toList());
+        // 需要新增的
+        List<Long> toSaveIdList = idIplpList.stream().filter(e -> !savedIdList.contains(e)).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(toSaveIdList)) {
+            checkUnique(countIplp(toSaveIdList));
+            saveIplp(ipaId, toSaveIdList);
+        }
+        // 需要删除的
+        List<Long> toDelIdList = savedIdList.stream().filter(e -> !idDwspList.contains(e)).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(toDelIdList)) {
+            iplManageMainService.updateIdIpaMain(toDelIdList, null);
         }
     }
 
     private void editPmp(Long ipaId, List<Long> idDwspList, List<Long> idPmpList) {
         List<PmInfoDept> list = pmInfoDeptService
                 .list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, ipaId));
-        // 全部新增
-        if (CollectionUtils.isEmpty(list)) {
-            checkUnique(countPmp(idPmpList));
-            // 保存
-            savePmp(ipaId, idPmpList);
-        } else {
-            // 已存在的
-            List<Long> savedIdList = list.stream().map(BaseEntity::getId).collect(Collectors.toList());
-            // 需要新增的
-            List<Long> toSaveIdList = idPmpList.stream().filter(e -> !savedIdList.contains(e)).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(toSaveIdList)) {
-                checkUnique(countPmp(toSaveIdList));
-                savePmp(ipaId, toSaveIdList);
-            }
-            // 需要删除的
-            List<Long> toDelIdList = savedIdList.stream().filter(e -> !idDwspList.contains(e)).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(toDelIdList)) {
-                pmInfoDeptService.updateIdIpaMain(toDelIdList, null);
-            }
+        // 已存在的
+        List<Long> savedIdList = list.stream().map(BaseEntity::getId).collect(Collectors.toList());
+        // 需要新增的
+        List<Long> toSaveIdList = idPmpList.stream().filter(e -> !savedIdList.contains(e)).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(toSaveIdList)) {
+            checkUnique(countPmp(toSaveIdList));
+            savePmp(ipaId, toSaveIdList);
+        }
+        // 需要删除的
+        List<Long> toDelIdList = savedIdList.stream().filter(e -> !idDwspList.contains(e)).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(toDelIdList)) {
+            pmInfoDeptService.updateIdIpaMain(toDelIdList, null);
         }
     }
 
     private void editDwsp(Long ipaId, List<Long> idDwspList) {
         List<DailyWorkStatusPackage> list = dailyWorkStatusPackageService
                 .list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, ipaId));
-        // 全部新增
-        if (CollectionUtils.isEmpty(list)) {
-            checkUnique(countDwsp(idDwspList));
-            // 保存
-            saveDwsp(ipaId, idDwspList);
-        } else {
-            // 已存在的
-            List<Long> savedIdList = list.stream().map(BaseEntity::getId).collect(Collectors.toList());
-            // 需要新增的
-            List<Long> toSaveIdList = idDwspList.stream().filter(e -> !savedIdList.contains(e)).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(toSaveIdList)) {
-                checkUnique(countDwsp(toSaveIdList));
-                saveDwsp(ipaId, toSaveIdList);
-            }
-            // 需要删除的
-            List<Long> toDelIdList = savedIdList.stream().filter(e -> !idDwspList.contains(e)).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(toDelIdList)) {
-                dailyWorkStatusPackageService.updateIdIpaMain(toDelIdList, null);
-            }
+        // 已存在的
+        List<Long> savedIdList = list.stream().map(BaseEntity::getId).collect(Collectors.toList());
+        // 需要新增的
+        List<Long> toSaveIdList = idDwspList.stream().filter(e -> !savedIdList.contains(e)).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(toSaveIdList)) {
+            checkUnique(countDwsp(toSaveIdList));
+            saveDwsp(ipaId, toSaveIdList);
+        }
+        // 需要删除的
+        List<Long> toDelIdList = savedIdList.stream().filter(e -> !idDwspList.contains(e)).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(toDelIdList)) {
+            dailyWorkStatusPackageService.updateIdIpaMain(toDelIdList, null);
         }
     }
 }

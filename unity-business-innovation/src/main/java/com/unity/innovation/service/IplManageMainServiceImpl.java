@@ -56,14 +56,14 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     private DicUtils dicUtils;
 
     /**
-     * 组装excel数据
+     * 组装发改局excel数据
      *
      * @param
      * @return
      * @author qinhuan
      * @since 2019/10/19 4:38 下午
      */
-    public List<List<Object>> getData(String snapshot){
+    public List<List<Object>> getDarbData(String snapshot){
         List<List<Object>> dataList = new ArrayList<>();
 
         if (StringUtils.isNoneBlank(snapshot)) {
