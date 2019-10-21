@@ -20,7 +20,6 @@ import com.unity.rbac.entity.Department;
 import com.unity.rbac.service.DepartmentServiceImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -132,7 +131,7 @@ public class DepartmentController extends BaseWebController {
 
 
     /**
-     * 获取适用范围下拉框数据
+     * 获取适用范围数据接口
      *
      * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity   <   com.unity.common.pojos.SystemResponse   <   java.lang.Object>>>
      * @author JH
