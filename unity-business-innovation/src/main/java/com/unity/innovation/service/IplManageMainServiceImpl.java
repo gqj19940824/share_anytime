@@ -273,7 +273,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         if (CollectionUtils.isNotEmpty(list1)) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                    .message("该状态下数据不可删除").build();
+                    .message("该状态下数据不可删除a").build();
         }
         List<String> codes = list.stream().map(IplManageMain::getAttachmentCode).collect(Collectors.toList());
         //附件表
