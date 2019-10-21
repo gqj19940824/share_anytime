@@ -1,13 +1,9 @@
 package com.unity.innovation.enums;
 
-import com.google.common.collect.Lists;
 import com.unity.common.constant.InnovationConstant;
 import lombok.AllArgsConstructor;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 清单类别
@@ -17,12 +13,12 @@ import java.util.Map;
 @AllArgsConstructor
 public enum ListCategoryEnum {
 
-    DEPARTMENT_DARB(InnovationConstant.DEPARTMENT_DARB_ID,"DEPARTMENT_DARB_CONTROL"),
-    DEPARTMENT_ESB(InnovationConstant.DEPARTMENT_ESB_ID,"DEPARTMENT_ESB_CONTROL"),
-    DEPARTMENT_SATB(InnovationConstant.DEPARTMENT_SATB_ID,"DEPARTMENT_SATB_CONTROL"),
-    DEPARTMENT_OD(InnovationConstant.DEPARTMENT_OD_ID,"DEPARTMENT_OD_CONTROL"),
-    DEPARTMENT_SUGGESTION_ID(InnovationConstant.DEPARTMENT_SUGGESTION_ID,"DEPARTMENT_SUGGESTION_CONTROL"),
-    DEPARTMENT_YZGT(InnovationConstant.DEPARTMENT_YZGT_ID,"DEPARTMENT_YZGT_CONTROL"),
+    DEPARTMENT_DARB(InnovationConstant.DEPARTMENT_DARB_ID,"DEPARTMENT_DARB_CONTROL", "城市创新合作清单"),
+    DEPARTMENT_ESB(InnovationConstant.DEPARTMENT_ESB_ID,"DEPARTMENT_ESB_CONTROL", "企业创新发展清单"),
+    DEPARTMENT_SATB(InnovationConstant.DEPARTMENT_SATB_ID,"DEPARTMENT_SATB_CONTROL", "成长目标投资清单"),
+    DEPARTMENT_OD(InnovationConstant.DEPARTMENT_OD_ID,"DEPARTMENT_OD_CONTROL", "高端才智需求清单"),
+    DEPARTMENT_SUGGESTION_ID(InnovationConstant.DEPARTMENT_SUGGESTION_ID,"DEPARTMENT_SUGGESTION_CONTROL", "亲清政商关系清单"),
+    DEPARTMENT_YZGT(InnovationConstant.DEPARTMENT_YZGT_ID,"DEPARTMENT_YZGT_CONTROL", "亦庄国投"),
     ;
 
     public static ListCategoryEnum of(Long id) {
@@ -72,25 +68,13 @@ public enum ListCategoryEnum {
         }
         return flag;
     }
-    
+
+    @Getter @Setter
     private Long id;
+    @Getter @Setter
     private String name;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    @Getter @Setter
+    private String listType;
 }
 
 

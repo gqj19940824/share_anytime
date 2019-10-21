@@ -10,6 +10,7 @@ import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.IplManageMainServiceImpl;
 import com.unity.innovation.util.InnovationUtil;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
+
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
@@ -60,11 +62,8 @@ public class IplManageMainController extends BaseWebController {
      */
     private List<Map<String, Object>> convert2ListForPkg(List<IplManageMain> list) {
         return JsonUtil.ObjectToList(list,
-                (m, entity) -> {
-                }, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus,IplManageMain::getStatusName);
+                this::adapterField, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus,IplManageMain::getStatusName);
     }
-
-
 
     /**
      * 功能描述 包的新增编辑
@@ -182,5 +181,12 @@ public class IplManageMainController extends BaseWebController {
         return success(service.submitDepartmentList());
     }
 
+    private void adapterField(Map<String, Object> m, IplManageMain entity) {
+        // 清单类型
+        ListCategoryEnum of = ListCategoryEnum.of(entity.getIdRbacDepartmentDuty());
+        m.put("listType", of == null?"":of.getListType());
+        // 单位名称
+        m.put("idRbacDepartmentDutyName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
+    }
 }
 

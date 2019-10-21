@@ -1,5 +1,6 @@
 package com.unity.innovation.service;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.gson.reflect.TypeToken;
@@ -17,7 +18,8 @@ import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.IplManageMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplSupervisionMain;
-import com.unity.innovation.entity.generated.*;
+import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.entity.generated.IplmManageLog;
 import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
@@ -52,6 +54,63 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
 
     @Resource
     private DicUtils dicUtils;
+
+    /**
+     * 组装excel数据
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/19 4:38 下午
+     */
+    public List<List<Object>> getData(String snapshot){
+        List<List<Object>> dataList = new ArrayList<>();
+
+        if (StringUtils.isNoneBlank(snapshot)) {
+            List<Map> parse = JSON.parseObject(snapshot, List.class);
+            parse.forEach(e -> {
+                List<Object> list = Arrays.asList(
+                        e.get("industryCategory"),
+                        e.get("enterpriseName"),
+                        e.get("demandItem"),
+                        e.get("demandCategory"),
+                        e.get("projectName"),
+                        e.get("content"),
+                        e.get("totalAmount"),
+                        e.get("projectProgress"),
+                        e.get("totalAmount"),
+                        e.get("bank"),
+                        e.get("bond"),
+                        e.get("selfRaise"),
+                        e.get("increaseTrustType"),
+                        e.get("whetherIntroduceSocialCapital"),
+                        e.get("constructionCategory"),
+                        e.get("constructionStage"),
+                        e.get("constructionModel"),
+                        e.get("contactPerson"),
+                        e.get("contactWay"),
+                        e.get("gmtCreate"),
+                        e.get("gmtModified"),
+                        e.get("source"),
+                        e.get("status"),
+                        e.get("latestProcess"));
+                dataList.add(list);
+            });
+        }
+        return dataList;
+    }
+
+    /**
+     * 从二次打包中删除
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/17 8:43 下午
+     */
+    public void updateIdIpaMain(List<Long> ids, List<Long> idIpaMains){
+        baseMapper.updateIdIpaMain(ids, idIpaMains);
+    }
 
     /**
      * 功能描述 公共分页接口

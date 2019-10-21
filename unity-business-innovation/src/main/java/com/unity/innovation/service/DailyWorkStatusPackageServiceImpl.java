@@ -32,7 +32,9 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
 import org.springframework.stereotype.Service;
@@ -81,6 +83,18 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
 
     @Resource
     private DailyWorkKeywordServiceImpl keywordService;
+
+    /**
+     * 从二次打包中删除
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/17 8:43 下午
+     */
+    public void updateIdIpaMain(List<Long> ids, List<Long> idIpaMains){
+        baseMapper.updateIdIpaMain(ids, idIpaMains);
+    }
 
     /**
      * 功能描述 分页接口
