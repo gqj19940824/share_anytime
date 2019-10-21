@@ -496,36 +496,10 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                     .message("成长目标投资清单发布需求详情信息不存在")
                     .build();
         }
-        List<List<Object>> dataList = new ArrayList<>();
-        String snapshot = main.getSnapshot();
-        if (StringUtils.isNoneBlank(snapshot)) {
-            List<Map> parse = JSON.parseObject(snapshot, List.class);
-            parse.forEach(e -> {
-                List<Object> list = Arrays.asList(
-                        e.get("industryCategoryTitle"),
-                        e.get("enterpriseName"),
-                        e.get("demandCategoryTitle"),
-                        e.get("projectName"),
-                        e.get("projectAddress"),
-                        e.get("projectIntroduce"),
-                        e.get("totalAmount"),
-                        e.get("bank"),
-                        e.get("bond"),
-                        e.get("raise"),
-                        e.get("techDemondInfo"),
-                        e.get("contactPerson"),
-                        e.get("contactWay"),
-                        e.get("gmtCreate"),
-                        e.get("gmtModified"),
-                        e.get("sourceTitle"),
-                        e.get("statusTitle"),
-                        e.get("latestProcess"));
-                dataList.add(list);
-            });
-        }
+        List<List<Object>> satbData = iplManageMainService.getSatbData(main.getSnapshot());
         //判断状态，是否可以下载
         XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
-        ExcelExportByTemplate.setData(4,main.getTitle(), dataList, main.getNotes(), wb);
+        ExcelExportByTemplate.setData(4,main.getTitle(), satbData, main.getNotes(), wb);
         ExcelExportByTemplate.download(request, response, wb, main.getTitle());
     }
 }

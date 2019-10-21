@@ -70,6 +70,13 @@ public class mSysSendSmsLog extends BaseEntity {
     @CommentTarget("源数据id")
     @TableField("source_id")
     private Long sourceId;
+
+    /**
+     * 短信发送状态  0 失败 1 成功
+     **/
+    @CommentTarget("短信发送状态")
+    @TableField("send_status")
+    private Integer sendStatus;
 }
 
 
