@@ -131,13 +131,13 @@ public class IpaManageMainController extends BaseWebController {
                     ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
                     // 组织部导出
                 } else if (InnovationConstant.DEPARTMENT_OD_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = null; // TODO
-                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                    List<List<Object>> data =iplManageMainService.getOdData(e.getSnapshot());
+                    wb = ExcelExportByTemplate.getWorkBook("template/od.xlsx");
                     ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
                     //  企服局导出
                 } else if (InnovationConstant.DEPARTMENT_ESB_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = null; // TODO
-                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                    List<List<Object>> data = iplManageMainService.getEbsData(e.getSnapshot());
+                    wb = ExcelExportByTemplate.getWorkBook("template/esb.xlsx");
                     ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
                 } else {
                     throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();

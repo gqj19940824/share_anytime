@@ -101,6 +101,74 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     }
 
     /**
+     * 组装企服局excel数据
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/19 4:38 下午
+     */
+    public List<List<Object>> getEbsData(String snapshot){
+        List<List<Object>> dataList = new ArrayList<>();
+        if (StringUtils.isNoneBlank(snapshot)) {
+            List<Map> parse = JSON.parseObject(snapshot, List.class);
+            parse.forEach(e -> {
+                List<Object> list = Arrays.asList(
+                        e.get("industryCategory"),
+                        e.get("enterpriseName"),
+                        e.get("enterpriseProfile"),
+                        e.get("newProductAndTech"),
+                        e.get("contactPerson"),
+                        e.get("contactWay"),
+                        e.get("gmtCreate"),
+                        e.get("gmtModified"),
+                        e.get("source"),
+                        e.get("status"),
+                        e.get("latestProcess"));
+                dataList.add(list);
+            });
+        }
+        return dataList;
+    }
+
+    /**
+     * 组装企服局excel数据
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/19 4:38 下午
+     */
+    public List<List<Object>> getOdData(String snapshot){
+        List<List<Object>> dataList = new ArrayList<>();
+        if (StringUtils.isNoneBlank(snapshot)) {
+            List<Map> parse = JSON.parseObject(snapshot, List.class);
+            parse.forEach(e -> {
+                List<Object> list = Arrays.asList(
+                        e.get("industryCategory"),
+                        e.get("enterpriseName"),
+                        e.get("enterpriseIntroduction"),
+                        e.get("jdName"),
+                        e.get("jobDemandNum"),
+                        e.get("majorDemand"),
+                        e.get("duty"),
+                        e.get("qualification"),
+                        e.get("specificCause"),
+                        e.get("contactPerson"),
+                        e.get("contactWay"),
+                        e.get("gmtCreate"),
+                        e.get("gmtModified"),
+                        e.get("source"),
+                        e.get("status"),
+                        e.get("latestProcess"));
+                dataList.add(list);
+            });
+        }
+        return dataList;
+    }
+
+
+    /**
      * 从二次打包中删除
      *
      * @param
