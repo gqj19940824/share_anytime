@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
+import com.unity.common.client.vo.UserVO;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.constants.ConstString;
 import com.unity.common.enums.MessageSaveFormEnum;
@@ -22,10 +23,13 @@ import com.unity.innovation.constants.MessageConstants;
 import com.unity.innovation.dao.SysMessageDao;
 import com.unity.innovation.entity.SysMessage;
 import com.unity.innovation.entity.SysMessageReadLog;
+import com.unity.innovation.entity.SysSendSmsLog;
 import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
+import com.unity.innovation.enums.SysMessageFlowStatusEnum;
 import com.unity.innovation.enums.SysMessageSendTypeEnum;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
@@ -57,6 +61,8 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
     RbacClient rbacClient;
     @Resource
     HashRedisUtils hashRedisUtils;
+    @Resource
+    SysSendSmsLogServiceImpl sysSendSmsLogService;
 
     /**
      * 分页列表
@@ -179,14 +185,23 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         if (StringUtils.isBlank(title)) {
             return;
         }
-        title = title.replace(MessageConstants.TITLE, StringUtils.isEmpty(msg.getTitle()) ? "未知" : msg.getTitle());
+        title = title.replace(MessageConstants.TITLE, StringUtils.isEmpty(msg.getTitle()) ? "未知企业" : msg.getTitle());
         if (StringUtils.isNotBlank(msg.getTime())) {
             title = title.replace(MessageConstants.TIME, msg.getTime());
         }
-        Long messageId = saveMessage(msg.getSourceId(), title, msg.getIdRbacDepartment(), msg.getDataSourceClass());
-        //根据数据归属单位类型获取对应角色下人员并保存发送记录
-        saveMessageLogByRole(MessageConstants.REALTIME_INVENTORY_ROLES,
-                MessageConstants.inventoryDataSourceClassToRoleMap.get(msg.getDataSourceClass()), messageId);
+        //获取主责单位下用户进行系统消息及短信的发送
+        List<UserVO> userList = rbacClient.getUserListByDepIdList(Arrays.asList(msg.getIdRbacDepartment()));
+        if(CollectionUtils.isEmpty(userList)){
+            return;
+        }
+        //保存系统通知并推送
+        saveAndSendMessage(userList, msg.getSourceId(),msg.getIdRbacDepartment(),
+                msg.getDataSourceClass(),msg.getFlowStatus(),title);
+        String smsTitle = MessageConstants.sendSmsContentMap.get(msg.getDataSourceClass().toString()
+                .concat(msg.getFlowStatus().toString()));
+        smsTitle = smsTitle.replace(MessageConstants.TITLE, StringUtils.isEmpty(msg.getTitle()) ? "未知企业" : msg.getTitle());
+        //发送短信
+        saveAndSendSms(msg,userList,smsTitle);
     }
 
     /**
@@ -203,18 +218,26 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         if (StringUtils.isBlank(title)) {
             return;
         }
+        String smsTitle = MessageConstants.sendHelpSmsContentMap.get(msg.getDataSourceClass().toString()
+                .concat(msg.getFlowStatus().toString()));
         String depName = hashRedisUtils.getFieldValueByFieldName(RedisConstants.DEPARTMENT.concat(msg.getIdRbacDepartment().toString()), RedisConstants.NAME);
         title = title.replace(MessageConstants.DEP_NAME, depName).replace(MessageConstants.TITLE, msg.getTitle());
         if (StringUtils.isNotBlank(msg.getTime())) {
             title = title.replace(MessageConstants.TIME, msg.getTime());
         }
-        Long idRbacDepartment = msg.getIdRbacDepartment();
-        Long messageId = saveMessage(msg.getSourceId(), title, idRbacDepartment, msg.getDataSourceClass());
-        //根据协同单位单位id集获取对应单位下人员并保存发送记录
-        List<Long> userIdList = rbacClient.getUserIdListByDepIdList(msg.getHelpDepartmentIdList());
-        saveMessageLog(messageId, userIdList);
-        // webSocket 目标用户 提醒数量 +1
-        sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, YesOrNoEnum.YES.getType());
+        if(StringUtils.isNotBlank(smsTitle)){
+            smsTitle = smsTitle.replace(MessageConstants.DEP_NAME, depName).replace(MessageConstants.TITLE, msg.getTitle());
+        }
+
+        //获取主责单位下用户进行系统消息及短信的发送
+        List<UserVO> userList = rbacClient.getUserListByDepIdList(Arrays.asList(msg.getIdRbacDepartment()));
+        if(CollectionUtils.isNotEmpty(userList)){
+            //保存系统通知并推送
+            saveAndSendMessage(userList, msg.getSourceId(),msg.getIdRbacDepartment(),
+                    msg.getDataSourceClass(),msg.getFlowStatus(),title);
+            //发送短信
+            saveAndSendSms(msg,userList,smsTitle);
+        }
     }
 
     /**
@@ -225,6 +248,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
      * @since 2019/09/25 16:20
      */
     @Transactional(rollbackFor = Exception.class)
+
     public void addReviewMessage(ReviewMessage msg) {
         String title = MessageConstants.reviewMsgTitleMap.get(msg.getFlowStatus().toString());
         //提交审核 标题包含单位名称
@@ -233,20 +257,51 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             title = title.replace(MessageConstants.DEP_NAME, depName);
         }
         title = title.replace(MessageConstants.TITLE, msg.getTitle());
-        Long messageId = saveMessage(msg.getSourceId(), title, msg.getIdRbacDepartment(), msg.getDataSourceClass());
         //根据数据归属单位类型获取对应角色下人员并保存发送记录
         if (msg.getFlowStatus().equals(YesOrNoEnum.YES.getType())) {
-            saveMessageLogByRole(MessageConstants.REALTIME_INVENTORY_ROLES,
-                    MessageConstants.reviewDataSourceClassToRoleMap.get(msg.getFlowStatus()), messageId);
+            //TODO 工作动态发布审核/清单发布审核/企业信息发布审核 这三种情况要发送短信到宣传部对应角色下
+
         } else {
-            //发布流程
-            //获取提交单位下属人员ID列表
-            List<Long> depIdList = Arrays.asList(msg.getIdRbacDepartment());
-            List<Long> userIdList = rbacClient.getUserIdListByDepIdList(depIdList);
+            //发布流程 获取提交单位下属人员ID列表
+            //获取主责单位下用户进行系统消息及短信的发送
+            List<UserVO> userList = rbacClient.getUserListByDepIdList(Arrays.asList(msg.getIdRbacDepartment()));
+            if(CollectionUtils.isEmpty(userList)){
+                return;
+            }
+            List<Long> userIdList = userList.stream()
+                    .filter(u -> u.getReceiveSysMsg().equals(YesOrNoEnum.YES.getType()))
+                    .map(UserVO::getId)
+                    .collect(Collectors.toList());
+            Long messageId = saveMessage(msg.getSourceId(), title, msg.getIdRbacDepartment(),
+                    msg.getDataSourceClass(), msg.getFlowStatus());
             saveMessageLog(messageId, userIdList);
             // webSocket 目标用户 提醒数量 +1
             sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, YesOrNoEnum.YES.getType());
         }
+    }
+
+    /**
+     * 根据目标用户保存发送记录
+     *
+     * @param userList  目标用户
+     * @param sourceId           源数据id
+     * @param title              消息内容
+     * @param depId              单位id
+     * @param dataClass 数据所属单位类型
+     * @param status         流程状态
+     * @author gengjiajia
+     * @since 2019/09/25 17:17
+     */
+    private void saveAndSendMessage(List<UserVO> userList,Long sourceId,Long depId,Integer dataClass,Integer status,String title) {
+        List<Long> userIdList = userList.stream()
+                .filter(u -> u.getReceiveSysMsg().equals(YesOrNoEnum.YES.getType()))
+                .map(UserVO::getId)
+                .collect(Collectors.toList());
+        Long messageId = saveMessage(sourceId, title, depId,dataClass, status);
+        saveMessageLog(messageId, userIdList);
+        // webSocket 目标用户 提醒数量 +1
+        sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, YesOrNoEnum.YES.getType());
+
     }
 
     /**
@@ -256,17 +311,19 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
      * @param title              消息内容
      * @param depId              单位id
      * @param getDataSourceClass 数据所属单位类型
+     * @param flowStatus         流程状态
      * @return 消息id
      * @author gengjiajia
      * @since 2019/09/23 18:45
      */
-    private Long saveMessage(Long sourceId, String title, Long depId, Integer getDataSourceClass) {
+    private Long saveMessage(Long sourceId, String title, Long depId, Integer getDataSourceClass,Integer flowStatus) {
         SysMessage message = new SysMessage();
         message.setSourceId(sourceId);
         message.setSendType(SysMessageSendTypeEnum.ONE.getId());
         message.setTitle(title);
         message.setIdRbacDepartment(depId);
         message.setDataSourceClass(getDataSourceClass);
+        message.setFlowStatus(flowStatus);
         this.save(message);
         return message.getId();
     }
@@ -288,30 +345,6 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             return log;
         }).collect(Collectors.toList());
         sysMessageReadLogService.saveBatch(logList);
-    }
-
-    /**
-     * 根据角色获取对应用户来保存发送记录
-     *
-     * @param groupCode 角色字典组名
-     * @param itemCode  角色字典项名
-     * @param messageId 消息id
-     * @author gengjiajia
-     * @since 2019/09/25 17:17
-     */
-    private void saveMessageLogByRole(String groupCode, String itemCode, Long messageId) {
-        Dic dic = dicUtils.getDicByCode(groupCode, itemCode);
-        if (dic != null) {
-            String value = dic.getDicValue();
-            String[] ids = value.split(ConstString.SPLIT_COMMA);
-            Long[] idArr = (Long[]) ConvertUtils.convert(ids, Long.class);
-            List<Long> idList = Arrays.asList(idArr);
-            //通过角色id换取角色关联的 目标用户id
-            List<Long> userIdList = rbacClient.getUserIdListByRoleIdList(idList);
-            saveMessageLog(messageId, userIdList);
-            // webSocket 目标用户 提醒数量 +1
-            sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, YesOrNoEnum.YES.getType());
-        }
     }
 
     /**
@@ -344,5 +377,36 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         numMap.put("sysMessageNum",sysMessageNum);
         numMap.put("noticeNum",noticeNum);
         return numMap;
+    }
+
+    /**
+     * 保存并发送短信
+     *
+     * @param msg 包含消息数据
+     * @param userList 包含目标用户
+     * @author gengjiajia
+     * @since 2019/10/17 20:56
+     */
+    public void saveAndSendSms(InventoryMessage msg,List<UserVO> userList,String title){
+        //判断 新增实时清单、新增协同单位、处理中→处理完毕、处理完毕→处理中 这四种状态下发送短信
+        if(SysMessageFlowStatusEnum.ONE.getId().equals(msg.getFlowStatus())
+                || SysMessageFlowStatusEnum.SIX.getId().equals(msg.getFlowStatus())
+                || SysMessageFlowStatusEnum.SEVEN.getId().equals(msg.getFlowStatus())){
+            //筛选可接收短信的用户并遍历用户列表
+            userList.stream().filter(u -> u.getReceiveSms().equals(YesOrNoEnum.YES.getType()))
+                    .forEach(u -> {
+                        SysSendSmsLog log = new SysSendSmsLog();
+                        log.setUserId(u.getId());
+                        log.setPhone(u.getPhone());
+                        log.setFlowStatus(msg.getFlowStatus());
+                        log.setDataSourceClass(msg.getDataSourceClass());
+                        log.setSourceId(msg.getSourceId());
+                        log.setIdRbacDepartment(msg.getIdRbacDepartment());
+                        log.setContent(title);
+                        sysSendSmsLogService.save(log);
+                        //TODO 发送短信
+
+                    });
+        }
     }
 }
