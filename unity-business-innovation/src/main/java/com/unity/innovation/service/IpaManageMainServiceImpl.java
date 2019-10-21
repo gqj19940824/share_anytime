@@ -13,6 +13,7 @@ import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.IpaStatusEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -39,6 +40,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     @Resource
     private PmInfoDeptServiceImpl pmInfoDeptService;
 
+    @Transactional(rollbackFor = Exception.class)
     public void delByIds(List<Long> ids) {
         // 删除二次打包表
         removeByIds(ids);
@@ -49,6 +51,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
         iplManageMainService.updateIdIpaMain(null, ids);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void edit(IpaManageMain entity) {
         List<Long> idDwspList = entity.getIdDwspList();
         List<Long> idIplpList = entity.getIdIplpList();
@@ -83,6 +86,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
      * @author qinhuan
      * @since 2019/10/17 2:37 下午
      */
+    @Transactional(rollbackFor = Exception.class)
     public void add(IpaManageMain entity) {
         List<Long> idDwspList = entity.getIdDwspList();
         List<Long> idIplpList = entity.getIdIplpList();
@@ -110,7 +114,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
         // 创新发布清单
         if (CollectionUtils.isNotEmpty(idIplpList)) {
             checkUnique(countIplp(idIplpList));
-            saveIplp(ipaId, idDwspList);
+            saveIplp(ipaId, idIplpList);
         }
     }
 
@@ -122,14 +126,14 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     }
 
     private void saveIplp(Long idIpaMain, List<Long> toSaveIdList) { // TODO 是否缺少一种状态
-        iplManageMainService.update(IplManageMain.newInstance().idIpaMain(idIpaMain).status(IpaStatusEnum.UNPUBLISH.getId()).build()
+        iplManageMainService.update(IplManageMain.newInstance().idIpaMain(idIpaMain).build()
                 , new LambdaQueryWrapper<IplManageMain>().in(IplManageMain::getId, toSaveIdList));
     }
 
     private void savePmp(Long idIpaMain, List<Long> toSaveIdList) {
         PmInfoDept pmInfoDept = new PmInfoDept();
         pmInfoDept.setIdIpaMain(idIpaMain);
-        pmInfoDept.setStatus(IpaStatusEnum.UNPUBLISH.getId()); // TODO 是否缺少一种状态
+//        pmInfoDept.setStatus(IpaStatusEnum.UNPUBLISH.getId()); // TODO 是否缺少一种状态
         pmInfoDeptService.update(pmInfoDept
                 , new LambdaQueryWrapper<PmInfoDept>().in(PmInfoDept::getId, toSaveIdList));
     }
@@ -137,7 +141,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     private void saveDwsp(Long idIpaMain, List<Long> toSaveIdList) {
         DailyWorkStatusPackage dailyWorkStatusPackage = new DailyWorkStatusPackage();
         dailyWorkStatusPackage.setIdIpaMain(idIpaMain);
-        dailyWorkStatusPackage.setState(IpaStatusEnum.UNPUBLISH.getId()); // TODO 是否缺少一种状态
+//        dailyWorkStatusPackage.setState(IpaStatusEnum.UNPUBLISH.getId()); // TODO 是否缺少一种状态
         dailyWorkStatusPackageService.update(dailyWorkStatusPackage
                 , new LambdaQueryWrapper<DailyWorkStatusPackage>().in(DailyWorkStatusPackage::getId, toSaveIdList));
     }

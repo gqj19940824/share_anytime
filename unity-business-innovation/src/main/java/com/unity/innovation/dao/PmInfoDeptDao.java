@@ -17,7 +17,7 @@ import java.util.List;
 public interface PmInfoDeptDao  extends BaseDao<PmInfoDept>{
 
     @Update("<script>" +
-            "UPDATE pm_info_dept p SET p.id_ipa_main = NULL WHERE" +
+            "UPDATE pm_info_dept p SET p.status = 30, p.id_ipa_main = NULL WHERE" +
             "<if test='ids != null'>" +
             "p.id IN" +
             "<foreach collection='ids' item='id' open='(' close=')' separator=','>" +
