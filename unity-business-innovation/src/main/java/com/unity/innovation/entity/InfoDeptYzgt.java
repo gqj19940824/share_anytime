@@ -13,6 +13,7 @@ import java.util.List;
 
 @Builder(builderMethodName = "newInstance")
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper=false)
 @TableName(value = "info_dept_yzgt")

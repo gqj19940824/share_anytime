@@ -20,6 +20,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 
 /**
  * 创新发布清单-科技局-主表
@@ -223,14 +226,14 @@ public class IplSatbMainController extends BaseWebController {
      * @since 2019/10/11 11:27
      */
     @GetMapping("/downloadIplSatbMainDataPkgToExcel/{id}")
-    public Mono<ResponseEntity<byte[]>> downloadIplSatbMainDataPkgToExcel(@PathVariable("id") Long id) {
+    public Mono<ResponseEntity<SystemResponse<Object>>> downloadIplSatbMainDataPkgToExcel(@PathVariable("id") Long id,
+                                                                          HttpServletRequest request,
+                                                                          HttpServletResponse response) {
         if(id == null){
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                    .message("未获取到成长目标投资清单发布ID")
-                    .build();
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到成长目标投资清单发布ID");
         }
-        return Mono.just(service.downloadIplSatbMainDataPkgToExcel(id));
+        service.downloadIplSatbMainDataPkgToExcel(id,request,response);
+        return success();
     }
 }
 

@@ -89,11 +89,13 @@ public class InfoDeptYzgtServiceImpl extends BaseServiceImpl<InfoDeptYzgtDao, In
                     .message("数据不存在").build();
         }
         //行业类别
-        entity.setIndustryCategoryName(cfgService.getById(entity.getIndustryCategory()).getCfgVal());
+        SysCfg industryCategory = cfgService.getById(entity.getIndustryCategory());
+        entity.setIndustryCategoryName(industryCategory == null ? "" : industryCategory.getCfgVal());
         //企业规模
         entity.setEnterpriseScaleName(dicUtils.getDicValueByCode(DicConstants.ENTERPRISE_SCALE,entity.getEnterpriseScale().toString()));
         //企业性质
-        entity.setEnterpriseNatureName(cfgService.getById(entity.getEnterpriseNature()).getCfgVal());
+        SysCfg enterpriseNature = cfgService.getById(entity.getEnterpriseNature());
+        entity.setEnterpriseNatureName(enterpriseNature == null ? "" : enterpriseNature.getCfgVal());
         return entity;
     }
 
@@ -107,7 +109,7 @@ public class InfoDeptYzgtServiceImpl extends BaseServiceImpl<InfoDeptYzgtDao, In
     */
     @Transactional(rollbackFor = Exception.class)
     public void deleteByIds(@RequestBody List<Long> ids) {
-        List<InfoDeptYzgt> list = super.list(new LambdaQueryWrapper<InfoDeptYzgt>().eq(InfoDeptYzgt::getStatus, YesOrNoEnum.YES.getType()));
+        List<InfoDeptYzgt> list = super.list(new LambdaQueryWrapper<InfoDeptYzgt>().in(InfoDeptYzgt::getId, ids));
         //状态为已提请发布的数据
         List<InfoDeptYzgt> collect = list.stream().filter(n -> n.getStatus().equals(YesOrNoEnum.YES.getType())).collect(Collectors.toList());
         if(CollectionUtils.isNotEmpty(collect)) {

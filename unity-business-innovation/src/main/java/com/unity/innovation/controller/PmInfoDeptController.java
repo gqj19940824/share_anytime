@@ -5,33 +5,37 @@ package com.unity.innovation.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.unity.common.exception.UnityRuntimeException;
-import com.unity.common.ui.PageEntity;
-import com.unity.innovation.entity.InfoDeptYzgt;
-import com.unity.innovation.entity.PmInfoDeptLog;
-import com.unity.innovation.enums.InfoTypeEnum;
-import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
-import com.unity.innovation.service.InfoDeptYzgtServiceImpl;
-import com.unity.innovation.util.InnovationUtil;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
+import com.unity.common.ui.PageEntity;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.InfoDeptSatb;
+import com.unity.innovation.entity.InfoDeptYzgt;
 import com.unity.innovation.entity.PmInfoDept;
+import com.unity.innovation.entity.PmInfoDeptLog;
+import com.unity.innovation.enums.InfoTypeEnum;
+import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.InfoDeptSatbServiceImpl;
+import com.unity.innovation.service.InfoDeptYzgtServiceImpl;
 import com.unity.innovation.service.PmInfoDeptServiceImpl;
+import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
 import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -128,7 +132,7 @@ public class PmInfoDeptController extends BaseWebController {
                 (m, entity) -> {
                     m.put("infoTypeName", InfoTypeEnum.of(entity.getIdRbacDepartment()).getName());
                     m.put("departmentName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
-
+                    m.put("statusName", Objects.requireNonNull(WorkStatusAuditingStatusEnum.of(entity.getStatus())).getName());
                 }
                 , PmInfoDept::getId, PmInfoDept::getSort, PmInfoDept::getNotes, PmInfoDept::getTitle, PmInfoDept::getGmtSubmit, PmInfoDept::getStatus, PmInfoDept::getAttachmentCode, PmInfoDept::getIdRbacDepartment, PmInfoDept::getInfoType
         );
@@ -219,6 +223,44 @@ public class PmInfoDeptController extends BaseWebController {
         service.passOrReject(entity,old);
         return success();
     }
+    /**
+     * 功能描述  导出接口
+     * @param id 数据id
+     * @return 数据流
+     * @author gengzhiqiang
+     * @date 2019/10/11 11:07
+     */
+    @GetMapping({"/export/excel"})
+    public Mono<ResponseEntity<byte[]>> exportExcel(@RequestParam("id") Long id) {
+        if (id == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到要导出的id").build();
+        }
+        PmInfoDept entity = service.getById(id);
+        if (entity == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
+        String filename = entity.getTitle();
+        byte[] content;
+        HttpHeaders headers = new HttpHeaders();
+        try {
+            content = service.export(entity);
+            //处理乱码
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("企业信息发布", new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1) + ".xls");
+        } catch (Exception e) {
+            throw UnityRuntimeException.newInstance()
+                    .message(e.getMessage())
+                    .code(SystemResponse.FormalErrorCode.SERVER_ERROR)
+                    .build();
+        }
+        return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
+
+    }
+
 
 
     /**
