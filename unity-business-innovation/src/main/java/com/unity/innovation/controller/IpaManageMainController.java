@@ -16,6 +16,7 @@ import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.ExcelExportByTemplate;
 import com.unity.common.utils.UUIDUtil;
+import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.DailyWorkStatusPackage;
 import com.unity.innovation.entity.PmInfoDept;
 import com.unity.innovation.entity.generated.IpaManageMain;
@@ -42,6 +43,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * 创新发布活动-管理-主表
@@ -91,9 +94,18 @@ public class IpaManageMainController extends BaseWebController {
         // 工作动态的excel
         List<DailyWorkStatusPackage> dwspList = dailyWorkStatusPackageService
                 .list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain));
+
         if (CollectionUtils.isNotEmpty(dwspList)) {
-            dwspList.forEach(e->{
-                // TODO
+            dwspList.forEach(e -> {
+                e = dailyWorkStatusPackageService.detailById(e);
+                e.getDataList().forEach(d -> d.setAttachmentCode(
+                        d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
+                XSSFWorkbook wb;
+                // 发改局导出
+                List<List<Object>> data = iplManageMainService.getDwspData(dwspList);
+                wb = ExcelExportByTemplate.getWorkBook("template/dwsp.xlsx");
+                ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                ExcelExportByTemplate.downloadToPath(filePaht + "工作动态/" + e.getTitle() + ".xlsx", wb);
             });
         }
         // 与会信息的excel
