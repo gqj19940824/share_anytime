@@ -44,7 +44,7 @@ public class IplManageMainController extends BaseWebController {
      * @author gengzhiqiang
      * @date 2019/9/17 13:36
      */
-    @PostMapping("/listByPage/{flag}")
+    @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplManageMain> search) {
         IPage<IplManageMain> list= service.listForPkg(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
@@ -105,7 +105,7 @@ public class IplManageMainController extends BaseWebController {
      * @author gengzhiqiang
      * @date 2019/9/17 15:51
      */
-    @PostMapping("/detailById/{flag}")
+    @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody IplManageMain entity) {
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getId);
         if (StringUtils.isNotBlank(msg)) {

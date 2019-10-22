@@ -64,7 +64,7 @@ public class DailyWorkStatusPackageController extends BaseWebController {
      * @author gengzhiqiang
      * @date 2019/9/17 13:36
      */
-    @PostMapping("/listByPageForAll/{flag}")
+    @PostMapping("/listByPageForAll")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPageForAll(@RequestBody PageEntity<DailyWorkStatusPackage> search) {
         IPage<DailyWorkStatusPackage> list = service.listByPageForAll(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
@@ -171,7 +171,7 @@ public class DailyWorkStatusPackageController extends BaseWebController {
      * @author gengzhiqiang
      * @date 2019/9/17 15:51
      */
-    @PostMapping("/detailById/{flag}")
+    @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody DailyWorkStatusPackage entity) {
         String msg = ValidFieldUtil.checkEmptyStr(entity,DailyWorkStatusPackage::getId);
         if (StringUtils.isNotBlank(msg)) {

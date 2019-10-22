@@ -64,7 +64,7 @@ public class PmInfoDeptController extends BaseWebController {
     * @author JH
     * @date 2019/10/17 11:15
     */
-    @PostMapping("/listByPage/{flag}")
+    @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<PmInfoDept> pageEntity) {
         Page<PmInfoDept> pageable = pageEntity.getPageable();
         PmInfoDept entity = pageEntity.getEntity();
@@ -313,7 +313,7 @@ public class PmInfoDeptController extends BaseWebController {
     * @author JH
     * @date 2019/10/17 15:34
     */
-    @PostMapping("/detailById/{flag}")
+    @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody PmInfoDept entity) {
         if(entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "id不能为空");
