@@ -277,37 +277,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                     .message("未获取到对象").build();
         }
-        //数据集合
-        List<DailyWorkPackage> mList = workMPackageService.list(new LambdaQueryWrapper<DailyWorkPackage>().eq(DailyWorkPackage::getIdPackage, entity.getId()));
-        List<Long> ids = mList.stream().map(DailyWorkPackage::getIdDailyWorkStatus).collect(Collectors.toList());
-        List<DailyWorkStatus> dateList = workStatusService.list(new LambdaQueryWrapper<DailyWorkStatus>().in(DailyWorkStatus::getId, ids));
-        //工作类别
-        List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
-                .eq(SysCfg::getCfgType, SysCfgEnum.ONE.getId()));
-        Map<Long, String> typeNames = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
-        //关键字
-        List<DailyWorkKeyword> keys = keywordService.list(new LambdaQueryWrapper<DailyWorkKeyword>()
-                .in(DailyWorkKeyword::getIdDailyWorkStatus, ids));
-        List<SysCfg> keyList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
-                .eq(SysCfg::getCfgType, SysCfgEnum.TWO.getId()));
-        Map<Long, String> keyNames = keyList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
-        keys.forEach(k->k.setKeyName(keyNames.get(k.getIdKeyword())));
-        Map<Long, List<DailyWorkKeyword>> keyStr = keys.stream().collect(Collectors.groupingBy(DailyWorkKeyword::getIdDailyWorkStatus));
-        dateList.forEach(dwk -> {
-            //工作类别
-            dwk.setTypeName(typeNames.get(dwk.getType()));
-            //关键字
-            List<DailyWorkKeyword> keyList1 = keyStr.get((dwk.getId()));
-            String keysStr=keyList1.stream().map(DailyWorkKeyword::getKeyName).collect(joining(" "));
-            dwk.setKeyWordStr(keysStr);
-            //附件
-            List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
-                    .eq(Attachment::getAttachmentCode,dwk.getAttachmentCode()));
-            if (CollectionUtils.isNotEmpty(attachmentList)){
-                dwk.setAttachmentList(attachmentList);
-            }
-        });
-        vo.setDataList(dateList);
+        vo.setDataList(addDataList(entity));
         //日志集合
         List<DailyWorkStatusLog> logList = logService.list(new LambdaQueryWrapper<DailyWorkStatusLog>()
                 .eq(DailyWorkStatusLog::getIdPackage, entity.getId())
@@ -350,6 +320,39 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         return vo;
     }
 
+    public List<DailyWorkStatus> addDataList(DailyWorkStatusPackage entity) {
+        //数据集合
+        List<DailyWorkPackage> mList = workMPackageService.list(new LambdaQueryWrapper<DailyWorkPackage>().eq(DailyWorkPackage::getIdPackage, entity.getId()));
+        List<Long> ids = mList.stream().map(DailyWorkPackage::getIdDailyWorkStatus).collect(Collectors.toList());
+        List<DailyWorkStatus> dateList = workStatusService.list(new LambdaQueryWrapper<DailyWorkStatus>().in(DailyWorkStatus::getId, ids));
+        //工作类别
+        List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
+                .eq(SysCfg::getCfgType, SysCfgEnum.ONE.getId()));
+        Map<Long, String> typeNames = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
+        //关键字
+        List<DailyWorkKeyword> keys = keywordService.list(new LambdaQueryWrapper<DailyWorkKeyword>()
+                .in(DailyWorkKeyword::getIdDailyWorkStatus, ids));
+        List<SysCfg> keyList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
+                .eq(SysCfg::getCfgType, SysCfgEnum.TWO.getId()));
+        Map<Long, String> keyNames = keyList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
+        keys.forEach(k -> k.setKeyName(keyNames.get(k.getIdKeyword())));
+        Map<Long, List<DailyWorkKeyword>> keyStr = keys.stream().collect(Collectors.groupingBy(DailyWorkKeyword::getIdDailyWorkStatus));
+        dateList.forEach(dwk -> {
+            //工作类别
+            dwk.setTypeName(typeNames.get(dwk.getType()));
+            //关键字
+            List<DailyWorkKeyword> keyList1 = keyStr.get((dwk.getId()));
+            String keysStr = keyList1.stream().map(DailyWorkKeyword::getKeyName).collect(joining(" "));
+            dwk.setKeyWordStr(keysStr);
+            //附件
+            List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>()
+                    .eq(Attachment::getAttachmentCode, dwk.getAttachmentCode()));
+            if (CollectionUtils.isNotEmpty(attachmentList)) {
+                dwk.setAttachmentList(attachmentList);
+            }
+        });
+        return dateList;
+    }
 
     /**
      * 功能描述 批量删除
@@ -494,9 +497,13 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         try {
             //定义表格对象
             HSSFWorkbook workbook = new HSSFWorkbook();
-            DailyWorkStatusPackage entity = DailyWorkStatusPackage.newInstance().build();
-            entity.setId(id);
-            entity = detailById(entity);
+            DailyWorkStatusPackage entity = getById(id);
+            if (entity == null) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                        .message("未获取到对象").build();
+            }
+            entity.setDataList(addDataList(entity));
             String top=entity.getTitle();
             HSSFSheet sheet = workbook.createSheet(top);
             HSSFRow row;

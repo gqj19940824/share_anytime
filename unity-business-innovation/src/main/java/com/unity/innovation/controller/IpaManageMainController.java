@@ -97,7 +97,7 @@ public class IpaManageMainController extends BaseWebController {
                 .list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(dwspList)) {
             dwspList.forEach(e -> {
-                e = dailyWorkStatusPackageService.detailById(e);
+                e.setDataList(dailyWorkStatusPackageService.addDataList(e));
                 e.getDataList().forEach(d -> d.setAttachmentCode(
                         d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
                 // 发改局导出
