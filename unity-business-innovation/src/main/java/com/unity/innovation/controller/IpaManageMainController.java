@@ -25,7 +25,10 @@ import com.unity.innovation.enums.InfoTypeEnum;
 import com.unity.innovation.enums.IpaStatusEnum;
 import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
-import com.unity.innovation.service.*;
+import com.unity.innovation.service.DailyWorkStatusPackageServiceImpl;
+import com.unity.innovation.service.IpaManageMainServiceImpl;
+import com.unity.innovation.service.IplManageMainServiceImpl;
+import com.unity.innovation.service.PmInfoDeptServiceImpl;
 import com.unity.innovation.util.DownloadUtil;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.innovation.util.ZipUtil;
@@ -44,10 +47,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static java.util.stream.Collectors.joining;
 
@@ -72,6 +73,14 @@ public class IpaManageMainController extends BaseWebController {
     @Resource
     private DicUtils dicUtils;
 
+    /**
+     * 入会一次包列表
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/22 7:40 下午
+     */
     @PostMapping("/listPmpByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listPmpByPage(@RequestBody PageEntity<PmInfoDept> search) {
         Customer customer = LoginContextHolder.getRequestAttributes();
@@ -94,9 +103,13 @@ public class IpaManageMainController extends BaseWebController {
             }
 
             ew.notIn(PmInfoDept::getStatus, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(), WorkStatusAuditingStatusEnum.FORTY.getId()));
-            //状态
-            if (entity.getStatus() != null) {
-                ew.eq(PmInfoDept::getStatus, entity.getStatus());
+            if (entity.getIdRbacDepartment() != null) {
+                ew.eq(PmInfoDept::getIdRbacDepartment, entity.getIdRbacDepartment());
+            }
+            if (entity.getId() != null){
+                ew.and(e->e.isNull(PmInfoDept::getIdIpaMain).or().eq(PmInfoDept::getIdIpaMain, entity.getId()));
+            }else {
+                ew.isNull(PmInfoDept::getIdIpaMain);
             }
         }
         //排序
@@ -107,6 +120,14 @@ public class IpaManageMainController extends BaseWebController {
         return success(result);
     }
 
+    /**
+     * 工作动态一次包列表
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/22 7:41 下午
+     */
     @PostMapping("/listDwspByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listDwspByPage(@RequestBody PageEntity<DailyWorkStatusPackage> search) {
         Customer customer = LoginContextHolder.getRequestAttributes();
@@ -129,7 +150,16 @@ public class IpaManageMainController extends BaseWebController {
             }
         }
         //审核角色查看四种状态的数据
-        ew.in(DailyWorkStatusPackage::getState, Arrays.asList(WorkStatusAuditingStatusEnum.TWENTY.getId(), WorkStatusAuditingStatusEnum.THIRTY.getId(), WorkStatusAuditingStatusEnum.FIFTY.getId(), WorkStatusAuditingStatusEnum.SIXTY.getId()));
+        ew.notIn(DailyWorkStatusPackage::getState, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(), WorkStatusAuditingStatusEnum.FORTY.getId()));
+        // 提交单位
+        if (entity.getIdRbacDepartment() != null) {
+            ew.eq(DailyWorkStatusPackage::getIdRbacDepartment, entity.getIdRbacDepartment());
+        }
+        if (entity.getId() != null){
+            ew.and(e->e.isNull(DailyWorkStatusPackage::getIdIpaMain).or().eq(DailyWorkStatusPackage::getIdIpaMain, entity.getId()));
+        }else {
+            ew.isNull(DailyWorkStatusPackage::getIdIpaMain);
+        }
         ew.orderByDesc(DailyWorkStatusPackage::getGmtSubmit);
         IPage<DailyWorkStatusPackage> page = dailyWorkStatusPackageService.page(search.getPageable(), ew);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
@@ -137,6 +167,14 @@ public class IpaManageMainController extends BaseWebController {
         return success(result);
     }
 
+    /**
+     * 清单一次包列表
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/22 7:41 下午
+     */
     @PostMapping("/listIplpByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listIplpByPage(@RequestBody PageEntity<IplManageMain> search) {
         Customer customer = LoginContextHolder.getRequestAttributes();
@@ -159,10 +197,14 @@ public class IpaManageMainController extends BaseWebController {
             }
 
             ew.notIn(IplManageMain::getStatus, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(), WorkStatusAuditingStatusEnum.FORTY.getId()));
-            //状态
-            if (entity.getStatus() != null) {
-                ew.eq(IplManageMain::getStatus, entity.getStatus());
+            if (entity.getIdRbacDepartmentDuty() != null) {
+                ew.eq(IplManageMain::getIdRbacDepartmentDuty, entity.getIdRbacDepartmentDuty());
             }
+        }
+        if (entity.getId() != null){
+            ew.and(e->e.isNull(IplManageMain::getIdIpaMain).or().eq(IplManageMain::getIdIpaMain, entity.getId()));
+        }else {
+            ew.isNull(IplManageMain::getIdIpaMain);
         }
         //排序
         ew.orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified);
@@ -185,9 +227,8 @@ public class IpaManageMainController extends BaseWebController {
                 (m, entity) -> {
                     m.put("infoTypeName", InfoTypeEnum.of(entity.getIdRbacDepartment()).getName());
                     m.put("departmentName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
-                    m.put("statusName", Objects.requireNonNull(WorkStatusAuditingStatusEnum.of(entity.getStatus())).getName());
                 }
-                , PmInfoDept::getId, PmInfoDept::getSort, PmInfoDept::getNotes, PmInfoDept::getTitle, PmInfoDept::getGmtSubmit, PmInfoDept::getStatus, PmInfoDept::getAttachmentCode, PmInfoDept::getIdRbacDepartment, PmInfoDept::getInfoType
+                , PmInfoDept::getId, PmInfoDept::getTitle, PmInfoDept::getGmtSubmit
         );
     }
 
@@ -202,11 +243,9 @@ public class IpaManageMainController extends BaseWebController {
     private List<Map<String, Object>> convert2ListForDwsp(List<DailyWorkStatusPackage> list) {
         return JsonUtil.<DailyWorkStatusPackage>ObjectToList(list,
                 (m, entity) -> {
-                    if (WorkStatusAuditingStatusEnum.exist(entity.getState())) {
-                        entity.setStateName(WorkStatusAuditingStatusEnum.of(entity.getState()).getName());
-                    }
-                }, DailyWorkStatusPackage::getId, DailyWorkStatusPackage::getGmtSubmit,DailyWorkStatusPackage::getDeptName,
-                DailyWorkStatusPackage::getTitle, DailyWorkStatusPackage::getState,DailyWorkStatusPackage::getStateName);
+                    m.put("departmentName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
+                }, DailyWorkStatusPackage::getId, DailyWorkStatusPackage::getGmtSubmit,
+                DailyWorkStatusPackage::getTitle);
     }
 
     /**
@@ -219,7 +258,7 @@ public class IpaManageMainController extends BaseWebController {
      */
     private List<Map<String, Object>> convert2ListForPkg(List<IplManageMain> list) {
         return JsonUtil.ObjectToList(list,
-                this::adapterField, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus, IplManageMain::getStatusName);
+                this::adapterField, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit);
     }
 
     private void adapterField(Map<String, Object> m, IplManageMain entity) {
@@ -456,19 +495,19 @@ public class IpaManageMainController extends BaseWebController {
         LambdaQueryWrapper<IplManageMain> iplQw = new LambdaQueryWrapper<>();
         iplQw.eq(IplManageMain::getIdIpaMain, entity.getId()).orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified);
         List<IplManageMain> iplpList = iplManageMainService.list(iplQw);
-        entity.setIplpList(iplpList);
+        entity.setIplpList(convert2ListForPkg(iplpList));
 
         // 与会一次包
         LambdaQueryWrapper<PmInfoDept> pmQw = new LambdaQueryWrapper<>();
         pmQw.eq(PmInfoDept::getIdIpaMain, entity.getId()).orderByDesc(PmInfoDept::getGmtSubmit, PmInfoDept::getGmtModified);
         List<PmInfoDept> pmpList = pmInfoDeptService.list(pmQw);
-        entity.setPmpList(pmpList);
+        entity.setPmpList(convert2ListForPmp(pmpList));
 
         // 工作动态一次包
         LambdaQueryWrapper<DailyWorkStatusPackage> dwspQw = new LambdaQueryWrapper<>();
         dwspQw.eq(DailyWorkStatusPackage::getIdIpaMain, entity.getId()).orderByDesc(DailyWorkStatusPackage::getGmtSubmit, DailyWorkStatusPackage::getGmtModified);
         List<DailyWorkStatusPackage> dwspList = dailyWorkStatusPackageService.list(dwspQw);
-        entity.setDwspList(dwspList);
+        entity.setDwspList(convert2ListForDwsp(dwspList));
 
         return success(entity);
     }

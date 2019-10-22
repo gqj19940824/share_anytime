@@ -4,11 +4,10 @@ package com.unity.innovation.entity.generated;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
-import com.unity.innovation.entity.DailyWorkStatusPackage;
-import com.unity.innovation.entity.PmInfoDept;
 import lombok.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 创新发布活动-管理-主表
@@ -86,7 +85,7 @@ public class IpaManageMain extends BaseEntity{
         **/
         @CommentTarget("与会企业信息一次包列表")
         @TableField(exist = false)
-        private List<PmInfoDept> pmpList ;
+        private List<Map<String, Object>> pmpList ;
 
 
 
@@ -95,7 +94,7 @@ public class IpaManageMain extends BaseEntity{
         **/
         @CommentTarget("工作动态一次包列表")
         @TableField(exist = false)
-        private List<DailyWorkStatusPackage> dwspList ;
+        private List<Map<String, Object>> dwspList ;
 
 
 
@@ -104,7 +103,7 @@ public class IpaManageMain extends BaseEntity{
         **/
         @CommentTarget("创新发布清单一次包列表")
         @TableField(exist = false)
-        private List<IplManageMain> iplpList ;
+        private List<Map<String, Object>> iplpList ;
 
         /**
          * 创建时间（查询使用，YYYY-MM）
