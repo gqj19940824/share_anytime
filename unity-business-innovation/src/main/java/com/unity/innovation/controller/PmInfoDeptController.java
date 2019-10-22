@@ -64,7 +64,7 @@ public class PmInfoDeptController extends BaseWebController {
     * @author JH
     * @date 2019/10/17 11:15
     */
-    @PostMapping("/listByPage")
+    @PostMapping("/listByPage/{flag}")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<PmInfoDept> pageEntity) {
         Page<PmInfoDept> pageable = pageEntity.getPageable();
         PmInfoDept entity = pageEntity.getEntity();
