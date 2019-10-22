@@ -195,6 +195,9 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @return Map
      */
     private List<Map<String, Object>> convertList2MapByAttachment(List<Attachment> list) {
+        if(CollectionUtils.isEmpty(list)){
+            return Lists.newArrayList();
+        }
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
                     // adapterField(m, entity);

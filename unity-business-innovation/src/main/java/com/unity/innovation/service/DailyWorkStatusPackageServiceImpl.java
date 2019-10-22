@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.RedisConstants;
+import com.unity.common.enums.UserTypeEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -105,6 +106,17 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
      */
     public IPage<DailyWorkStatusPackage> listByPageForBase(PageEntity<DailyWorkStatusPackage> search) {
         LambdaQueryWrapper<DailyWorkStatusPackage> lqw = new LambdaQueryWrapper<>();
+        // 管理员并且不是超级管理员  工作动态三个列表数据 返回空数据
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (UserTypeEnum.ADMIN.getId().equals(customer.getUserType()) && customer.getIsSuperAdmin() == YesOrNoEnum.NO.getType()) {
+            lqw.eq(DailyWorkStatusPackage::getId,YesOrNoEnum.NO.getType());
+            IPage<DailyWorkStatusPackage> list1 = page(search.getPageable(),  lqw);
+            return list1;
+        }
+        //普通账号 只看自己单位的
+        if (UserTypeEnum.ORDINARY.getId().equals(customer.getUserType())) {
+            lqw.eq(DailyWorkStatusPackage::getIdRbacDepartment, customer.getIdRbacDepartment());
+        }
         //提交时间
         if (StringUtils.isNotBlank(search.getEntity().getSubmitTime())) {
             long begin = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), true);
@@ -116,13 +128,6 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         //状态
         if (search.getEntity().getState() != null) {
             lqw.eq(DailyWorkStatusPackage::getState, search.getEntity().getState());
-        }
-        //本单位数据 管理员 列表数据都要显示
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        if (customer.getIdRbacDepartment() != null && customer.isAdmin != null) {
-            if (YesOrNoEnum.NO.getType() == customer.isAdmin) {
-                lqw.eq(DailyWorkStatusPackage::getIdRbacDepartment, customer.getIdRbacDepartment());
-            }
         }
         //管理员 单位数据
         if (search.getEntity().getIdRbacDepartment() != null) {
@@ -159,6 +164,13 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
      */
     public IPage<DailyWorkStatusPackage> listByPageForAll(PageEntity<DailyWorkStatusPackage> search) {
         LambdaQueryWrapper<DailyWorkStatusPackage> lqw = new LambdaQueryWrapper<>();
+        // 管理员并且不是超级管理员  工作动态三个列表数据 返回空数据
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (UserTypeEnum.ADMIN.getId().equals(customer.getUserType()) && customer.getIsSuperAdmin() == YesOrNoEnum.NO.getType()) {
+            lqw.eq(DailyWorkStatusPackage::getId,YesOrNoEnum.NO.getType());
+            IPage<DailyWorkStatusPackage> list1 = page(search.getPageable(),  lqw);
+            return list1;
+        }
         //提交时间
         if (StringUtils.isNotBlank(search.getEntity().getSubmitTime())) {
             long end = InnovationUtil.getFirstTimeInMonth(search.getEntity().getSubmitTime(), false);
