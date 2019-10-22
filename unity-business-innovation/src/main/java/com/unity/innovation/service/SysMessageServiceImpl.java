@@ -410,7 +410,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             if (SysMessageFlowStatusEnum.ONE.getId().equals(msg.getFlowStatus())
                     && !SysMessageDataSourceClassEnum.HELP.getId().equals(msg.getDataSourceClass())) {
                 //说明是企业填报需求，短信模板需要企业名称和模块名称两个参数
-                smsParem = "{\"companyName\":" + msg.getTitle() + ",\"module\":" + e.getName() + "\"}";
+                smsParem = "{\"companyName\":\""+msg.getTitle()+"\",\"module\":\""+e.getName()+"\"}";
             } else {
                 //TODO 其他情况下，短信模板需要主责单位和企业名称两个参数
                 smsParem = "{\"depName\":\"" + depName + ",companyName:\"" + msg.getTitle() + "\"}";
