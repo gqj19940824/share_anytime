@@ -55,9 +55,14 @@ public class InfoDeptYzgtController extends BaseWebController {
         InfoDeptYzgt entity = pageEntity.getEntity();
         LambdaQueryWrapper<InfoDeptYzgt> ew = wrapper(entity);
         IPage<InfoDeptYzgt> p = service.page(pageable, ew);
+        List<InfoDeptYzgt> records = p.getRecords();
+        service.convert2List(records);
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
                 .total(p.getTotal())
-                .items(service.convert2List(p.getRecords())).build();
+                .items(JsonUtil.ObjectToList(records,
+                        null
+                        ,InfoDeptYzgt::getId,InfoDeptYzgt::getSort,InfoDeptYzgt::getNotes,InfoDeptYzgt::getEnterpriseName,InfoDeptYzgt::getIndustryCategory,InfoDeptYzgt::getEnterpriseScale,InfoDeptYzgt::getEnterpriseNature,InfoDeptYzgt::getContactPerson,InfoDeptYzgt::getContactWay,InfoDeptYzgt::getEnterpriseIntroduction,InfoDeptYzgt::getAttachmentCode,InfoDeptYzgt::getIdPmInfoDept,InfoDeptYzgt::getStatus,InfoDeptYzgt::getGmtCreate,InfoDeptYzgt::getGmtModified
+                )).build();
         return success(result);
 
     }
