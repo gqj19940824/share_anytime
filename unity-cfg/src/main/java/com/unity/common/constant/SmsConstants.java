@@ -23,4 +23,10 @@ public class SmsConstants {
      * 短信API产品域名（接口地址固定，无需修改）
      */
     public static final String ALI_SMS_DOMAIN = "dysmsapi.aliyuncs.com";
+
+    /**阿里短信字典组*/
+    public final static String ALI_SMS_GROUP = "ali_sms_group";
+
+    /**阿里短信接口必要参数字典项*/
+    public final static String ALI_SMS_SETTING = "ali_sms_setting";
 }

@@ -17,7 +17,7 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.IplManageMainDao;
 import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.DailyWorkStatusPackage;
+import com.unity.innovation.entity.DailyWorkStatus;
 import com.unity.innovation.entity.IplSupervisionMain;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.entity.generated.IplmManageLog;
@@ -208,19 +208,20 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     }
 
 
-    public List<List<Object>> getDwspData(List<DailyWorkStatusPackage> dwspList) {
+    public List<List<Object>> getDwspData(List<DailyWorkStatus> dwspList) {
         List<List<Object>> dataList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(dwspList)) {
             dwspList.forEach(e -> {
                 List<Object> list = Arrays.asList(
-                        e.get("title"),
-                        e.get("typeName"),
-                        e.get("keyWordStr"),
-                        e.get("theme"),
-                        e.get("description"),
-                        e.get("notes"),
-                        e.get("attachmentCode"),
-                        e.get("gmtCreate"));
+                        e.getTitle(),
+                        e.getTypeName(),
+                        e.getTypeName(),
+                        e.getKeyWordStr(),
+                        e.getTheme(),
+                        e.getDescription(),
+                        e.getNotes(),
+                        e.getAttachmentCode(),
+                        e.getGmtCreate());
                 dataList.add(list);
             });
         }

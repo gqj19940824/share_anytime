@@ -22,10 +22,8 @@ import com.unity.innovation.entity.PmInfoDept;
 import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.IpaStatusEnum;
-import com.unity.innovation.service.DailyWorkStatusPackageServiceImpl;
-import com.unity.innovation.service.IpaManageMainServiceImpl;
-import com.unity.innovation.service.IplManageMainServiceImpl;
-import com.unity.innovation.service.PmInfoDeptServiceImpl;
+import com.unity.innovation.service.*;
+import com.unity.innovation.util.DownloadUtil;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.innovation.util.ZipUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
@@ -40,6 +38,7 @@ import reactor.core.publisher.Mono;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +62,8 @@ public class IpaManageMainController extends BaseWebController {
     private DailyWorkStatusPackageServiceImpl dailyWorkStatusPackageService;
     @Resource
     private PmInfoDeptServiceImpl pmInfoDeptService;
+    @Resource
+    private IplSatbMainServiceImpl iplSatbMainService;
 
     /**
      * 二次打包一键下载
@@ -94,17 +95,15 @@ public class IpaManageMainController extends BaseWebController {
         // 工作动态的excel
         List<DailyWorkStatusPackage> dwspList = dailyWorkStatusPackageService
                 .list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain));
-
         if (CollectionUtils.isNotEmpty(dwspList)) {
             dwspList.forEach(e -> {
-                e = dailyWorkStatusPackageService.detailById(e);
+                e.setDataList(dailyWorkStatusPackageService.addDataList(e));
                 e.getDataList().forEach(d -> d.setAttachmentCode(
                         d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
-                XSSFWorkbook wb;
                 // 发改局导出
-                List<List<Object>> data = iplManageMainService.getDwspData(dwspList);
-                wb = ExcelExportByTemplate.getWorkBook("template/dwsp.xlsx");
-                ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                List<List<Object>> data = iplManageMainService.getDwspData(e.getDataList());
+                XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/dwsp.xlsx");
+                ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
                 ExcelExportByTemplate.downloadToPath(filePaht + "工作动态/" + e.getTitle() + ".xlsx", wb);
             });
         }
@@ -119,10 +118,10 @@ public class IpaManageMainController extends BaseWebController {
         
         //生成.zip文件;
         ZipUtil.zip(basePath + "创新发布.zip", filePaht);
-        ExcelExportByTemplate.responseFile(request, response, "创新发布.zip");
+        DownloadUtil.downloadFile(new File(basePath + "创新发布.zip"), "创新发布.zip",response, request);
 
         //删除目录下所有的文件;
-//        ZipUtil.delFile(new File(basePath));  TODO
+        ZipUtil.delFile(new File(basePath));
     }
     
     private void iplExcel(Long idIpaMain, String filePaht) {
@@ -131,26 +130,27 @@ public class IpaManageMainController extends BaseWebController {
         if (CollectionUtils.isNotEmpty(list)) {
             list.forEach(e -> {
                 XSSFWorkbook wb;
+                String snapshot = e.getSnapshot();
                 // 发改局导出
                 if (InnovationConstant.DEPARTMENT_DARB_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = iplManageMainService.getDarbData(e.getSnapshot());
+                    List<List<Object>> data = iplManageMainService.getDarbData(snapshot);
                     wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
                     ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
                     //  科技局导出
                 } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = null; // TODO
-                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                    List<List<Object>> data = iplManageMainService.getSatbData(snapshot);
+                    wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
                     ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
                     // 组织部导出
                 } else if (InnovationConstant.DEPARTMENT_OD_ID.equals(e.getIdRbacDepartmentDuty())) {
                     List<List<Object>> data =iplManageMainService.getOdData(e.getSnapshot());
-                    wb = ExcelExportByTemplate.getWorkBook("template/od.xlsx");
-                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                    wb = ExcelExportByTemplate.getWorkBook("template/od.xls");
+                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
                     //  企服局导出
                 } else if (InnovationConstant.DEPARTMENT_ESB_ID.equals(e.getIdRbacDepartmentDuty())) {
                     List<List<Object>> data = iplManageMainService.getEbsData(e.getSnapshot());
-                    wb = ExcelExportByTemplate.getWorkBook("template/esb.xlsx");
-                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                    wb = ExcelExportByTemplate.getWorkBook("template/esb.xls");
+                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
                 } else {
                     throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
                 }

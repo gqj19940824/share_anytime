@@ -22,6 +22,7 @@ import com.unity.innovation.entity.IplPdMain;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -175,6 +176,8 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
                         .build());
             }
         } else {
+            //编辑时必须登录
+            LoginContextHolder.getRequestAttributes();
             IplPdMain main = this.getById(entity.getId());
             entity.setSource(main.getSource());
             entity.setAttachmentCode(main.getAttachmentCode());

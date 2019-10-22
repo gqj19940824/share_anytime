@@ -30,6 +30,7 @@ import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -232,6 +233,8 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                         .build());
             }
         } else {
+            //编辑时必须登录
+            LoginContextHolder.getRequestAttributes();
             IplSatbMain main = this.getById(entity.getId());
             entity.setAttachmentCode(main.getAttachmentCode());
             entity.setSource(main.getSource());
