@@ -64,7 +64,7 @@ public class PmInfoDeptController extends BaseWebController {
     * @author JH
     * @date 2019/10/17 11:15
     */
-    @PostMapping("/listByPage/{flag}")
+    @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<PmInfoDept> pageEntity) {
         Page<PmInfoDept> pageable = pageEntity.getPageable();
         PmInfoDept entity = pageEntity.getEntity();
@@ -87,7 +87,7 @@ public class PmInfoDeptController extends BaseWebController {
      * @author gengzhiqiang
      * @date 2019/7/26 16:12
      */
-    @PostMapping("/saveOrUpdate/{flag}")
+    @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody PmInfoDept entity) {
         Mono<ResponseEntity<SystemResponse<Object>>> obj = verifyParam(entity);
         if (obj != null) {
@@ -148,7 +148,7 @@ public class PmInfoDeptController extends BaseWebController {
     * @author JH
     * @date 2019/10/17 11:15
     */
-    @PostMapping("/removeByIds/{flag}")
+    @PostMapping("/removeByIds")
     public Mono<ResponseEntity<SystemResponse<Object>>>  removeByIds(@RequestBody List<Long> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "id不能为空");
@@ -206,7 +206,7 @@ public class PmInfoDeptController extends BaseWebController {
     * @author JH
     * @date 2019/10/17 14:09
     */
-    @PostMapping("/passOrReject/{flag}")
+    @PostMapping("/passOrReject")
     public Mono<ResponseEntity<SystemResponse<Object>>> passOrReject(@RequestBody PmInfoDeptLog entity) {
         if(entity == null || entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "id不能为空");
@@ -230,7 +230,7 @@ public class PmInfoDeptController extends BaseWebController {
      * @author gengzhiqiang
      * @date 2019/10/11 11:07
      */
-    @GetMapping({"/export/excel/{flag}"})
+    @GetMapping({"/export/excel"})
     public Mono<ResponseEntity<byte[]>> exportExcel(@RequestParam("id") Long id) {
         if (id == null) {
             throw UnityRuntimeException.newInstance()
@@ -271,7 +271,7 @@ public class PmInfoDeptController extends BaseWebController {
      * @author gengzhiqiang
      * @date 2019/7/26 16:12
      */
-    @PostMapping("/submit/{flag}")
+    @PostMapping("/submit")
     public Mono<ResponseEntity<SystemResponse<Object>>> submit(@RequestBody PmInfoDept entity) {
         String msg = ValidFieldUtil.checkEmptyStr(entity,PmInfoDept::getId);
         if (StringUtils.isNotBlank(msg)) {
@@ -313,7 +313,7 @@ public class PmInfoDeptController extends BaseWebController {
     * @author JH
     * @date 2019/10/17 15:34
     */
-    @PostMapping("/detailById/{flag}")
+    @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody PmInfoDept entity) {
         if(entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "id不能为空");
