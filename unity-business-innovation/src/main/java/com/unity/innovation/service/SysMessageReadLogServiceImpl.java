@@ -97,16 +97,4 @@ public class SysMessageReadLogServiceImpl extends BaseServiceImpl<SysMessageRead
                     new TextMessage("{\"isAdd\":" + isAdd + ",\"sysMessageNum\":" + sysMessageNum + ",\"noticeNum\":" + noticeNum + "}"));
         });
     }
-
-    /**
-     * 发送短信给指定手机号
-     *
-     * @param  phoneList 手机号集合
-     * @param smsContent 短信内容
-     * @author gengjiajia
-     * @since 2019/10/17 20:52
-     */
-    public synchronized void sendSmsToUserIdList(List<String> phoneList,String smsContent){
-        //TODO 调用messageClient
-    }
 }

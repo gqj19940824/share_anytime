@@ -40,8 +40,8 @@ public class AliSmsUtils {
      * @since 2019/10/21 11:12  
      */
     private SmsSetting getAliSmdInfo(){
-        //TODO 阿里短信必要数据保存在字典项中
-        Dic dic = dicUtils.getDicByCode("", "");
+        //阿里短信必要数据保存在字典项中
+        Dic dic = dicUtils.getDicByCode(SmsConstants.ALI_SMS_GROUP, SmsConstants.ALI_SMS_SETTING);
         if(dic == null || StringUtils.isNotBlank(dic.getDicValue())){
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
@@ -96,7 +96,7 @@ public class AliSmsUtils {
             return acsClient.getAcsResponse(request);
         } catch (ClientException e){
             SendSmsResponse response = new SendSmsResponse();
-            response.setCode("isv.SYSTEM_ERROR");
+            response.setCode("-9999");
             response.setMessage("网络异常，请稍后重试！");
             return response;
         }
