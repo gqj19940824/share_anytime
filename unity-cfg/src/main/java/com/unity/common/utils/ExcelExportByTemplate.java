@@ -92,22 +92,6 @@ public class ExcelExportByTemplate {
         return wb;
     }
 
-    public static void responseFile(HttpServletRequest request, HttpServletResponse response, String fileName) {
-        try {
-            //下载时文件的名称
-            String filename = getFileName(request, fileName + ".xlsx");
-            //文件类型
-            response.setContentType("application/vnd.ms-excel");
-            //导出文件的信息
-            response.setHeader("Content-disposition", "attachment;filename=" + filename);
-            OutputStream ouputStream = response.getOutputStream();
-            ouputStream.flush();
-            ouputStream.close();
-        } catch (IOException e) {
-            log.error("写出Excel IO异常", e);
-        }
-    }
-
     public static void download(HttpServletRequest request, HttpServletResponse response, XSSFWorkbook wb, String fileName) {
         try {
             //下载时文件的名称
