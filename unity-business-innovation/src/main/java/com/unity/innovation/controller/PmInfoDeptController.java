@@ -299,7 +299,7 @@ public class PmInfoDeptController extends BaseWebController {
                 .total(list.getTotal())
                 .items(JsonUtil.ObjectToList(records,
                         null
-                        ,InfoDeptYzgt::getId,InfoDeptYzgt::getSort,InfoDeptYzgt::getNotes,InfoDeptYzgt::getEnterpriseName,InfoDeptYzgt::getIndustryCategory,InfoDeptYzgt::getEnterpriseScale,InfoDeptYzgt::getEnterpriseNature,InfoDeptYzgt::getContactPerson,InfoDeptYzgt::getContactWay,InfoDeptYzgt::getEnterpriseIntroduction,InfoDeptYzgt::getAttachmentCode,InfoDeptYzgt::getIdPmInfoDept,InfoDeptYzgt::getStatus,InfoDeptYzgt::getGmtModified,InfoDeptYzgt::getGmtCreate
+                        ,InfoDeptYzgt::getId,InfoDeptYzgt::getSort,InfoDeptYzgt::getNotes,InfoDeptYzgt::getEnterpriseName,InfoDeptYzgt::getIndustryCategory,InfoDeptYzgt::getEnterpriseScale,InfoDeptYzgt::getEnterpriseNature,InfoDeptYzgt::getContactPerson,InfoDeptYzgt::getContactWay,InfoDeptYzgt::getEnterpriseIntroduction,InfoDeptYzgt::getAttachmentCode,InfoDeptYzgt::getIdPmInfoDept,InfoDeptYzgt::getStatus,InfoDeptYzgt::getGmtModified,InfoDeptYzgt::getGmtCreate,InfoDeptYzgt::getEnterpriseScaleName,InfoDeptYzgt::getEnterpriseNatureName,InfoDeptYzgt::getIndustryCategoryName,InfoDeptYzgt::getStatusName,InfoDeptYzgt::getAttachmentList
                 )).build();
         return success(result);
     }
