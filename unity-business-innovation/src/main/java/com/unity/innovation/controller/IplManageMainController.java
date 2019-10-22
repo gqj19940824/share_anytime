@@ -44,7 +44,7 @@ public class IplManageMainController extends BaseWebController {
      * @author gengzhiqiang
      * @date 2019/9/17 13:36
      */
-    @PostMapping("/listByPage")
+    @PostMapping("/listByPage/{flag}")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplManageMain> search) {
         IPage<IplManageMain> list= service.listForPkg(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()

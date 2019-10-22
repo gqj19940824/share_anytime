@@ -64,7 +64,7 @@ public class DailyWorkStatusPackageController extends BaseWebController {
      * @author gengzhiqiang
      * @date 2019/9/17 13:36
      */
-    @PostMapping("/listByPageForAll")
+    @PostMapping("/listByPageForAll/{flag}")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPageForAll(@RequestBody PageEntity<DailyWorkStatusPackage> search) {
         IPage<DailyWorkStatusPackage> list = service.listByPageForAll(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
