@@ -53,7 +53,7 @@ public class SysCfgController extends BaseWebController {
      * @author JH
      * @date 2019/9/17 16:17
      */
-    @PostMapping("/listByPage/{flag}")
+    @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<SysCfg> pageEntity) {
 
         SysCfg cfg = pageEntity.getEntity();
@@ -121,7 +121,7 @@ public class SysCfgController extends BaseWebController {
     * @author JH
     * @date 2019/9/17 15:58
     */
-    @PostMapping("/saveOrUpdate/{flag}")
+    @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody SysCfg entity) {
         //参数校验
         validate(entity);
@@ -177,7 +177,7 @@ public class SysCfgController extends BaseWebController {
     * @author JH
     * @date 2019/9/17 16:01
     */
-    @PostMapping("/changeUseStatus/{flag}")
+    @PostMapping("/changeUseStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> changeUseStatus(@RequestBody SysCfg entity) {
         if(entity.getId() == null || entity.getUseStatus() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"缺少必要参数");

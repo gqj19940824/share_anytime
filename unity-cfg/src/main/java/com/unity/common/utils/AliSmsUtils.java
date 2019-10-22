@@ -42,7 +42,7 @@ public class AliSmsUtils {
     private SmsSetting getAliSmdInfo(){
         //阿里短信必要数据保存在字典项中
         Dic dic = dicUtils.getDicByCode(SmsConstants.ALI_SMS_GROUP, SmsConstants.ALI_SMS_SETTING);
-        if(dic == null || StringUtils.isNotBlank(dic.getNotes())){
+        if(dic == null || StringUtils.isBlank(dic.getNotes())){
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
                     .message("未配置阿里云短信服务")
