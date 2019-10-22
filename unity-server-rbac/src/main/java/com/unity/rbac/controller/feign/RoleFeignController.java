@@ -2,18 +2,17 @@ package com.unity.rbac.controller.feign;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.pojos.SystemResponse;
+import com.unity.rbac.entity.User;
 import com.unity.rbac.entity.UserRole;
 import com.unity.rbac.service.UserRoleServiceImpl;
+import com.unity.rbac.service.UserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.util.Lists;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,9 +30,11 @@ import java.util.stream.Collectors;
 public class RoleFeignController extends BaseWebController {
 
     private final UserRoleServiceImpl userRoleService;
+    private final UserServiceImpl userService;
 
-    public RoleFeignController(UserRoleServiceImpl userRoleService) {
+    public RoleFeignController(UserRoleServiceImpl userRoleService, UserServiceImpl userService) {
         this.userRoleService = userRoleService;
+        this.userService = userService;
     }
 
 
@@ -47,13 +48,16 @@ public class RoleFeignController extends BaseWebController {
      * @author gengjiajia
      * @since 2019/09/23 16:07
      */
-    @PostMapping("/getUserIdListByRoleIdList")
-    public Mono<ResponseEntity<SystemResponse<Object>>> getUserIdListByRoleIdList(@RequestBody List<Long> roleIdList) {
+    @PostMapping("/getUserListByRoleIdList")
+    public List<User> getUserListByRoleIdList(@RequestBody List<Long> roleIdList) {
         if(CollectionUtils.isEmpty(roleIdList)) {
-            return success(Lists.newArrayList());
+            return Lists.newArrayList();
         }
         List<UserRole> userRoleList = userRoleService.list(new LambdaQueryWrapper<UserRole>().in(UserRole::getIdRbacRole, roleIdList.toArray()));
-        List<Long> userIdList = userRoleList.stream().map(UserRole::getIdRbacRole).collect(Collectors.toList());
-        return success(userIdList);
+        List<Long> userIdList = userRoleList.stream().map(UserRole::getIdRbacUser).collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(userIdList)){
+            return Lists.newArrayList();
+        }
+        return userService.list(new LambdaQueryWrapper<User>().in(User::getId, userIdList.toArray()));
     }
 }

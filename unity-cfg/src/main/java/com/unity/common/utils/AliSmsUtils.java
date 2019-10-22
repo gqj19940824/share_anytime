@@ -42,14 +42,14 @@ public class AliSmsUtils {
     private SmsSetting getAliSmdInfo(){
         //阿里短信必要数据保存在字典项中
         Dic dic = dicUtils.getDicByCode(SmsConstants.ALI_SMS_GROUP, SmsConstants.ALI_SMS_SETTING);
-        if(dic == null || StringUtils.isNotBlank(dic.getDicValue())){
+        if(dic == null || StringUtils.isBlank(dic.getNotes())){
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
                     .message("未配置阿里云短信服务")
                     .build();
         }
         try {
-            return GsonUtils.parse(dic.getDicValue(), SmsSetting.class);
+            return GsonUtils.parse(dic.getNotes(), SmsSetting.class);
         } catch (Exception e){
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
@@ -84,7 +84,7 @@ public class AliSmsUtils {
             //使用post提交
             request.setMethod(MethodType.POST);
             //必填:待发送手机号。支持以逗号分隔的形式进行批量调用，批量上限为1000个手机号码,批量调用相对于单条调用及时性稍有延迟,验证码类型的短信推荐使用单条调用的方式；发送国际/港澳台消息时，接收号码格式为00+国际区号+号码，如“0085200000000”
-            request.setPhoneNumbers(mobile);
+            request.setPhoneNumbers("18500632163");
             //必填:短信签名-可在短信控制台中找到
             request.setSignName(s.getSignName());
             //必填:短信模板-可在短信控制台中找到，发送国际/港澳台消息时，请使用国际/港澳台短信模版

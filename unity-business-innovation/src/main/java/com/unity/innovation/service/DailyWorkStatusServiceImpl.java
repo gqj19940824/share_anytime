@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.RedisConstants;
+import com.unity.common.enums.UserTypeEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -68,7 +69,17 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
      */
     public IPage<DailyWorkStatus> listByPage(PageEntity<DailyWorkStatus> search) {
         LambdaQueryWrapper<DailyWorkStatus> lqw = new LambdaQueryWrapper<>();
-
+        // 管理员并且不是超级管理员  工作动态三个列表数据 返回空数据
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (UserTypeEnum.ADMIN.getId().equals(customer.getUserType()) && customer.getIsSuperAdmin() == YesOrNoEnum.NO.getType()) {
+            lqw.eq(DailyWorkStatus::getId,YesOrNoEnum.NO.getType());
+            IPage<DailyWorkStatus> list1 = page(search.getPageable(),  lqw);
+            return list1;
+        }
+        //普通账号 只看自己单位的
+        if (UserTypeEnum.ORDINARY.getId().equals(customer.getUserType())) {
+            lqw.eq(DailyWorkStatus::getIdRbacDepartment, customer.getIdRbacDepartment());
+        }
         //标题
         if (StringUtils.isNotBlank(search.getEntity().getTitle())) {
             lqw.like(DailyWorkStatus::getTitle, search.getEntity().getTitle());
@@ -108,13 +119,6 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
             //gt 大于 lt 小于
             lqw.gt(DailyWorkStatus::getGmtModified, begin);
             lqw.lt(DailyWorkStatus::getGmtModified, end);
-        }
-        //本单位数据 管理员 列表数据都要显示
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        if (customer.getIdRbacDepartment() != null && customer.isAdmin != null) {
-            if (YesOrNoEnum.NO.getType() == customer.isAdmin) {
-                lqw.eq(DailyWorkStatus::getIdRbacDepartment, customer.getIdRbacDepartment());
-            }
         }
         //管理员 单位数据
         if (search.getEntity().getIdRbacDepartment() != null) {

@@ -4,6 +4,7 @@ package com.unity.innovation.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.YesOrNoEnum;
@@ -52,6 +53,10 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
     private SysCfgServiceImpl sysCfgService;
     @Resource
     private SysMessageHelpService sysMessageHelpService;
+    /*@Resource
+    private RedisSubscribeServiceImpl redisSubscribeService;
+    @Resource
+    private IplLogServiceImpl iplLogService;*/
 
     /**
      * 发布会 列表数据
@@ -145,15 +150,6 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
      */
     @Transactional(rollbackFor = Exception.class)
     public void saveOrUpdateIplPdMain(IplPdMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplPdMain::getIndustryCategory, IplPdMain::getEnterpriseName,
-                IplPdMain::getContactPerson, IplPdMain::getContactWay, IplPdMain::getEnterpriseIntroduction,
-                IplPdMain::getIdCard, IplPdMain::getPost, IplPdMain::getSpecificCause,IplPdMain::getSource);
-        if (StringUtils.isNotEmpty(msg)) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                    .message(msg)
-                    .build();
-        }
         if (entity.getId() == null) {
             String uuid = UUIDUtil.getUUID();
             entity.setStatus(IplStatusEnum.UNDEAL.getId());
@@ -164,6 +160,9 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
             if(CollectionUtils.isNotEmpty(entity.getAttachmentList())){
                 attachmentService.updateAttachments(uuid, entity.getAttachmentList());
             }
+            /*//预定义清单超时未处理
+            redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"), ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_PD_ID);*/
+
             //====宣传部====企业新增填报实时清单需求========
             if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
                 //企业需求填报才进行系统通知
@@ -187,7 +186,27 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
             this.updateById(entity);
             //附件处理
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
-
+            /*// 更新超时时间
+            Integer status = entity.getStatus();
+            // 设置处理超时时间
+            if (IplStatusEnum.UNDEAL.getId().equals(status)) {
+                redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
+                        ListTypeConstants.DEAL_OVER_TIME,entity.getIdRbacDepartmentDuty());
+                // 设置更新超时时间
+            } else if (IplStatusEnum.DEALING.getId().equals(status)) {
+                redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
+                        ListTypeConstants.UPDATE_OVER_TIME,entity.getIdRbacDepartmentDuty());
+                // 非"待处理"状态才记录日志
+                Integer lastDealStatus = iplLogService.getLastDealStatus(entity.getId(),
+                        entity.getIdRbacDepartmentDuty());
+                iplLogService.save(IplLog.newInstance()
+                        .idIplMain(entity.getId())
+                        .idRbacDepartmentAssist(0L)
+                        .processInfo("更新基本信息")
+                        .idRbacDepartmentDuty(entity.getIdRbacDepartmentDuty())
+                        .dealStatus(lastDealStatus)
+                        .build());
+            }*/
         }
 
     }
@@ -218,6 +237,11 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
      */
     public Map<String, Object> detailById(Long id) {
         IplPdMain pdMain = this.getById(id);
+        if(pdMain == null){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("未获取到发布会报名信息").build();
+        }
         return convert2Map(pdMain);
     }
 
@@ -257,6 +281,9 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
      * @return Map
      */
     private List<Map<String, Object>> convertList2MapByAttachment(List<Attachment> list) {
+        if(CollectionUtils.isEmpty(list)){
+            return Lists.newArrayList();
+        }
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
                     // adapterField(m, entity);

@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
@@ -195,6 +196,9 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @return Map
      */
     private List<Map<String, Object>> convertList2MapByAttachment(List<Attachment> list) {
+        if(CollectionUtils.isEmpty(list)){
+            return Lists.newArrayList();
+        }
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
                     // adapterField(m, entity);
@@ -220,7 +224,10 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 attachmentService.updateAttachments(uuid, entity.getAttachmentList());
             }
             entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_SATB_ID);
+            entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             this.save(entity);
+            redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
+                    ListTypeConstants.DEAL_OVER_TIME,entity.getIdRbacDepartmentDuty());
             //====科技局====企业新增填报实时清单需求========
             if (entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
                 //企业需求填报才进行系统通知
@@ -244,18 +251,24 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
             if (CollectionUtils.isNotEmpty(entity.getAttachmentList())) {
                 attachmentService.updateAttachments(main.getAttachmentCode(), entity.getAttachmentList());
             }
+            // 保存修改
+            Integer status = entity.getStatus();
+            entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+            if (IplStatusEnum.DEALING.getId().equals(status)) {
+                // 非"待处理"状态才记录日志，该字段与日志处理相同
+                entity.setLatestProcess("更新基本信息");
+            }
             this.updateById(entity);
 
             // 更新超时时间
-            Integer status = entity.getStatus();
             // 设置处理超时时间
             if (IplStatusEnum.UNDEAL.getId().equals(status)) {
-                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME,
-                        entity.getIdRbacDepartmentDuty());
+                redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
+                        ListTypeConstants.DEAL_OVER_TIME,entity.getIdRbacDepartmentDuty());
                 // 设置更新超时时间
             } else if (IplStatusEnum.DEALING.getId().equals(status)) {
-                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME,
-                        entity.getIdRbacDepartmentDuty());
+                redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
+                        ListTypeConstants.UPDATE_OVER_TIME,entity.getIdRbacDepartmentDuty());
                 // 非"待处理"状态才记录日志
                 Integer lastDealStatus = iplLogService.getLastDealStatus(entity.getId(),
                         entity.getIdRbacDepartmentDuty());
@@ -335,6 +348,11 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @return Map
      */
     private Map<String, Object> convert2Map(IplSatbMain ent) {
+        if(ent == null){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("未获取到成长目标投资信息").build();
+        }
         //获取附件
         List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>()
                 .eq(Attachment::getAttachmentCode, ent.getAttachmentCode()));

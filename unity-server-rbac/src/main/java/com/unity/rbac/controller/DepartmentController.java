@@ -138,7 +138,7 @@ public class DepartmentController extends BaseWebController {
      * @date 2019/9/17 15:55
      */
     @PostMapping("listAllDepartmentList/{type}")
-    public Mono<ResponseEntity<SystemResponse<Object>>> listAllDepartmentList(@PathVariable Integer type) {
+    public Mono<ResponseEntity<SystemResponse<Object>>> listAllDepartmentList() {
         List<Department> list = service.list(new LambdaQueryWrapper<Department>().eq(Department::getUseStatus, YesOrNoEnum.YES.getType()));
         //根节点
         TNode root = new TNode();
