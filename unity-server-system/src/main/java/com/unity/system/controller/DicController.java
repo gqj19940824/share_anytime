@@ -227,6 +227,9 @@ public class DicController extends BaseWebController {
             }
             dic.setDicValue(entity.getDicValue());
             dic.setNotes(entity.getNotes());
+            if(StringUtils.isEmpty(entity.getDicName())) {
+                dic.setDicName(entity.getNotes());
+            }
             dic.setGmtModified(System.currentTimeMillis());
             if (StringUtils.isNotBlank(entity.getStatus())){
                 dic.setStatus(entity.getStatus());
