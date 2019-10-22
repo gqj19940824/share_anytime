@@ -105,7 +105,7 @@ public class IplManageMainController extends BaseWebController {
      * @author gengzhiqiang
      * @date 2019/9/17 15:51
      */
-    @PostMapping("/detailById")
+    @PostMapping("/detailById/{flag}")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody IplManageMain entity) {
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getId);
         if (StringUtils.isNotBlank(msg)) {
