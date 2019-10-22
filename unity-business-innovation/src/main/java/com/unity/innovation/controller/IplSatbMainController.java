@@ -8,6 +8,7 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ValidFieldUtil;
+import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplLog;
@@ -68,6 +69,19 @@ public class IplSatbMainController extends BaseWebController {
                 , IplSatbMain::getTotalAmount, IplSatbMain::getTechDemondInfo, IplSatbMain::getContactPerson, IplSatbMain::getContactWay,IplSatbMain::getSource);
         if (StringUtils.isNotEmpty(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        //数据长度校验
+        if(entity.getEnterpriseName().length() > ParamConstants.PARAM_MAX_LENGTH_50
+                || entity.getProjectName().length() > ParamConstants.PARAM_MAX_LENGTH_50
+                || entity.getTechDemondInfo().length() > ParamConstants.PARAM_MAX_LENGTH_50){
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH,"企业名称、项目名称及技术需求情况仅支持最长50个字");
+        }
+        if(entity.getContactPerson().length() > ParamConstants.PARAM_MAX_LENGTH_20
+                || entity.getContactWay().length() > ParamConstants.PARAM_MAX_LENGTH_20){
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH,"联系人、联系电话仅支持最长20个字");
+        }
+        if(entity.getProjectAddress().length() > ParamConstants.PARAM_MAX_LENGTH_100){
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH,"项目地址仅支持最长100个字");
         }
         service.saveOrUpdateIplSatbMain(entity);
         return success("更新成功");

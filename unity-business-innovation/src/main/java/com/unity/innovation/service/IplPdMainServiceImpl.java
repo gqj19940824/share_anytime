@@ -149,15 +149,6 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
      */
     @Transactional(rollbackFor = Exception.class)
     public void saveOrUpdateIplPdMain(IplPdMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplPdMain::getIndustryCategory, IplPdMain::getEnterpriseName,
-                IplPdMain::getContactPerson, IplPdMain::getContactWay, IplPdMain::getEnterpriseIntroduction,
-                IplPdMain::getIdCard, IplPdMain::getPost, IplPdMain::getSpecificCause,IplPdMain::getSource);
-        if (StringUtils.isNotEmpty(msg)) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                    .message(msg)
-                    .build();
-        }
         if (entity.getId() == null) {
             String uuid = UUIDUtil.getUUID();
             entity.setStatus(IplStatusEnum.UNDEAL.getId());

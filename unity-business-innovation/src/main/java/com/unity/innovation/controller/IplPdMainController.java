@@ -4,12 +4,15 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.ui.excel.ExcelEntity;
 import com.unity.common.ui.excel.ExportEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JKDates;
+import com.unity.common.util.ValidFieldUtil;
+import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.IplPdMain;
 import com.unity.innovation.service.IplPdMainServiceImpl;
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +65,29 @@ public class IplPdMainController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody IplPdMain entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplPdMain::getIndustryCategory, IplPdMain::getEnterpriseName,
+                IplPdMain::getContactPerson, IplPdMain::getContactWay, IplPdMain::getEnterpriseIntroduction,
+                IplPdMain::getIdCard, IplPdMain::getPost, IplPdMain::getSpecificCause,IplPdMain::getSource);
+        if (StringUtils.isNotEmpty(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,msg);
+        }
+        //数据长度校验
+        if(entity.getEnterpriseName().length() > ParamConstants.PARAM_MAX_LENGTH_50){
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH,"企业名称仅支持最长50个字");
+        }
+        if(entity.getEnterpriseIntroduction().length() > ParamConstants.PARAM_MAX_LENGTH_500
+                || entity.getSpecificCause().length() > ParamConstants.PARAM_MAX_LENGTH_500){
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH,"企业简介及具体意向或事由仅支持最长500个字");
+        }
+        if(entity.getContactPerson().length() > ParamConstants.PARAM_MAX_LENGTH_20
+                || entity.getContactWay().length() > ParamConstants.PARAM_MAX_LENGTH_20
+                || entity.getPost().length() > ParamConstants.PARAM_MAX_LENGTH_20){
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH,"联系人、联系电话及职务仅支持最长20个字符");
+        }
+        if(!ParamConstants.PARAM_MAX_LENGTH_18.equals(entity.getIdCard().length())
+                && !ParamConstants.PARAM_MAX_LENGTH_15.equals(entity.getIdCard().length())){
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH,"身份证长度固定为15位或18位");
+        }
         service.saveOrUpdateIplPdMain(entity);
         return success("提交成功");
     }
