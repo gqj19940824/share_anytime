@@ -220,7 +220,10 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 attachmentService.updateAttachments(uuid, entity.getAttachmentList());
             }
             entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_SATB_ID);
+            entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             this.save(entity);
+            redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
+                    ListTypeConstants.DEAL_OVER_TIME,entity.getIdRbacDepartmentDuty());
             //====科技局====企业新增填报实时清单需求========
             if (entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
                 //企业需求填报才进行系统通知
@@ -244,18 +247,24 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
             if (CollectionUtils.isNotEmpty(entity.getAttachmentList())) {
                 attachmentService.updateAttachments(main.getAttachmentCode(), entity.getAttachmentList());
             }
+            // 保存修改
+            Integer status = entity.getStatus();
+            entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+            if (IplStatusEnum.DEALING.getId().equals(status)) {
+                // 非"待处理"状态才记录日志，该字段与日志处理相同
+                entity.setLatestProcess("更新基本信息");
+            }
             this.updateById(entity);
 
             // 更新超时时间
-            Integer status = entity.getStatus();
             // 设置处理超时时间
             if (IplStatusEnum.UNDEAL.getId().equals(status)) {
-                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME,
-                        entity.getIdRbacDepartmentDuty());
+                redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
+                        ListTypeConstants.DEAL_OVER_TIME,entity.getIdRbacDepartmentDuty());
                 // 设置更新超时时间
             } else if (IplStatusEnum.DEALING.getId().equals(status)) {
-                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME,
-                        entity.getIdRbacDepartmentDuty());
+                redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
+                        ListTypeConstants.UPDATE_OVER_TIME,entity.getIdRbacDepartmentDuty());
                 // 非"待处理"状态才记录日志
                 Integer lastDealStatus = iplLogService.getLastDealStatus(entity.getId(),
                         entity.getIdRbacDepartmentDuty());
