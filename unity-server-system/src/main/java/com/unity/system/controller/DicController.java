@@ -197,6 +197,9 @@ public class DicController extends BaseWebController {
         if (StringUtils.isNotEmpty(notes) && notes.length() > 255) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注长度过长");
         }
+        if(StringUtils.isEmpty(entity.getDicName())) {
+            entity.setDicName(entity.getNotes());
+        }
         // 新增
         if (entity.getId() == null) {
             String groupCode = entity.getGroupCode();
@@ -227,9 +230,6 @@ public class DicController extends BaseWebController {
             }
             dic.setDicValue(entity.getDicValue());
             dic.setNotes(entity.getNotes());
-            if(StringUtils.isEmpty(entity.getDicName())) {
-                dic.setDicName(entity.getNotes());
-            }
             dic.setGmtModified(System.currentTimeMillis());
             if (StringUtils.isNotBlank(entity.getStatus())){
                 dic.setStatus(entity.getStatus());
