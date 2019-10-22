@@ -28,7 +28,7 @@ public interface RbacClient {
      * @since 2019/09/23 16:15
      */
     @PostMapping("/feign/role/getUserIdListByRoleIdList")
-    List<Long> getUserIdListByRoleIdList(@RequestBody List<Long> roleIdList);
+    List<UserVO> getUserListByRoleIdList(@RequestBody List<Long> roleIdList);
 
     /**
      * 根据单位id列表获取关联的用户id集
@@ -77,7 +77,7 @@ public interface RbacClient {
     class HystrixClientFallback implements RbacClient {
 
         @Override
-        public List<Long> getUserIdListByRoleIdList(List<Long> roleIdList) {
+        public List<UserVO> getUserListByRoleIdList(List<Long> roleIdList) {
             return null;
         }
 

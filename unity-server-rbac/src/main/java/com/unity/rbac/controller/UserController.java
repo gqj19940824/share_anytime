@@ -49,7 +49,7 @@ public class UserController extends BaseWebController {
      * @author gengjiajia
      * @since 2018/12/11 10:04
      */
-    @PostMapping("listByPage")
+    @PostMapping("listByPage/{flag}")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<User> pageEntity) {
         return success(userService.findUserListBySystem(pageEntity));
     }

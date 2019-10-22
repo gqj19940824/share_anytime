@@ -11,7 +11,6 @@ import com.unity.common.ui.excel.ExportEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JKDates;
 import com.unity.innovation.entity.IplPdMain;
-import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.service.IplPdMainServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
@@ -70,8 +69,8 @@ public class IplPdMainController extends BaseWebController {
     /**
      * excel导出
      *
-     * @param res  响应对象
-     * @param cond 参数
+     * @param req  参数
+     * @param res 响应对象
      * @author gengjiajia
      * @since 2019/09/29 16:04
      */

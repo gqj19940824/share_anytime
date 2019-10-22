@@ -8,6 +8,7 @@ import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.UserVO;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.constant.SmsConstants;
 import com.unity.common.enums.MessageSaveFormEnum;
@@ -263,26 +264,32 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         }
         title = title.replace(MessageConstants.TITLE, msg.getTitle());
         //根据数据归属单位类型获取对应角色下人员并保存发送记录
+        List<UserVO> userList;
         if (msg.getFlowStatus().equals(YesOrNoEnum.YES.getType())) {
-            //TODO 工作动态发布审核/清单发布审核/企业信息发布审核 这三种情况要发送短信到宣传部对应角色下
-
+            //工作动态发布审核/清单发布审核/企业信息发布审核 这三种情况要发送短信到宣传部对应角色下
+            Dic dic = dicUtils.getDicByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE);
+            if(dic == null || StringUtils.isEmpty(dic.getDicValue())){
+                return;
+            }
+            userList = rbacClient.getUserListByRoleIdList(Arrays.asList(Long.parseLong(dic.getDicValue())));
         } else {
             //发布流程 获取提交单位下属人员ID列表
             //获取主责单位下用户进行系统消息及短信的发送
-            List<UserVO> userList = rbacClient.getUserListByDepIdList(Arrays.asList(msg.getIdRbacDepartment()));
-            if (CollectionUtils.isEmpty(userList)) {
-                return;
-            }
-            List<Long> userIdList = userList.stream()
-                    .filter(u -> u.getReceiveSysMsg().equals(YesOrNoEnum.YES.getType()))
-                    .map(UserVO::getId)
-                    .collect(Collectors.toList());
-            Long messageId = saveMessage(msg.getSourceId(), title, msg.getIdRbacDepartment(),
-                    msg.getDataSourceClass(), msg.getFlowStatus());
-            saveMessageLog(messageId, userIdList);
-            // webSocket 目标用户 提醒数量 +1
-            sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, YesOrNoEnum.YES.getType());
+            userList = rbacClient.getUserListByDepIdList(Arrays.asList(msg.getIdRbacDepartment()));
+
         }
+        List<Long> userIdList = userList.stream()
+                .filter(u -> u.getReceiveSysMsg().equals(YesOrNoEnum.YES.getType()))
+                .map(UserVO::getId)
+                .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(userIdList)) {
+            return;
+        }
+        Long messageId = saveMessage(msg.getSourceId(), title, msg.getIdRbacDepartment(),
+                msg.getDataSourceClass(), msg.getFlowStatus());
+        saveMessageLog(messageId, userIdList);
+        // webSocket 目标用户 提醒数量 +1
+        sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), userIdList, YesOrNoEnum.YES.getType());
     }
 
     /**
@@ -403,7 +410,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             if (SysMessageFlowStatusEnum.ONE.getId().equals(msg.getFlowStatus())
                     && !SysMessageDataSourceClassEnum.HELP.getId().equals(msg.getDataSourceClass())) {
                 //说明是企业填报需求，短信模板需要企业名称和模块名称两个参数
-                smsParem = "{\"companyName\":\"" + msg.getTitle() + ",moduleName:\"" + e.getName() + "\"}";
+                smsParem = "{\"companyName\":" + msg.getTitle() + ",\"module\":" + e.getName() + "\"}";
             } else {
                 //TODO 其他情况下，短信模板需要主责单位和企业名称两个参数
                 smsParem = "{\"depName\":\"" + depName + ",companyName:\"" + msg.getTitle() + "\"}";
