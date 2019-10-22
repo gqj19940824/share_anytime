@@ -95,11 +95,14 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
             }
         }
         //排序规则      未提请发布在前，已提请发布在后；各自按创建时间倒序
+        //todo 排序测下
         lqw.orderByDesc(InfoDeptSatb::getStatus,InfoDeptSatb::getGmtCreate);
         IPage<InfoDeptSatb> list = null;
         if (search != null) {
             list = page(search.getPageable(), lqw);
-            dealData(list.getRecords());
+            if ( CollectionUtils.isNotEmpty(list.getRecords())){
+                dealData(list.getRecords());
+            }
         }
         return list;
     }

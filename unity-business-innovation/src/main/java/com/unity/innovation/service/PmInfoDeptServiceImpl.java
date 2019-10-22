@@ -483,7 +483,9 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
     private void addSatb(HSSFSheet sheet, PmInfoDept entity, Map<String, CellStyle> styleMap) {
         List<InfoDeptSatb> list = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>()
                 .eq(InfoDeptSatb::getIdPmInfoDept, entity.getId()));
-        satbService.dealData(list);
+        if (CollectionUtils.isNotEmpty(list)){
+            satbService.dealData(list);
+        }
         List<String> collect = list.stream().map(InfoDeptSatb::getAttachmentCode).collect(Collectors.toList());
         List<Attachment> attachments = attachmentService.list(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, collect));
         Map<String, List<Attachment>> collect1 = attachments.stream().collect(Collectors.groupingBy(Attachment::getAttachmentCode));
@@ -696,7 +698,9 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             entity.setDataList(yzgtList);
         } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(departmentId)) {
             List<InfoDeptSatb> satbList = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>().eq(InfoDeptSatb::getIdPmInfoDept, id));
-            satbService.dealData(satbList);
+           if(CollectionUtils.isNotEmpty(satbList)){
+               satbService.dealData(satbList);
+           }
             entity.setDataList(satbList);
         }
         //操作记录
