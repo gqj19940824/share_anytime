@@ -6,12 +6,14 @@ import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.ExcelExportByTemplate;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
@@ -476,5 +478,29 @@ public class IplDarbMainController extends BaseWebController {
         Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
         return success(iplAssistService.totalProcessAndAssists(mainId, idRbacDepartmentDuty, entity.getProcessStatus()).get("totalProcess"));
     }
+
+    /**
+     * 功能描述 获取协同单位下拉列表
+     *
+     * @return 单位id及其集合
+     * @author gengzhiqiang
+     * @date 2019/7/26 16:03
+     */
+    @PostMapping("/getAssistList")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getAssistList(@RequestBody IplDarbMain entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplDarbMain::getId);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        //主表id  数据集合
+        IplDarbMain vo = service.getById(entity.getId());
+        if (vo == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
+        return success(iplAssistService.getAssistList(vo.getId(), vo.getIdRbacDepartmentDuty()));
+    }
+
 }
 

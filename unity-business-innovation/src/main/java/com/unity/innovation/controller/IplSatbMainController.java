@@ -11,7 +11,7 @@ import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplLog;
-import com.unity.innovation.enums.SourceEnum;
+import com.unity.innovation.service.IplAssistServiceImpl;
 import com.unity.innovation.service.IplSatbMainServiceImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -35,7 +36,8 @@ import javax.servlet.http.HttpServletResponse;
 public class IplSatbMainController extends BaseWebController {
     @Autowired
     IplSatbMainServiceImpl service;
-
+    @Resource
+    private IplAssistServiceImpl iplAssistService;
     /**
      * 成长目标投资实时清单-科技局
      *
@@ -234,6 +236,29 @@ public class IplSatbMainController extends BaseWebController {
         }
         service.downloadIplSatbMainDataPkgToExcel(id,request,response);
         return success();
+    }
+
+    /**
+     * 功能描述 获取协同单位下拉列表
+     *
+     * @return 单位id及其集合
+     * @author gengzhiqiang
+     * @date 2019/7/26 16:03
+     */
+    @PostMapping("/getAssistList")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getAssistList(@RequestBody IplSatbMain entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplSatbMain::getId);
+        if (StringUtils.isNotBlank(msg)) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        //主表id  数据集合
+        IplSatbMain vo = service.getById(entity.getId());
+        if (vo == null) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
+                    .message("未获取到对象").build();
+        }
+        return success(iplAssistService.getAssistList(vo.getId(), vo.getIdRbacDepartmentDuty()));
     }
 }
 
