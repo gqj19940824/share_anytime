@@ -15,6 +15,7 @@ import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.InfoDeptSatb;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.enums.IsCommitEnum;
 import com.unity.innovation.enums.SysCfgEnum;
@@ -134,22 +135,23 @@ public class InfoDeptYzgtServiceImpl extends BaseServiceImpl<InfoDeptYzgtDao, In
     * @date 2019/10/16 11:10
     */
     @SuppressWarnings("unchecked")
-    public List<Map<String, Object>> convert2List(List<InfoDeptYzgt> list){
+    public void convert2List(List<InfoDeptYzgt> list){
         List<SysCfg> sysList = cfgService.list(new LambdaQueryWrapper<SysCfg>().in(SysCfg::getCfgType,  Lists.newArrayList(SysCfgEnum.THREE.getId(), SysCfgEnum.SIX.getId())));
         Map<Long, String> map = sysList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
-        return JsonUtil.ObjectToList(list,
-                (m, entity) -> {
-                    //行业类别
-                    m.put("industryCategoryName",map.get(entity.getIndustryCategory()));
-                    //企业规模
-                    m.put("enterpriseScaleName",dicUtils.getDicValueByCode(DicConstants.ENTERPRISE_SCALE,entity.getEnterpriseScale().toString()));
-                    //企业性质
-                    m.put("enterpriseNatureName",map.get(entity.getEnterpriseNature()));
-                    //状态名
-                    m.put("statusName", IsCommitEnum.of(entity.getStatus()).getName());
-                }
-                ,InfoDeptYzgt::getId,InfoDeptYzgt::getSort,InfoDeptYzgt::getNotes,InfoDeptYzgt::getEnterpriseName,InfoDeptYzgt::getIndustryCategory,InfoDeptYzgt::getEnterpriseScale,InfoDeptYzgt::getEnterpriseNature,InfoDeptYzgt::getContactPerson,InfoDeptYzgt::getContactWay,InfoDeptYzgt::getEnterpriseIntroduction,InfoDeptYzgt::getAttachmentCode,InfoDeptYzgt::getIdPmInfoDept,InfoDeptYzgt::getStatus
-        );
+        List<String> attachmentCodeList = list.stream().map(InfoDeptYzgt::getAttachmentCode).collect(Collectors.toList());
+        List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, attachmentCodeList));
+        Map<String, List<Attachment>> attatchmentMap = attachmentList.stream().collect(Collectors.groupingBy(Attachment::getAttachmentCode));
+        list.forEach(n -> {
+            //行业类别
+            n.setIndustryCategoryName(map.get(n.getIndustryCategory()));
+            //企业规模
+            n.setEnterpriseScaleName(dicUtils.getDicValueByCode(DicConstants.ENTERPRISE_SCALE,n.getEnterpriseScale().toString()));
+            //企业性质
+            n.setEnterpriseNatureName(map.get(n.getEnterpriseNature()));
+            //状态名
+            n.setStatusName(IsCommitEnum.of(n.getStatus()).getName());
+            n.setAttachmentList(attatchmentMap.get(n.getAttachmentCode()));
+        });
     }
 
 

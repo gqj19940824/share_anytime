@@ -1,6 +1,7 @@
 
 package com.unity.innovation.service;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.unity.common.base.BaseServiceImpl;
@@ -571,10 +572,6 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         List<InfoDeptYzgt> list = yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>()
                 .eq(InfoDeptYzgt::getIdPmInfoDept, entity.getId()));
         yzgtService.convert2List(list);
-        List<String> collect = list.stream().map(InfoDeptYzgt::getAttachmentCode).collect(Collectors.toList());
-        List<Attachment> attachments = attachmentService.list(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, collect));
-        Map<String, List<Attachment>> collect1 = attachments.stream().collect(Collectors.groupingBy(Attachment::getAttachmentCode));
-        list.forEach(s -> s.setAttachmentList(collect1.get(s.getAttachmentCode())));
         CellStyle sty = styleMap.get("data");
         int rowNum = 2;
         for (int j = 0; j < list.size(); j++) {
@@ -694,7 +691,9 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         PmInfoDept entity = super.getById(id);
         Long departmentId = entity.getIdRbacDepartment();
         if (InnovationConstant.DEPARTMENT_YZGT_ID.equals(departmentId)) {
-            entity.setDataList(yzgtService.convert2List(yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>().eq(InfoDeptYzgt::getIdPmInfoDept, id))));
+            List<InfoDeptYzgt> yzgtList = yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>().eq(InfoDeptYzgt::getIdPmInfoDept, id));
+            yzgtService.convert2List(yzgtList);
+            entity.setDataList(yzgtList);
         } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(departmentId)) {
             List<InfoDeptSatb> satbList = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>().eq(InfoDeptSatb::getIdPmInfoDept, id));
             satbService.dealData(satbList);
@@ -721,6 +720,69 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         }
         entity.setProcessNodeList(processNodeList);
         return entity;
+    }
+
+
+    /**
+    * 封装下载数据包
+    *
+    * @param yzgtList 亦庄国投数据
+    * @return java.util.List<java.util.List<java.lang.Object>>
+    * @author JH
+    * @date 2019/10/22 11:18
+    */
+    public List<List<Object>> getYzgtData(  List<InfoDeptYzgt> yzgtList){
+        List<List<Object>> dataList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(yzgtList)) {
+            yzgtList.forEach(e -> {
+                List<Object> list = Arrays.asList(
+                        e.getIndustryCategoryName(),
+                        e.getEnterpriseScaleName(),
+                        e.getEnterpriseNatureName(),
+                        e.getEnterpriseName(),
+                        e.getEnterpriseIntroduction(),
+                        e.getNotes(),
+                        e.getContactPerson(),
+                        e.getContactWay(),
+                        e.getAttachmentCode(),
+                        DateUtils.timeStamp2Date(e.getGmtCreate()));
+                dataList.add(list);
+            });
+        }
+        return dataList;
+    }
+
+
+    /**
+    * 封装下载数据包
+    *
+    * @param satbList 科技局数据
+    * @return java.util.List<java.util.List<java.lang.Object>>
+    * @author JH
+    * @date 2019/10/22 11:28
+    */
+    public List<List<Object>> getSatbData(  List<InfoDeptSatb> satbList){
+        List<List<Object>> dataList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(satbList)) {
+            satbList.forEach(e -> {
+                List<Object> list = Arrays.asList(
+                        e.getIndustryCategoryName(),
+                        e.getEnterpriseScaleName(),
+                        e.getEnterpriseNatureName(),
+                        e.getEnterpriseName(),
+                        e.getEnterpriseIntroduction(),
+                        e.getInDetail(),
+                        e.getAchievementLevelName(),
+                        e.getIsPublishFirst() ==YesOrNoEnum.YES.getType() ? "是" :"否",
+                        e.getNotes(),
+                        e.getContactPerson(),
+                        e.getContactWay(),
+                        e.getAttachmentCode(),
+                        DateUtils.timeStamp2Date(e.getGmtCreate()));
+                dataList.add(list);
+            });
+        }
+        return dataList;
     }
 
 

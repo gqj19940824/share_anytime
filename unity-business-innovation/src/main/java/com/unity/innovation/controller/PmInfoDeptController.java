@@ -293,9 +293,14 @@ public class PmInfoDeptController extends BaseWebController {
     @PostMapping("/listForYzgt")
     public Mono<ResponseEntity<SystemResponse<Object>>> listForYzgt(@RequestBody PageEntity<InfoDeptYzgt> search) {
         IPage<InfoDeptYzgt> list = yzgtService.listForYzgt(search);
+        List<InfoDeptYzgt> records = list.getRecords();
+        yzgtService.convert2List(records);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
-                .items(yzgtService.convert2List(list.getRecords())).build();
+                .items(JsonUtil.ObjectToList(records,
+                        null
+                        ,InfoDeptYzgt::getId,InfoDeptYzgt::getSort,InfoDeptYzgt::getNotes,InfoDeptYzgt::getEnterpriseName,InfoDeptYzgt::getIndustryCategory,InfoDeptYzgt::getEnterpriseScale,InfoDeptYzgt::getEnterpriseNature,InfoDeptYzgt::getContactPerson,InfoDeptYzgt::getContactWay,InfoDeptYzgt::getEnterpriseIntroduction,InfoDeptYzgt::getAttachmentCode,InfoDeptYzgt::getIdPmInfoDept,InfoDeptYzgt::getStatus,InfoDeptYzgt::getGmtModified,InfoDeptYzgt::getGmtCreate,InfoDeptYzgt::getEnterpriseScaleName,InfoDeptYzgt::getEnterpriseNatureName,InfoDeptYzgt::getIndustryCategoryName,InfoDeptYzgt::getStatusName,InfoDeptYzgt::getAttachmentList
+                )).build();
         return success(result);
     }
 

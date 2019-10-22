@@ -108,6 +108,10 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         List<Integer> enumList = Arrays.asList(new Integer[]{SysCfgEnum.THREE.getId(), SysCfgEnum.SIX.getId()});
         List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>().in(SysCfg::getCfgType, enumList));
         Map<Long, String> collect = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
+        List<String> attachmentCodeList = records.stream().map(InfoDeptSatb::getAttachmentCode).collect(Collectors.toList());
+        List<Attachment> list = attachmentService.list(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, attachmentCodeList));
+        Map<String, List<Attachment>> attatchmentMap = list.stream().collect(Collectors.groupingBy(Attachment::getAttachmentCode));
+
         records.forEach(is -> {
             //行业类型
             if ((is.getIndustryCategory() != null) && (collect.get(is.getIndustryCategory()) != null)) {
@@ -131,6 +135,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
                     is.setAchievementLevelName(type.getDicValue());
                 }
             }
+            is.setAttachmentList(attatchmentMap.get(is.getAttachmentCode()));
         });
     }
 

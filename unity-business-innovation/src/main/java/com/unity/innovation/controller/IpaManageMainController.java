@@ -16,9 +16,7 @@ import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.ExcelExportByTemplate;
 import com.unity.common.utils.UUIDUtil;
-import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.DailyWorkStatusPackage;
-import com.unity.innovation.entity.PmInfoDept;
+import com.unity.innovation.entity.*;
 import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.IpaStatusEnum;
@@ -112,7 +110,24 @@ public class IpaManageMainController extends BaseWebController {
                 .list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(pmpList)) {
             pmpList.forEach(e->{
-                // TODO
+                XSSFWorkbook wb;
+                // yzgt
+                PmInfoDept pmInfoDept = pmInfoDeptService.detailById(e.getId());
+                if (InnovationConstant.DEPARTMENT_YZGT_ID.equals(e.getIdRbacDepartment())) {
+                    List<InfoDeptYzgt> dataList = pmInfoDept.getDataList();
+                    dataList.forEach(d -> d.setAttachmentCode(
+                            d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
+                    List<List<Object>> data = pmInfoDeptService.getYzgtData(dataList);
+                    wb = ExcelExportByTemplate.getWorkBook("template/rq.xlsx");
+                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                    //  科技局导出
+                } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(e.getIdRbacDepartment())) {
+                    List<InfoDeptSatb> dataList = pmInfoDept.getDataList();
+                    List<List<Object>> data = pmInfoDeptService.getSatbData(dataList);
+                    wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
+                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                    // 组织部导出
+                }
             });
         }
         
