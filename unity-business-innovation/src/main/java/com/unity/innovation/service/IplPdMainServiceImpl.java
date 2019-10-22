@@ -4,6 +4,7 @@ package com.unity.innovation.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.YesOrNoEnum;
@@ -236,6 +237,11 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
      */
     public Map<String, Object> detailById(Long id) {
         IplPdMain pdMain = this.getById(id);
+        if(pdMain == null){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("未获取到发布会报名信息").build();
+        }
         return convert2Map(pdMain);
     }
 

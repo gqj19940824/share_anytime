@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
@@ -347,6 +348,11 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @return Map
      */
     private Map<String, Object> convert2Map(IplSatbMain ent) {
+        if(ent == null){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("未获取到成长目标投资信息").build();
+        }
         //获取附件
         List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>()
                 .eq(Attachment::getAttachmentCode, ent.getAttachmentCode()));
