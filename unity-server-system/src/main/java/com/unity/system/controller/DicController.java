@@ -190,12 +190,15 @@ public class DicController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
         String dicValue = entity.getDicValue();
-        if (StringUtils.isNotBlank(dicValue) && dicValue.length() > 255) {
+        if (StringUtils.isNotBlank(dicValue) && dicValue.length() > 60000) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "字典值长度过长");
         }
         String notes = entity.getNotes();
         if (StringUtils.isNotEmpty(notes) && notes.length() > 255) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注长度过长");
+        }
+        if(StringUtils.isEmpty(entity.getDicName())) {
+            entity.setDicName(entity.getNotes());
         }
         // 新增
         if (entity.getId() == null) {
