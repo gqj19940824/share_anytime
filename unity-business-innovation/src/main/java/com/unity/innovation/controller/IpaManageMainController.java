@@ -325,13 +325,13 @@ public class IpaManageMainController extends BaseWebController {
                             d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
                     List<List<Object>> data = pmInfoDeptService.getYzgtData(dataList);
                     wb = ExcelExportByTemplate.getWorkBook("template/rq.xlsx");
-                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
                     //  科技局导出
                 } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(e.getIdRbacDepartment())) {
                     List<InfoDeptSatb> dataList = pmInfoDept.getDataList();
                     List<List<Object>> data = pmInfoDeptService.getSatbData(dataList);
-                    wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
-                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
+                    wb = ExcelExportByTemplate.getWorkBook("template/ly.xlsx");
+                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
                     // 组织部导出
                 }
             });
