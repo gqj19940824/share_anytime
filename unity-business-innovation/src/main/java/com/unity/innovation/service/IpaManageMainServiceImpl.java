@@ -1,6 +1,7 @@
 package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.exception.UnityRuntimeException;
@@ -12,6 +13,7 @@ import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.IpaStatusEnum;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,28 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     private PmInfoDeptServiceImpl pmInfoDeptService;
 
     @Transactional(rollbackFor = Exception.class)
+    public void updateIpaMain(IpaManageMain entity){
+        // 更新二次包数据
+        Integer status = entity.getStatus();
+        LambdaUpdateWrapper<IpaManageMain> wrapper = new LambdaUpdateWrapper<IpaManageMain>().eq(IpaManageMain::getId, entity.getId()).set(IpaManageMain::getStatus, status);
+        if (StringUtils.isNotBlank(entity.getPublishResult())){
+            wrapper.set(IpaManageMain::getPublishResult, entity.getPublishResult());
+        }
+        update(wrapper);
+        updateFirstPackStatus(entity.getId(), status);
+    }
+
+    private void updateFirstPackStatus(Long idIpaMain, Integer status) {
+        // 更新一次包状态
+        dailyWorkStatusPackageService
+                .update(new LambdaUpdateWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain).set(DailyWorkStatusPackage::getState, status));
+        pmInfoDeptService
+                .update(new LambdaUpdateWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, idIpaMain).set(PmInfoDept::getStatus, status));
+        iplManageMainService
+                .update(new LambdaUpdateWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain).set(IplManageMain::getStatus, status));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public void delByIds(List<Long> ids) {
         // 删除二次打包表
         removeByIds(ids);
@@ -53,10 +77,6 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
 
     @Transactional(rollbackFor = Exception.class)
     public void edit(IpaManageMain entity) {
-        IpaManageMain byId = getById(entity.getId());
-        if (byId == null){
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
-        }
         List<Long> idDwspList = entity.getIdDwspList();
         List<Long> idIplpList = entity.getIdIplpList();
         List<Long> idPmpList = entity.getIdPmpList();

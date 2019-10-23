@@ -1,7 +1,6 @@
 package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
@@ -391,7 +390,33 @@ public class IpaManageMainController extends BaseWebController {
      */
     @PostMapping("/updatePublishResult")
     public Mono<ResponseEntity<SystemResponse<Object>>> updatePublishResult(@RequestBody IpaManageMain entity) {
-        ipaManageMainService.update(new LambdaUpdateWrapper<IpaManageMain>().eq(IpaManageMain::getId, entity.getId()).set(IpaManageMain::getPublishResult, entity.getPublishResult()));
+        if (StringUtils.isBlank(entity.getPublishResult())){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
+        }
+        if (entity.getId() == null || iplManageMainService.getById(entity.getId()) == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        entity.setStatus(IpaStatusEnum.UNPUBLISH.getId());
+        ipaManageMainService.updateIpaMain(entity);
+        return success();
+    }
+
+    /**
+     * 更新发布效果
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/19 11:32 上午
+     */
+    @PostMapping("/publish")
+    public Mono<ResponseEntity<SystemResponse<Object>>> publish(@RequestBody IpaManageMain entity) {
+        if (entity.getId() == null || iplManageMainService.getById(entity.getId()) == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        IpaManageMain build = IpaManageMain.newInstance().status(IpaStatusEnum.UNUPDATE.getId()).build();
+        build.setId(entity.getId());
+        ipaManageMainService.updateIpaMain(build);
         return success();
     }
 
@@ -408,6 +433,10 @@ public class IpaManageMainController extends BaseWebController {
         String ids = map.get("ids");
         if (StringUtils.isBlank(ids)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
+        }
+        int count = ipaManageMainService.count(new LambdaQueryWrapper<IpaManageMain>().in(IpaManageMain::getId, ids).ne(IpaManageMain::getStatus, IpaStatusEnum.UNPUBLISH));
+        if (count > 0){
+            return error(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION, "非待发布状态数据不允许删除");
         }
         ipaManageMainService.delByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
         return success();
@@ -464,12 +493,19 @@ public class IpaManageMainController extends BaseWebController {
     @PostMapping("saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody IpaManageMain entity) {
         // 新增和编辑需要登录
-        Customer customer = LoginContextHolder.getRequestAttributes();
+        LoginContextHolder.getRequestAttributes();
         // 新增
         if (entity.getId() == null) {
-            ipaManageMainService.add(entity); // TODO 列表是否需要自己写
+            ipaManageMainService.add(entity);
             // 编辑
         } else {
+            IpaManageMain byId = ipaManageMainService.getById(entity.getId());
+            if (byId == null){
+                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
+            }
+            if (!IpaStatusEnum.UNPUBLISH.equals(byId.getStatus())){
+                return error(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION, "非待发布状态数据不允许编辑");
+            }
             ipaManageMainService.edit(entity);
         }
         return success();
@@ -487,6 +523,7 @@ public class IpaManageMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@PathVariable("id") Long id) {
 
         IpaManageMain entity = ipaManageMainService.getById(id);
+        entity.setIdRbacDepartmentName(InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }

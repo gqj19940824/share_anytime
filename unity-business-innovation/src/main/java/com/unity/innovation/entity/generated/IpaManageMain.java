@@ -26,7 +26,14 @@ public class IpaManageMain extends BaseEntity{
         **/
         @CommentTarget("单位")
         @TableField("id_rbac_department")
-        private String idRbacDepartment ;
+        private Long idRbacDepartment ;
+
+        /**
+        * 标题
+        **/
+        @CommentTarget("单位名称")
+        @TableField(exist = false)
+        private String idRbacDepartmentName ;
 
         /**
         * 标题
