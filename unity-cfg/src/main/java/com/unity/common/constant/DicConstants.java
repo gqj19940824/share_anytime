@@ -46,5 +46,5 @@ public class DicConstants {
     /**
      * 单位拥有的清单类型字典组
      */
-    public static final String DEPART_HAVE_LIST_TYPE = "DEPART_HAVE_LIST_TYPE";
+    public static final String DEPART_HAVE_LIST_TYPE = "IPL_LIST";
 }
