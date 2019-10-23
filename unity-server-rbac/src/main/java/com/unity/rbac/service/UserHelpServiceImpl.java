@@ -3,16 +3,17 @@ package com.unity.rbac.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.unity.common.base.BaseServiceImpl;
-import com.unity.common.client.SafetyClient;
-import com.unity.common.client.vo.SysReminder;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.constants.Constants;
 import com.unity.common.enums.PlatformTypeEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.Dic;
 import com.unity.common.util.GsonUtils;
 import com.unity.common.util.IpAdrressUtil;
 import com.unity.common.util.RedisUtils;
+import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.HashRedisUtils;
 import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.dao.UserDao;
@@ -26,10 +27,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 用户信息业务处理
@@ -49,18 +50,18 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
     private final UserDepartmentServiceImpl userDepartmentService;
     private final UserRoleServiceImpl userRoleService;
     private final HashRedisUtils hashRedisUtils;
-    @Resource
-    private SafetyClient safetyClient;
+    private final DicUtils dicUtils;
 
     public UserHelpServiceImpl(RedisUtils redisUtils, StringRedisTemplate stringRedisTemplate,
                                UserIdentityServiceImpl userIdentityService, UserDepartmentServiceImpl userDepartmentService,
-                               UserRoleServiceImpl userRoleService, HashRedisUtils hashRedisUtils) {
+                               UserRoleServiceImpl userRoleService, HashRedisUtils hashRedisUtils, DicUtils dicUtils) {
         this.redisUtils = redisUtils;
         this.stringRedisTemplate = stringRedisTemplate;
         this.userIdentityService = userIdentityService;
         this.userDepartmentService = userDepartmentService;
         this.userRoleService = userRoleService;
         this.hashRedisUtils = hashRedisUtils;
+        this.dicUtils = dicUtils;
     }
 
 
@@ -127,6 +128,14 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
         customer.setUserType(user.getUserType());
         customer.setOs(os);
         customer.setDepType(user.getDepType());
+        //获取用户所在单位可处理数据范围
+        Dic dic = dicUtils.getDicByCode(DicConstants.DEPART_HAVE_LIST_TYPE, user.getIdRbacDepartment().toString());
+        if(dic != null && StringUtils.isNotBlank(dic.getDicValue())){
+            List<Integer> typeRangeList = Arrays.asList(dic.getDicValue().split(",")).stream()
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
+            customer.setTypeRangeList(typeRangeList);
+        }
         redisUtils.putCurrentUserByToken(tokenStr, customer, day);
     }
 
@@ -187,26 +196,4 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
             userRoleService.saveBatch(userRoleList);
         }
     }
-
-    /**
-     * 保存系统提醒
-     *
-     * @param  sourceId 源数据id
-     * @param title 系统提醒标题
-     * @param dataSource 数据来源
-     * @param idRbacDepartment 单位id
-     * @author gengjiajia
-     * @since 2019/08/01 16:04
-     */
-    @Async
-    void saveSysReminder(Long sourceId,String title,Integer dataSource,Long idRbacDepartment){
-        safetyClient.saveSysReminder(
-                SysReminder.newInstance()
-                        .sourceId(sourceId)
-                        .title(title)
-                        .dataSource(dataSource)
-                        .idRbacDepartment(idRbacDepartment)
-                        .build());
-    }
-
 }
