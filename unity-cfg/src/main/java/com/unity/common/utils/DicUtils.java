@@ -123,4 +123,17 @@ public class DicUtils {
         }
         return systemClient.getDicsByGroupCode(groupCode);
     }
+
+    /**
+     * 通过字典组code设置字典项
+     *
+     * @param  groupCode 字典组code
+     * @param dicCode 字典项code
+     * @param dicValue 字典项值
+     * @author gengjiajia
+     * @since 2019/10/23 14:43
+     */
+    public void putDicByCode(String groupCode,String dicCode,String dicValue){
+        systemClient.putDicByCode(groupCode,dicCode,dicValue);
+    }
 }
