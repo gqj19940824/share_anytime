@@ -131,9 +131,11 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         }
         try {
             // 主责单位id
-            Long idRbacDepartmentDuty = (Long) ReflectionUtils.getDeclaredMethod(entity,"getIdRbacDepartmentDuty").invoke(entity);
+            Long idRbacDepartmentDuty = (Long) ReflectionUtils.getFieldValue(entity,"idRbacDepartmentDuty");
+            // 主责单位id
+            Integer bizType = (Integer) ReflectionUtils.getFieldValue(entity,"bizType");
             // 主表id
-            Long idIplMain = (Long) ReflectionUtils.getDeclaredMethod(entity,"getId").invoke(entity);
+            Long idIplMain = (Long) ReflectionUtils.getFieldValue(entity,"id");
 
             List<IplAssist> assists1 = getAssists(idRbacDepartmentDuty, idIplMain);
             List<Long> collect = assists1.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
@@ -148,6 +150,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                 Long idRbacDepartmentAssist = e.getIdRbacDepartmentAssist();
                 IplAssist assist = IplAssist.newInstance()
                         .idRbacDepartmentDuty(idRbacDepartmentDuty)
+                        .bizType(bizType)
                         .dealStatus(IplStatusEnum.UNDEAL.getId())
                         .processStatus(ProcessStatusEnum.NORMAL.getId())
                         .idIplMain(idIplMain)

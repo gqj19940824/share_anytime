@@ -1,6 +1,7 @@
 package com.unity.innovation.enums;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * <p>
@@ -10,7 +11,7 @@ import lombok.AllArgsConstructor;
 public enum BizTypeEnum {
 
     /**
-     * 10城市创新合作 20企业创新发展 30成长目标投资 40高端才智需求 20亲清政商关系
+     * 10城市创新合作(发改局) 20企业创新发展（企服局） 30成长目标投资（科技局） 40高端才智需求（组织部） 20亲清政商关系（纪检）
      */
     CITY(10),
     ENTERPRISE(20),
@@ -18,24 +19,6 @@ public enum BizTypeEnum {
     INTELLIGENCE(40),
     POLITICAL(50);
 
+    @Getter
     private Integer type;
-
-    public static BizTypeEnum of(Integer type) {
-        if (type.equals(CITY.getType())) {
-            return CITY;
-        } else if (type.equals(ENTERPRISE.getType())) {
-            return ENTERPRISE;
-        } else if (type.equals(GROW.getType())) {
-            return GROW;
-        } else if (type.equals(INTELLIGENCE.getType())) {
-            return INTELLIGENCE;
-        } else {
-            return POLITICAL;
-        }
-    }
-
-    public int getType() {
-        return type;
-    }
-
 }

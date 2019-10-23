@@ -29,6 +29,13 @@ public class IplAssist extends BaseEntity{
         @TableField("id_rbac_department_assist")
         private Long idRbacDepartmentAssist ;
 
+        /**
+        *
+        **/
+        @CommentTarget("")
+        @TableField("biz_type")
+        private Integer bizType ;
+
 
         /**
          * 协同单位名称

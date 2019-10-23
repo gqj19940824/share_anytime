@@ -19,6 +19,7 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.*;
+import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.enums.IplStatusEnum;
 import com.unity.innovation.enums.ProcessStatusEnum;
 import com.unity.innovation.enums.SourceEnum;
@@ -154,7 +155,8 @@ public class IplDarbMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
 
-        // 新增协同单位并记录日志
+        // 新增协同单位并记录日志    // other TODO
+        entity.setBizType(BizTypeEnum.CITY.getType());
         iplAssistService.addAssistant(assists, entity);
 
         return success(InnovationConstant.SUCCESS);

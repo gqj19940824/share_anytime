@@ -251,6 +251,8 @@ public class IplDarbMain extends BaseEntity{
         @TableField(exist = false)
         private List<IplAssist> iplAssists;
 
+        @TableField(exist = false)
+        private Integer bizType;
 }
 
 
