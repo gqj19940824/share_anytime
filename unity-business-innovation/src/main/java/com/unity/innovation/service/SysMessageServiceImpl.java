@@ -221,11 +221,11 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
     @Transactional(rollbackFor = Exception.class)
     public void addInventoryHelpMessage(InventoryMessage msg) {
         //保存系统消息
-        String title = MessageConstants.addInventoryHelpMsgTitleMap.get(msg.getDataSourceClass().toString().concat(msg.getFlowStatus().toString()));
+        String title = MessageConstants.addInventoryHelpMsgTitleMap.get(msg.getBizType().toString().concat(msg.getFlowStatus().toString()));
         if (StringUtils.isBlank(title)) {
             return;
         }
-        String smsTitle = MessageConstants.sendHelpSmsContentMap.get(msg.getDataSourceClass().toString()
+        String smsTitle = MessageConstants.sendHelpSmsContentMap.get(msg.getBizType().toString()
                 .concat(msg.getFlowStatus().toString()));
         String depName = hashRedisUtils.getFieldValueByFieldName(RedisConstants.DEPARTMENT.concat(msg.getIdRbacDepartment().toString()), RedisConstants.NAME);
         title = title.replace(MessageConstants.DEP_NAME, depName).replace(MessageConstants.TITLE, msg.getTitle());

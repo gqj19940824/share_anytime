@@ -242,5 +242,41 @@ public class DepartmentController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> getDepTypeSelectListToDepList() {
         return success(service.getDepTypeSelectListToDepList());
     }
+
+    /**
+     * 通过单位id获取单位可处理的实时清单类型列表
+     *
+     * @param department 包含单位id
+     * @return 清单类型
+     * @author gengjiajia
+     * @since 2019/10/23 14:02
+     */
+    @PostMapping("/getListTypeByDepId")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getListTypeByDepId(@RequestBody Department department) {
+        if(department == null || department.getId() == null){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到单位ID");
+        }
+        return success(service.getListTypeByDepId(department.getId()));
+    }
+
+    /**
+     * 单位设置可处理的清单类型列表
+     *
+     * @param department 包含单位id及清单类型
+     * @return 清单类型
+     * @author gengjiajia
+     * @since 2019/10/23 14:02
+     */
+    @PostMapping("/putListTypeToDepId")
+    public Mono<ResponseEntity<SystemResponse<Object>>> putListTypeToDepId(@RequestBody Department department) {
+        if(department == null || department.getId() == null){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到单位ID");
+        }
+        if(CollectionUtils.isEmpty(department.getTypeRangeList())){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到清单类型");
+        }
+        service.putListTypeToDepId(department.getId(),department.getTypeRangeList());
+        return success();
+    }
 }
 

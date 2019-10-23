@@ -131,7 +131,7 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
         //获取用户所在单位可处理数据范围
         Dic dic = dicUtils.getDicByCode(DicConstants.DEPART_HAVE_LIST_TYPE, user.getIdRbacDepartment().toString());
         if(dic != null && StringUtils.isNotBlank(dic.getDicValue())){
-            List<Integer> typeRangeList = Arrays.asList(dic.getDicValue().split(",")).stream()
+            List<Integer> typeRangeList = Arrays.stream(dic.getDicValue().split(","))
                     .map(Integer::parseInt)
                     .collect(Collectors.toList());
             customer.setTypeRangeList(typeRangeList);

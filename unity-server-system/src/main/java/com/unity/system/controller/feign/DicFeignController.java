@@ -2,6 +2,7 @@ package com.unity.system.controller.feign;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.enums.YesOrNoEnum;
 import com.unity.system.entity.Dic;
 import com.unity.system.entity.DicGroup;
 import com.unity.system.service.DicGroupServiceImpl;
@@ -70,5 +71,34 @@ public class DicFeignController extends BaseWebController {
     @PostMapping("/getDicsByGroupCode")
     public List<Dic> getDicsByGroupCode(@RequestParam("groupCode") String groupCode){
         return dicService.list(new LambdaQueryWrapper<Dic>().eq(Dic::getGroupCode,groupCode).orderByAsc(Dic::getSort));
+    }
+
+    /**
+     * 通过字典组code插入字典项
+     *
+     * @param groupCode 字典组code
+     * @param dicCode 字典项code
+     * @param dicValue 字典项值
+     * @author gengjiajia
+     * @since 2019/10/23 14:28
+     */
+    @PostMapping("/putDicByCode")
+    public void putDicByCode(@RequestParam("groupCode") String groupCode, @RequestParam("dicCode") String dicCode,
+                             @RequestParam("dicValue") String dicValue){
+        if (StringUtils.isEmpty(groupCode) || StringUtils.isEmpty(dicCode) || StringUtils.isEmpty(dicValue)){
+            return;
+        }
+        Dic dic = dicService.getOne(new LambdaQueryWrapper<Dic>().eq(Dic::getGroupCode, groupCode).eq(Dic::getDicCode, dicCode));
+        if(dic != null){
+            dic.setDicValue(dicValue);
+            dicService.updateById(dic);
+        } else {
+            dic = new Dic();
+            dic.setGroupCode(groupCode);
+            dic.setDicCode(dicCode);
+            dic.setDicValue(dicValue);
+            dic.setStatus("1");
+            dicService.save(dic);
+        }
     }
 }

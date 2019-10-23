@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.rbac.entity.generated.mDepartment;
 import lombok.*;
 
+import java.util.List;
+
 
 /**
  * @author gengjiajia
@@ -22,6 +24,12 @@ public class Department extends mDepartment{
      */
     @TableField(exist = false)
     private Integer up;
+
+    /**
+     * 清单类型
+     */
+    @TableField(exist = false)
+    private List<Integer> typeRangeList;
 
 }
 

@@ -53,4 +53,9 @@ public class Customer extends AuthUser {
      * 所属组织类型
      */
     public Integer depType;
+
+    /**
+     * 数据范围
+     */
+    public List<Integer> typeRangeList;
 }

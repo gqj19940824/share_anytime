@@ -188,6 +188,8 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                     .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
                     .title(enterpriseName)
                     .helpDepartmentIdList(list)
+                    //TODO 设置清单type
+                    //.bizType()
                     .build());
         } catch (UnityRuntimeException e) {
             throw e;

@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
@@ -32,9 +34,12 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -310,5 +315,34 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
                 null
                 , Dic::getDicCode,Dic::getDicValue
         );
+    }
+
+    /**
+     * 通过单位id获取单位可处理的实时清单类型列表
+     *
+     * @param id 单位id
+     * @return 清单类型列表
+     * @author gengjiajia
+     * @since 2019/10/23 14:08
+     */
+    public List<Integer> getListTypeByDepId(Long id) {
+        Dic dic = dicUtils.getDicByCode(DicConstants.DEPART_HAVE_LIST_TYPE, id.toString());
+        if(dic == null || StringUtils.isBlank(dic.getDicValue())){
+            return Lists.newArrayList();
+        }
+        return Arrays.stream(dic.getDicValue().split(",")).map(Integer::parseInt).collect(toList());
+    }
+
+    /**
+     * 单位设置可处理的清单类型列表
+     *
+     * @param  id 单位id
+     * @param typeRangeList 清单类型列表
+     * @author gengjiajia
+     * @since 2019/10/23 14:20  
+     */
+    public void putListTypeToDepId(Long id, List<Integer> typeRangeList) {
+        String dicValue = typeRangeList.stream().map(String::valueOf).collect(joining(","));
+        dicUtils.putDicByCode(DicConstants.DEPART_HAVE_LIST_TYPE,id.toString(),dicValue);
     }
 }
