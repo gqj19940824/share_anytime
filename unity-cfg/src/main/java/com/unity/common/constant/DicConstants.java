@@ -42,4 +42,9 @@ public class DicConstants {
      * 成果创新水平字典组编码
      * */
     public static final  String ACHIEVEMENT_INNOVATI = "ACHIEVEMENT_INNOVATI";
+
+    /**
+     * 单位拥有的清单类型字典组
+     */
+    public static final String DEPART_HAVE_LIST_TYPE = "DEPART_HAVE_LIST_TYPE";
 }
