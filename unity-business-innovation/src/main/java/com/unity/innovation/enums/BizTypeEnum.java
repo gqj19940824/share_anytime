@@ -17,7 +17,10 @@ public enum BizTypeEnum {
     ENTERPRISE(20),
     GROW(30),
     INTELLIGENCE(40),
-    POLITICAL(50);
+    POLITICAL(50),
+    RQDEPTINFO(60),
+    LYDEPTINFO(70),
+    INVESTMENT(80);
 
     @Getter
     private Integer type;
