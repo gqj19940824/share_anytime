@@ -21,6 +21,9 @@ public interface SystemClient {
     @PostMapping("/feign/dic/getDicsByGroupCode")
     List<Dic> getDicsByGroupCode(@RequestParam("groupCode") String groupCode);
 
+    @PostMapping("/feign/dic/putDicByCode")
+    void putDicByCode(@RequestParam("groupCode") String groupCode, @RequestParam("dicCode") String dicCode,
+                      @RequestParam("dicValue") String dicValue);
 
     @Component
     class HystrixClientFallback implements SystemClient {
@@ -37,6 +40,11 @@ public interface SystemClient {
         @Override
         public List<Dic> getDicsByGroupCode(String groupCode) {
             return null;
+        }
+
+        @Override
+        public void putDicByCode(String groupCode, String dicCode, String dicValue) {
+
         }
     }
 }
