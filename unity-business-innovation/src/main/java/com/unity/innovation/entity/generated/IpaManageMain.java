@@ -62,6 +62,12 @@ public class IpaManageMain extends BaseEntity{
         @TableField(exist = false)
         private List<Long> idPmpList ;
 
+        /**
+        * 级别
+        **/
+        @CommentTarget("级别")
+        @TableField("level")
+        private Integer level ;
 
 
         /**
