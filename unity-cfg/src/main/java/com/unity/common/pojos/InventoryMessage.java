@@ -79,6 +79,11 @@ public class InventoryMessage {
      */
     private String time;
 
+    /**
+     * 清单类型
+     */
+    private Integer bizType;
+
 
     public InventoryMessage(Long sourceId, Long idRbacDepartment, String title, Integer dataSourceClass, Integer flowStatus) {
         this.sourceId = sourceId;
