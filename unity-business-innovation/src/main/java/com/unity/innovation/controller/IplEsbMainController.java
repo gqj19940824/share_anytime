@@ -16,6 +16,7 @@ import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.service.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -197,7 +198,7 @@ public class IplEsbMainController extends BaseWebController {
         }
         entity = service.detailById(entity);
         //日志公共方法
-        Map<String, Object> resultMap = iplAssistService.totalProcessAndAssists(entity.getId(), entity.getIdRbacDepartmentDuty(), entity.getProcessStatus());
+        Map<String, Object> resultMap = iplAssistService.totalProcessAndAssists(entity.getId(), entity.getIdRbacDepartmentDuty(), entity.getProcessStatus(), BizTypeEnum.ENTERPRISE.getType());
         resultMap.put("baseInfo", entity);
         return success(resultMap);
     }
@@ -222,7 +223,7 @@ public class IplEsbMainController extends BaseWebController {
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                     .message("未获取到对象").build();
         }
-        return success(iplAssistService.getAssistList(vo.getId(), vo.getIdRbacDepartmentDuty()));
+        return success(iplAssistService.getAssistList(vo.getId(), BizTypeEnum.ENTERPRISE.getType()));
     }
 
     /**

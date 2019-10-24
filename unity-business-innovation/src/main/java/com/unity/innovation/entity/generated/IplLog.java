@@ -1,15 +1,11 @@
 package com.unity.innovation.entity.generated;
 
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.*;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
 import com.baomidou.mybatisplus.annotation.TableField;
-
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
+import lombok.*;
 
 /**
  * 创新发布清单-操作日志
@@ -81,6 +77,13 @@ public class IplLog extends BaseEntity{
          */
         @TableField(exist = false)
         private String statusName;
+
+        /**
+         *
+         **/
+        @CommentTarget("")
+        @TableField("biz_type")
+        private Integer bizType ;
 }
 
 

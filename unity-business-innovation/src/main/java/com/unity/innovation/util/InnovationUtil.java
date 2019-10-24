@@ -82,6 +82,9 @@ public class InnovationUtil {
     * @date 2019/9/18 14:13
     */
     public static String getDeptNameById(Long deptId) {
+        if (deptId == null){
+            return null;
+        }
         return  innovationUtil.hashRedisUtils.getFieldValueByFieldName(RedisConstants.DEPARTMENT + deptId, RedisConstants.NAME);
     }
 

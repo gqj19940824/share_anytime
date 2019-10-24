@@ -1,11 +1,9 @@
 
 package com.unity.innovation.service;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
@@ -43,8 +41,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -270,8 +266,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
                         ListTypeConstants.UPDATE_OVER_TIME,entity.getIdRbacDepartmentDuty());
                 // 非"待处理"状态才记录日志
-                Integer lastDealStatus = iplLogService.getLastDealStatus(entity.getId(),
-                        entity.getIdRbacDepartmentDuty());
+                Integer lastDealStatus = iplLogService.getLastDealStatus(entity.getId(), BizTypeEnum.GROW.getType());
                 iplLogService.save(IplLog.newInstance()
                         .idIplMain(entity.getId())
                         .idRbacDepartmentAssist(0L)
@@ -280,7 +275,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                         .dealStatus(lastDealStatus)
                         .build());
                 //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
-                List<IplAssist> assists = iplAssistService.getAssists(entity.getIdRbacDepartmentDuty(), entity.getId());
+                List<IplAssist> assists = iplAssistService.getAssists(BizTypeEnum.GROW.getType(), entity.getId());
                 List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
@@ -313,7 +308,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                     .build();
         }
         //======处理中的数据，主责单位删除--清单协同处理--增加系统消息=======
-        List<IplAssist> assists = iplAssistService.getAssists(main.getIdRbacDepartmentDuty(), main.getId());
+        List<IplAssist> assists = iplAssistService.getAssists(BizTypeEnum.GROW.getType(), main.getId());
         List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist)
                 .collect(Collectors.toList());
         sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
@@ -325,7 +320,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 .helpDepartmentIdList(assistsIdList)
                 .build());
         //关联删除协同信息
-        iplAssistService.del(id, main.getIdRbacDepartmentDuty(), main.getAttachmentCode());
+        iplAssistService.del(id, main.getIdRbacDepartmentDuty(), main.getAttachmentCode(), BizTypeEnum.GROW.getType());
         this.removeById(id);
     }
 
@@ -361,7 +356,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         //需求类别
         SysCfg demandCategory = sysCfgService.getById(ent.getDemandCategory());
         //获取总体进展
-        Map<String, Object> assists = iplAssistService.totalProcessAndAssists(ent.getId(), ent.getIdRbacDepartmentDuty(), ent.getStatus());
+        Map<String, Object> assists = iplAssistService.totalProcessAndAssists(ent.getId(), ent.getIdRbacDepartmentDuty(), ent.getStatus(), BizTypeEnum.GROW.getType());
         Map<String, Object> detail = JsonUtil.ObjectToMap(ent,
                 (m, entity) -> {
                     adapterField(m, entity);

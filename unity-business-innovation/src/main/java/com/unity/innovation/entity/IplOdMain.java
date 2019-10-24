@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.common.base.CommentTarget;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.mIplOdMain;
+import com.unity.innovation.enums.BizTypeEnum;
 import lombok.*;
 
 import java.util.List;
@@ -64,6 +65,7 @@ public class IplOdMain extends mIplOdMain{
     private  List<IplAssist> assistList;
 
 
-
+    @TableField(exist = false)
+    private Integer bizType = BizTypeEnum.INTELLIGENCE.getType();
 }
 

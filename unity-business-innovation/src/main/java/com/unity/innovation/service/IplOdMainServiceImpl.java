@@ -231,7 +231,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                 entity.setLatestProcess("更新基本信息");
                 redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, departmentId,BizTypeEnum.INTELLIGENCE.getType());
                 //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
-                List<IplAssist> assists = iplAssistService.getAssists(entity.getIdRbacDepartmentDuty(), entity.getId());
+                List<IplAssist> assists = iplAssistService.getAssists(BizTypeEnum.INTELLIGENCE.getType(), entity.getId());
                 List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
@@ -274,7 +274,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         List<String> codes = list.stream().map(IplOdMain::getAttachmentCode).collect(Collectors.toList());
         //======处理中的数据，主责单位删除--清单协同处理--增加系统消息=======
         list.forEach(entity ->{
-            List<IplAssist> assists = iplAssistService.getAssists(entity.getIdRbacDepartmentDuty(), entity.getId());
+            List<IplAssist> assists = iplAssistService.getAssists(BizTypeEnum.INTELLIGENCE.getType(), entity.getId());
             List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
             sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
                     .sourceId(entity.getId())
@@ -288,8 +288,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         // 删除主表
         removeByIds(ids);
         // 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
-        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.INTELLIGENCE.getType().toString()));
-        iplAssistService.batchDel(ids, departmentId, codes);
+        iplAssistService.batchDel(ids, InnovationConstant.DEPARTMENT_DARB_ID, codes, BizTypeEnum.INTELLIGENCE.getType());
     }
 
     /**

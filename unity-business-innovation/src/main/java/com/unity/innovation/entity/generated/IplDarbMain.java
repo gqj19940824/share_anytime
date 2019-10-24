@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
 import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.enums.BizTypeEnum;
 import lombok.*;
 
 import java.util.List;
@@ -252,7 +253,7 @@ public class IplDarbMain extends BaseEntity{
         private List<IplAssist> iplAssists;
 
         @TableField(exist = false)
-        private Integer bizType;
+        private Integer bizType = BizTypeEnum.CITY.getType();
 }
 
 

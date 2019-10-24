@@ -90,21 +90,45 @@ public class IplDarbMainController extends BaseWebController {
     }
 
     /**
+     * 主责单位实时更新
+     *
+     * @param iplLog
+     * @return
+     */
+    @PostMapping("/dutyUpdateStatus")
+    public Mono<ResponseEntity<SystemResponse<Object>>> dutyUpdateStatus(@RequestBody IplLog iplLog) {
+        IplDarbMain entity = service.getById(iplLog.getIdIplMain());
+        if (entity == null) {
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        Integer dealStatus = iplLog.getDealStatus();
+        if (dealStatus == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        iplLogService.dutyUpdateStatus(entity, iplLog);
+
+        return success();
+    }
+
+    /**
      * 实时更新
      *
      * @param iplLog
      * @return
      */
-    @PostMapping("/updateStatus")
-    public Mono<ResponseEntity<SystemResponse<Object>>> updateStatus(@RequestBody IplLog iplLog) {
+    @PostMapping("/assistUpdateStatus")
+    public Mono<ResponseEntity<SystemResponse<Object>>> assistUpdateStatus(@RequestBody IplLog iplLog) {
         IplDarbMain entity = service.getById(iplLog.getIdIplMain());
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
+        Integer dealStatus = iplLog.getDealStatus();
+        if (dealStatus == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        iplLogService.assistUpdateStatus(entity, iplLog);
 
-        iplLogService.updateStatus(entity, iplLog);
-
-        return success(InnovationConstant.SUCCESS);
+        return success();
     }
 
     /**
@@ -131,7 +155,7 @@ public class IplDarbMainController extends BaseWebController {
         // 修改状态、插入日志
         iplLogService.updateStatusByDuty(entity, iplLog);
 
-        return success(InnovationConstant.SUCCESS);
+        return success();
     }
 
     /**
@@ -151,15 +175,11 @@ public class IplDarbMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         List<IplAssist> assists = iplDarbMain.getIplAssists();
-        if (CollectionUtils.isEmpty(assists)) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
-        }
 
-        // 新增协同单位并记录日志    // other TODO
-        entity.setBizType(BizTypeEnum.CITY.getType());
+        // 新增协同单位并记录日志
         iplAssistService.addAssistant(assists, entity);
 
-        return success(InnovationConstant.SUCCESS);
+        return success();
     }
 
     /**
@@ -192,7 +212,7 @@ public class IplDarbMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
 
-        Map<String, Object> resultMap = iplAssistService.totalProcessAndAssists(id, entity.getIdRbacDepartmentDuty(), entity.getProcessStatus());
+        Map<String, Object> resultMap = iplAssistService.totalProcessAndAssists(id, entity.getIdRbacDepartmentDuty(), entity.getProcessStatus(), BizTypeEnum.CITY.getType());
         resultMap.put("baseInfo", convert2Map(entity));
         return success(resultMap);
     }
@@ -451,7 +471,7 @@ public class IplDarbMainController extends BaseWebController {
 
         // 查询协同单位列表
         LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId).orderByDesc(IplAssist::getGmtCreate);
+        qw.eq(IplAssist::getBizType, BizTypeEnum.CITY.getType()).eq(IplAssist::getIdIplMain, mainId).orderByDesc(IplAssist::getGmtCreate);
         List<IplAssist> assists = iplAssistService.list(qw);
         if (CollectionUtils.isNotEmpty(assists)) {
             assists.forEach(e -> {
@@ -478,7 +498,7 @@ public class IplDarbMainController extends BaseWebController {
         }
         // 主责单位id
         Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
-        return success(iplAssistService.totalProcessAndAssists(mainId, idRbacDepartmentDuty, entity.getProcessStatus()).get("totalProcess"));
+        return success(iplAssistService.totalProcessAndAssists(mainId, idRbacDepartmentDuty, entity.getProcessStatus(), BizTypeEnum.CITY.getType()).get("totalProcess"));
     }
 
     /**
@@ -501,7 +521,7 @@ public class IplDarbMainController extends BaseWebController {
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                     .message("未获取到对象").build();
         }
-        return success(iplAssistService.getAssistList(vo.getId(), vo.getIdRbacDepartmentDuty()));
+        return success(iplAssistService.getAssistList(vo.getId(), BizTypeEnum.CITY.getType()));
     }
 
 }
