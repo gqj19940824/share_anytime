@@ -66,11 +66,11 @@ public class mPmInfoDept extends BaseEntity{
         
         
         /**
-        * 信息类型
+        * 业务类型
         **/
-        @CommentTarget("信息类型")
-        @TableField("info_type")
-        private Long infoType ;
+        @CommentTarget("业务类型")
+        @TableField("biz_type")
+        private Long bizType ;
 
 
         /**
