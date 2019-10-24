@@ -70,7 +70,7 @@ public class mPmInfoDept extends BaseEntity{
         **/
         @CommentTarget("业务类型")
         @TableField("biz_type")
-        private Long bizType ;
+        private Integer bizType ;
 
 
         /**
