@@ -5,8 +5,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.gson.reflect.TypeToken;
 import com.unity.common.base.BaseServiceImpl;
-import com.unity.common.constant.InnovationConstant;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
@@ -14,6 +15,7 @@ import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.FileReaderUtil;
 import com.unity.common.util.GsonUtils;
+import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.ExcelStyleUtil;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ListTypeConstants;
@@ -25,6 +27,7 @@ import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -75,6 +78,9 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
 
     @Resource
     private SysMessageHelpService sysMessageHelpService;
+
+    @Resource
+    private DicUtils dicUtils;
 
     /**
      * 功能描述 分页接口
@@ -161,31 +167,47 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
      */
     @Transactional(rollbackFor = Exception.class)
     public void saveEntity(IplOdMain entity) {
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.INTELLIGENCE.getType().toString()));
         if (entity.getId() == null) {
-            entity.setAttachmentCode(UUIDUtil.getUUID());
+            //判断当前用户是否为操作单位
+            if (SourceEnum.SELF.getId().equals((entity.getSource()))) {
+                Customer customer = LoginContextHolder.getRequestAttributes();
+                if (!customer.getTypeRangeList().contains(BizTypeEnum.INTELLIGENCE.getType())) {
+                    throw UnityRuntimeException.newInstance()
+                            .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                            .message("当前账号的单位不可操作数据").build();
+                }
+            }
             //来源为当前局
             entity.setSource(entity.getSource());
+            entity.setAttachmentCode(UUIDUtil.getUUID());
             // 状态设为处理中
             entity.setStatus(IplStatusEnum.UNDEAL.getId());
             //主责单位设置为组织部
-            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_OD_ID);
+            entity.setIdRbacDepartmentDuty(departmentId);
             //进展状态设为进展正常
             entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
             save(entity);
-            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_OD_ID);
+            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME,departmentId,BizTypeEnum.INTELLIGENCE.getType());
             //========企业新增填报实时清单需求========
             if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
                 //企业需求填报才进行系统通知
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
-                        .idRbacDepartment(InnovationConstant.DEPARTMENT_OD_ID)
+                        .idRbacDepartment(departmentId)
                         .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
                         .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
                         .title(entity.getEnterpriseName())
                         .build());
             }
         } else {
+            Customer customer = LoginContextHolder.getRequestAttributes();
+            if (!customer.getTypeRangeList().contains(BizTypeEnum.INTELLIGENCE.getType())) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("当前账号的单位不可操作数据").build();
+            }
             IplOdMain vo = getById(entity.getId());
             if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {
                 throw UnityRuntimeException.newInstance()
@@ -197,23 +219,23 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             //待处理时
             if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
-                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, InnovationConstant.DEPARTMENT_OD_ID);
+                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, departmentId,BizTypeEnum.INTELLIGENCE.getType());
             } else if (IplStatusEnum.DEALING.getId().equals(vo.getStatus())) {
                 //处理中 如果超时 则置为进展正常
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
                 iplLogService.saveLog(vo.getId(),
                         IplStatusEnum.DEALING.getId(),
-                        InnovationConstant.DEPARTMENT_OD_ID,
+                        departmentId,
                         0L,
                         "更新基本信息");
                 entity.setLatestProcess("更新基本信息");
-                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, InnovationConstant.DEPARTMENT_OD_ID);
+                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, departmentId,BizTypeEnum.INTELLIGENCE.getType());
                 //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
                 List<IplAssist> assists = iplAssistService.getAssists(entity.getIdRbacDepartmentDuty(), entity.getId());
                 List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
-                        .idRbacDepartment(InnovationConstant.DEPARTMENT_OD_ID)
+                        .idRbacDepartment(departmentId)
                         .dataSourceClass(SysMessageDataSourceClassEnum.DEMAND.getId())
                         .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
                         .title(entity.getEnterpriseName())
@@ -233,6 +255,12 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
      */
     @Transactional(rollbackFor = Exception.class)
     public void removeById(List<Long> ids) {
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (!customer.getTypeRangeList().contains(BizTypeEnum.INTELLIGENCE.getType())) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("当前账号的单位不可操作数据").build();
+        }
         List<IplOdMain> list = list(new LambdaQueryWrapper<IplOdMain>().in(IplOdMain::getId, ids));
         //状态为处理完毕 不可删除
         List<IplOdMain> doneList = list.stream()
@@ -260,7 +288,8 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         // 删除主表
         removeByIds(ids);
         // 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
-        iplAssistService.batchDel(ids, InnovationConstant.DEPARTMENT_DARB_ID, codes);
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.INTELLIGENCE.getType().toString()));
+        iplAssistService.batchDel(ids, departmentId, codes);
     }
 
     /**
