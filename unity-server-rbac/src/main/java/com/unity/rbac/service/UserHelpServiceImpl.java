@@ -124,8 +124,8 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
         customer.setNameRbacDepartment(user.getDepartment());
         customer.setDataPermissionIdList(dataPermissionIdList);
         customer.setIsSuperAdmin(user.getSuperAdmin());
-        /*customer.setIsAdmin(user.getSuperAdmin().equals(YesOrNoEnum.YES.getType()) ? YesOrNoEnum.YES.getType()
-                : UserTypeEnum.ADMIN.getId().equals(user.getUserType()) ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType());*/
+        customer.setIsAdmin(user.getSuperAdmin().equals(YesOrNoEnum.YES.getType()) ? YesOrNoEnum.YES.getType()
+                : UserTypeEnum.ADMIN.getId().equals(user.getUserType()) ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType());
         customer.setUserType(user.getUserType());
         customer.setOs(os);
         customer.setDepType(user.getDepType());

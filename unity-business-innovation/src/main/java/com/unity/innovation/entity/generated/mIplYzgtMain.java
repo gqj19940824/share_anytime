@@ -4,11 +4,7 @@ package com.unity.innovation.entity.generated;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
 import com.baomidou.mybatisplus.annotation.TableField;
-
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
 
@@ -49,6 +45,30 @@ public class mIplYzgtMain extends BaseEntity{
         @CommentTarget("企业简介")
         @TableField("enterprise_introduction")
         private String enterpriseIntroduction ;
+
+
+        /**
+         * 企业规模
+         **/
+        @CommentTarget("企业规模")
+        @TableField("enterprise_scale")
+        private String enterpriseScale ;
+
+
+        /**
+         * 企业性质
+         **/
+        @CommentTarget("企业性质")
+        @TableField("enterprise_nature")
+        private String enterpriseNature ;
+
+
+        /**
+         * 企业属地
+         **/
+        @CommentTarget("企业属地")
+        @TableField("enterprise_location")
+        private String enterpriseLocation ;
         
         
         
