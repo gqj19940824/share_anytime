@@ -70,6 +70,18 @@ public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplY
         if (entity.getIndustryCategory() != null) {
             lqw.eq(IplYzgtMain::getIndustryCategory, entity.getIndustryCategory());
         }
+        //企业规模
+        if (entity.getEnterpriseScale() != null) {
+            lqw.eq(IplYzgtMain::getEnterpriseScale, entity.getEnterpriseScale());
+        }
+        //企业属地
+        if(entity.getEnterpriseLocation() != null) {
+            lqw.eq(IplYzgtMain::getEnterpriseLocation, entity.getEnterpriseLocation());
+        }
+        //企业性质
+        if (entity.getEnterpriseNature() != null) {
+            lqw.eq(IplYzgtMain::getEnterpriseNature, entity.getEnterpriseNature());
+        }
         //来源
         if (entity.getSource() != null) {
             lqw.eq(IplYzgtMain::getSource, entity.getSource());

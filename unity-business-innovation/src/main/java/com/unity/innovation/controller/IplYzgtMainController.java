@@ -109,7 +109,8 @@ public class IplYzgtMainController extends BaseWebController {
         } else {
             map = Maps.newHashMap();
         }
-        Map<Long, String> sysCfgMap = sysCfgService.getSysCfgMap(3);
+        Map<Long, String> industryCategoryTitleMap = sysCfgService.getSysCfgMap(3);
+        Map<Long, String> enterpriseNatureTitleMap = sysCfgService.getSysCfgMap(6);
         return JsonUtil.<IplYzgtMain>ObjectToList(list,
                 (m, entity) -> {
                     if (SourceEnum.SELF.getId().equals(entity.getSource())) {
@@ -122,7 +123,19 @@ public class IplYzgtMainController extends BaseWebController {
                         m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
                         m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
                     }
-                    m.put("industryCategoryTitle", sysCfgMap.get(entity.getIndustryCategory()));
+                    m.put("industryCategoryTitle", industryCategoryTitleMap.get(entity.getIndustryCategory()));
+                    //企业性质
+                    m.put("enterpriseNatureTitle", enterpriseNatureTitleMap.get(entity.getEnterpriseNature()));
+                    //企业规模
+                    Dic enterpriseScale = dicUtils.getDicByCode(DicConstants.ENTERPRISE_SCALE, entity.getEnterpriseScale().toString());
+                    if (enterpriseScale != null && StringUtils.isNotBlank(enterpriseScale.getDicValue())) {
+                        m.put("enterpriseScaleTitle", enterpriseScale.getDicValue());
+                    }
+                    //企业属地
+                    Dic enterpriseLocation = dicUtils.getDicByCode(DicConstants.ENTERPRISE_LOCATION, entity.getEnterpriseLocation().toString());
+                    if (enterpriseLocation != null && StringUtils.isNotBlank(enterpriseLocation.getDicValue())) {
+                        m.put("enterpriseLocationTitle", enterpriseLocation.getDicValue());
+                    }
                 },
                 IplYzgtMain::getId, IplYzgtMain::getContactPerson, IplYzgtMain::getContactWay, IplYzgtMain::getEnterpriseName,
                 IplYzgtMain::getEnterpriseIntroduction, IplYzgtMain::getPost, IplYzgtMain::getSpecificCause, IplYzgtMain::getGmtCreate, IplYzgtMain::getAttachmentCode,
