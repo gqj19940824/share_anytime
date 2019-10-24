@@ -10,10 +10,7 @@ import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.*;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplDarbMain;
-import com.unity.innovation.enums.ListCategoryEnum;
-import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
-import com.unity.innovation.enums.SysMessageFlowStatusEnum;
-import com.unity.innovation.enums.UnitCategoryEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
@@ -58,20 +55,16 @@ public class TopicMessageListener implements MessageListener {
         String itemValue = new String(body);
         // 请参考配置文件，本例中key，value的序列化方式均为string。
         log.info("itemValue:" + itemValue);
-        //itemValue:listControl:DEPARTMENT_DARB_CONTROL:DEAL_OVER_TIME:12-0
+        //itemValue:listControl:DEPARTMENT_DARB_CONTROL:DEAL_OVER_TIME:12-0:10
         String[] itemValueArrays = itemValue.split(RedisConstants.KEY_JOINER);
-        if (itemValueArrays.length == 4) {
-            String departmentType = itemValueArrays[1];
-            ListCategoryEnum listCategoryEnum = ListCategoryEnum.valueOfName(departmentType);
-            if (listCategoryEnum != null) {
+        if (itemValueArrays.length == 5) {
                 String[] idArr = itemValueArrays[3].split("-");
                 //日志记录
-                recordTimeOutLog(listCategoryEnum.getId(), itemValueArrays[2], idArr);
+                recordTimeOutLog(itemValueArrays[4],itemValueArrays[1], itemValueArrays[2], idArr);
                 //更新清单
                 updateProcessStatus(itemValueArrays);
                 //增加系统消息
                 addSysMessage(itemValueArrays);
-            }
         }
 
     }
@@ -90,6 +83,7 @@ public class TopicMessageListener implements MessageListener {
         Long idRbacDepartmentDuty = listCategoryEnum == null ? null : listCategoryEnum.getId();
         // 主表id
         String[] idStrArr = itemValueArrays[3].split("-");
+        Integer bizType = Integer.parseInt(itemValueArrays[4]);
         Long idIplMain = Long.parseLong(idStrArr[0]);
         Dic dicByCode = dicUtils.getDicByCode(ListTypeConstants.LIST_TIMEOUT, itemValueArrays[2]);
         //配置项为小时，超过24小时换算为天
@@ -104,27 +98,27 @@ public class TopicMessageListener implements MessageListener {
                         //超时未更新
                         : SysMessageFlowStatusEnum.THREE.getId())
                 .build();
-        if (InnovationConstant.DEPARTMENT_DARB_ID.equals(idRbacDepartmentDuty)) {
+        if (BizTypeEnum.CITY.getType().equals(bizType)) {
             IplDarbMain main = iplDarbMainService.getById(idIplMain);
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(main.getIdRbacDepartmentDuty());
             inventoryMessage.setDataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId());
-        } else if (InnovationConstant.DEPARTMENT_ESB_ID.equals(idRbacDepartmentDuty)) {
+        } else if (BizTypeEnum.ENTERPRISE.getType().equals(bizType)) {
             IplEsbMain main = iplEsbMainService.getById(idIplMain);
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(main.getIdRbacDepartmentDuty());
             inventoryMessage.setDataSourceClass(SysMessageDataSourceClassEnum.DEVELOPING.getId());
-        } else if (InnovationConstant.DEPARTMENT_SUGGESTION_ID.equals(idRbacDepartmentDuty)) {
+        } else if (BizTypeEnum.POLITICAL.getType().equals(bizType)) {
             IplSuggestion main = iplSuggestionService.getById(idIplMain);
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(idRbacDepartmentDuty);
             inventoryMessage.setDataSourceClass(SysMessageDataSourceClassEnum.SUGGEST.getId());
-        } else if (InnovationConstant.DEPARTMENT_OD_ID.equals(idRbacDepartmentDuty)) {
+        } else if (BizTypeEnum.INTELLIGENCE.getType().equals(bizType)) {
             IplOdMain main = iplOdMainService.getById(idIplMain);
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(idRbacDepartmentDuty);
             inventoryMessage.setDataSourceClass(SysMessageDataSourceClassEnum.DEMAND.getId());
-        } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(idRbacDepartmentDuty)) {
+        } else if (BizTypeEnum.GROW.getType().equals(bizType)) {
             IplSatbMain main = iplSatbMainService.getById(idIplMain);
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(idRbacDepartmentDuty);
@@ -132,6 +126,7 @@ public class TopicMessageListener implements MessageListener {
         }
         if (!"0".equals(idStrArr[1])) {
             //说明是协同单位超时
+            inventoryMessage.setBizType(bizType);
             inventoryMessage.setHelpDepartmentIdList(Arrays.asList(Long.parseLong(idStrArr[1])));
             sysMessageHelpService.addInventoryHelpMessage(inventoryMessage);
         } else {
@@ -194,19 +189,20 @@ public class TopicMessageListener implements MessageListener {
      * @author zhangxiaogang
      * @since 2019/10/8 18:37
      */
-    private void recordTimeOutLog(Long departmentId, String overTimeType, String... idArrays) {
+    private void recordTimeOutLog(String type, String departmentId, String overTimeType, String... idArrays) {
         IplTimeOutLog iplTimeOutLog = new IplTimeOutLog();
         iplTimeOutLog.setMainId(Long.valueOf(idArrays[0]));
         Long aLong = Long.valueOf(idArrays[1]);
         //主责
         if (aLong.intValue() == 0) {
             iplTimeOutLog.setUnitCategory(UnitCategoryEnum.MAIN.getId());
-            iplTimeOutLog.setDepartmentId(departmentId);
+            iplTimeOutLog.setDepartmentId(Long.valueOf(departmentId));
         } else {
             //协同
             iplTimeOutLog.setUnitCategory(UnitCategoryEnum.COORDINATION.getId());
             iplTimeOutLog.setDepartmentId(aLong);
         }
+        iplTimeOutLog.setBizType(type);
         iplTimeOutLog.setTimeType(overTimeType);
         iplTimeOutLogService.save(iplTimeOutLog);
     }

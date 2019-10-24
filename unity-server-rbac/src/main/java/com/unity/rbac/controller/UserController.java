@@ -15,6 +15,7 @@ import com.unity.rbac.service.UserServiceImpl;
 import com.unity.rbac.utils.RegExpValidatorUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
+
+import java.util.Map;
 
 /**
  * 用户信息后台控制类
@@ -217,6 +220,22 @@ public class UserController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到指定用户ID");
         }
         return success(userService.getUserById(user.getId()));
+    }
+
+    /**
+     * 获取登录信息
+     *
+     * @param  param 认证参数
+     * @return code -> 0 表示成功
+     * @author gengjiajia
+     * @since 2019/10/24 09:29  
+     */
+    @PostMapping("getLoginInfo")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getLoginInfo(@RequestBody Map<String,String> param) {
+        if(MapUtils.isEmpty(param) || StringUtils.isEmpty(param.get(UserConstants.SECRET))){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到认证信息");
+        }
+        return success(userService.getLoginInfo(param.get(UserConstants.SECRET)));
     }
 
     /**

@@ -57,7 +57,14 @@ public class mIplTimeOutLog extends BaseEntity{
         @CommentTarget("单位id")
         @TableField("department_id")
         private Long departmentId ;
-        
+
+        /**
+        * 类别
+        **/
+        @CommentTarget("类别")
+        @TableField("biz_type")
+        private String bizType ;
+
         
 
 }
