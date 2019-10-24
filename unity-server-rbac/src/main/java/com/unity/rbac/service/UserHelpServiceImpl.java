@@ -130,12 +130,21 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
         customer.setOs(os);
         customer.setDepType(user.getDepType());
         //获取用户所在单位可处理数据范围
-        List<Dic> dicList = dicUtils.getDicsByGroupCode(DicConstants.DEPART_HAVE_LIST_TYPE);
-        List<Integer> bizTypeList = dicList.stream()
-                .filter(dic -> dic.getDicValue().equals(user.getIdRbacDepartment().toString()))
-                .map(dic -> Integer.parseInt(dic.getDicCode()))
-                .collect(Collectors.toList());
-        customer.setTypeRangeList(bizTypeList);
+        if(user.getIdRbacDepartment() != null){
+            List<Dic> dicList = dicUtils.getDicsByGroupCode(DicConstants.DEPART_HAVE_LIST_TYPE);
+            List<Integer> bizTypeList = dicList.stream()
+                    .filter(dic -> dic.getDicValue().equals(user.getIdRbacDepartment().toString()))
+                    .map(dic -> Integer.parseInt(dic.getDicCode()))
+                    .collect(Collectors.toList());
+            customer.setTypeRangeList(bizTypeList);
+        } else if(user.getSuperAdmin().equals(YesOrNoEnum.YES.getType())
+                || user.getUserType().equals(UserTypeEnum.LEADER.getId())){
+            List<Dic> dicList = dicUtils.getDicsByGroupCode(DicConstants.DEPART_HAVE_LIST_TYPE);
+            List<Integer> bizTypeList = dicList.stream()
+                    .map(dic -> Integer.parseInt(dic.getDicCode()))
+                    .collect(Collectors.toList());
+            customer.setTypeRangeList(bizTypeList);
+        }
         redisUtils.putCurrentUserByToken(tokenStr, customer, day);
     }
 
