@@ -1,26 +1,13 @@
 package com.unity.innovation.util;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.RedisConstants;
-import com.unity.common.exception.UnityRuntimeException;
-import com.unity.common.pojos.SystemResponse;
-import com.unity.common.util.JsonUtil;
 import com.unity.common.util.XyDates;
 import com.unity.common.utils.HashRedisUtils;
-import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.SysCfg;
-import com.unity.innovation.entity.generated.IplDarbMain;
-import com.unity.innovation.entity.generated.IplDarbMainSnapshot;
-import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.ListCategoryEnum;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -28,11 +15,8 @@ import javax.annotation.Resource;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -98,7 +82,7 @@ public class InnovationUtil {
     * @date 2019/9/18 14:13
     */
     public static String getDeptNameById(Long deptId) {
-        return  innovationUtil.hashRedisUtils.getFieldValueByFieldName(RedisConstants.DEPARTMENT.concat(deptId.toString()), RedisConstants.NAME);
+        return  innovationUtil.hashRedisUtils.getFieldValueByFieldName(RedisConstants.DEPARTMENT + deptId, RedisConstants.NAME);
     }
 
     /**
