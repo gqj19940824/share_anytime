@@ -503,7 +503,7 @@ public class IpaManageMainController extends BaseWebController {
             if (byId == null){
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
             }
-            if (!IpaStatusEnum.UNPUBLISH.equals(byId.getStatus())){
+            if (!IpaStatusEnum.UNPUBLISH.getId().equals(byId.getStatus())){
                 return error(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION, "非待发布状态数据不允许编辑");
             }
             ipaManageMainService.edit(entity);
