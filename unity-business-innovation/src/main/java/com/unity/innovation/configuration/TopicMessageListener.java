@@ -10,10 +10,7 @@ import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.*;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplDarbMain;
-import com.unity.innovation.enums.ListCategoryEnum;
-import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
-import com.unity.innovation.enums.SysMessageFlowStatusEnum;
-import com.unity.innovation.enums.UnitCategoryEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
@@ -90,6 +87,7 @@ public class TopicMessageListener implements MessageListener {
         Long idRbacDepartmentDuty = listCategoryEnum == null ? null : listCategoryEnum.getId();
         // 主表id
         String[] idStrArr = itemValueArrays[3].split("-");
+        Integer bizType = Integer.parseInt(itemValueArrays[4]);
         Long idIplMain = Long.parseLong(idStrArr[0]);
         Dic dicByCode = dicUtils.getDicByCode(ListTypeConstants.LIST_TIMEOUT, itemValueArrays[2]);
         //配置项为小时，超过24小时换算为天
@@ -104,27 +102,27 @@ public class TopicMessageListener implements MessageListener {
                         //超时未更新
                         : SysMessageFlowStatusEnum.THREE.getId())
                 .build();
-        if (InnovationConstant.DEPARTMENT_DARB_ID.equals(idRbacDepartmentDuty)) {
+        if (BizTypeEnum.CITY.getType().equals(bizType)) {
             IplDarbMain main = iplDarbMainService.getById(idIplMain);
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(main.getIdRbacDepartmentDuty());
             inventoryMessage.setDataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId());
-        } else if (InnovationConstant.DEPARTMENT_ESB_ID.equals(idRbacDepartmentDuty)) {
+        } else if (BizTypeEnum.ENTERPRISE.getType().equals(bizType)) {
             IplEsbMain main = iplEsbMainService.getById(idIplMain);
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(main.getIdRbacDepartmentDuty());
             inventoryMessage.setDataSourceClass(SysMessageDataSourceClassEnum.DEVELOPING.getId());
-        } else if (InnovationConstant.DEPARTMENT_SUGGESTION_ID.equals(idRbacDepartmentDuty)) {
+        } else if (BizTypeEnum.POLITICAL.getType().equals(bizType)) {
             IplSuggestion main = iplSuggestionService.getById(idIplMain);
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(idRbacDepartmentDuty);
             inventoryMessage.setDataSourceClass(SysMessageDataSourceClassEnum.SUGGEST.getId());
-        } else if (InnovationConstant.DEPARTMENT_OD_ID.equals(idRbacDepartmentDuty)) {
+        } else if (BizTypeEnum.INTELLIGENCE.getType().equals(bizType)) {
             IplOdMain main = iplOdMainService.getById(idIplMain);
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(idRbacDepartmentDuty);
             inventoryMessage.setDataSourceClass(SysMessageDataSourceClassEnum.DEMAND.getId());
-        } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(idRbacDepartmentDuty)) {
+        } else if (BizTypeEnum.GROW.getType().equals(bizType)) {
             IplSatbMain main = iplSatbMainService.getById(idIplMain);
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(idRbacDepartmentDuty);
@@ -132,6 +130,7 @@ public class TopicMessageListener implements MessageListener {
         }
         if (!"0".equals(idStrArr[1])) {
             //说明是协同单位超时
+            inventoryMessage.setBizType(bizType);
             inventoryMessage.setHelpDepartmentIdList(Arrays.asList(Long.parseLong(idStrArr[1])));
             sysMessageHelpService.addInventoryHelpMessage(inventoryMessage);
         } else {
