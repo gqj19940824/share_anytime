@@ -89,7 +89,6 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         if (CollectionUtils.isNotEmpty(attachments)) {
             attachmentService.bachSave(entity.getAttachmentCode(), attachments);
         }
-
         save(entity);
 
         // 设置处理超时时间
@@ -112,8 +111,8 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
     @Transactional(rollbackFor = Exception.class)
     public void edit(IplDarbMain entity) {
         // 保存附件
-        Long id = entity.getId();
-        IplDarbMain byId = getById(id);
+        Long idIplMain = entity.getId();
+        IplDarbMain byId = getById(idIplMain);
         if (byId == null) {
             throw new UnityRuntimeException(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
@@ -122,11 +121,9 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
             attachmentService.updateAttachments(byId.getAttachmentCode(), attachments);
         }
 
-        // 更新超时时间
-        Integer status = entity.getStatus();
-
         // 保存修改
         entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+        Integer status = byId.getStatus();
         if (IplStatusEnum.DEALING.getId().equals(status)) {
             // 非"待处理"状态才记录日志，该字段与日志处理相同
             entity.setLatestProcess("更新基本信息");
@@ -141,12 +138,12 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
             redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, entity.getIdRbacDepartmentDuty());
 
             // 非"待处理"状态才记录日志
-            Integer lastDealStatus = iplLogService.getLastDealStatus(id, entity.getIdRbacDepartmentDuty());
-            IplLog iplLog = IplLog.newInstance().idIplMain(id).idRbacDepartmentAssist(0L)
+            Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, BizTypeEnum.CITY.getType());
+            IplLog iplLog = IplLog.newInstance().idIplMain(idIplMain).idRbacDepartmentAssist(0L).bizType(BizTypeEnum.CITY.getType())
                     .processInfo("更新基本信息").idRbacDepartmentDuty(entity.getIdRbacDepartmentDuty()).dealStatus(lastDealStatus).build();
             iplLogService.save(iplLog);
             //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
-            List<IplAssist> assists = iplAssistService.getAssists(entity.getIdRbacDepartmentDuty(), entity.getId());
+            List<IplAssist> assists = iplAssistService.getAssists(entity.getBizType(), entity.getId());
             List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
             sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                     .sourceId(entity.getId())
@@ -172,7 +169,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         if (CollectionUtils.isNotEmpty(list)) {
             //======处理中的数据，主责单位删除--清单协同处理--增加系统消息=======
             list.forEach(entity -> {
-                List<IplAssist> assists = iplAssistService.getAssists(entity.getIdRbacDepartmentDuty(), entity.getId());
+                List<IplAssist> assists = iplAssistService.getAssists(entity.getBizType(), entity.getId());
                 List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
                 sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
@@ -191,7 +188,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
             // 删除主表
             removeByIds(mainIds);
             // 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
-            iplAssistService.batchDel(mainIds, InnovationConstant.DEPARTMENT_DARB_ID, attachmentCodes);
+            iplAssistService.batchDel(mainIds, InnovationConstant.DEPARTMENT_DARB_ID, attachmentCodes, BizTypeEnum.CITY.getType());
         }
     }
 

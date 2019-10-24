@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.unity.common.base.CommentTarget;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.mIplSatbMain;
+import com.unity.innovation.enums.BizTypeEnum;
 import lombok.*;
 
 import java.util.List;
@@ -66,5 +67,8 @@ public class IplSatbMain extends mIplSatbMain {
      */
     @TableField(exist = false)
     private String processStatusTitle;
+
+    @TableField(exist = false)
+    private Integer bizType = BizTypeEnum.GROW.getType();
 }
 

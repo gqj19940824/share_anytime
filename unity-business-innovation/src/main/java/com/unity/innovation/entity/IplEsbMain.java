@@ -6,6 +6,7 @@ import com.unity.common.base.CommentTarget;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.entity.generated.mIplEsbMain;
+import com.unity.innovation.enums.BizTypeEnum;
 import lombok.*;
 
 import java.util.List;
@@ -84,6 +85,7 @@ public class IplEsbMain extends mIplEsbMain{
     @TableField(exist = false)
     private String newProductAndTech ;
 
-
+    @TableField(exist = false)
+    private Integer bizType = BizTypeEnum.ENTERPRISE.getType();
 }
 

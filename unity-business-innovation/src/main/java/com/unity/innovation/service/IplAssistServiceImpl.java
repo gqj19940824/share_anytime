@@ -137,8 +137,8 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             // 主表id
             Long idIplMain = (Long) ReflectionUtils.getFieldValue(entity,"id");
 
-            List<IplAssist> assists1 = getAssists(idRbacDepartmentDuty, idIplMain);
-            List<Long> collect = assists1.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
+            List<IplAssist> assists1 = getAssists(bizType, idIplMain);
+            List<Long> collect = assists1.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList()); // TODO
 
             // 遍历协同单位组装数据
             List<IplAssist> assistList = new ArrayList<>();
@@ -161,16 +161,15 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                 deptName.append(InnovationUtil.getDeptNameById(idRbacDepartmentAssist) + "、");
             });
 
-
-
             // 拼接"处理进展"中的协同单位名称
             String nameStr = null;
-            if(deptName.indexOf("、") > 0){
+            if(deptName.indexOf("、") > -1){
                 nameStr = deptName.subSequence(0, deptName.lastIndexOf("、")).toString();
             }
             // 计算日志的状态
-            Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, idRbacDepartmentDuty);
-            IplLog iplLog = IplLog.newInstance().idRbacDepartmentAssist(0L).processInfo("新增协同单位：" + nameStr).idIplMain(idIplMain).idRbacDepartmentDuty(idRbacDepartmentDuty).dealStatus(lastDealStatus).build();
+            Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, bizType);
+            IplLog iplLog = IplLog.newInstance().idRbacDepartmentAssist(0L).processInfo("新增协同单位：" + nameStr)
+                    .bizType(bizType).idIplMain(idIplMain).idRbacDepartmentDuty(idRbacDepartmentDuty).dealStatus(lastDealStatus).build(); // other TODO
 
             // 新增协同单位、保存处理日志、主表重设超时、设置协同单位超时
             iplAssistService.addAssist(iplLog, assistList);
@@ -191,8 +190,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                     .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
                     .title(enterpriseName)
                     .helpDepartmentIdList(list)
-                    //TODO 设置清单type
-                    //.bizType()
+                    .bizType(bizType)
                     .build());
         } catch (UnityRuntimeException e) {
             throw e;
@@ -235,30 +233,35 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      * @since 2019-10-09 14:42
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
-    public void del(Long mainId, Long idRbacDepartmentDuty, String attachmentCode){
-        batchDel(Collections.singletonList(mainId), idRbacDepartmentDuty, Collections.singletonList(attachmentCode));
+    public void del(Long mainId, Long idRbacDepartmentDuty, String attachmentCode, Integer bizType){
+        batchDel(Collections.singletonList(mainId), idRbacDepartmentDuty, Collections.singletonList(attachmentCode), bizType);
     }
 
     /**
      * 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
      *
      * @param  mainIds 主表id，
-     * @param  idRbacDepartmentDuty 主责单位id
+     * @param  bizType 业务类型
      * @return
      * @author qinhuan
      * @since 2019-10-09 14:42
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
-    public void batchDel(List<Long> mainIds, Long idRbacDepartmentDuty, List<String> attachmentCodes){
+    public void batchDel(List<Long> mainIds, Long idRbacDepartmentDuty, List<String> attachmentCodes, Integer bizType){
 
         // 删除日志
         LambdaQueryWrapper<IplLog> logQw = new LambdaQueryWrapper<>();
-        logQw.eq(IplLog::getIdRbacDepartmentDuty, idRbacDepartmentDuty).in(IplLog::getIdIplMain, mainIds);
+        logQw.eq(IplLog::getBizType, bizType).in(IplLog::getIdIplMain, mainIds);
         iplLogService.remove(logQw);
 
-        // 删除协同
         LambdaQueryWrapper<IplAssist> assistQw = new LambdaQueryWrapper<>();
-        assistQw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).in(IplAssist::getIdIplMain, mainIds);
+        assistQw.eq(IplAssist::getBizType, bizType).in(IplAssist::getIdIplMain, mainIds);
+        // 清除协同单位定时任务
+        List<IplAssist> iplAssists = iplAssistService.list(assistQw);
+        iplAssists.forEach(e->{
+            redisSubscribeService.removeRecordInfo(e.getIdIplMain() + "-" + e.getIdRbacDepartmentAssist(), e.getIdRbacDepartmentDuty());
+        });
+        // 删除协同
         iplAssistService.remove(assistQw);
 
         // 删除附件
@@ -270,11 +273,6 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         mainIds.forEach(e->{
             redisSubscribeService.removeRecordInfo(e + "-0", idRbacDepartmentDuty);
         });
-        // 清除协同单位定时任务
-        List<IplAssist> iplAssists = iplAssistService.list(assistQw);
-        iplAssists.forEach(e->{
-            redisSubscribeService.removeRecordInfo(e.getIdIplMain() + "-" + e.getIdRbacDepartmentAssist(), e.getIdRbacDepartmentDuty());
-        });
     }
 
     /**
@@ -283,19 +281,19 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      * @param mainId :主表id，idRbacDepartmentDuty:主表主责单位id，processStatus:主表状态
      * @return
      */
-    public Map<String, Object> totalProcessAndAssists(Long mainId, Long idRbacDepartmentDuty, Integer processStatus) {
+    public Map<String, Object> totalProcessAndAssists(Long mainId, Long idRbacDepartmentDuty, Integer processStatus, Integer bizType) {
 
-        List<IplAssist> assists = getAssists(idRbacDepartmentDuty, mainId);
+        List<IplAssist> assists = getAssists(bizType, mainId);
 
         // 查询处理日志列表
         LambdaQueryWrapper<IplLog> logqw = new LambdaQueryWrapper<>();
-        logqw.eq(IplLog::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplLog::getIdIplMain, mainId).orderByDesc(IplLog::getGmtCreate);
+        logqw.eq(IplLog::getBizType, bizType).eq(IplLog::getIdIplMain, mainId).orderByDesc(IplLog::getGmtCreate);
         List<IplLog> logs = iplLogService.list(logqw);
 
         // 日志定义返回值
         List<Map<String, Object>> processList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(logs)) {
-            // 按照协同单位的id分成子logs
+            // 按照协同单位的id分成子logs  TODO  bizType
             LinkedHashMap<Long, List<IplLog>> collect = logs.stream()
                     .collect(Collectors.groupingBy(IplLog::getIdRbacDepartmentAssist, LinkedHashMap::new, Collectors.toList()));
 
@@ -323,7 +321,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
         Customer customer = LoginContextHolder.getRequestAttributes();
         // 非主责单位协同列表只查自己
-        if (!customer.getIdRbacDepartment().equals(idRbacDepartmentDuty)){
+        if (!customer.getIdRbacDepartment().equals(idRbacDepartmentDuty)){ // TODO
             Iterator<IplAssist> iterator = assists.iterator();
             while (iterator.hasNext()){
                 IplAssist next = iterator.next();
@@ -337,10 +335,10 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         return resultMap;
     }
 
-    public List<IplAssist> getAssists(Long idRbacDepartmentDuty, Long mainId){
+    public List<IplAssist> getAssists(Integer bizType, Long mainId){
         // 查询协同单位列表
         LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-        qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, mainId).orderByAsc(IplAssist::getGmtCreate);
+        qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, mainId).orderByAsc(IplAssist::getGmtCreate);
 
         List<IplAssist> assists = list(qw);
 
@@ -371,18 +369,25 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      * @author gengzhiqiang
      * @date 2019/7/26 16:03
      */
-    public List<Map<String, Object>> getAssistList(Long idIplMain,Long idDuty) {
-        //主表id  数据集合
-        List<DepartmentVO> departmentList = rbacClient.getAllDepartment();
-        departmentList = departmentList.stream().filter(d -> !d.getId().equals(idDuty)).collect(Collectors.toList());
+    public List<Map<String, Object>> getAssistList(Long idIplMain, Integer bizType) {
+
         List<IplAssist> assistList = iplAssistService.list(new LambdaQueryWrapper<IplAssist>()
                 .eq(IplAssist::getIdIplMain, idIplMain)
-                .eq(IplAssist::getIdRbacDepartmentDuty, idDuty));
-        List<Long> ids = assistList.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
-        departmentList = departmentList.stream().filter(d -> !ids.contains(d.getId())).collect(Collectors.toList());
-        //去掉宣传部单位
-        departmentList = departmentList.stream().filter(d -> !InnovationConstant.DEPARTMENT_PD_ID.equals(d.getId())).collect(Collectors.toList());
+                .eq(IplAssist::getBizType, bizType));
+        // 已有协同单位的单位id集合
+        List<Long> assistDeptIds = assistList.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
+        // 系统中所有单位的单位id集合
+        List<DepartmentVO> departmentList = rbacClient.getAllDepartment();
+
+        // 抛出已有协同单位、宣传部单位、主责单位
+        departmentList = departmentList.stream().filter(d -> check(assistDeptIds, d.getId())).collect(Collectors.toList());
+
         return JsonUtil.ObjectToList(departmentList, new String[]{"id", "name"}, null);
+    }
+    
+    private boolean check(List<Long> assistDeptIds, Long idDept) {
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        return !assistDeptIds.contains(idDept) && !InnovationConstant.DEPARTMENT_PD_ID.equals(idDept) && !idDept.equals(customer.getIdRbacDepartment());
     }
 
 }
