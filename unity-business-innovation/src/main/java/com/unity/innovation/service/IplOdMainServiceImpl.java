@@ -227,7 +227,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                         IplStatusEnum.DEALING.getId(),
                         departmentId,
                         0L,
-                        "更新基本信息");
+                        "更新基本信息",BizTypeEnum.INTELLIGENCE.getType());
                 entity.setLatestProcess("更新基本信息");
                 redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, departmentId,BizTypeEnum.INTELLIGENCE.getType());
                 //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
