@@ -289,7 +289,8 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         // 删除主表
         removeByIds(ids);
         // 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
-        iplAssistService.batchDel(ids, InnovationConstant.DEPARTMENT_DARB_ID, codes, BizTypeEnum.INTELLIGENCE.getType());
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.INTELLIGENCE.getType().toString()));
+        iplAssistService.batchDel(ids, departmentId, codes,BizTypeEnum.INTELLIGENCE.getType());
     }
 
     /**
