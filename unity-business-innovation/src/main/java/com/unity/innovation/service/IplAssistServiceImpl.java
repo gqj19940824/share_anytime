@@ -384,7 +384,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
         return JsonUtil.ObjectToList(departmentList, new String[]{"id", "name"}, null);
     }
-    
+
     private boolean check(List<Long> assistDeptIds, Long idDept) {
         Customer customer = LoginContextHolder.getRequestAttributes();
         return !assistDeptIds.contains(idDept) && !InnovationConstant.DEPARTMENT_PD_ID.equals(idDept) && !idDept.equals(customer.getIdRbacDepartment());
