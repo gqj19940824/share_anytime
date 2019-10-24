@@ -346,6 +346,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
      */
     private void getUserAuthResource(Long userId, long os, Customer customer, Map<String, Object> info) {
         List<Resource> userAuthResourceList = resourceService.getUserAuthResourceListByUserId(userId, os);
+        info.put(UserConstants.BUTTON_CODE_LIST, Lists.newArrayList());
+        info.put(UserConstants.MENU_CODE_LIST, Lists.newArrayList());
         if (CollectionUtils.isEmpty(userAuthResourceList)) {
             return;
         }
