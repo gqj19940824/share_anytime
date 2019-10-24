@@ -279,21 +279,45 @@ public class IplEsbMainController extends BaseWebController {
     }
 
     /**
-     * 功能描述 主责单位 实时更新 接口
+     * 主责单位实时更新
      *
-     * @param iplLog 对象
-     * @return 返回信息
-     * @author gengzhiqiang
-     * @date 2019/9/17 15:51
+     * @param iplLog
+     * @return
      */
-    @PostMapping("/updateStatus")
-    public Mono<ResponseEntity<SystemResponse<Object>>> updateStatus(@RequestBody IplLog iplLog) {
+    @PostMapping("/dutyUpdateStatus")
+    public Mono<ResponseEntity<SystemResponse<Object>>> dutyUpdateStatus(@RequestBody IplLog iplLog) {
         IplEsbMain entity = service.getById(iplLog.getIdIplMain());
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        iplLogService.updateStatus(entity, iplLog);
-        return success(InnovationConstant.SUCCESS);
+        Integer dealStatus = iplLog.getDealStatus();
+        if (dealStatus == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        iplLogService.dutyUpdateStatus(entity, iplLog);
+
+        return success();
+    }
+
+    /**
+     * 实时更新
+     *
+     * @param iplLog
+     * @return
+     */
+    @PostMapping("/assistUpdateStatus")
+    public Mono<ResponseEntity<SystemResponse<Object>>> assistUpdateStatus(@RequestBody IplLog iplLog) {
+        IplEsbMain entity = service.getById(iplLog.getIdIplMain());
+        if (entity == null) {
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        Integer dealStatus = iplLog.getDealStatus();
+        if (dealStatus == null){
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        iplLogService.assistUpdateStatus(entity, iplLog);
+
+        return success();
     }
 
 
