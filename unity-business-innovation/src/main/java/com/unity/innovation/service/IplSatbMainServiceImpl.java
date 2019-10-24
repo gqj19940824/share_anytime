@@ -444,7 +444,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     @Transactional(rollbackFor = Exception.class)
     public void realTimeUpdateStatus(IplLog entity) {
         IplSatbMain main = this.getById(entity.getIdIplMain());
-        iplLogService.updateStatus(main, entity);
+        iplLogService.dutyUpdateStatus(main, entity);
     }
 
     /**
@@ -517,5 +517,23 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
         ExcelExportByTemplate.setData(4,main.getTitle(), satbData, main.getNotes(), wb);
         ExcelExportByTemplate.download(request, response, wb, main.getTitle());
+    }
+
+    /**
+     * 协同单位更新状态
+     *
+     * @param  iplLog 包含状态信息
+     * @author gengjiajia
+     * @since 2019/10/24 16:15
+     */
+    public void assistRealTimeUpdateStatus(IplLog iplLog) {
+        IplSatbMain main = this.getById(iplLog.getIdIplMain());
+        if(main == null){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("未获取到成长目标投资清单信息")
+                    .build();
+        }
+        iplLogService.assistUpdateStatus(main,iplLog);
     }
 }
