@@ -189,7 +189,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
             save(entity);
             //处理集合数据
-            updateIds(entity.getId(), ids, departmentId);
+            updateIds(entity.getId(), ids, entity.getBizType());
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
         } else {
             //编辑
@@ -205,7 +205,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
                         .message("只有待提交和已驳回状态下数据可编辑").build();
             }
-            updateIds(vo.getId(), ids, departmentId);
+            updateIds(vo.getId(), ids, entity.getBizType());
             updateById(entity);
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
         }
@@ -216,12 +216,12 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
      *
      * @param id           主表id
      * @param ids          基础数据id集合
-     * @param departmentId 单位id
+     * @param bizType       信息类型
      * @author gengzhiqiang
      * @date 2019/10/17 11:17
      */
-    private void updateIds(Long id, List<Long> ids, Long departmentId) {
-        if (ListCategoryEnum.DEPARTMENT_SATB.getId().equals(departmentId)) {
+    private void updateIds(Long id, List<Long> ids, Integer bizType) {
+        if (BizTypeEnum.LYDEPTINFO.getType().equals(bizType)) {
             //科技局
             //数据库里存的数据
             List<InfoDeptSatb> infoDeptSatbList = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>()
@@ -274,7 +274,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                 satbService.update(deleteInfoDeptSatb, new LambdaQueryWrapper<InfoDeptSatb>()
                         .in(InfoDeptSatb::getId, delete));
             }
-        } else if (ListCategoryEnum.DEPARTMENT_YZGT.getId().equals(departmentId)) {
+        } else if (BizTypeEnum.RQDEPTINFO.getType().equals(bizType)) {
             //亦庄国投
             //数据库里存的数据
             List<InfoDeptYzgt> infoDeptYzgtList = yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>()

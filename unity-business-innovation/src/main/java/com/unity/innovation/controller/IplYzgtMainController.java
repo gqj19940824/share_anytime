@@ -84,7 +84,7 @@ public class IplYzgtMainController extends BaseWebController {
      * 功能描述 数据整理
      *
      * @param list 集合
-     * @return java.util.List<java.util.Map               <               java.lang.String               ,               java.lang.Object>> 规范数据
+     * @return java.util.List<java.util.Map <java.lang.String,java.lang.Object>> 规范数据
      * @author zhangxiaogang
      * @date 2019/9/27 13:36
      */
@@ -180,7 +180,8 @@ public class IplYzgtMainController extends BaseWebController {
      */
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(IplYzgtMain entity) {
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplYzgtMain::getEnterpriseName, IplYzgtMain::getIndustryCategory, IplYzgtMain::getIdCard, IplYzgtMain::getSource,
-                IplYzgtMain::getSpecificCause, IplYzgtMain::getEnterpriseIntroduction, IplYzgtMain::getContactPerson, IplYzgtMain::getContactWay, IplYzgtMain::getPost);
+                IplYzgtMain::getSpecificCause, IplYzgtMain::getEnterpriseIntroduction, IplYzgtMain::getContactPerson, IplYzgtMain::getContactWay, IplYzgtMain::getPost,
+                IplYzgtMain::getEnterpriseScale,IplYzgtMain::getEnterpriseNature,IplYzgtMain::getEnterpriseLocation);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
         }
