@@ -444,7 +444,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     @Transactional(rollbackFor = Exception.class)
     public void realTimeUpdateStatus(IplLog entity) {
         IplSatbMain main = this.getById(entity.getIdIplMain());
-        iplLogService.updateStatus(main, entity);
+//        iplLogService.updateStatus(main, entity);
     }
 
     /**

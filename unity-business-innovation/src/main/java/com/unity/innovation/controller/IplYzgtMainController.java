@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -17,6 +19,7 @@ import com.unity.common.util.JKDates;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.DateUtil;
+import com.unity.common.utils.DicUtils;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplYzgtMain;
@@ -60,6 +63,8 @@ public class IplYzgtMainController extends BaseWebController {
     private SysCfgServiceImpl sysCfgService;
     @Resource
     private AttachmentServiceImpl attachmentService;
+    @Resource
+    private DicUtils dicUtils;
 
 
     /**
@@ -134,15 +139,29 @@ public class IplYzgtMainController extends BaseWebController {
      * @date 2019/9/27 13:36
      */
     private Map<String, Object> convert2Map(IplYzgtMain iym) {
-        Map<Long, String> sysCfgMap = sysCfgService.getSysCfgMap(3);
-        return JsonUtil.<IplYzgtMain>ObjectToMap(iym,
+        Map<Long, String> industryCategoryTitleMap = sysCfgService.getSysCfgMap(3);
+        Map<Long, String> enterpriseNatureTitleMap = sysCfgService.getSysCfgMap(6);
+
+        return JsonUtil.ObjectToMap(iym,
                 (m, entity) -> {
                     if (SourceEnum.SELF.getId().equals(entity.getSource())) {
                         m.put("sourceTitle", InnovationConstant.DEPARTMENT_YZGT);
                     } else if (SourceEnum.ENTERPRISE.getId().equals(entity.getSource())) {
                         m.put("sourceTitle", SourceEnum.ENTERPRISE.getName());
                     }
-                    m.put("industryCategoryTitle", sysCfgMap.get(entity.getIndustryCategory()));
+                    m.put("industryCategoryTitle", industryCategoryTitleMap.get(entity.getIndustryCategory()));
+                    //企业性质
+                    m.put("enterpriseNatureTitle", enterpriseNatureTitleMap.get(entity.getEnterpriseNature()));
+                    //企业规模
+                    Dic enterpriseScale = dicUtils.getDicByCode(DicConstants.ENTERPRISE_SCALE, entity.getEnterpriseScale().toString());
+                    if (enterpriseScale != null && StringUtils.isNotBlank(enterpriseScale.getDicValue())) {
+                        m.put("enterpriseScaleTitle", enterpriseScale.getDicValue());
+                    }
+                    //企业属地
+                    Dic enterpriseLocation = dicUtils.getDicByCode(DicConstants.ENTERPRISE_LOCATION, entity.getEnterpriseLocation().toString());
+                    if (enterpriseLocation != null && StringUtils.isNotBlank(enterpriseLocation.getDicValue())) {
+                        m.put("enterpriseLocationTitle", enterpriseLocation.getDicValue());
+                    }
                 },
                 IplYzgtMain::getId, IplYzgtMain::getContactPerson, IplYzgtMain::getContactWay, IplYzgtMain::getEnterpriseName,IplYzgtMain::getIndustryCategory,
                 IplYzgtMain::getEnterpriseIntroduction, IplYzgtMain::getPost, IplYzgtMain::getSpecificCause, IplYzgtMain::getGmtCreate, IplYzgtMain::getAttachmentCode,

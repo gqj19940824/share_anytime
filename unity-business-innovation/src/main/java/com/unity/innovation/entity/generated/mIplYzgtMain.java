@@ -52,7 +52,7 @@ public class mIplYzgtMain extends BaseEntity{
          **/
         @CommentTarget("企业规模")
         @TableField("enterprise_scale")
-        private String enterpriseScale ;
+        private Long enterpriseScale ;
 
 
         /**
@@ -60,7 +60,7 @@ public class mIplYzgtMain extends BaseEntity{
          **/
         @CommentTarget("企业性质")
         @TableField("enterprise_nature")
-        private String enterpriseNature ;
+        private Long enterpriseNature ;
 
 
         /**
@@ -68,7 +68,7 @@ public class mIplYzgtMain extends BaseEntity{
          **/
         @CommentTarget("企业属地")
         @TableField("enterprise_location")
-        private String enterpriseLocation ;
+        private Long enterpriseLocation ;
         
         
         

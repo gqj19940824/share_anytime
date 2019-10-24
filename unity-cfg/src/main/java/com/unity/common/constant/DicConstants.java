@@ -39,6 +39,10 @@ public class DicConstants {
      * */
     public static final  String ENTERPRISE_SCALE = "ENTERPRISE_SCALE";
     /**
+     * 企业属地字典组编码
+     * */
+    public static final  String ENTERPRISE_LOCATION = "ENTERPRISE_LOCATION";
+    /**
      * 成果创新水平字典组编码
      * */
     public static final  String ACHIEVEMENT_INNOVATI = "ACHIEVEMENT_INNOVATI";
