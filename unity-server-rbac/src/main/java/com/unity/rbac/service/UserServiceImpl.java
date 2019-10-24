@@ -647,7 +647,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
      */
     private User getUserAuthInfo(String phone) {
         User user = this.getOne(new LambdaQueryWrapper<User>().eq(User::getLoginName, phone));
-        //判断账号可用性
+        //判断账号可用性 管理员账号不可登录
         if(user == null){
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
@@ -658,12 +658,25 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                     .code(SystemResponse.FormalErrorCode.LOGIN_DATA_SATUS_ERR)
                     .message("登录账号已被锁定")
                     .build();
+        } else if(user.getUserType().equals(UserTypeEnum.ADMIN.getId())){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LOGIN_DATA_SATUS_ERR)
+                    .message("登录账号无登录权限")
+                    .build();
         }
+        user.setSuperAdmin(isSuperAdmin(user.getId()));
         return user;
     }
 
 
-
+    /**
+     * 获取登录信息
+     *
+     * @param  secret 加密串
+     * @return 用户信息
+     * @author gengjiajia
+     * @since 2019/10/24 09:25
+     */
     public Map<String,Object> getLoginInfo(String secret) {
         //通过秘钥与token做加密，然后对比判断是否是约定数据
         String token = SessionHolder.getToken();
@@ -676,9 +689,23 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         }
         Map<String,Object> info = Maps.newHashMap();
         Customer customer = LoginContextHolder.getRequestAttributes();
-        info.put(UserConstants.BUTTON_CODE_LIST, customer.getButtonCodeList());
-        info.put(UserConstants.MENU_CODE_LIST, customer.getMenuCodeList());
-        //TODO
-        return null;
+        info.put(UserConstants.BUTTON_CODE_LIST, customer.getButtonCodeList() == null ?
+                Lists.newArrayList() : customer.getButtonCodeList());
+        info.put(UserConstants.MENU_CODE_LIST, customer.getMenuCodeList() == null ?
+                Lists.newArrayList() : customer.getMenuCodeList());
+        Map<String,Object> userMap = Maps.newHashMap();
+        userMap.put("id",customer.getId());
+        userMap.put("loginName",customer.getLoginName());
+        userMap.put("phone",customer.getPhone());
+        userMap.put("name",customer.getName());
+        userMap.put("idRbacDepartment",customer.getIdRbacDepartment());
+        userMap.put("department",customer.getNameRbacDepartment());
+        userMap.put("userType",customer.getUserType());
+        userMap.put("isSuperAdmin",customer.getIsSuperAdmin());
+        userMap.put("roleList",customer.getRoleList() == null ?
+                Lists.newArrayList() : customer.getRoleList());
+        info.put("user",userMap);
+        info.put("token",token);
+        return info;
     }
 }

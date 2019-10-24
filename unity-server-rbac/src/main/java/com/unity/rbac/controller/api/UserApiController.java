@@ -46,9 +46,9 @@ public class UserApiController extends BaseWebController {
      */
     @PostMapping("/authentication")
     public Mono<ResponseEntity<SystemResponse<Object>>> authentication(@RequestBody Map<String,String> user) {
-        log.info("=====《身份认证》login-body:" + GsonUtils.format(user));
+        log.info("=====《身份认证》login-body {}", GsonUtils.format(user));
         if (StringUtils.isEmpty(user.get(UserConstants.PHONE))) {
-            return error(SystemResponse.FormalErrorCode.USERNAME_OR_PASSWORD_EMPTY, "未获取到登录账号");
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到登录账号");
         } else if(StringUtils.isEmpty(user.get(UserConstants.SECRET))){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到认证标识");
         }

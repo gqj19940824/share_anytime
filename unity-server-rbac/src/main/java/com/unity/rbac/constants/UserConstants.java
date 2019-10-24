@@ -1,5 +1,7 @@
 package com.unity.rbac.constants;
 
+import com.unity.common.util.Encryption;
+
 /**
  * 用户 常量池
  * <p>
@@ -68,4 +70,8 @@ public class UserConstants {
     public final static int PJ_AD_LOGIN_NAME_MAX_LENGTH = 24;
     /**组织类别*/
     public final static String DEP_TYPE = "dep_type";
+
+    public static void main(String[] args) {
+        System.out.println(Encryption.getEncryption(UserConstants.SECRET_KEY,"customer7fc6f50d9f6c4703a8513e65f7d60f48"));
+    }
 }

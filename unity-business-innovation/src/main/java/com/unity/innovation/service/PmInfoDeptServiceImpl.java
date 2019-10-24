@@ -80,7 +80,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
      * @author qinhuan
      * @since 2019/10/17 8:43 下午
      */
-    public void updateIdIpaMain(List<Long> ids, List<Long> idIpaMains){
+    public void updateIdIpaMain(List<Long> ids, List<Long> idIpaMains) {
         baseMapper.updateIdIpaMain(ids, idIpaMains);
     }
 
@@ -106,8 +106,17 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                 ew.gt(PmInfoDept::getGmtSubmit, begin);
             }
             //标识模块
-            if (StringUtils.isNotBlank(entity.getCategory())) {
-                ew.eq(PmInfoDept::getIdRbacDepartment, getDepartmentId(entity.getCategory()));
+//            if (StringUtils.isNotBlank(entity.getCategory())) {
+//                ew.eq(PmInfoDept::getIdRbacDepartment, getDepartmentId(entity.getCategory()));
+//            } else {
+//                //非宣传部审批角色必传category
+//                if (!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE)))) {
+//                    throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+//                            .message("提交单位不能为空").build();
+//                }
+//            }
+            if (entity.getBizType() != null) {
+                ew.eq(PmInfoDept::getBizType, entity.getBizType());
             } else {
                 //非宣传部审批角色必传category
                 if (!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE)))) {
@@ -115,6 +124,8 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                             .message("提交单位不能为空").build();
                 }
             }
+
+
             //状态
             if (entity.getStatus() != null) {
                 ew.eq(PmInfoDept::getStatus, entity.getStatus());
@@ -130,7 +141,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             //只有宣传部角色可以查询所有单位数据
             if (!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE)))) {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                        .message("提交单位不能为空").build();
+                        .message("信息类型不能为空").build();
             }
         }
         return ew;
@@ -167,7 +178,9 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
      */
     @Transactional(rollbackFor = Exception.class)
     public void saveEntity(PmInfoDept entity) {
-        Long departmentId = getDepartmentId(entity.getCategory());
+        Customer customer = LoginContextHolder.getRequestAttributes();
+
+        Long departmentId = customer.getIdRbacDepartment();
         List<Long> ids = entity.getDataIdList();
         if (entity.getId() == null) {
             //单位
@@ -483,7 +496,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
     private void addSatb(HSSFSheet sheet, PmInfoDept entity, Map<String, CellStyle> styleMap) {
         List<InfoDeptSatb> list = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>()
                 .eq(InfoDeptSatb::getIdPmInfoDept, entity.getId()));
-        if (CollectionUtils.isNotEmpty(list)){
+        if (CollectionUtils.isNotEmpty(list)) {
             satbService.dealData(list);
         }
         List<String> collect = list.stream().map(InfoDeptSatb::getAttachmentCode).collect(Collectors.toList());
@@ -548,7 +561,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             }
             cell9.setCellValue(list.get(j).getContactPerson());
             cell10.setCellValue(list.get(j).getContactWay());
-            if (CollectionUtils.isNotEmpty(list.get(j).getAttachmentList())){
+            if (CollectionUtils.isNotEmpty(list.get(j).getAttachmentList())) {
                 String u = list.get(j).getAttachmentList().stream().map(Attachment::getUrl).collect(Collectors.joining(System.getProperty(InnovationConstant.LINE_SEPARATOR)));
                 cell11.setCellValue(u);
             }
@@ -570,6 +583,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         RegionUtil.setBorderRight(1, range, sheet);
         RegionUtil.setBorderTop(1, range, sheet);
     }
+
     private void addYzgt(HSSFSheet sheet, PmInfoDept entity, Map<String, CellStyle> styleMap) {
         List<InfoDeptYzgt> list = yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>()
                 .eq(InfoDeptYzgt::getIdPmInfoDept, entity.getId()));
@@ -618,7 +632,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             }
             cell6.setCellValue(list.get(j).getContactPerson());
             cell7.setCellValue(list.get(j).getContactWay());
-            if (CollectionUtils.isNotEmpty(list.get(j).getAttachmentList())){
+            if (CollectionUtils.isNotEmpty(list.get(j).getAttachmentList())) {
                 String u = list.get(j).getAttachmentList().stream().map(Attachment::getUrl).collect(Collectors.joining(System.getProperty(InnovationConstant.LINE_SEPARATOR)));
                 cell8.setCellValue(u);
             }
@@ -698,9 +712,9 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             entity.setDataList(yzgtList);
         } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(departmentId)) {
             List<InfoDeptSatb> satbList = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>().eq(InfoDeptSatb::getIdPmInfoDept, id));
-           if(CollectionUtils.isNotEmpty(satbList)){
-               satbService.dealData(satbList);
-           }
+            if (CollectionUtils.isNotEmpty(satbList)) {
+                satbService.dealData(satbList);
+            }
             entity.setDataList(satbList);
         }
         //操作记录
@@ -728,14 +742,14 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
 
 
     /**
-    * 封装下载数据包
-    *
-    * @param yzgtList 亦庄国投数据
-    * @return java.util.List<java.util.List<java.lang.Object>>
-    * @author JH
-    * @date 2019/10/22 11:18
-    */
-    public List<List<Object>> getYzgtData(  List<InfoDeptYzgt> yzgtList){
+     * 封装下载数据包
+     *
+     * @param yzgtList 亦庄国投数据
+     * @return java.util.List<java.util.List < java.lang.Object>>
+     * @author JH
+     * @date 2019/10/22 11:18
+     */
+    public List<List<Object>> getYzgtData(List<InfoDeptYzgt> yzgtList) {
         List<List<Object>> dataList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(yzgtList)) {
             yzgtList.forEach(e -> {
@@ -758,14 +772,14 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
 
 
     /**
-    * 封装下载数据包
-    *
-    * @param satbList 科技局数据
-    * @return java.util.List<java.util.List<java.lang.Object>>
-    * @author JH
-    * @date 2019/10/22 11:28
-    */
-    public List<List<Object>> getSatbData(  List<InfoDeptSatb> satbList){
+     * 封装下载数据包
+     *
+     * @param satbList 科技局数据
+     * @return java.util.List<java.util.List < java.lang.Object>>
+     * @author JH
+     * @date 2019/10/22 11:28
+     */
+    public List<List<Object>> getSatbData(List<InfoDeptSatb> satbList) {
         List<List<Object>> dataList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(satbList)) {
             satbList.forEach(e -> {
@@ -777,7 +791,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                         e.getEnterpriseIntroduction(),
                         e.getInDetail(),
                         e.getAchievementLevelName(),
-                        e.getIsPublishFirst() ==YesOrNoEnum.YES.getType() ? "是" :"否",
+                        e.getIsPublishFirst() == YesOrNoEnum.YES.getType() ? "是" : "否",
                         e.getNotes(),
                         e.getContactPerson(),
                         e.getContactWay(),

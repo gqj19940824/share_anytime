@@ -189,7 +189,12 @@ public class IplManageMain extends BaseEntity{
         @TableField(exist = false)
         private String category;
 
-
+        /**
+         * 清单类型
+         **/
+        @CommentTarget("清单类型")
+        @TableField("biz_type")
+        private Integer bizType ;
 
 }
 

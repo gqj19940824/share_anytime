@@ -136,6 +136,9 @@ public class InfoDeptYzgtServiceImpl extends BaseServiceImpl<InfoDeptYzgtDao, In
     */
     @SuppressWarnings("unchecked")
     public void convert2List(List<InfoDeptYzgt> list){
+        if(CollectionUtils.isEmpty(list)){
+            return;
+        }
         List<SysCfg> sysList = cfgService.list(new LambdaQueryWrapper<SysCfg>().in(SysCfg::getCfgType,  Lists.newArrayList(SysCfgEnum.THREE.getId(), SysCfgEnum.SIX.getId())));
         Map<Long, String> map = sysList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
         List<String> attachmentCodeList = list.stream().map(InfoDeptYzgt::getAttachmentCode).collect(Collectors.toList());
