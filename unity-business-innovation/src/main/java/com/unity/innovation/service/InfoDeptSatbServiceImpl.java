@@ -108,6 +108,9 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
     }
 
     public void dealData(List<InfoDeptSatb> records) {
+        if(CollectionUtils.isEmpty(records)) {
+            return;
+        }
         List<Integer> enumList = Arrays.asList(new Integer[]{SysCfgEnum.THREE.getId(), SysCfgEnum.SIX.getId()});
         List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>().in(SysCfg::getCfgType, enumList));
         Map<Long, String> collect = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));

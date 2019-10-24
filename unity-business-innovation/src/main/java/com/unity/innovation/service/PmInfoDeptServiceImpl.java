@@ -20,10 +20,7 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.PmInfoDeptDao;
 import com.unity.innovation.entity.*;
-import com.unity.innovation.enums.IsCommitEnum;
-import com.unity.innovation.enums.ListCategoryEnum;
-import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
-import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
@@ -705,18 +702,20 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
      */
     public PmInfoDept detailById(Long id) {
         PmInfoDept entity = super.getById(id);
-        Long departmentId = entity.getIdRbacDepartment();
-        if (InnovationConstant.DEPARTMENT_YZGT_ID.equals(departmentId)) {
+        Integer bizType = entity.getBizType();
+        if (BizTypeEnum.RQDEPTINFO.getType().equals(bizType)) {
             List<InfoDeptYzgt> yzgtList = yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>().eq(InfoDeptYzgt::getIdPmInfoDept, id));
             yzgtService.convert2List(yzgtList);
             entity.setDataList(yzgtList);
-        } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(departmentId)) {
+        } else if (BizTypeEnum.LYDEPTINFO.getType().equals(bizType)) {
             List<InfoDeptSatb> satbList = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>().eq(InfoDeptSatb::getIdPmInfoDept, id));
             if (CollectionUtils.isNotEmpty(satbList)) {
                 satbService.dealData(satbList);
             }
             entity.setDataList(satbList);
         }
+        List<Attachment> list = attachmentService.list(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode, entity.getAttachmentCode()));
+        entity.setAttachmentList(list);
         //操作记录
         List<PmInfoDeptLog> logList = logService.list(new LambdaQueryWrapper<PmInfoDeptLog>()
                 .eq(PmInfoDeptLog::getIdPmInfoDept, id)
