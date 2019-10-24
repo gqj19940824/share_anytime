@@ -28,6 +28,7 @@ import com.unity.innovation.dao.SysMessageDao;
 import com.unity.innovation.entity.SysMessage;
 import com.unity.innovation.entity.SysMessageReadLog;
 import com.unity.innovation.entity.SysSendSmsLog;
+import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
 import com.unity.innovation.enums.SysMessageFlowStatusEnum;
 import com.unity.innovation.enums.SysMessageSendTypeEnum;
@@ -405,15 +406,18 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
                 || SysMessageFlowStatusEnum.SIX.getId().equals(msg.getFlowStatus())
                 || SysMessageFlowStatusEnum.SEVEN.getId().equals(msg.getFlowStatus())) {
             // 组装短信模板参数体（json格式）及短信内容  示例： {\"code\":\""+ code +"\"}
-            SysMessageDataSourceClassEnum e = SysMessageDataSourceClassEnum.of(msg.getDataSourceClass());
             String smsParem;
             if (SysMessageFlowStatusEnum.ONE.getId().equals(msg.getFlowStatus())
                     && !SysMessageDataSourceClassEnum.HELP.getId().equals(msg.getDataSourceClass())) {
+                SysMessageDataSourceClassEnum e = SysMessageDataSourceClassEnum.of(msg.getDataSourceClass());
                 //说明是企业填报需求，短信模板需要企业名称和模块名称两个参数
-                smsParem = "{\"companyName\":\""+msg.getTitle()+"\",\"module\":\""+e.getName()+"\"}";
+                smsParem = "{\"enterpeiseName\":\"【"+msg.getTitle()+"】\",\"menuName\":\"【"+e.getName()+"】\"}";
+            } else if (SysMessageFlowStatusEnum.SIX.getId().equals(msg.getFlowStatus())) {
+                smsParem = "{\"mainCompanyName\":\"【"+depName+"】\",\"enterpeiseName\":\"【"+msg.getTitle()+"】\"}";
             } else {
-                //TODO 其他情况下，短信模板需要主责单位和企业名称两个参数
-                smsParem = "{\"depName\":\"" + depName + ",companyName:\"" + msg.getTitle() + "\"}";
+                BizTypeEnum typeEnum = BizTypeEnum.of(msg.getBizType());
+                String menuName = typeEnum == null ? "" : typeEnum.getName();
+                smsParem = "{\"mainCompanyName\":\"【"+depName+"】\",\"enterpeiseName\":\"【"+msg.getTitle()+"】\",\"menuName\":\"【"+menuName+"】\"}";
             }
 
             //获取对应模板 字典项code由数据来源归属加流程状态组成
