@@ -168,14 +168,14 @@ public class IplSatbMainController extends BaseWebController {
     }
 
     /**
-     * 实时更新
+     * 主责单位实时更新
      *
      * @param entity 包含状态及进展
      * @return code -> 0 表示成功
      * @author gengjiajia
      * @since 2019/10/10 11:23
      */
-    @PostMapping("/realTimeUpdateStatus")
+    @PostMapping("/dutyUpdateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> realTimeUpdateStatus(@RequestBody IplLog entity) {
         if (entity.getIdIplMain() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到业务ID");
@@ -191,6 +191,26 @@ public class IplSatbMainController extends BaseWebController {
     }
 
     /**
+     * 协同单位实时更新
+     *
+     * @param  iplLog 更新日志信息
+     * @return code -> 0 表示成功
+     * @author gengjiajia
+     * @since 2019/10/24 16:13
+     */
+    @PostMapping("/assistUpdateStatus")
+    public Mono<ResponseEntity<SystemResponse<Object>>> assistRealTimeUpdateStatus(@RequestBody IplLog iplLog) {
+        if (iplLog.getDealStatus() == null){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到处理状态");
+        }
+        if(iplLog.getIdIplMain() == null){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到业务ID");
+        }
+        service.assistRealTimeUpdateStatus(iplLog);
+        return success("更新成功");
+    }
+
+    /**
      * 主责单位实时更新协同单位处理状态
      *
      * @param entity 包含状态及进展
@@ -198,7 +218,7 @@ public class IplSatbMainController extends BaseWebController {
      * @author gengjiajia
      * @since 2019/10/10 11:23
      */
-    @PostMapping("/realTimeUpdateStatusByDuty")
+    @PostMapping("/updateStatusByDuty")
     public Mono<ResponseEntity<SystemResponse<Object>>> realTimeUpdateStatusByDuty(@RequestBody IplLog entity) {
         if (entity.getIdIplMain() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到业务ID");
