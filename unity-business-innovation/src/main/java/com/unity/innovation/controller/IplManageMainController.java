@@ -10,6 +10,7 @@ import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.IplManageMainServiceImpl;
@@ -25,6 +26,7 @@ import reactor.core.publisher.Mono;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 创新发布清单-发布管理主表
@@ -79,12 +81,11 @@ public class IplManageMainController extends BaseWebController {
         if (obj != null) {
             return obj;
         }
-        Long category = service.getDepartmentId(entity);
-        return success(service.saveOrUpdateForPkg(entity,category));
+        return success(service.saveOrUpdateForPkg(entity));
     }
 
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(IplManageMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getTitle, IplManageMain::getDataList);
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getTitle, IplManageMain::getDataList,IplManageMain::getBizType);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
         }
@@ -183,10 +184,11 @@ public class IplManageMainController extends BaseWebController {
 
     private void adapterField(Map<String, Object> m, IplManageMain entity) {
         // 清单类型
-        ListCategoryEnum of = ListCategoryEnum.of(entity.getIdRbacDepartmentDuty());
-        m.put("listType", of == null?"":of.getListType());
+        BizTypeEnum of = BizTypeEnum.of(entity.getBizType());
+        m.put("listType", of == null?"":of.getName());
         // 单位名称
         m.put("idRbacDepartmentDutyName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
+        m.put("statusName", Objects.requireNonNull(WorkStatusAuditingStatusEnum.of(entity.getStatus())).getName());
     }
 }
 

@@ -343,7 +343,7 @@ public class IplEsbMainController extends BaseWebController {
         if (obj != null) {
             return obj;
         }
-        iplManageMainService.saveOrUpdateForPkg(entity, InnovationConstant.DEPARTMENT_ESB_ID);
+        iplManageMainService.saveOrUpdateForPkg(entity);
         return success("操作成功");
     }
 

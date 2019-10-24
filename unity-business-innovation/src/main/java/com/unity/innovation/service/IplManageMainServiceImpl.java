@@ -284,14 +284,14 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                 long end = InnovationUtil.getFirstTimeInMonth(entity.getSubmitTime(), false);
                 ew.lt(IplManageMain::getGmtSubmit, end);
             }
-            //标识模块
-            if(StringUtils.isNotBlank(entity.getCategory())) {
-                ew.eq(IplManageMain::getIdRbacDepartmentDuty, getDepartmentId(entity));
+            //清单类型
+            if(entity.getBizType() != null) {
+                ew.eq(IplManageMain::getBizType,entity.getBizType());
             }else {
                 //非宣传部审批角色必传category
                 if(!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP,DicConstants.PD_B_ROLE)))) {
                     throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                            .message("提交单位不能为空").build();
+                            .message("清单类型不能为空").build();
                 }
             }
             //宣传部审批角色不查看 待提交、已驳回
@@ -308,7 +308,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             //只有宣传部角色可以查询所有单位数据
             if(!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP,DicConstants.PD_B_ROLE)))) {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                        .message("提交单位不能为空").build();
+                        .message("清单类型不能为空").build();
             }
         }
         return ew;
@@ -323,12 +323,12 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * 功能描述 新增编辑
      *
      * @param entity     对象
-     * @param department 四大单位
      * @author gengzhiqiang
      * @date 2019/10/9 16:48
      */
     @Transactional(rollbackFor = Exception.class)
-    public Long saveOrUpdateForPkg(IplManageMain entity, Long department) {
+    public Long saveOrUpdateForPkg(IplManageMain entity) {
+        Customer customer = LoginContextHolder.getRequestAttributes();
         //快照数据 根据不同单位 切换不同vo
         String snapshot = GsonUtils.format(entity.getDataList());
         //纪检组需要进行排序
@@ -354,7 +354,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
 
             //各局
-            entity.setIdRbacDepartmentDuty(department);
+            entity.setIdRbacDepartmentDuty(customer.getIdRbacDepartment());
             //保存
             save(entity);
             return entity.getId();

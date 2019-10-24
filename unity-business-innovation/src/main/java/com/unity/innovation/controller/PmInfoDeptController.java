@@ -17,6 +17,7 @@ import com.unity.innovation.entity.InfoDeptSatb;
 import com.unity.innovation.entity.InfoDeptYzgt;
 import com.unity.innovation.entity.PmInfoDept;
 import com.unity.innovation.entity.PmInfoDeptLog;
+import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.enums.InfoTypeEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.InfoDeptSatbServiceImpl;
@@ -130,7 +131,9 @@ public class PmInfoDeptController extends BaseWebController {
 
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
-                    m.put("infoTypeName", InfoTypeEnum.of(entity.getIdRbacDepartment()).getName());
+                    // 清单类型
+                    BizTypeEnum of = BizTypeEnum.of(entity.getBizType());
+                    m.put("infoTypeName", of == null?"":of.getName());
                     m.put("departmentName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
                     m.put("statusName", Objects.requireNonNull(WorkStatusAuditingStatusEnum.of(entity.getStatus())).getName());
                 }
