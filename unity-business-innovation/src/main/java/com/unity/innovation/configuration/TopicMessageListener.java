@@ -58,17 +58,13 @@ public class TopicMessageListener implements MessageListener {
         //itemValue:listControl:DEPARTMENT_DARB_CONTROL:DEAL_OVER_TIME:12-0:10
         String[] itemValueArrays = itemValue.split(RedisConstants.KEY_JOINER);
         if (itemValueArrays.length == 5) {
-            String departmentType = itemValueArrays[1];
-            ListCategoryEnum listCategoryEnum = ListCategoryEnum.valueOfName(departmentType);
-            if (listCategoryEnum != null) {
                 String[] idArr = itemValueArrays[3].split("-");
                 //日志记录
-                recordTimeOutLog(itemValueArrays[4],listCategoryEnum.getId(), itemValueArrays[2], idArr);
+                recordTimeOutLog(itemValueArrays[4],itemValueArrays[1], itemValueArrays[2], idArr);
                 //更新清单
                 updateProcessStatus(itemValueArrays);
                 //增加系统消息
                 addSysMessage(itemValueArrays);
-            }
         }
 
     }
@@ -193,14 +189,14 @@ public class TopicMessageListener implements MessageListener {
      * @author zhangxiaogang
      * @since 2019/10/8 18:37
      */
-    private void recordTimeOutLog(String type, Long departmentId, String overTimeType, String... idArrays) {
+    private void recordTimeOutLog(String type, String departmentId, String overTimeType, String... idArrays) {
         IplTimeOutLog iplTimeOutLog = new IplTimeOutLog();
         iplTimeOutLog.setMainId(Long.valueOf(idArrays[0]));
         Long aLong = Long.valueOf(idArrays[1]);
         //主责
         if (aLong.intValue() == 0) {
             iplTimeOutLog.setUnitCategory(UnitCategoryEnum.MAIN.getId());
-            iplTimeOutLog.setDepartmentId(departmentId);
+            iplTimeOutLog.setDepartmentId(Long.valueOf(departmentId));
         } else {
             //协同
             iplTimeOutLog.setUnitCategory(UnitCategoryEnum.COORDINATION.getId());

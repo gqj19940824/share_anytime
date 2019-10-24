@@ -39,13 +39,12 @@ public class RedisSubscribeServiceImpl {
         String result = "error";
         try {
             Dic dicByCode = dicUtils.getDicByCode(ListTypeConstants.LIST_TIMEOUT, overTimeType);
-            ListCategoryEnum listCategoryEnum = ListCategoryEnum.of(departmentId);
-            if (listCategoryEnum != null && dicByCode != null) {
+            if (dicByCode != null) {
                 String key = ListTypeConstants.LIST_CONTROL
-                        .concat(listCategoryEnum.getName() + RedisConstants.KEY_JOINER)
+                        .concat(departmentId + RedisConstants.KEY_JOINER)
                         .concat(overTimeType)
                         .concat(RedisConstants.KEY_JOINER)
-                        .concat(id)
+                        .concat(id + RedisConstants.KEY_JOINER)
                         .concat(bizType.toString());
                 log.info("【记录redis存储的key:】" + key);
                 //String[] idArrays = id.split("-");
@@ -79,17 +78,14 @@ public class RedisSubscribeServiceImpl {
      * @since 2019/10/9 17:15
      */
     public void removeRecordInfo(String id, String overTimeType, Long departmentId, Integer bizType) {
-        ListCategoryEnum listCategoryEnum = ListCategoryEnum.of(departmentId);
-        if (listCategoryEnum != null) {
             String key = ListTypeConstants.LIST_CONTROL
-                    .concat(listCategoryEnum.getName() + RedisConstants.KEY_JOINER)
+                    .concat(departmentId + RedisConstants.KEY_JOINER)
                     .concat("%s")
                     .concat(RedisConstants.KEY_JOINER)
-                    .concat(id)
+                    .concat(id + RedisConstants.KEY_JOINER)
                     .concat(bizType.toString());
             log.info("【删除记录redis存储的key:】" + key);
             RedisPoolUtil.del(String.format(key, overTimeType));
-        }
     }
     /**
      * 删除清单超时处理信息
@@ -101,17 +97,14 @@ public class RedisSubscribeServiceImpl {
      * @since 2019/10/9 17:15
      */
     public void removeRecordInfo(String id, Long departmentId, Integer bizType) {
-        ListCategoryEnum listCategoryEnum = ListCategoryEnum.of(departmentId);
-        if (listCategoryEnum != null) {
             String key = ListTypeConstants.LIST_CONTROL
-                    .concat(listCategoryEnum.getName() + RedisConstants.KEY_JOINER)
+                    .concat(departmentId + RedisConstants.KEY_JOINER)
                     .concat("%s")
                     .concat(RedisConstants.KEY_JOINER)
-                    .concat(id)
+                    .concat(id + RedisConstants.KEY_JOINER)
                     .concat(bizType.toString());
             log.info("【删除记录redis存储的key:】" + key);
             RedisPoolUtil.del(String.format(key,ListTypeConstants.DEAL_OVER_TIME));
             RedisPoolUtil.del(String.format(key,ListTypeConstants.UPDATE_OVER_TIME));
-        }
     }
 }
