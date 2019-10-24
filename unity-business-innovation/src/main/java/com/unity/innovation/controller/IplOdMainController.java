@@ -138,7 +138,7 @@ public class IplOdMainController extends BaseWebController {
      * @date 2019/9/17 15:49
      */
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(IplOdMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplOdMain::getSource, IplOdMain::getIndustryCategory, IplOdMain::getEnterpriseName, IplOdMain::getEnterpriseIntroduction,
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplOdMain::getIndustryCategory, IplOdMain::getEnterpriseName, IplOdMain::getEnterpriseIntroduction,
                 IplOdMain::getJdName, IplOdMain::getDuty, IplOdMain::getMajorDemand, IplOdMain::getSpecificCause,
                 IplOdMain::getJobDemandNum, IplOdMain::getMajorDemand, IplOdMain::getContactPerson, IplOdMain::getContactWay, mIplOdMain::getEmail);
 

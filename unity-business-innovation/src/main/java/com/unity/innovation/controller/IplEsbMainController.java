@@ -132,7 +132,7 @@ public class IplEsbMainController extends BaseWebController {
      * @date 2019/9/17 15:49
      */
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(IplEsbMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplEsbMain::getSource, IplEsbMain::getIndustryCategory, IplEsbMain::getEnterpriseName
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplEsbMain::getIndustryCategory, IplEsbMain::getEnterpriseName
                 , IplEsbMain::getEnterpriseProfile, IplEsbMain::getSummary, IplEsbMain::getContactPerson, IplEsbMain::getContactWay);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
