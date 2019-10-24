@@ -4,6 +4,7 @@ import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.enums.PlatformTypeEnum;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.GsonUtils;
+import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.entity.User;
 import com.unity.rbac.service.UserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -35,16 +36,24 @@ public class UserApiController extends BaseWebController {
         this.userService = userService;
     }
 
-    /*@PostMapping("/login")
-    public Mono<ResponseEntity<SystemResponse<Object>>> sysLogin(@RequestBody User user) {
-        log.info("=====《后台登录》login-body:" + GsonUtils.format(user));
-        if (StringUtils.isEmpty(user.getLoginName()) || StringUtils.isEmpty(user.getPwd())) {
-            return error(SystemResponse.FormalErrorCode.USERNAME_OR_PASSWORD_EMPTY, "请输入正确格式的用户名和密码");
+    /**
+     * 身份认证
+     *
+     * @param user 用户信息
+     * @return code 0 表示调用成功
+     * @author gengjiajia
+     * @since 2019/10/23 15:33
+     */
+    @PostMapping("/authentication")
+    public Mono<ResponseEntity<SystemResponse<Object>>> authentication(@RequestBody Map<String,String> user) {
+        log.info("=====《身份认证》login-body:" + GsonUtils.format(user));
+        if (StringUtils.isEmpty(user.get(UserConstants.PHONE))) {
+            return error(SystemResponse.FormalErrorCode.USERNAME_OR_PASSWORD_EMPTY, "未获取到登录账号");
+        } else if(StringUtils.isEmpty(user.get(UserConstants.SECRET))){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到认证标识");
         }
-        if(user.getOs() == null || user.getOs() < 0 || user.getOs() > PlatformTypeEnum.SYSTEM.getType()){
-            return error(SystemResponse.FormalErrorCode.LOGIN_DATA_ERR, "未获取到当前操作终端类型");
-        }
-        Map map = userService.unityLogin(user.getLoginName(), user.getPwd(), user.getOs());
+        //身份认证
+        Map<String,Object> map = userService.authentication(user.get(UserConstants.PHONE), user.get(UserConstants.SECRET));
         return success(map);
-    }*/
+    }
 }

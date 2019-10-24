@@ -13,6 +13,7 @@ import com.unity.common.constant.RedisConstants;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.constants.RedisKeys;
+import com.unity.common.enums.PlatformTypeEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -596,4 +597,88 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         return new HashMap<>(InnovationConstant.HASHMAP_DEFAULT_LENGTH);
     }
 
+    /**
+     * 身份认证
+     *
+     * @param phone 手机号
+     * @param secret 秘钥 MD5(secretKey+Md5(phone))
+     * @return 用户信息
+     * @author gengjiajia
+     * @since 2019/10/23 15:57
+     */
+    public Map<String,Object> authentication(String phone, String secret) {
+        //通过秘钥与手机号做加密，然后对比判断是否是约定数据
+        String localSecret = Encryption.getEncryption(UserConstants.SECRET_KEY, phone);
+        if(!localSecret.equalsIgnoreCase(secret)){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.SERVER_ERROR)
+                    .message("登录信息错误")
+                    .build();
+        }
+        //返回数据总载体
+        Map<String, Object> info = Maps.newHashMap();
+        //查询用户基本信息，并生成token
+        User user = getUserAuthInfo(phone);
+        Map userMap = JsonUtil.ObjectToMap(user,
+                new String[]{"loginName", "phone", "name", "notes", "email", "position",
+                        "nickName","userType"},
+                null);
+        info.put("user", userMap);
+        //生成token
+        String tokenStr = EncryptUtil.generateToken(RedisKeys.CUSTOMER);
+        info.put("token", tokenStr);
+        // 用户拥有的资源权限
+        Customer customer = new Customer();
+        getUserAuthResource(user.getId(), PlatformTypeEnum.WEB.getType(), customer, info);
+        //用户信息存入redis
+        userHelpService.saveCustomer(user, PlatformTypeEnum.WEB.getType(), tokenStr, customer);
+        //维护登录信息
+        userHelpService.updateLoginInfo(user, PlatformTypeEnum.WEB.getType(), new Date(), SessionHolder.getRequest());
+        return info;
+    }
+
+    /**
+     * 获取用户基本信息
+     *
+     * @param  phone 手机号
+     * @return 用户基本信息
+     * @author gengjiajia
+     * @since 2019/10/23 16:14
+     */
+    private User getUserAuthInfo(String phone) {
+        User user = this.getOne(new LambdaQueryWrapper<User>().eq(User::getLoginName, phone));
+        //判断账号可用性
+        if(user == null){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("登录账号存在异常")
+                    .build();
+        } else if (user.getIsLock().equals(YesOrNoEnum.YES.getType())){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LOGIN_DATA_SATUS_ERR)
+                    .message("登录账号已被锁定")
+                    .build();
+        }
+        return user;
+    }
+
+
+
+    public Map<String,Object> getLoginInfo(String secret) {
+        //通过秘钥与token做加密，然后对比判断是否是约定数据
+        String token = SessionHolder.getToken();
+        String localSecret = Encryption.getEncryption(UserConstants.SECRET_KEY, token);
+        if(!localSecret.equalsIgnoreCase(secret)){
+            throw UnityRuntimeException.newInstance()
+                    .message("登录信息错误")
+                    .code(SystemResponse.FormalErrorCode.SERVER_ERROR)
+                    .build();
+        }
+        Map<String,Object> info = Maps.newHashMap();
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        info.put(UserConstants.BUTTON_CODE_LIST, customer.getButtonCodeList());
+        info.put(UserConstants.MENU_CODE_LIST, customer.getMenuCodeList());
+        //TODO
+        return null;
+    }
 }

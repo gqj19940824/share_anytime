@@ -2,6 +2,7 @@
 package com.unity.rbac.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
@@ -129,13 +130,12 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
         customer.setOs(os);
         customer.setDepType(user.getDepType());
         //获取用户所在单位可处理数据范围
-        Dic dic = dicUtils.getDicByCode(DicConstants.DEPART_HAVE_LIST_TYPE, user.getIdRbacDepartment().toString());
-        if(dic != null && StringUtils.isNotBlank(dic.getDicValue())){
-            List<Integer> typeRangeList = Arrays.stream(dic.getDicValue().split(","))
-                    .map(Integer::parseInt)
-                    .collect(Collectors.toList());
-            customer.setTypeRangeList(typeRangeList);
-        }
+        List<Dic> dicList = dicUtils.getDicsByGroupCode(DicConstants.DEPART_HAVE_LIST_TYPE);
+        List<Integer> bizTypeList = dicList.stream()
+                .filter(dic -> dic.getDicValue().equals(user.getIdRbacDepartment().toString()))
+                .map(dic -> Integer.parseInt(dic.getDicCode()))
+                .collect(Collectors.toList());
+        customer.setTypeRangeList(bizTypeList);
         redisUtils.putCurrentUserByToken(tokenStr, customer, day);
     }
 

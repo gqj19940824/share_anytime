@@ -9,6 +9,8 @@ package com.unity.rbac.constants;
 public class UserConstants {
     /**重置密码*/
     public static final String RESET_PWD = "111111";
+    /**秘钥*/
+    public static final String SECRET_KEY = "jingkaihulian@2019";
     /**手机号*/
     public static final String PHONE = "phone";
     /**名称*/
@@ -17,8 +19,8 @@ public class UserConstants {
     public static final String OS = "os";
     /**ID标识*/
     public static final String ID = "id";
-    /**来源*/
-    public static final String SOURCE = "source";
+    /**秘钥*/
+    public static final String SECRET = "secret";
     /**用户中心组织名称*/
     public static final String DEPARTNAME = "departName";
     /**4位验证码*/
