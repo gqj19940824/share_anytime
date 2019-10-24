@@ -29,7 +29,7 @@ public class RedisSubscribeController {
 
         System.out.println(mytest);
 
-        redisSubscribeService.saveSubscribeInfo("12-0",ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_DARB_ID);
+        //redisSubscribeService.saveSubscribeInfo("12-0",ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_DARB_ID);
 
         Thread.sleep(100000L);
         //redisSubscribeService.removeRecordInfo("12-0",ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_DARB_ID);
