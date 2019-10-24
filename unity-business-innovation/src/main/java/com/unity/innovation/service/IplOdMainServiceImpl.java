@@ -171,12 +171,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         if (entity.getId() == null) {
             //判断当前用户是否为操作单位
             if (SourceEnum.SELF.getId().equals((entity.getSource()))) {
-                Customer customer = LoginContextHolder.getRequestAttributes();
-                if (!customer.getTypeRangeList().contains(BizTypeEnum.INTELLIGENCE.getType())) {
-                    throw UnityRuntimeException.newInstance()
-                            .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                            .message("当前账号的单位不可操作数据").build();
-                }
+                check();
             }
             //来源为当前局
             entity.setSource(entity.getSource());
@@ -202,12 +197,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                         .build());
             }
         } else {
-            Customer customer = LoginContextHolder.getRequestAttributes();
-            if (!customer.getTypeRangeList().contains(BizTypeEnum.INTELLIGENCE.getType())) {
-                throw UnityRuntimeException.newInstance()
-                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("当前账号的单位不可操作数据").build();
-            }
+            check();
             IplOdMain vo = getById(entity.getId());
             if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {
                 throw UnityRuntimeException.newInstance()
@@ -255,12 +245,6 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
      */
     @Transactional(rollbackFor = Exception.class)
     public void removeById(List<Long> ids) {
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        if (!customer.getTypeRangeList().contains(BizTypeEnum.INTELLIGENCE.getType())) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                    .message("当前账号的单位不可操作数据").build();
-        }
         List<IplOdMain> list = list(new LambdaQueryWrapper<IplOdMain>().in(IplOdMain::getId, ids));
         //状态为处理完毕 不可删除
         List<IplOdMain> doneList = list.stream()
@@ -482,5 +466,14 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         RegionUtil.setBorderBottom(1, range, sheet);
         RegionUtil.setBorderRight(1, range, sheet);
         RegionUtil.setBorderTop(1, range, sheet);
+    }
+
+    public void check(){
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (!customer.getTypeRangeList().contains(BizTypeEnum.INTELLIGENCE.getType())) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("当前账号的单位不可操作数据").build();
+        }
     }
 }
