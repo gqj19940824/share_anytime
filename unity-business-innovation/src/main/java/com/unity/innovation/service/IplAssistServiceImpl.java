@@ -382,6 +382,8 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         departmentList = departmentList.stream().filter(d -> !ids.contains(d.getId())).collect(Collectors.toList());
         //去掉宣传部单位
         departmentList = departmentList.stream().filter(d -> !InnovationConstant.DEPARTMENT_PD_ID.equals(d.getId())).collect(Collectors.toList());
+        //去掉本单位
+        departmentList = departmentList.stream().filter(d -> !idDuty.equals(d.getId())).collect(Collectors.toList());
         return JsonUtil.ObjectToList(departmentList, new String[]{"id", "name"}, null);
     }
 
