@@ -107,9 +107,14 @@ public class PmInfoDeptController extends BaseWebController {
      * @date 2019/9/18 18:36
      */
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(PmInfoDept entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, PmInfoDept::getTitle, PmInfoDept::getDataIdList,PmInfoDept::getBizType);
+        String msg = ValidFieldUtil.checkEmptyStr(entity, PmInfoDept::getTitle,PmInfoDept::getBizType);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
+        }
+        if(!BizTypeEnum.INVESTMENT.getType().equals(entity.getBizType())) {
+            if(CollectionUtils.isEmpty(entity.getDataIdList())) {
+                return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "数据集合不能为空");
+            }
         }
         if (StringUtils.isNotBlank(entity.getNotes()) && entity.getNotes().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注限制500字");
