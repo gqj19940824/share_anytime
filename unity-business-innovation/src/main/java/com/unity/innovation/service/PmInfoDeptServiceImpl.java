@@ -1,8 +1,10 @@
 
 package com.unity.innovation.service;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.google.gson.reflect.TypeToken;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.InnovationConstant;
@@ -13,6 +15,7 @@ import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.FileReaderUtil;
+import com.unity.common.util.GsonUtils;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.ExcelStyleUtil;
 import com.unity.common.utils.UUIDUtil;
@@ -36,7 +39,6 @@ import org.apache.poi.ss.util.RegionUtil;
 import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -47,6 +49,8 @@ import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparing;
 
 /**
  * @author zhang
@@ -67,6 +71,8 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
     private InfoDeptYzgtServiceImpl yzgtService;
     @Resource
     private SystemConfiguration systemConfiguration;
+    @Resource
+    private IplYzgtMainServiceImpl iplYzgtMainService;
 
     /**
      * 从二次打包中删除
@@ -101,16 +107,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                 long begin = InnovationUtil.getFirstTimeInMonth(entity.getSubmitTime(), true);
                 ew.gt(PmInfoDept::getGmtSubmit, begin);
             }
-            //标识模块
-//            if (StringUtils.isNotBlank(entity.getCategory())) {
-//                ew.eq(PmInfoDept::getIdRbacDepartment, getDepartmentId(entity.getCategory()));
-//            } else {
-//                //非宣传部审批角色必传category
-//                if (!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE)))) {
-//                    throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-//                            .message("提交单位不能为空").build();
-//                }
-//            }
+
             if (entity.getBizType() != null) {
                 ew.eq(PmInfoDept::getBizType, entity.getBizType());
             } else {
@@ -175,9 +172,19 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
     @Transactional(rollbackFor = Exception.class)
     public void saveEntity(PmInfoDept entity) {
         Customer customer = LoginContextHolder.getRequestAttributes();
-
         Long departmentId = customer.getIdRbacDepartment();
         List<Long> ids = entity.getDataIdList();
+        if (BizTypeEnum.INVESTMENT.getType().equals(entity.getBizType())) {
+            List<IplYzgtMain> investList = entity.getInvestList();
+            investList.sort(comparing(IplYzgtMain::getGmtCreate).reversed());
+            investList.forEach(n ->{
+                n.setCreateTime(DateUtils.timeStamp2Date(n.getGmtCreate()));
+                n.setModifiedTime(DateUtils.timeStamp2Date(n.getGmtModified()));
+                n.setAttachmentUrl(CollectionUtils.isEmpty(n.getAttachmentList()) ? "" : n.getAttachmentList().stream().map(Attachment::getUrl).collect(Collectors.joining(System.getProperty(InnovationConstant.LINE_SEPARATOR))));
+            });
+            String snapshot = GsonUtils.format(investList);
+            entity.setSnapShot(snapshot);
+        }
         if (entity.getId() == null) {
             //单位
             entity.setIdRbacDepartment(departmentId);
@@ -213,9 +220,9 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
     /**
      * 功能描述 打包处理基础数据和主表的关系
      *
-     * @param id           主表id
-     * @param ids          基础数据id集合
-     * @param bizType       信息类型
+     * @param id      主表id
+     * @param ids     基础数据id集合
+     * @param bizType 信息类型
      * @author gengzhiqiang
      * @date 2019/10/17 11:17
      */
@@ -358,16 +365,16 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         //删除日志表
         logService.remove(new LambdaUpdateWrapper<PmInfoDeptLog>().in(PmInfoDeptLog::getIdPmInfoDept, ids));
         //单位id
-        Long departmentId = list.get(0).getIdRbacDepartment();
+        Integer bizType = list.get(0).getBizType();
         //修改基础数据表状态
-        if (InnovationConstant.DEPARTMENT_YZGT_ID.equals(departmentId)) {
+        if (BizTypeEnum.RQDEPTINFO.getType().equals(bizType)) {
             List<InfoDeptYzgt> yzgtList = yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>().in(InfoDeptYzgt::getIdPmInfoDept, ids));
             yzgtList.forEach(n -> {
                 n.setIdPmInfoDept(0L);
                 n.setStatus(IsCommitEnum.NO.getId());
             });
             yzgtService.updateBatchById(yzgtList);
-        } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(departmentId)) {
+        } else if (BizTypeEnum.LYDEPTINFO.getType().equals(bizType)) {
             List<InfoDeptSatb> satbList = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>().in(InfoDeptSatb::getIdPmInfoDept, ids));
             satbList.forEach(n -> {
                 n.setIdPmInfoDept(0L);
@@ -447,7 +454,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             //填充数据
             if (BizTypeEnum.LYDEPTINFO.getType().equals(bizType)) {
                 addSatb(sheet, entity, styleMap);
-            } else if(BizTypeEnum.RQDEPTINFO.getType().equals(bizType)) {
+            } else if (BizTypeEnum.RQDEPTINFO.getType().equals(bizType)) {
                 addYzgt(sheet, entity, styleMap);
             } else {
 
@@ -714,6 +721,12 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                 satbService.dealData(satbList);
             }
             entity.setDataList(satbList);
+        } else if(BizTypeEnum.INVESTMENT.getType().equals(bizType)) {
+            String snapShot = entity.getSnapShot();
+            List<IplYzgtMain> list = GsonUtils.parse(snapShot, new TypeToken<List<IplYzgtMain>>() {
+            });
+            entity.setSnapShot("");
+            entity.setDataList(list);
         }
         List<Attachment> list = attachmentService.list(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode, entity.getAttachmentCode()));
         entity.setAttachmentList(list);
@@ -797,6 +810,43 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                         e.getContactWay(),
                         e.getAttachmentCode(),
                         DateUtils.timeStamp2Date(e.getGmtCreate()));
+                dataList.add(list);
+            });
+        }
+        return dataList;
+    }
+
+    /**
+     * 投资机构下载数据拼装
+     *
+     * @param snapshot 快照数据
+     * @return java.util.List<java.util.List<java.lang.Object>>
+     * @author JH
+     * @date 2019/10/25 16:53
+     */
+    public  List<List<Object>> getYzgtData(String snapshot) {
+        List<List<Object>> dataList = new ArrayList<>();
+
+        if (StringUtils.isNoneBlank(snapshot)) {
+            List<Map> parse = JSON.parseObject(snapshot, List.class);
+            parse.forEach(e -> {
+                List<Object> list = Arrays.asList(
+                        e.get("industryCategoryTitle"),
+                        e.get("enterpriseScaleTitle"),
+                        e.get("enterpriseNatureTitle"),
+                        e.get("enterpriseLocationTitle"),
+                        e.get("enterpriseName"),
+                        e.get("enterpriseIntroduction"),
+                        e.get("specificCause"),
+                        e.get("notes"),
+                        e.get("contactPerson"),
+                        e.get("contactWay"),
+                        e.get("idCard"),
+                        e.get("post"),
+                        e.get("attachmentUrl"),
+                        e.get("createTime"),
+                        e.get("modifiedTime"),
+                        e.get("sourceTitle"));
                 dataList.add(list);
             });
         }

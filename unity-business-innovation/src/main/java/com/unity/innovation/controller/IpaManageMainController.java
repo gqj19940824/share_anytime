@@ -20,10 +20,7 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.*;
 import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.InfoTypeEnum;
-import com.unity.innovation.enums.IpaStatusEnum;
-import com.unity.innovation.enums.ListCategoryEnum;
-import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.service.DailyWorkStatusPackageServiceImpl;
 import com.unity.innovation.service.IpaManageMainServiceImpl;
 import com.unity.innovation.service.IplManageMainServiceImpl;
@@ -316,22 +313,25 @@ public class IpaManageMainController extends BaseWebController {
         if (CollectionUtils.isNotEmpty(pmpList)) {
             pmpList.forEach(e -> {
                 XSSFWorkbook wb;
-                // yzgt
+                // 入区
                 PmInfoDept pmInfoDept = pmInfoDeptService.detailById(e.getId());
-                if (InnovationConstant.DEPARTMENT_YZGT_ID.equals(e.getIdRbacDepartment())) {
+                if (BizTypeEnum.RQDEPTINFO.equals(e.getBizType())) {
                     List<InfoDeptYzgt> dataList = pmInfoDept.getDataList();
                     dataList.forEach(d -> d.setAttachmentCode(
                             d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
                     List<List<Object>> data = pmInfoDeptService.getYzgtData(dataList);
                     wb = ExcelExportByTemplate.getWorkBook("template/rq.xlsx");
                     ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                    //  科技局导出
-                } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(e.getIdRbacDepartment())) {
+                    //  路演
+                } else if (BizTypeEnum.LYDEPTINFO.equals(e.getBizType())) {
                     List<InfoDeptSatb> dataList = pmInfoDept.getDataList();
                     List<List<Object>> data = pmInfoDeptService.getSatbData(dataList);
                     wb = ExcelExportByTemplate.getWorkBook("template/ly.xlsx");
                     ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                    // 组织部导出
+                } else if(BizTypeEnum.INVESTMENT.equals(e.getBizType())) {
+                    List<List<Object>> data = pmInfoDeptService.getYzgtData(e.getSnapShot());
+                    wb = ExcelExportByTemplate.getWorkBook("template/invest.xlsx");
+                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
                 }
             });
         }
