@@ -72,6 +72,7 @@ public class IplOdMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplOdMain> search) {
+        service.check();
         IPage<IplOdMain> list = service.listByPage(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
@@ -109,6 +110,7 @@ public class IplOdMainController extends BaseWebController {
      */
     @PostMapping("/getTypeList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getKeyList() {
+        service.check();
         return success(sysCfgService.getSysList1(SysCfgEnum.THREE.getId()));
     }
 
@@ -192,6 +194,7 @@ public class IplOdMainController extends BaseWebController {
      */
     @PostMapping("/removeByIds")
     public Mono<ResponseEntity<SystemResponse<Object>>> removeByIds(@RequestBody List<Long> ids) {
+        service.check();
         if (ids == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
         }
@@ -209,6 +212,7 @@ public class IplOdMainController extends BaseWebController {
      */
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody IplOdMain entity) {
+        service.check();
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplOdMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -230,6 +234,7 @@ public class IplOdMainController extends BaseWebController {
      */
     @PostMapping("/getAssistList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getAssistList(@RequestBody IplOdMain entity) {
+        service.check();
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplOdMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -254,6 +259,7 @@ public class IplOdMainController extends BaseWebController {
      */
     @PostMapping("/addAssist")
     public Mono<ResponseEntity<SystemResponse<Object>>> addAssistant(@RequestBody IplOdMain iplDarbMain) {
+        service.check();
         // 主表数据
         IplOdMain entity = service.getById(iplDarbMain.getId());
         if (entity == null) {
@@ -280,6 +286,7 @@ public class IplOdMainController extends BaseWebController {
      */
     @PostMapping("/dealAssist")
     public Mono<ResponseEntity<SystemResponse<Object>>> updateStatusByDuty(@RequestBody IplLog iplLog) {
+        service.check();
         // 协助单位id
         Long idRbacDepartmentAssist = iplLog.getIdRbacDepartmentAssist();
         if (idRbacDepartmentAssist == null) {
@@ -304,6 +311,7 @@ public class IplOdMainController extends BaseWebController {
      */
     @PostMapping("/dutyUpdateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> dutyUpdateStatus(@RequestBody IplLog iplLog) {
+        service.check();
         IplOdMain entity = service.getById(iplLog.getIdIplMain());
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
@@ -325,6 +333,7 @@ public class IplOdMainController extends BaseWebController {
      */
     @PostMapping("/assistUpdateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> assistUpdateStatus(@RequestBody IplLog iplLog) {
+        service.check();
         IplOdMain entity = service.getById(iplLog.getIdIplMain());
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
@@ -348,6 +357,7 @@ public class IplOdMainController extends BaseWebController {
      */
     @GetMapping({"/export/excel"})
     public Mono<ResponseEntity<byte[]>> exportExcel(@RequestParam("id") Long id) {
+        service.check();
         if (id == null) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)

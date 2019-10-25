@@ -70,6 +70,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplEsbMain> search) {
+        service.check();
         IPage<IplEsbMain> list = service.listByPage(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
@@ -103,6 +104,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/getTypeList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getKeyList() {
+        service.check();
         return success(sysCfgService.getSysList1(SysCfgEnum.THREE.getId()));
     }
 
@@ -175,6 +177,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/removeByIds")
     public Mono<ResponseEntity<SystemResponse<Object>>> removeByIds(@RequestBody List<Long> ids) {
+        service.check();
         if (ids == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
         }
@@ -192,6 +195,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody IplEsbMain entity) {
+        service.check();
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplEsbMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -212,6 +216,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/getAssistList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getAssistList(@RequestBody IplEsbMain entity) {
+        service.check();
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplEsbMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -236,6 +241,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/addAssist")
     public Mono<ResponseEntity<SystemResponse<Object>>> addAssistant(@RequestBody IplEsbMain iplDarbMain) {
+        service.check();
         // 主表数据
         IplEsbMain entity = service.getById(iplDarbMain.getId());
         if (entity == null) {
@@ -262,6 +268,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/dealAssist")
     public Mono<ResponseEntity<SystemResponse<Object>>> updateStatusByDuty(@RequestBody IplLog iplLog) {
+        service.check();
         // 协助单位id
         Long idRbacDepartmentAssist = iplLog.getIdRbacDepartmentAssist();
         if (idRbacDepartmentAssist == null) {
@@ -286,6 +293,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/dutyUpdateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> dutyUpdateStatus(@RequestBody IplLog iplLog) {
+        service.check();
         IplEsbMain entity = service.getById(iplLog.getIdIplMain());
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
@@ -307,6 +315,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/assistUpdateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> assistUpdateStatus(@RequestBody IplLog iplLog) {
+        service.check();
         IplEsbMain entity = service.getById(iplLog.getIdIplMain());
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
@@ -320,126 +329,6 @@ public class IplEsbMainController extends BaseWebController {
         return success();
     }
 
-
-    /**
-     * 功能描述 分页列表查询
-     *
-     * @param search 查询条件
-     * @return 分页数据
-     * @author gengzhiqiang
-     * @date 2019/9/17 13:36
-     */
-    @PostMapping("/listForPkg")
-    public Mono<ResponseEntity<SystemResponse<Object>>> listForPkg(@RequestBody PageEntity<IplManageMain> search) {
-        //todo
-        IPage<IplManageMain> list = iplManageMainService.listForPkg(search);
-        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
-                .total(list.getTotal())
-                .items(convert2ListForPkg(list.getRecords())).build();
-        return success(result);
-    }
-
-    /**
-     * 功能描述 数据整理
-     *
-     * @param list 集合
-     * @return java.util.List 规范数据
-     * @author gengzhiqiang
-     * @date 2019/9/17 13:36
-     */
-    private List<Map<String, Object>> convert2ListForPkg(List<IplManageMain> list) {
-        return JsonUtil.<IplManageMain>ObjectToList(list,
-                (m, entity) -> {
-                }, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus, IplManageMain::getStatusName);
-    }
-
-
-    /**
-     * 功能描述 包的新增编辑
-     *
-     * @param entity 保存计划
-     * @return 成功返回成功信息
-     * @author gengzhiqiang
-     * @date 2019/7/26 16:12
-     */
-    @PostMapping("/saveOrUpdateForPkg")
-    public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdateForPkg(@RequestBody IplManageMain entity) {
-        Mono<ResponseEntity<SystemResponse<Object>>> obj = verifyParamForPkg(entity);
-        if (obj != null) {
-            return obj;
-        }
-        iplManageMainService.saveOrUpdateForPkg(entity);
-        return success("操作成功");
-    }
-
-    private Mono<ResponseEntity<SystemResponse<Object>>> verifyParamForPkg(IplManageMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getTitle, IplManageMain::getDataList);
-        if (StringUtils.isNotBlank(msg)) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
-        }
-        if (entity.getTitle().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
-            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "标题字数限制50字");
-        }
-        if (StringUtils.isNotBlank(entity.getNotes()) && entity.getNotes().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
-            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注字数限制500字");
-        }
-        return null;
-    }
-
-    /**
-     * 功能描述 发改局包详情接口
-     *
-     * @param entity 对象
-     * @return 返回信息
-     * @author gengzhiqiang
-     * @date 2019/9/17 15:51
-     */
-    @PostMapping("/detailByIdForPkg")
-    public Mono<ResponseEntity<SystemResponse<Object>>> detailByIdForPkg(@RequestBody IplManageMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getId);
-        if (StringUtils.isNotBlank(msg)) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
-        }
-        return success(service.detailByIdForPkg(entity));
-    }
-
-    /**
-     * 功能描述 批量删除包
-     *
-     * @param ids id集合
-     * @return 成功返回成功信息
-     * @author gengzhiqiang
-     * @date 2019/7/26 16:17
-     */
-    @PostMapping("/removeByIdsForPkg")
-    public Mono<ResponseEntity<SystemResponse<Object>>> removeByIdsForPkg(@RequestBody List<Long> ids) {
-        if (ids == null) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
-        }
-        //todo 回头删一下
-        iplManageMainService.removeByIdsForPkg(ids);
-        return success("删除成功");
-    }
-
-    /**
-     * 功能描述 提交接口
-     *
-     * @param entity 实体
-     * @return 成功返回成功信息
-     * @author gengzhiqiang
-     * @date 2019/7/26 16:12
-     */
-    @PostMapping("/submit")
-    public Mono<ResponseEntity<SystemResponse<Object>>> submit(@RequestBody IplManageMain entity) {
-        String msg = ValidFieldUtil.checkEmptyStr(entity, IplManageMain::getId);
-        if (StringUtils.isNotBlank(msg)) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
-        }
-        entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_ESB_ID);
-        iplManageMainService.submit(entity);
-        return success("操作成功");
-    }
-
     /**
      * 功能描述  导出接口
      *
@@ -450,6 +339,7 @@ public class IplEsbMainController extends BaseWebController {
      */
     @GetMapping({"/export/excel"})
     public Mono<ResponseEntity<byte[]>> exportExcel(@RequestParam("id") Long id) {
+        service.check();
         if (id == null) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
@@ -480,6 +370,5 @@ public class IplEsbMainController extends BaseWebController {
         return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
 
     }
-
 }
 
