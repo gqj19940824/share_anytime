@@ -1,7 +1,6 @@
 
 package com.unity.innovation.service;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.unity.common.base.BaseServiceImpl;
@@ -436,8 +435,8 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             titleCell.setCellStyle(styleMap.get("title"));
             titleCell.setCellValue(entity.getTitle());
             row = sheet.createRow(1);
-            Long idRbacDepartment = entity.getIdRbacDepartment();
-            String[] title = getTitle(idRbacDepartment);
+            Integer bizType = entity.getBizType();
+            String[] title = getTitle(bizType);
             sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, title.length - 1));
             for (int j = 0; j < title.length; j++) {
                 Cell cell = row.createCell(j);
@@ -446,10 +445,12 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                 sheet.autoSizeColumn(j, true);
             }
             //填充数据
-            if (ListCategoryEnum.DEPARTMENT_SATB.getId().equals(idRbacDepartment)) {
+            if (BizTypeEnum.LYDEPTINFO.getType().equals(bizType)) {
                 addSatb(sheet, entity, styleMap);
-            } else if (ListCategoryEnum.DEPARTMENT_YZGT.getId().equals(idRbacDepartment)) {
+            } else if(BizTypeEnum.RQDEPTINFO.getType().equals(bizType)) {
                 addYzgt(sheet, entity, styleMap);
+            } else {
+
             }
             out = new FileOutputStream(templateFile);
             // 输出excel
@@ -474,15 +475,15 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         return content;
     }
 
-    private String[] getTitle(Long idRbacDepartment) {
-        String[] title = {"企业名称", "行业类别", "企业规模", "企业性质", "企业简介", "创新成果",
+    private String[] getTitle(Integer bizType) {
+        String[] ly = {"企业名称", "行业类别", "企业规模", "企业性质", "企业简介", "创新成果",
                 "成果创新水平", "是否首次对外发布", "备注", "联系人", "联系方式", "附件", "创建时间"};
-        String[] title1 = {"企业名称", "行业类别", "企业规模", "企业性质", "企业简介",
+        String[] rq = {"企业名称", "行业类别", "企业规模", "企业性质", "企业简介",
                 "备注", "联系人", "联系方式", "附件", "创建时间"};
-        if (ListCategoryEnum.DEPARTMENT_SATB.getId().equals(idRbacDepartment)) {
-            return title;
-        } else if (ListCategoryEnum.DEPARTMENT_YZGT.getId().equals(idRbacDepartment)) {
-            return title1;
+        if (BizTypeEnum.LYDEPTINFO.getType().equals(bizType)) {
+            return ly;
+        } else if (BizTypeEnum.RQDEPTINFO.getType().equals(bizType)) {
+            return rq;
         } else {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)

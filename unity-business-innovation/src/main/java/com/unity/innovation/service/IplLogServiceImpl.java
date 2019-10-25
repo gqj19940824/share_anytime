@@ -332,13 +332,14 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      * @author gengzhiqiang
      * @date 2019/9/27 17:12
      */
-    public void saveLog(Long idIplMain, Integer status, Long idDuty, Long idAssist, String processInfo) {
+    public void saveLog(Long idIplMain, Integer status, Long idDuty, Long idAssist, String processInfo,Integer bizType) {
         IplLog dutyLog = IplLog.newInstance()
                 .idIplMain(idIplMain)
                 .dealStatus(status)
                 .idRbacDepartmentDuty(idDuty)
                 .idRbacDepartmentAssist(idAssist)
                 .processInfo(processInfo)
+                .bizType(bizType)
                 .build();
         save(dutyLog);
     }

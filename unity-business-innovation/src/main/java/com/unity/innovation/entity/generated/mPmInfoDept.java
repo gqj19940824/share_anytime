@@ -79,6 +79,13 @@ public class mPmInfoDept extends BaseEntity{
         @CommentTarget("二次打包id")
         @TableField("id_ipa_main")
         private Long idIpaMain ;
+
+
+        /**
+         * 快照数据
+         * */
+        @TableField("snap_shot")
+        private String snapShot ;
 }
 
 
