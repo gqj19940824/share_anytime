@@ -3,8 +3,12 @@ package com.unity.innovation.util;
 import com.google.common.collect.Lists;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.RedisConstants;
+import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.XyDates;
 import com.unity.common.utils.HashRedisUtils;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -180,7 +184,22 @@ public class InnovationUtil {
         return dest;
     }
 
-
+    /**
+     * 校验当前用户是否有操作传入业务的权限
+     *
+     * @param  bizType  BizEnum中的枚举
+     * @return
+     * @author qinhuan
+     * @since 2019/10/25 9:20 上午
+     */
+    public static void check(Integer bizType){
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (!customer.getTypeRangeList().contains(bizType)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("当前账号的单位不可操作数据").build();
+        }
+    }
 
 
 }

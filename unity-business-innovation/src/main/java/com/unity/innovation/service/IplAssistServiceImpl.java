@@ -215,11 +215,11 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         iplLogService.save(iplLog);
 
         // 主表重设超时
-        redisSubscribeService.saveSubscribeInfo(iplLog.getIdIplMain() + "-0", ListTypeConstants.UPDATE_OVER_TIME, iplLog.getIdRbacDepartmentDuty());
+        redisSubscribeService.saveSubscribeInfo(iplLog.getIdIplMain() + "-0", ListTypeConstants.UPDATE_OVER_TIME, iplLog.getIdRbacDepartmentDuty(), iplLog.getBizType());
 
         // 设置协同单位超时
         assistList.forEach(e->{
-            redisSubscribeService.saveSubscribeInfo(iplLog.getIdIplMain() + "-" + e.getIdRbacDepartmentAssist(), ListTypeConstants.DEAL_OVER_TIME, e.getIdRbacDepartmentDuty());
+            redisSubscribeService.saveSubscribeInfo(iplLog.getIdIplMain() + "-" + e.getIdRbacDepartmentAssist(), ListTypeConstants.DEAL_OVER_TIME, e.getIdRbacDepartmentDuty(), e.getBizType());
         });
     }
 
@@ -259,7 +259,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         // 清除协同单位定时任务
         List<IplAssist> iplAssists = iplAssistService.list(assistQw);
         iplAssists.forEach(e->{
-            redisSubscribeService.removeRecordInfo(e.getIdIplMain() + "-" + e.getIdRbacDepartmentAssist(), e.getIdRbacDepartmentDuty());
+            redisSubscribeService.removeRecordInfo(e.getIdIplMain() + "-" + e.getIdRbacDepartmentAssist(), e.getIdRbacDepartmentDuty(), bizType);
         });
         // 删除协同
         iplAssistService.remove(assistQw);
@@ -271,7 +271,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
         // 清除主表定时任务
         mainIds.forEach(e->{
-            redisSubscribeService.removeRecordInfo(e + "-0", idRbacDepartmentDuty);
+            redisSubscribeService.removeRecordInfo(e + "-0", idRbacDepartmentDuty, bizType);
         });
     }
 

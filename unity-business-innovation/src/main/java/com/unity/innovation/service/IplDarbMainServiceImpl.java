@@ -96,7 +96,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         save(entity);
 
         // 设置处理超时时间
-        redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, entity.getIdRbacDepartmentDuty());
+        redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, entity.getIdRbacDepartmentDuty(), entity.getBizType());
 
         //====发改局====企业新增填报实时清单需求========
         if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())){
@@ -136,10 +136,10 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
 
         // 设置处理超时时间
         if (IplStatusEnum.UNDEAL.getId().equals(status)) {
-            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, entity.getIdRbacDepartmentDuty());
+            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, entity.getIdRbacDepartmentDuty(), entity.getBizType());
             // 设置更新超时时间
         } else if (IplStatusEnum.DEALING.getId().equals(status)) {
-            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, entity.getIdRbacDepartmentDuty());
+            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, entity.getIdRbacDepartmentDuty(), entity.getBizType());
 
             // 非"待处理"状态才记录日志
             Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, BizTypeEnum.CITY.getType());
@@ -195,25 +195,5 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
             Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.CITY.getType() + ""));
             iplAssistService.batchDel(mainIds, InnovationConstant.DEPARTMENT_DARB_ID, attachmentCodes, BizTypeEnum.CITY.getType());  // TODO 第二个参数
         }
-    }
-
-    /**
-     * 新增协同单位
-     *
-     * @param
-     * @return
-     * @author qinhuan
-     * @since 2019-09-25 18:52
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public void addAssistant(IplLog iplLog, List<IplAssist> assistList, IplDarbMain entity) {
-
-        // 更新主表两个状态
-        entity.setStatus(IplStatusEnum.DEALING.getId());
-        entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
-        updateById(entity);
-
-        // 新增协同单位、保存处理日志、主表重设超时、设置协同单位超时
-        iplAssistService.addAssist(iplLog, assistList);
     }
 }

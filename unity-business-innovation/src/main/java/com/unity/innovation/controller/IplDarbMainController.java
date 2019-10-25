@@ -7,7 +7,6 @@ import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
-import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -79,7 +78,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @GetMapping("exportExcel")
     public void outputEXcel(HttpServletRequest request, HttpServletResponse response, @RequestParam("id") Long id) {
-        check();
+        InnovationUtil.check(BizTypeEnum.CITY.getType());
         IplManageMain iplManageMain = iplManageMainService.getById(id);
         // 组装excel需要的数据
         List<List<Object>> data = iplManageMainService.getDarbData(iplManageMain.getSnapshot());
@@ -99,14 +98,14 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/dutyUpdateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> dutyUpdateStatus(@RequestBody IplLog iplLog) {
-        check();
+        InnovationUtil.check(BizTypeEnum.CITY.getType());
         IplDarbMain entity = service.getById(iplLog.getIdIplMain());
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         Integer dealStatus = iplLog.getDealStatus();
         if (dealStatus == null){
-            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
         iplLogService.dutyUpdateStatus(entity, iplLog);
 
@@ -121,7 +120,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/assistUpdateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> assistUpdateStatus(@RequestBody IplLog iplLog) {
-        check();
+        InnovationUtil.check(BizTypeEnum.CITY.getType());
         IplDarbMain entity = service.getById(iplLog.getIdIplMain());
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
@@ -143,7 +142,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/updateStatusByDuty")
     public Mono<ResponseEntity<SystemResponse<Object>>> updateStatusByDuty(@RequestBody IplLog iplLog) {
-        check();
+        InnovationUtil.check(BizTypeEnum.CITY.getType());
         // 协助单位id
         Long idRbacDepartmentAssist = iplLog.getIdRbacDepartmentAssist();
         if (idRbacDepartmentAssist == null) {
@@ -173,7 +172,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/addAssistant")
     public Mono<ResponseEntity<SystemResponse<Object>>> addAssistant(@RequestBody IplDarbMain iplDarbMain) {
-        check();
+        InnovationUtil.check(BizTypeEnum.CITY.getType());
         // 主表数据
         IplDarbMain entity = service.getById(iplDarbMain.getId());
         if (entity == null) {
@@ -195,7 +194,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplDarbMain> pageEntity) {
-        check();
+        InnovationUtil.check(BizTypeEnum.CITY.getType());
         LambdaQueryWrapper<IplDarbMain> ew = wrapper(pageEntity);
         IPage<IplDarbMain> p = service.page(pageEntity.getPageable(), ew);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
@@ -212,7 +211,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @GetMapping("/detailById/{id}")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@PathVariable("id") Long id) {
-        check();
+        InnovationUtil.check(BizTypeEnum.CITY.getType());
         IplDarbMain entity = service.getById(id);
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
@@ -231,7 +230,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> save(@RequestBody IplDarbMain entity) {
-        check();  // 来源区分 TODO
+        InnovationUtil.check(BizTypeEnum.CITY.getType());  // 来源区分 TODO
         // TODO 校验
 
         if (entity.getId() == null) { // 新增
@@ -260,7 +259,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/removeByIds")
     public Mono<ResponseEntity<SystemResponse<Object>>> removeByIds(@RequestBody Map<String, String> idsMap) {
-        check();
+        InnovationUtil.check(BizTypeEnum.CITY.getType());
         String ids = idsMap.get("ids");
         if (StringUtils.isBlank(ids)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
@@ -467,7 +466,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @GetMapping("/assists/{mainId}")
     public Mono<ResponseEntity<SystemResponse<Object>>> assists(@PathVariable("mainId") Long mainId) {
-        check();
+        InnovationUtil.check(BizTypeEnum.CITY.getType());
         // 查询基本信息
         IplDarbMain entity = service.getById(mainId);
 
@@ -498,7 +497,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/totalProcess/{mainId}")
     public Mono<ResponseEntity<SystemResponse<Object>>> totalProcess(@PathVariable("mainId") Long mainId) {
-        check();
+        InnovationUtil.check(BizTypeEnum.CITY.getType());
         // 查询基本信息
         IplDarbMain entity = service.getById(mainId);
 
@@ -519,7 +518,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/getAssistList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getAssistList(@RequestBody IplDarbMain entity) {
-        check();
+        InnovationUtil.check(BizTypeEnum.CITY.getType());
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplDarbMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -532,15 +531,6 @@ public class IplDarbMainController extends BaseWebController {
                     .message("未获取到对象").build();
         }
         return success(iplAssistService.getAssistList(vo.getId(), BizTypeEnum.CITY.getType()));
-    }
-
-    private void check(){
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        if (!customer.getTypeRangeList().contains(BizTypeEnum.CITY.getType())) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                    .message("当前账号的单位不可操作数据").build();
-        }
     }
 }
 

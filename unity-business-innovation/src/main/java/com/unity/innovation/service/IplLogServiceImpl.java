@@ -117,13 +117,13 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         iplLogService.save(dutyDeptLog);
 
         // 重置协同单位redis超时
-        redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + iplAssist.getIdRbacDepartmentAssist(), ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
+        redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + iplAssist.getIdRbacDepartmentAssist(), ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty, bizType);
 
         // 修改主责单位超时状态，重置redis超时
         ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
         ReflectionUtils.setFieldValue(entity, "latestProcess", processInfo);
         updateMain(entity);
-        redisSubscribeService.saveSubscribeInfo(idIplMain + "-0", ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
+        redisSubscribeService.saveSubscribeInfo(idIplMain + "-0", ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty, bizType);
         //======处理中→处理完毕--清单协同处理--增加系统消息=======
         //======处理完毕→处理中--清单协同处理--增加系统消息=======
         if (flowStatus != null) {
@@ -165,10 +165,10 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, iplLog.getIdIplMain()).eq(IplAssist::getIdRbacDepartmentAssist, customerIdRbacDepartment);
             iplAssistService.update(IplAssist.newInstance().dealStatus(dealStatus).build(), qw);
             // 删除redis超时
-            redisSubscribeService.removeRecordInfo(idIplMain + "-" + customerIdRbacDepartment, idRbacDepartmentDuty);
+            redisSubscribeService.removeRecordInfo(idIplMain + "-" + customerIdRbacDepartment, idRbacDepartmentDuty, bizType);
         } else {
             // 更新redis超时
-            redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + customerIdRbacDepartment, ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
+            redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + customerIdRbacDepartment, ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty, bizType);
         }
 
         // 记录日志
@@ -211,7 +211,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             updateMain(entity);
 
             // 更新redis的超时
-            redisSubscribeService.saveSubscribeInfo(idIplMain + "-0", ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty);
+            redisSubscribeService.saveSubscribeInfo(idIplMain + "-0", ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty, bizType);
         }
     }
 
@@ -246,7 +246,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                 iplLogs.add(iplLogAssit);
 
                 // 删除协同单位的redis超时设置
-                redisSubscribeService.removeRecordInfo(idIplMain + "-" + e.getIdRbacDepartmentAssist(), idRbacDepartmentDuty);
+                redisSubscribeService.removeRecordInfo(idIplMain + "-" + e.getIdRbacDepartmentAssist(), idRbacDepartmentDuty, bizType);
             });
 
             if (builder.indexOf("、")>-1){
@@ -265,7 +265,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         iplLogService.saveBatch(iplLogs);
 
         // 删除主表的redis超时设置
-        redisSubscribeService.removeRecordInfo(idIplMain + "-0", idRbacDepartmentDuty);
+        redisSubscribeService.removeRecordInfo(idIplMain + "-0", idRbacDepartmentDuty, bizType);
 
         // 更新主表状态、删除主表的redis超时设置
         ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DONE.getId());

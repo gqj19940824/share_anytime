@@ -1,7 +1,6 @@
 package com.unity.innovation.configuration;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.InventoryMessage;
@@ -147,26 +146,25 @@ public class TopicMessageListener implements MessageListener {
         Long idIplMain = Long.parseLong(itemValueArrays[3].split("-")[0]);
         // 主责单位id
         Long idRbacDepartmentDuty = ListCategoryEnum.valueOfName(itemValueArrays[1]).getId();
+        // 业务类型
+        Integer bizType = Integer.parseInt(itemValueArrays[4]);
         // 超时类型
         Integer processStatus = itemValueArrays[2].equals(ListTypeConstants.DEAL_OVER_TIME) ? 1 : 2;
 
         // 更新主表
         if ("0".equals(itemValueArrays[3].split("-")[1])) {
-            if (InnovationConstant.DEPARTMENT_DARB_ID.equals(idRbacDepartmentDuty)) {
+            // 发改局
+            if (BizTypeEnum.CITY.getType().equals(bizType)) {
                 iplDarbMainService.update(IplDarbMain.newInstance().processStatus(processStatus).build(), new LambdaQueryWrapper<IplDarbMain>().eq(IplDarbMain::getId, idIplMain));
-            } else if (InnovationConstant.DEPARTMENT_ESB_ID.equals(idRbacDepartmentDuty)) {
+            } else if (BizTypeEnum.ENTERPRISE.getType().equals(bizType)) {
                 IplEsbMain iplEsbMain = IplEsbMain.newInstance().build();
                 iplEsbMain.setProcessStatus(processStatus);
                 iplEsbMainService.update(iplEsbMain, new LambdaQueryWrapper<IplEsbMain>().eq(IplEsbMain::getId, idIplMain));
-            } else if (InnovationConstant.DEPARTMENT_SUGGESTION_ID.equals(idRbacDepartmentDuty)) {
-                // TODO
-            } else if (InnovationConstant.DEPARTMENT_OD_ID.equals(idRbacDepartmentDuty)) {
+            } else if (BizTypeEnum.INTELLIGENCE.getType().equals(bizType)) {
                 IplOdMain iplOdMain = new IplOdMain();
                 iplOdMain.setProcessStatus(processStatus);
                 iplOdMainService.update(iplOdMain, new LambdaQueryWrapper<IplOdMain>().eq(IplOdMain::getId, idIplMain));
-            } else if (InnovationConstant.DEPARTMENT_PD_ID.equals(idRbacDepartmentDuty)) {
-                // TODO
-            } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(idRbacDepartmentDuty)) {
+            } else if (BizTypeEnum.GROW.getType().equals(bizType)) {
                 IplSatbMain iplSatbMain = new IplSatbMain();
                 iplSatbMain.setProcessStatus(processStatus);
                 iplSatbMainService.update(iplSatbMain, new LambdaQueryWrapper<IplSatbMain>().eq(IplSatbMain::getId, idIplMain));
@@ -175,7 +173,7 @@ public class TopicMessageListener implements MessageListener {
         } else {
             Long idRbacDepartmentAssit = Long.parseLong(itemValueArrays[3].split("-")[1]);
             LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-            qw.eq(IplAssist::getIdRbacDepartmentDuty, idRbacDepartmentDuty).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, idRbacDepartmentAssit);
+            qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, idRbacDepartmentAssit);
             iplAssistService.update(IplAssist.newInstance().processStatus(processStatus).build(), qw);
         }
     }
