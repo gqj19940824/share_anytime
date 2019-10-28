@@ -10,9 +10,9 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ConvertUtil;
-import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.innovation.entity.SysSendSmsLog;
+import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
 import com.unity.innovation.enums.SysMessageFlowStatusEnum;
 import com.unity.innovation.service.SysSendSmsLogServiceImpl;
 import org.apache.commons.lang3.StringUtils;
@@ -52,8 +52,29 @@ public class SysSendSmsLogController extends BaseWebController {
         LambdaQueryWrapper<SysSendSmsLog> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByDesc(SysSendSmsLog::getSort);
         SysSendSmsLog entity = pageEntity.getEntity();
-        if(entity != null && StringUtils.isNotBlank(entity.getPhone())){
-            wrapper.like(SysSendSmsLog::getPhone,entity.getPhone());
+        if(entity != null){
+            if(StringUtils.isNotBlank(entity.getPhone())){
+                wrapper.like(SysSendSmsLog::getPhone,entity.getPhone());
+            }
+            if(entity.getDataSourceClass() != null){
+                wrapper.eq(SysSendSmsLog::getDataSourceClass,entity.getDataSourceClass());
+            }
+            if(StringUtils.isNotBlank(entity.getContent())){
+                wrapper.like(SysSendSmsLog::getContent,entity.getContent());
+            }
+            if(entity.getIdRbacDepartment() != null){
+                wrapper.eq(SysSendSmsLog::getIdRbacDepartment,entity.getIdRbacDepartment());
+            }
+            if(entity.getGmtCreate() != null && entity.getGmtModified()!= null){
+                wrapper.between(SysSendSmsLog::getGmtCreate,entity.getGmtCreate(),entity.getGmtModified());
+            }else {
+                if(entity.getGmtCreate() != null){
+                    wrapper.ge(SysSendSmsLog::getGmtCreate,entity.getGmtCreate());
+                }
+                if(entity.getGmtModified() != null){
+                    wrapper.le(SysSendSmsLog::getGmtModified,entity.getGmtModified());
+                }
+            }
         }
         IPage p = service.page(pageEntity.getPageable(), wrapper);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
@@ -74,7 +95,7 @@ public class SysSendSmsLogController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m, entity);
                 }
-                , SysSendSmsLog::getId, SysSendSmsLog::getUserId, SysSendSmsLog::getPhone, SysSendSmsLog::getContent, SysSendSmsLog::getIdRbacDepartment, SysSendSmsLog::getDataSourceClass, SysSendSmsLog::getFlowStatus,SysSendSmsLog::getGmtCreate,SysSendSmsLog::getGmtModified
+                , SysSendSmsLog::getId, SysSendSmsLog::getUserId, SysSendSmsLog::getPhone, SysSendSmsLog::getContent, SysSendSmsLog::getIdRbacDepartment, SysSendSmsLog::getDataSourceClass, SysSendSmsLog::getFlowStatus,SysSendSmsLog::getGmtCreate,SysSendSmsLog::getGmtModified,SysSendSmsLog::getSendStatus,SysSendSmsLog::getSourceId
         );
     }
 
@@ -87,6 +108,8 @@ public class SysSendSmsLogController extends BaseWebController {
     private void adapterField(Map<String, Object> m, SysSendSmsLog entity) {
         if (entity.getFlowStatus() != null) {
             m.put("flowStatusTitle", SysMessageFlowStatusEnum.ofName(entity.getFlowStatus()));
+            SysMessageDataSourceClassEnum classEnum = SysMessageDataSourceClassEnum.of(entity.getDataSourceClass());
+            m.put("dataSourceClassTitle", classEnum == null ? "" : classEnum.getName());
         }
     }
 
