@@ -22,7 +22,9 @@ import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -81,6 +83,46 @@ public class InnovationUtil {
         }
         //System.out.println(calendar.getTimeInMillis());
         return calendar.getTimeInMillis();
+    }
+
+    /**
+    * 返回 2019-05-01：00：00：00  、2019-10-31： 23：59：59：999 两个时间戳
+    *
+    * @param beginTime 2019-05
+     * @param endTime 2019-10
+    * @return java.util.Map<java.lang.String,java.lang.Long>
+    * @author JH
+    * @date 2019/10/28 16:16
+    */
+    public static Map<String,Long> getTime(String beginTime, String endTime) {
+        Map<String,Long> res = new HashMap<>();
+        String[] begin = beginTime.split("-");
+        int beginYear = Integer.parseInt(begin[0]);
+        int beginmonth = Integer.parseInt(begin[1]);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR,beginYear);
+        calendar.set(Calendar.MONTH,beginmonth-1);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        res.put("beginTime",calendar.getTimeInMillis());
+
+        String[] end = endTime.split("-");
+        int endYear = Integer.parseInt(end[0]);
+        int endMonth = Integer.parseInt(end[1]);
+        calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR,endYear);
+        calendar.set(Calendar.MONTH,endMonth-1);
+        int maxDay = XyDates.getMaxDay(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH)+1);
+        calendar.set(Calendar.DAY_OF_MONTH, maxDay);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
+        res.put("endTime",calendar.getTimeInMillis());
+        return res;
     }
 
     /**
