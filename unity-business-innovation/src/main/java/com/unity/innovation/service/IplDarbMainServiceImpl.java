@@ -3,7 +3,6 @@ package com.unity.innovation.service;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
-import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.InventoryMessage;
@@ -192,8 +191,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
             // 删除主表
             removeByIds(mainIds);
             // 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
-            Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.CITY.getType() + ""));
-            iplAssistService.batchDel(mainIds, InnovationConstant.DEPARTMENT_DARB_ID, attachmentCodes, BizTypeEnum.CITY.getType());  // TODO 第二个参数
+            iplAssistService.batchDel(mainIds, list, attachmentCodes, BizTypeEnum.CITY.getType());
         }
     }
 }

@@ -8,11 +8,9 @@ import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.DicConstants;
-import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.FileDownload;
 import com.unity.common.pojos.InventoryMessage;
-import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -333,7 +331,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 .helpDepartmentIdList(assistsIdList)
                 .build());
         //关联删除协同信息
-        iplAssistService.del(id, main.getIdRbacDepartmentDuty(), main.getAttachmentCode(), BizTypeEnum.GROW.getType());
+        iplAssistService.del(main);
         this.removeById(id);
     }
 
