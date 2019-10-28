@@ -9,6 +9,7 @@ import com.unity.common.constant.DicConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.ReviewMessage;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.GsonUtils;
@@ -21,9 +22,7 @@ import com.unity.innovation.entity.DailyWorkStatus;
 import com.unity.innovation.entity.IplSupervisionMain;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.entity.generated.IplmManageLog;
-import com.unity.innovation.enums.ListCategoryEnum;
-import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
-import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
@@ -52,9 +51,10 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     private AttachmentServiceImpl attachmentService;
     @Resource
     private IplmManageLogServiceImpl logService;
-
     @Resource
     private DicUtils dicUtils;
+    @Resource
+    private SysMessageHelpService sysMessageHelpService;
 
     /**
      * 组装发改局excel数据
@@ -481,6 +481,13 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         log.setStatus(WorkStatusAuditingStatusEnum.TWENTY.getId());
         log.setContent("提交发布需求");
         logService.save(log);
+        /*======================清单发布审核======================系统通知======================*/
+        sysMessageHelpService.addReviewMessage(ReviewMessage.newInstance()
+                .dataSourceClass(SysMessageDataSourceClassEnum.LIST_RELEASE_REVIEW.getId())
+                .flowStatus(SysMsgFlowStatusEnum.ONE.getId())
+                .idRbacDepartment(vo.getIdRbacDepartmentDuty())
+                .sourceId(vo.getId())
+                .build());
     }
 
 
@@ -546,7 +553,27 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         super.updateById(old);
         //记录日志
         logService.saveLog(old.getIdRbacDepartmentDuty(), old.getStatus(), entity.getContent(), entity.getId());
+        /*======================5个xx清单发布管理--通过/驳回======================系统通知======================*/
+        //通过清单类型获取数据分类
+        sysMessageHelpService.addReviewMessage(ReviewMessage.newInstance()
+                .dataSourceClass(getDataSourceClassByBizType(entity.getBizType()))
+                .flowStatus(YesOrNoEnum.YES.getType() == entity.getPassOrReject()
+                        ? SysMsgFlowStatusEnum.THREE.getId() : SysMsgFlowStatusEnum.TWO.getId())
+                .idRbacDepartment(entity.getIdRbacDepartmentDuty())
+                .sourceId(entity.getId())
+                .title(entity.getTitle())
+                .build());
+    }
 
+    private Integer getDataSourceClassByBizType(Integer bizType) {
+        switch (bizType){
+            case 10 : return SysMessageDataSourceClassEnum.COOPERATION_RELEASE.getId();
+            case 20 : return SysMessageDataSourceClassEnum.DEVELOPING_RELEASE.getId();
+            case 30 : return SysMessageDataSourceClassEnum.TARGET_RELEASE.getId();
+            case 40 : return SysMessageDataSourceClassEnum.DEMAND_RELEASE.getId();
+            case 50 : return SysMessageDataSourceClassEnum.RELATION_RELEASE.getId();
+            default: return null;
+        }
     }
 
     /**

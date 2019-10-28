@@ -11,6 +11,7 @@ import com.unity.common.enums.UserTypeEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.ReviewMessage;
 import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
@@ -22,9 +23,7 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ParamConstants;
 import com.unity.innovation.dao.DailyWorkStatusPackageDao;
 import com.unity.innovation.entity.*;
-import com.unity.innovation.enums.SysCfgEnum;
-import com.unity.innovation.enums.WorkStatusAuditingProcessEnum;
-import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
@@ -63,27 +62,22 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
 
     @Resource
     private AttachmentServiceImpl attachmentService;
-
     @Resource
     private DailyWorkPackageServiceImpl workMPackageService;
-
     @Resource
     private DailyWorkStatusServiceImpl workStatusService;
-
     @Resource
     private DailyWorkStatusLogServiceImpl logService;
-
     @Resource
     private SystemConfiguration systemConfiguration;
-
     @Resource
     private HashRedisUtils hashRedisUtils;
-
     @Resource
     private SysCfgServiceImpl sysCfgService;
-
     @Resource
     private DailyWorkKeywordServiceImpl keywordService;
+    @Resource
+    private SysMessageHelpService sysMessageHelpService;
 
     /**
      * 从二次打包中删除
@@ -439,6 +433,13 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         log.setState(WorkStatusAuditingStatusEnum.TWENTY.getId());
         log.setActionDescribe("提交发布需求");
         logService.save(log);
+        /*======================工作动态发布审核======================系统通知======================*/
+        sysMessageHelpService.addReviewMessage(ReviewMessage.newInstance()
+                .dataSourceClass(SysMessageDataSourceClassEnum.WORK_RELEASE_REVIEW.getId())
+                .flowStatus(SysMsgFlowStatusEnum.ONE.getId())
+                .idRbacDepartment(vo.getIdRbacDepartment())
+                .sourceId(vo.getId())
+                .build());
     }
 
     /**
@@ -486,6 +487,15 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             log.setComment(entity.getComment());
             logService.save(log);
         }
+        /*======================工作动态发布管理--通过/驳回======================系统通知======================*/
+        sysMessageHelpService.addReviewMessage(ReviewMessage.newInstance()
+                .dataSourceClass(SysMessageDataSourceClassEnum.WORK_RELEASE_MANAGE.getId())
+                .flowStatus(entity.getFlag() == YesOrNoEnum.YES.getType()
+                        ? SysMsgFlowStatusEnum.THREE.getId() : SysMsgFlowStatusEnum.TWO.getId())
+                .idRbacDepartment(vo.getIdRbacDepartment())
+                .sourceId(vo.getId())
+                .title(vo.getTitle())
+                .build());
     }
 
     /**

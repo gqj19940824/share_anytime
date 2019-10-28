@@ -108,8 +108,7 @@ public class SysSendSmsLogController extends BaseWebController {
     private void adapterField(Map<String, Object> m, SysSendSmsLog entity) {
         if (entity.getFlowStatus() != null) {
             m.put("flowStatusTitle", SysMessageFlowStatusEnum.ofName(entity.getFlowStatus()));
-            SysMessageDataSourceClassEnum classEnum = SysMessageDataSourceClassEnum.of(entity.getDataSourceClass());
-            m.put("dataSourceClassTitle", classEnum == null ? "" : classEnum.getName());
+            m.put("dataSourceClassTitle", SysMessageDataSourceClassEnum.ofName(entity.getDataSourceClass()));
         }
     }
 
