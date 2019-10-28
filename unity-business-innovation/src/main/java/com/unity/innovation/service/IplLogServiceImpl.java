@@ -285,18 +285,46 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         // 更新主表状态
         if (entity instanceof IplDarbMain) {
             IplDarbMain iplDarbMain = (IplDarbMain) entity;
+            //判断是否为第一次更新
+            IplDarbMain vo = iplDarbMainService.getById(iplDarbMain.getId());
+            if (vo != null) {
+                if (IplStatusEnum.DEALING.getId().equals(iplDarbMain.getStatus()) && IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
+                    iplDarbMain.setGmtFirstDeal(System.currentTimeMillis());
+                }
+            }
             iplDarbMainService.updateById(iplDarbMain);
         } else if (entity instanceof IplEsbMain) {
             IplEsbMain iplEsbMain = (IplEsbMain) entity;
+            //判断是否为第一次更新
+            IplEsbMain vo = iplEsbMainService.getById(iplEsbMain.getId());
+            if (vo != null) {
+                if (IplStatusEnum.DEALING.getId().equals(iplEsbMain.getStatus()) && IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
+                    iplEsbMain.setGmtFirstDeal(System.currentTimeMillis());
+                }
+            }
             iplEsbMainService.updateById(iplEsbMain);
         } else if (entity instanceof IplPdMain) {
             IplPdMain iplPdMain = (IplPdMain) entity;
             iplPdMainService.updateById(iplPdMain);
         } else if (entity instanceof IplSatbMain) {
             IplSatbMain iplSatbMain = (IplSatbMain) entity;
+            //判断是否为第一次更新
+            IplSatbMain vo = iplSatbMainService.getById(iplSatbMain.getId());
+            if (vo != null) {
+                if (IplStatusEnum.DEALING.getId().equals(iplSatbMain.getStatus()) && IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
+                    iplSatbMain.setGmtFirstDeal(System.currentTimeMillis());
+                }
+            }
             iplSatbMainService.updateById(iplSatbMain);
         } else if (entity instanceof IplOdMain) {
             IplOdMain iplOdMain = (IplOdMain) entity;
+            //判断是否为第一次更新
+            IplOdMain vo = iplOdMainService.getById(iplOdMain.getId());
+            if (vo != null) {
+                if (IplStatusEnum.DEALING.getId().equals(iplOdMain.getStatus()) && IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
+                    iplOdMain.setGmtFirstDeal(System.currentTimeMillis());
+                }
+            }
             iplOdMainService.updateById(iplOdMain);
         }// TODO 完善每个模块的更新
     }

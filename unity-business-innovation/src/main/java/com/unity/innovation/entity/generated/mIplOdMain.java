@@ -176,6 +176,13 @@ public class mIplOdMain extends BaseEntity{
         @CommentTarget("单位id")
         @TableField("id_rbac_department_duty")
         private Long idRbacDepartmentDuty ;
+
+        /**
+         * 首次更新时间
+         **/
+        @CommentTarget("首次更新时间")
+        @TableField("gmt_first_deal")
+        private Long gmtFirstDeal ;
 }
 
 
