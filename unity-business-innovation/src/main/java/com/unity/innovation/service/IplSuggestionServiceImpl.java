@@ -290,6 +290,14 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                     .message("处理完毕的数据不可处理").build();
         }
         Customer customer = LoginContextHolder.getRequestAttributes();
+        //判断是否为第一次更新
+        if (vo != null) {
+            if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
+                if (IplStatusEnum.DEALING.getId().equals(entity.getStatus()) || IplStatusEnum.DONE.getId().equals(entity.getStatus())) {
+                    vo.setGmtFirstDeal(System.currentTimeMillis());
+                }
+            }
+        }
         //保存日志信息 主表id 单位id 流程状态 处理进展
         //待处理 或者 处理中 时
         if (IplStatusEnum.UNDEAL.getId().equals(entity.getStatus()) || IplStatusEnum.DEALING.getId().equals(entity.getStatus())) {

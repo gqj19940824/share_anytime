@@ -288,8 +288,10 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             //判断是否为第一次更新
             IplDarbMain vo = iplDarbMainService.getById(iplDarbMain.getId());
             if (vo != null) {
-                if (IplStatusEnum.DEALING.getId().equals(iplDarbMain.getStatus()) && IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
-                    iplDarbMain.setGmtFirstDeal(System.currentTimeMillis());
+                if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
+                    if (IplStatusEnum.DEALING.getId().equals(iplDarbMain.getStatus()) || IplStatusEnum.DONE.getId().equals(iplDarbMain.getStatus())) {
+                        iplDarbMain.setGmtFirstDeal(System.currentTimeMillis());
+                    }
                 }
             }
             iplDarbMainService.updateById(iplDarbMain);
@@ -298,8 +300,10 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             //判断是否为第一次更新
             IplEsbMain vo = iplEsbMainService.getById(iplEsbMain.getId());
             if (vo != null) {
-                if (IplStatusEnum.DEALING.getId().equals(iplEsbMain.getStatus()) && IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
-                    iplEsbMain.setGmtFirstDeal(System.currentTimeMillis());
+                if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
+                    if (IplStatusEnum.DEALING.getId().equals(iplEsbMain.getStatus()) || IplStatusEnum.DONE.getId().equals(iplEsbMain.getStatus())) {
+                        iplEsbMain.setGmtFirstDeal(System.currentTimeMillis());
+                    }
                 }
             }
             iplEsbMainService.updateById(iplEsbMain);
@@ -311,8 +315,10 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             //判断是否为第一次更新
             IplSatbMain vo = iplSatbMainService.getById(iplSatbMain.getId());
             if (vo != null) {
-                if (IplStatusEnum.DEALING.getId().equals(iplSatbMain.getStatus()) && IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
-                    iplSatbMain.setGmtFirstDeal(System.currentTimeMillis());
+                if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
+                    if (IplStatusEnum.DEALING.getId().equals(iplSatbMain.getStatus()) || IplStatusEnum.DONE.getId().equals(iplSatbMain.getStatus())) {
+                        iplSatbMain.setGmtFirstDeal(System.currentTimeMillis());
+                    }
                 }
             }
             iplSatbMainService.updateById(iplSatbMain);
@@ -321,8 +327,10 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             //判断是否为第一次更新
             IplOdMain vo = iplOdMainService.getById(iplOdMain.getId());
             if (vo != null) {
-                if (IplStatusEnum.DEALING.getId().equals(iplOdMain.getStatus()) && IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
-                    iplOdMain.setGmtFirstDeal(System.currentTimeMillis());
+                if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
+                    if (IplStatusEnum.DEALING.getId().equals(iplOdMain.getStatus()) || IplStatusEnum.DONE.getId().equals(iplOdMain.getStatus())) {
+                        iplOdMain.setGmtFirstDeal(System.currentTimeMillis());
+                    }
                 }
             }
             iplOdMainService.updateById(iplOdMain);
