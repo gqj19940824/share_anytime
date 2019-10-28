@@ -144,6 +144,12 @@ public class mIplEsbMain extends BaseEntity{
         @TableField("latest_process")
         private String latestProcess ;
 
+        /**
+         * 首次更新时间
+         **/
+        @CommentTarget("首次更新时间")
+        @TableField("gmt_first_deal")
+        private Long gmtFirstDeal ;
 }
 
 

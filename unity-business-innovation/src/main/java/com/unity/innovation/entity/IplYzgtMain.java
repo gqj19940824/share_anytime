@@ -68,11 +68,7 @@ public class IplYzgtMain extends mIplYzgtMain{
      */
     @TableField(exist = false)
     private String modifiedTime;
-    /**
-     * 附件url
-     */
-    @TableField(exist = false)
-    private String attachmentUrl;
+
 
 
 }

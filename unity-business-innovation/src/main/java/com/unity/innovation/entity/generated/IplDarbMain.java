@@ -254,6 +254,13 @@ public class IplDarbMain extends BaseEntity{
 
         @TableField(exist = false)
         private Integer bizType = BizTypeEnum.CITY.getType();
+
+        /**
+         * 首次更新时间
+         **/
+        @CommentTarget("首次更新时间")
+        @TableField("gmt_first_deal")
+        private Long gmtFirstDeal ;
 }
 
 
