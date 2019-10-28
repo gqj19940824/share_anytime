@@ -170,7 +170,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
      * @date 2019/10/17 9:42
      */
     @Transactional(rollbackFor = Exception.class)
-    public void saveEntity(PmInfoDept entity) {
+    public Long saveEntity(PmInfoDept entity) {
         Customer customer = LoginContextHolder.getRequestAttributes();
         Long departmentId = customer.getIdRbacDepartment();
         List<Long> ids = entity.getDataIdList();
@@ -214,6 +214,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             updateById(entity);
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
         }
+        return entity.getId();
     }
 
     /**
