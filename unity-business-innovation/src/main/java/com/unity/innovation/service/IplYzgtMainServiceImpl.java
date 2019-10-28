@@ -1,16 +1,20 @@
 
 package com.unity.innovation.service;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JKDates;
+import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.IplYzgtMainDao;
 import com.unity.innovation.entity.Attachment;
@@ -18,14 +22,16 @@ import com.unity.innovation.entity.IplYzgtMain;
 import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
 import com.unity.innovation.enums.SysMessageFlowStatusEnum;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.*;
 
 /**
  * 亦庄国投业务处理
@@ -38,6 +44,11 @@ public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplY
     private AttachmentServiceImpl attachmentService;
     @Resource
     private SysMessageHelpService sysMessageHelpService;
+
+    @Resource
+    private SysCfgServiceImpl sysCfgService;
+    @Resource
+    private DicUtils dicUtils;
 
 
     /**
@@ -174,6 +185,55 @@ public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplY
         }
         return iym;
     }
+
+    /**
+     * 功能描述 数据整理
+     *
+     * @param list 集合
+     * @return java.util.List<java.util.Map <java.lang.String,java.lang.Object>> 规范数据
+     * @author zhangxiaogang
+     * @date 2019/9/27 13:36
+     */
+    public void convert2List(List<IplYzgtMain> list) {
+        //批量获取附件
+        List<String> codeList = list.stream().map(IplYzgtMain::getAttachmentCode).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(codeList)) {
+            //无附件，随便加入一个元素，保证查询不报错
+            codeList.add("0");
+        }
+        List<Attachment> allAttachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, codeList.toArray()));
+        Map<String, String> codeMap = allAttachmentList.stream()
+                .collect(groupingBy(Attachment::getAttachmentCode,
+                        mapping(Attachment::getUrl, joining(","))));
+        Map<Long, String> industryCategoryTitleMap = sysCfgService.getSysCfgMap(3);
+        Map<Long, String> enterpriseNatureTitleMap = sysCfgService.getSysCfgMap(6);
+        list.forEach(n ->{
+            if (SourceEnum.SELF.getId().equals(n.getSource())) {
+                n.setSourceTitle(InnovationConstant.DEPARTMENT_YZGT);
+            } else if (SourceEnum.ENTERPRISE.getId().equals(n.getSource())) {
+                n.setSourceTitle(SourceEnum.ENTERPRISE.getName());
+            }
+            n.setAttachmentCode(codeMap.get(n.getAttachmentCode()) == null ? "" :codeMap.get(n.getAttachmentCode()));
+            //行业类别
+            n.setIndustryCategoryTitle(industryCategoryTitleMap.get(n.getIndustryCategory()));
+            //企业性质
+            n.setEnterpriseNatureTitle(enterpriseNatureTitleMap.get(n.getEnterpriseNature()));
+            //企业规模
+            Dic enterpriseScale = dicUtils.getDicByCode(DicConstants.ENTERPRISE_SCALE, n.getEnterpriseScale().toString());
+            if (enterpriseScale != null && StringUtils.isNotBlank(enterpriseScale.getDicValue())) {
+                n.setEnterpriseScaleTitle(enterpriseScale.getDicValue());
+            }
+            //企业属地
+            Dic enterpriseLocation = dicUtils.getDicByCode(DicConstants.ENTERPRISE_LOCATION, n.getEnterpriseLocation().toString());
+            if (enterpriseLocation != null && StringUtils.isNotBlank(enterpriseLocation.getDicValue())) {
+                n.setEnterpriseLocationTitle(enterpriseLocation.getDicValue());
+            }
+
+        });
+
+    }
+
+
 
 
 }

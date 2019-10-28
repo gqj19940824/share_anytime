@@ -1,14 +1,9 @@
 package com.unity.innovation.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.unity.common.base.CommentTarget;
 import lombok.*;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-
 import com.unity.innovation.entity.generated.mIplYzgtMain;
-
 import java.util.List;
 
 
@@ -45,16 +40,40 @@ public class IplYzgtMain extends mIplYzgtMain{
     @TableField(exist = false)
     private String industryCategoryTitle;
 
+    /**
+     * 行业性质名称
+     */
+    @TableField(exist = false)
+    private String enterpriseNatureTitle;
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-  
+    /**
+     * 行业规模名称
+     */
+    @TableField(exist = false)
+    private String enterpriseScaleTitle;
+
+    /**
+     * 行业属地名称
+     */
+    @TableField(exist = false)
+    private String enterpriseLocationTitle;
+
+    /**
+     * 创建时间
+     */
+    @TableField(exist = false)
+    private String createTime;
+    /**
+     * 修改时间
+     */
+    @TableField(exist = false)
+    private String modifiedTime;
+    /**
+     * 附件url
+     */
+    @TableField(exist = false)
+    private String attachmentUrl;
+
+
 }
 

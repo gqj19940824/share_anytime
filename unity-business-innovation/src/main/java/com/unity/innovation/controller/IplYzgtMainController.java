@@ -78,70 +78,19 @@ public class IplYzgtMainController extends BaseWebController {
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplYzgtMain> search) {
         IPage<IplYzgtMain> list = service.listByPage(search);
+        List<IplYzgtMain> records = list.getRecords();
+        service.convert2List(records);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
-                .items(convert2List(list.getRecords(), false)).build();
+                .items(JsonUtil.ObjectToList(records,null, IplYzgtMain::getId, IplYzgtMain::getContactPerson, IplYzgtMain::getContactWay, IplYzgtMain::getEnterpriseName,IplYzgtMain::getIndustryCategory,
+                        IplYzgtMain::getEnterpriseIntroduction, IplYzgtMain::getPost, IplYzgtMain::getSpecificCause, IplYzgtMain::getGmtCreate, IplYzgtMain::getAttachmentCode,
+                        IplYzgtMain::getGmtModified, IplYzgtMain::getNotes, IplYzgtMain::getIdCard, IplYzgtMain::getSource, IplYzgtMain::getEnterpriseIntroduction,
+                        IplYzgtMain::getIndustryCategoryTitle,IplYzgtMain::getEnterpriseScaleTitle,IplYzgtMain::getEnterpriseNatureTitle,IplYzgtMain::getEnterpriseLocationTitle,IplYzgtMain::getSourceTitle)).build();
         return success(result);
     }
 
 
-    /**
-     * 功能描述 数据整理
-     *
-     * @param list 集合
-     * @return java.util.List<java.util.Map <java.lang.String,java.lang.Object>> 规范数据
-     * @author zhangxiaogang
-     * @date 2019/9/27 13:36
-     */
-    private List<Map<String, Object>> convert2List(List<IplYzgtMain> list, boolean flag) {
-        Map<String, String> map;
-        if (flag) {
-            //批量获取附件
-            List<String> codeList = list.stream().map(IplYzgtMain::getAttachmentCode).collect(Collectors.toList());
-            if (CollectionUtils.isEmpty(codeList)) {
-                //无附件，随便加入一个元素，保证查询不报错
-                codeList.add("0");
-            }
-            List<Attachment> allAttachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, codeList.toArray()));
-            map = allAttachmentList.stream()
-                    .collect(groupingBy(Attachment::getAttachmentCode,
-                            mapping(Attachment::getUrl, joining(","))));
-        } else {
-            map = Maps.newHashMap();
-        }
-        Map<Long, String> industryCategoryTitleMap = sysCfgService.getSysCfgMap(3);
-        Map<Long, String> enterpriseNatureTitleMap = sysCfgService.getSysCfgMap(6);
-        return JsonUtil.<IplYzgtMain>ObjectToList(list,
-                (m, entity) -> {
-                    if (SourceEnum.SELF.getId().equals(entity.getSource())) {
-                        m.put("sourceTitle", InnovationConstant.DEPARTMENT_YZGT);
-                    } else if (SourceEnum.ENTERPRISE.getId().equals(entity.getSource())) {
-                        m.put("sourceTitle", SourceEnum.ENTERPRISE.getName());
-                    }
-                    if (flag) {
-                        m.put("attachmentCode", MapUtils.isEmpty(map) ? "" : map.get(entity.getAttachmentCode()));
-                        m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
-                        m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
-                    }
-                    m.put("industryCategoryTitle", industryCategoryTitleMap.get(entity.getIndustryCategory()));
-                    //企业性质
-                    m.put("enterpriseNatureTitle", enterpriseNatureTitleMap.get(entity.getEnterpriseNature()));
-                    //企业规模
-                    Dic enterpriseScale = dicUtils.getDicByCode(DicConstants.ENTERPRISE_SCALE, entity.getEnterpriseScale().toString());
-                    if (enterpriseScale != null && StringUtils.isNotBlank(enterpriseScale.getDicValue())) {
-                        m.put("enterpriseScaleTitle", enterpriseScale.getDicValue());
-                    }
-                    //企业属地
-                    Dic enterpriseLocation = dicUtils.getDicByCode(DicConstants.ENTERPRISE_LOCATION, entity.getEnterpriseLocation().toString());
-                    if (enterpriseLocation != null && StringUtils.isNotBlank(enterpriseLocation.getDicValue())) {
-                        m.put("enterpriseLocationTitle", enterpriseLocation.getDicValue());
-                    }
-                },
-                IplYzgtMain::getId, IplYzgtMain::getContactPerson, IplYzgtMain::getContactWay, IplYzgtMain::getEnterpriseName,
-                IplYzgtMain::getEnterpriseIntroduction, IplYzgtMain::getPost, IplYzgtMain::getSpecificCause, IplYzgtMain::getGmtCreate, IplYzgtMain::getAttachmentCode,
-                IplYzgtMain::getGmtModified, IplYzgtMain::getNotes, IplYzgtMain::getIdCard, IplYzgtMain::getSource, IplYzgtMain::getEnterpriseIntroduction
-        );
-    }
+
 
     /**
      * 功能描述 数据整理
@@ -275,98 +224,6 @@ public class IplYzgtMainController extends BaseWebController {
         return success(convert2Map(service.detailById(entity)));
     }
 
-    /**
-     * excel导出
-     *
-     * @param res 响应对象
-     * @param res 参数
-     * @author 张晓刚
-     * @since 2019/10/10 16:04
-     */
-    @RequestMapping({"/export/excel"})
-    public void exportExcel(HttpServletRequest req, HttpServletResponse res) {
-        String fileName = "投资机构信息"+ DateUtil.getStringDate();
-        ExportEntity<IplYzgtMain> excel = ExcelEntity.exportEntity(res);
-        try {
-            LambdaQueryWrapper<IplYzgtMain> ew = wrapper(req);
-            List<IplYzgtMain> list = service.list(ew);
-            excel
-                    .addColumn(IplYzgtMain::getIndustryCategoryTitle, "行业类别")
-                    .addColumn(IplYzgtMain::getEnterpriseName, "企业名称")
-                    .addColumn(IplYzgtMain::getEnterpriseIntroduction, "企业简介")
-                    .addColumn(IplYzgtMain::getSpecificCause, "投资意向")
-                    .addColumn(IplYzgtMain::getContactPerson, "联系人")
-                    .addColumn(IplYzgtMain::getContactWay, "联系方式")
-                    .addColumn(IplYzgtMain::getIdCard, "身份证")
-                    .addColumn(IplYzgtMain::getPost, "职务")
-                    .addColumn(IplYzgtMain::getAttachmentCode, "附件")
-                    .addColumn(IplYzgtMain::getNotes, "备注")
-                    .addColumn(IplYzgtMain::getGmtCreate, "创建时间")
-                    .addColumn(IplYzgtMain::getGmtModified, "更新时间")
-                    .addColumn(IplYzgtMain::getSourceTitle, "来源")
-                    .export(fileName, convert2List(list, true));
-        } catch (Exception ex) {
-            excel.exportError(fileName, ex);
-        }
-    }
 
-    /**
-     * 查询条件转换
-     *
-     * @param req 统一查询对象
-     * @return 查询对象
-     * @author zhangxiaogang
-     * @since 2019/10/10 20:02
-     */
-    private LambdaQueryWrapper<IplYzgtMain> wrapper(HttpServletRequest req) {
-        LambdaQueryWrapper<IplYzgtMain> ew = new LambdaQueryWrapper<>();
-        String industryCategory = req.getParameter("industryCategory");
-        String enterpriseName = req.getParameter("enterpriseName");
-        String createDate = req.getParameter("createDate");
-        String source = req.getParameter("source");
-        String notes = req.getParameter("notes");
-        if (StringUtils.isNotBlank(industryCategory)) {
-            ew.eq(IplYzgtMain::getIndustryCategory, Long.parseLong(industryCategory));
-        }
-        if (StringUtils.isNotBlank(enterpriseName)) {
-            ew.like(IplYzgtMain::getEnterpriseName, enterpriseName);
-        }
-        if (StringUtils.isNotBlank(createDate)) {
-            String[] dateArr = createDate.split("-");
-            int maxDay = JKDates.getMaxDay(Integer.parseInt(dateArr[0]), Integer.parseInt(dateArr[1]));
-            Date startDate = DateUtils.parseDate(createDate.concat("-01 00:00:00"));
-            Date endDate = DateUtils.parseDate(createDate.concat("-").concat(String.valueOf(maxDay)).concat(" 23:59:59"));
-            ew.between(IplYzgtMain::getGmtCreate, startDate.getTime(), endDate.getTime());
-        }
-        if (StringUtils.isNotBlank(source)) {
-            ew.eq(IplYzgtMain::getSource, Integer.parseInt(source));
-        }
-        if (StringUtils.isNotBlank(notes)) {
-            ew.like(IplYzgtMain::getNotes, notes);
-        }
-        ew.orderByAsc(IplYzgtMain::getSort);
-        return ew;
-    }
-
-  /*  public static int foo(int a,int b){
-
-        if(b == 0) {
-            System.out.println("b=="+b);
-            return 0;
-        }
-        if(b % 2 == 0) {
-            System.out.println("b==="+b);
-            return foo(a+a,b/2);
-        }
-        return foo(a+a,b/2)+a;
-    }
-
-    public static void main(String[] args) {
-        int a= 1;
-        System.out.println(foo(a,3));
-        System.out.println(a);
-        System.out.println(1/2);
-    }
-*/
 }
 

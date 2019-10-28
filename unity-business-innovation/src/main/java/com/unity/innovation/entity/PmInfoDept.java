@@ -67,6 +67,11 @@ public class PmInfoDept extends mPmInfoDept{
     @TableField(exist = false)
     private List<PmInfoDeptLog> processNodeList;
 
+    /**
+     * 投资机构集合，用于快照转换
+     * */
+    @TableField(exist = false)
+    private List<IplYzgtMain>  investList;
 
 }
 
