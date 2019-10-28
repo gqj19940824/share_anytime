@@ -2,11 +2,13 @@ package com.unity.innovation.util;
 
 import com.google.common.collect.Lists;
 import com.unity.common.client.vo.DepartmentVO;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.XyDates;
+import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.HashRedisUtils;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.Data;
@@ -35,13 +37,17 @@ public class InnovationUtil {
 
     @Resource
     private  HashRedisUtils hashRedisUtils;
+    @Resource
+    private DicUtils dicUtils2;
 
+    private static DicUtils dicUtils;
     private static InnovationUtil innovationUtil;
 
     @PostConstruct
     public void init() {
         innovationUtil = this;
         innovationUtil.hashRedisUtils = this.hashRedisUtils;
+        dicUtils = dicUtils2;
     }
 
     /**
@@ -201,5 +207,21 @@ public class InnovationUtil {
         }
     }
 
+    /**
+     * 根据业务类型查找主责单位
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/28 10:17 上午
+     */
+    public static Long getIdRbacDepartmentDuty(Integer bizType){
+        String dicValueByCode = dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, bizType + "");
+        if (StringUtils.isBlank(dicValueByCode)){
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("无法获得业务对应的处理单位").build();
+        }else {
+            return Long.parseLong(dicValueByCode);
+        }
+    }
 
 }
