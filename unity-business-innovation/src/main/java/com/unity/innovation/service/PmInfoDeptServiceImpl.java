@@ -180,7 +180,6 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             investList.forEach(n ->{
                 n.setCreateTime(DateUtils.timeStamp2Date(n.getGmtCreate()));
                 n.setModifiedTime(DateUtils.timeStamp2Date(n.getGmtModified()));
-                n.setAttachmentUrl(CollectionUtils.isEmpty(n.getAttachmentList()) ? "" : n.getAttachmentList().stream().map(Attachment::getUrl).collect(Collectors.joining(System.getProperty(InnovationConstant.LINE_SEPARATOR))));
             });
             String snapshot = GsonUtils.format(investList);
             entity.setSnapShot(snapshot);
@@ -843,7 +842,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                         e.get("contactWay"),
                         e.get("idCard"),
                         e.get("post"),
-                        e.get("attachmentUrl"),
+                        e.get("attachmentCode"),
                         e.get("createTime"),
                         e.get("modifiedTime"),
                         e.get("sourceTitle"));
