@@ -74,7 +74,7 @@ public class SysSendSmsLogController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m, entity);
                 }
-                , SysSendSmsLog::getId, SysSendSmsLog::getUserId, SysSendSmsLog::getPhone, SysSendSmsLog::getContent, SysSendSmsLog::getIdRbacDepartment, SysSendSmsLog::getDataSourceClass, SysSendSmsLog::getFlowStatus, SysSendSmsLog::getSort, SysSendSmsLog::getNotes
+                , SysSendSmsLog::getId, SysSendSmsLog::getUserId, SysSendSmsLog::getPhone, SysSendSmsLog::getContent, SysSendSmsLog::getIdRbacDepartment, SysSendSmsLog::getDataSourceClass, SysSendSmsLog::getFlowStatus,SysSendSmsLog::getGmtCreate,SysSendSmsLog::getGmtModified
         );
     }
 
@@ -88,8 +88,6 @@ public class SysSendSmsLogController extends BaseWebController {
         if (entity.getFlowStatus() != null) {
             m.put("flowStatusTitle", SysMessageFlowStatusEnum.ofName(entity.getFlowStatus()));
         }
-        m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
-        m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
     }
 
     /**
