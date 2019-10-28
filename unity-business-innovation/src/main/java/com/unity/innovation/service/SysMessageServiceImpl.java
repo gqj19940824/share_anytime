@@ -386,7 +386,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             noticeNum += numByNotice;
         }
         Map<String, Object> numMap = Maps.newHashMap();
-        numMap.put("isAdd", YesOrNoEnum.YES.getType());
+        numMap.put("isAdd", sysMessageNum == 0 && noticeNum == 0 ? YesOrNoEnum.NO.getType() : YesOrNoEnum.YES.getType());
         numMap.put("sysMessageNum", sysMessageNum);
         numMap.put("noticeNum", noticeNum);
         return numMap;
