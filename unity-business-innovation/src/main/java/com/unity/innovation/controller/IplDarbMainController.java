@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
@@ -120,7 +119,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/assistUpdateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> assistUpdateStatus(@RequestBody IplLog iplLog) {
-        InnovationUtil.check(BizTypeEnum.CITY.getType());
+
         IplDarbMain entity = service.getById(iplLog.getIdIplMain());
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
@@ -178,10 +177,9 @@ public class IplDarbMainController extends BaseWebController {
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        List<IplAssist> assists = iplDarbMain.getIplAssists();
 
         // 新增协同单位并记录日志
-        iplAssistService.addAssistant(assists, entity);
+        iplAssistService.addAssistant(iplDarbMain.getIplAssists(), entity);
 
         return success();
     }
@@ -230,14 +228,17 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> save(@RequestBody IplDarbMain entity) {
-        InnovationUtil.check(BizTypeEnum.CITY.getType());  // 来源区分 TODO
         // TODO 校验
 
         if (entity.getId() == null) { // 新增
+            Integer source = entity.getSource();
+            if (SourceEnum.SELF.equals(source)){
+                InnovationUtil.check(BizTypeEnum.CITY.getType());
+            }
             String uuid = UUIDUtil.getUUID();
             entity.setStatus(IplStatusEnum.UNDEAL.getId());
             entity.setAttachmentCode(uuid);
-            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_DARB_ID);
+            entity.setIdRbacDepartmentDuty(InnovationUtil.getIdRbacDepartmentDuty(BizTypeEnum.CITY.getType()));
             service.add(entity);
         } else { // 编辑
             // 没有登录会抛异常
@@ -309,6 +310,7 @@ public class IplDarbMainController extends BaseWebController {
         Set<Long> ids = new HashSet<>(Arrays.asList(ent.getDemandCategory(), ent.getDemandItem(), ent.getIndustryCategory()));
         List<SysCfg> values = sysCfgService.getValues(ids);
         Map<Long, Object> collect = values.stream().collect(Collectors.toMap(BaseEntity::getId, mSysCfg::getCfgVal, (k1, k2) -> k2));
+
 
         return JsonUtil.<IplDarbMain>ObjectToMap(ent,
                 (m, entity) -> {

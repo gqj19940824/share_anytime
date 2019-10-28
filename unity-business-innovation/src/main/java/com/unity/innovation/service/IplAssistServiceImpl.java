@@ -18,12 +18,10 @@ import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.dao.IplAssistDao;
 import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
-import com.unity.innovation.enums.IplStatusEnum;
-import com.unity.innovation.enums.ProcessStatusEnum;
-import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
-import com.unity.innovation.enums.SysMessageFlowStatusEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -80,21 +78,19 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             entity.put("gmtCreateStart", InnovationUtil.getFirstTimeInMonth(gmtCreate, true));
             entity.put("gmtCreateEnd", InnovationUtil.getFirstTimeInMonth(gmtCreate, false));
         }
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        entity.put("idRbacDepartmentAssist", customer.getIdRbacDepartment());
-        Long idRbacDepartmentDuty = MapUtils.getLong(entity, "idRbacDepartmentDuty");
+        Integer bizType = MapUtils.getInteger(entity, "bizType");
         Page<Map<String, Object>> page = PageHelper.startPage((int)pageable.getCurrent(), (int)pageable.getSize(), true);
         List<Map<String, Object>> maps;
-        if (InnovationConstant.DEPARTMENT_ESB_ID.equals(idRbacDepartmentDuty)){
+        if (BizTypeEnum.ENTERPRISE.getType().equals(bizType)){
             maps = baseMapper.assistEsbList(entity);
-        }else if (InnovationConstant.DEPARTMENT_DARB_ID.equals(idRbacDepartmentDuty)){
+        }else if (BizTypeEnum.CITY.getType().equals(bizType)){
             maps = baseMapper.assistDarbList(entity);
-        }else if (InnovationConstant.DEPARTMENT_OD_ID.equals(idRbacDepartmentDuty)){
+        }else if (BizTypeEnum.INTELLIGENCE.getType().equals(bizType)){
             maps = baseMapper.assistOdList(entity);
-        }else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(idRbacDepartmentDuty)){
+        }else if (BizTypeEnum.GROW.getType().equals(bizType)){
             maps = baseMapper.assistSatbList(entity);
         } else {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("主责单位id错误").build();
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("业务类型错误").build();
         }
 
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
@@ -226,15 +222,14 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     /**
      * 删除主表附带的日志、协同、附件，调用方法必须要有事物
      *
-     * @param  mainId 主表id，
-     * @param  idRbacDepartmentDuty 主责单位id
+     * @param  iplSatbMain 主表
      * @return
      * @author qinhuan
      * @since 2019-10-09 14:42
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
-    public void del(Long mainId, Long idRbacDepartmentDuty, String attachmentCode, Integer bizType){
-        batchDel(Collections.singletonList(mainId), idRbacDepartmentDuty, Collections.singletonList(attachmentCode), bizType);
+    public void del(IplSatbMain iplSatbMain){
+        batchDel(Collections.singletonList(iplSatbMain.getId()), Collections.singletonList(iplSatbMain), Collections.singletonList(iplSatbMain.getAttachmentCode()), iplSatbMain.getBizType());
     }
 
     /**
@@ -247,7 +242,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      * @since 2019-10-09 14:42
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
-    public void batchDel(List<Long> mainIds, Long idRbacDepartmentDuty, List<String> attachmentCodes, Integer bizType){
+    public <T> void batchDel(List<Long> mainIds, List<T> list, List<String> attachmentCodes, Integer bizType){
 
         // 删除日志
         LambdaQueryWrapper<IplLog> logQw = new LambdaQueryWrapper<>();
@@ -270,8 +265,10 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         attachmentService.remove(attachmentQw);
 
         // 清除主表定时任务
-        mainIds.forEach(e->{
-            redisSubscribeService.removeRecordInfo(e + "-0", idRbacDepartmentDuty, bizType);
+        list.forEach(e->{
+            Long id = (Long) ReflectionUtils.getFieldValue(e, "id");
+            Long idRbacDepartmentDuty = (Long) ReflectionUtils.getFieldValue(e, "idRbacDepartmentDuty");
+            redisSubscribeService.removeRecordInfo(id + "-0", idRbacDepartmentDuty, bizType);
         });
     }
 

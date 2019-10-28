@@ -37,8 +37,8 @@ public class IplAssistController extends BaseWebController {
     @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<Map<String, Object>> pageEntity) {
         Map<String, Object> entity = pageEntity.getEntity();
-        Long idRbacDepartmentDuty = MapUtils.getLong(entity, "idRbacDepartmentDuty");
-        if (idRbacDepartmentDuty == null){
+        Integer bizType = MapUtils.getInteger(entity, "bizType");
+        if (bizType == null){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
 
