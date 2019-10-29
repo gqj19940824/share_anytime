@@ -32,33 +32,29 @@ public class MessageConstants {
     public final static String TITLE = "TITLE";
     /**时间 占位符*/
     public final static String TIME = "TIME";
-    /**创新发布实时清单对应角色字典组code*/
-    public final static String REALTIME_INVENTORY_ROLES = "realtime_list_roles";
 
-    /*Map中的key的定义为 数据来源类型拼接流程编码*/
+    /*Map中的key的定义为 清单类型与数据来源拼接组成唯一性key*/
     static {
         addInventoryMsgTitleMap = Maps.newHashMap();
-        addInventoryMsgTitleMap.put("11","【TITLE】正在寻求参与开发区建设，请尽快处理！");
-        addInventoryMsgTitleMap.put("21","【TITLE】正在寻求创新发展，请尽快处理！");
-        addInventoryMsgTitleMap.put("31","【TITLE】正在寻求资本支持，请尽快处理！");
-        addInventoryMsgTitleMap.put("41","【TITLE】正在寻求高端人才，请尽快处理！");
-        addInventoryMsgTitleMap.put("51","【TITLE】已反应意见和建议，请尽快处理！");
-        addInventoryMsgTitleMap.put("61","【TITLE】报名参与发布会，请尽快处理！");
-        addInventoryMsgTitleMap.put("71","【TITLE】正在寻求合作伙伴，请尽快处理！");
+        addInventoryMsgTitleMap.put("101","【TITLE】正在寻求参与开发区建设，请尽快处理！");
+        addInventoryMsgTitleMap.put("201","【TITLE】正在寻求创新发展，请尽快处理！");
+        addInventoryMsgTitleMap.put("301","【TITLE】正在寻求资本支持，请尽快处理！");
+        addInventoryMsgTitleMap.put("401","【TITLE】正在寻求高端人才，请尽快处理！");
+        addInventoryMsgTitleMap.put("501","【TITLE】已反应意见和建议，请尽快处理！");
+        addInventoryMsgTitleMap.put("1001","【TITLE】报名参与发布会，请尽快处理！");
+        addInventoryMsgTitleMap.put("801","【TITLE】正在寻求合作伙伴，请尽快处理！");
 
-        addInventoryMsgTitleMap.put("12","【TITLE】寻求参与开发区建设的事项超过TIME未处理，请及时处理！");
-        addInventoryMsgTitleMap.put("22","【TITLE】寻求创新发展的事项超过TIME未处理，请及时处理！");
-        addInventoryMsgTitleMap.put("32","【TITLE】寻求资本支持的事项超过TIME未处理，请及时处理！");
-        addInventoryMsgTitleMap.put("42","【TITLE】寻求高端人才的事项超过TIME未处理，请及时处理！");
-        addInventoryMsgTitleMap.put("52","【TITLE】反应的意见和建议超过TIME未处理，请及时处理！");
-        addInventoryMsgTitleMap.put("62","【TITLE】报名参与发布会的事项超过TIME未处理，请及时处理！");
-        addInventoryMsgTitleMap.put("72","【TITLE】寻找投资项目的事项超过TIME未处理，请及时处理！");
+        addInventoryMsgTitleMap.put("102","【TITLE】寻求参与开发区建设的事项超过TIME未处理，请及时处理！");
+        addInventoryMsgTitleMap.put("202","【TITLE】寻求创新发展的事项超过TIME未处理，请及时处理！");
+        addInventoryMsgTitleMap.put("302","【TITLE】寻求资本支持的事项超过TIME未处理，请及时处理！");
+        addInventoryMsgTitleMap.put("402","【TITLE】寻求高端人才的事项超过TIME未处理，请及时处理！");
+        addInventoryMsgTitleMap.put("502","【TITLE】反应的意见和建议超过TIME未处理，请及时处理！");
 
-        addInventoryMsgTitleMap.put("13","【TITLE】寻求参与开发区建设的事项超过TIME未更新进展，请及时更新！");
-        addInventoryMsgTitleMap.put("23","【TITLE】寻求创新发展的事项超过TIME未更新进展，请及时更新！");
-        addInventoryMsgTitleMap.put("33","【TITLE】寻求资本支持的事项超过TIME未更新进展，请及时更新！");
-        addInventoryMsgTitleMap.put("43","【TITLE】寻求高端人才的事项超过TIME未更新进展，请及时更新！");
-        addInventoryMsgTitleMap.put("53","【TITLE】反应的意见和建议超过TIME未更新进展，请及时更新！");
+        addInventoryMsgTitleMap.put("103","【TITLE】寻求参与开发区建设的事项超过TIME未更新进展，请及时更新！");
+        addInventoryMsgTitleMap.put("203","【TITLE】寻求创新发展的事项超过TIME未更新进展，请及时更新！");
+        addInventoryMsgTitleMap.put("303","【TITLE】寻求资本支持的事项超过TIME未更新进展，请及时更新！");
+        addInventoryMsgTitleMap.put("403","【TITLE】寻求高端人才的事项超过TIME未更新进展，请及时更新！");
+        addInventoryMsgTitleMap.put("503","【TITLE】反应的意见和建议超过TIME未更新进展，请及时更新！");
 
         addInventoryHelpMsgTitleMap = Maps.newHashMap();
         addInventoryHelpMsgTitleMap.put("101","【DEP_NAME】邀请协同处理【TITLE】寻求参与开发区建设的事项，请及时处理！");
@@ -104,29 +100,29 @@ public class MessageConstants {
         reviewMsgTitleMap.put("5","【TITLE】已更新发布效果！");
 
         sendSmsContentMap = Maps.newHashMap();
-        sendSmsContentMap.put("11","【TITLE】正在寻求参与开发区建设，请前往【城市创新合作实时清单】模块处理！——北京亦庄创新发布线上工作平台");
-        sendSmsContentMap.put("21","【TITLE】正在寻求创新发展，请前往【企业创新发展实时清单】模块处理！——北京亦庄创新发布线上工作平台");
-        sendSmsContentMap.put("31","【TITLE】正在寻求资本支持，请前往【成长目标投资实时清单】模块处理！——北京亦庄创新发布线上工作平台");
-        sendSmsContentMap.put("41","【TITLE】正在寻求高端人才，请前往【高端才智需求实时清单】模块处理！——北京亦庄创新发布线上工作平台");
-        sendSmsContentMap.put("51","【TITLE】已反应意见和建议，请前往【意见和建议】模块处理！——北京亦庄创新发布线上工作平台");
-        sendSmsContentMap.put("61","【TITLE】报名参与发布会，请前往【发布会报名信息管理】模块处理！——北京亦庄创新发布线上工作平台");
-        sendSmsContentMap.put("71","【TITLE】正在寻找投资项目，请前往【投资机构信息管理】模块处理！——北京亦庄创新发布线上工作平台");
+        sendSmsContentMap.put("101","【TITLE】正在寻求参与开发区建设，请前往【城市创新合作实时清单】模块处理！");
+        sendSmsContentMap.put("201","【TITLE】正在寻求创新发展，请前往【企业创新发展实时清单】模块处理！");
+        sendSmsContentMap.put("301","【TITLE】正在寻求资本支持，请前往【成长目标投资实时清单】模块处理！");
+        sendSmsContentMap.put("401","【TITLE】正在寻求高端人才，请前往【高端才智需求实时清单】模块处理！");
+        sendSmsContentMap.put("501","【TITLE】已反应意见和建议，请前往【意见和建议】模块处理！");
+        sendSmsContentMap.put("1001","【TITLE】报名参与发布会，请前往【发布会报名信息管理】模块处理！");
+        sendSmsContentMap.put("801","【TITLE】正在寻找投资项目，请前往【投资机构信息管理】模块处理！");
 
         sendHelpSmsContentMap = Maps.newHashMap();
-        sendHelpSmsContentMap.put("101","【DEP_NAME】邀请协同处理【TITLE】寻求参与开发区建设的事项，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
-        sendHelpSmsContentMap.put("201","【DEP_NAME】邀请协同处理【TITLE】寻求创新发展的事项，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
-        sendHelpSmsContentMap.put("301","【DEP_NAME】邀请协同处理【TITLE】寻求资本支持的事项，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
-        sendHelpSmsContentMap.put("401","【DEP_NAME】邀请协同处理【TITLE】寻求高端人才的事项，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("101","【DEP_NAME】邀请协同处理【TITLE】寻求参与开发区建设的事项，请前往【实时清单协同处理】模块处理！");
+        sendHelpSmsContentMap.put("201","【DEP_NAME】邀请协同处理【TITLE】寻求创新发展的事项，请前往【实时清单协同处理】模块处理！");
+        sendHelpSmsContentMap.put("301","【DEP_NAME】邀请协同处理【TITLE】寻求资本支持的事项，请前往【实时清单协同处理】模块处理！");
+        sendHelpSmsContentMap.put("401","【DEP_NAME】邀请协同处理【TITLE】寻求高端人才的事项，请前往【实时清单协同处理】模块处理！");
 
-        sendHelpSmsContentMap.put("106","【DEP_NAME】邀请协同处理【TITLE】寻求参与开发区建设的事项已被强制关闭，请知悉！——北京亦庄创新发布线上工作平台");
-        sendHelpSmsContentMap.put("206","【DEP_NAME】邀请协同处理【TITLE】寻求创新发展的事项已被强制关闭，请知悉！——北京亦庄创新发布线上工作平台");
-        sendHelpSmsContentMap.put("306","【DEP_NAME】邀请协同处理【TITLE】寻求资本支持的事项已被强制关闭，请知悉！——北京亦庄创新发布线上工作平台");
-        sendHelpSmsContentMap.put("406","【DEP_NAME】邀请协同处理【TITLE】寻求高端人才的事项已被强制关闭，请知悉！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("106","【DEP_NAME】邀请协同处理【TITLE】寻求参与开发区建设的事项已被强制关闭，请知悉！");
+        sendHelpSmsContentMap.put("206","【DEP_NAME】邀请协同处理【TITLE】寻求创新发展的事项已被强制关闭，请知悉！");
+        sendHelpSmsContentMap.put("306","【DEP_NAME】邀请协同处理【TITLE】寻求资本支持的事项已被强制关闭，请知悉！");
+        sendHelpSmsContentMap.put("406","【DEP_NAME】邀请协同处理【TITLE】寻求高端人才的事项已被强制关闭，请知悉！");
 
-        sendHelpSmsContentMap.put("107","【DEP_NAME】邀请协同处理【TITLE】寻求参与开发区建设的事项已被重新开启，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
-        sendHelpSmsContentMap.put("207","【DEP_NAME】邀请协同处理【TITLE】寻求创新发展的事项已被重新开启，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
-        sendHelpSmsContentMap.put("307","【DEP_NAME】邀请协同处理【TITLE】寻求资本支持的事项已被重新开启，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
-        sendHelpSmsContentMap.put("407","【DEP_NAME】邀请协同处理【TITLE】寻求高端人才的事项已被重新开启，请前往【实时清单协同处理】模块处理！——北京亦庄创新发布线上工作平台");
+        sendHelpSmsContentMap.put("107","【DEP_NAME】邀请协同处理【TITLE】寻求参与开发区建设的事项已被重新开启，请前往【实时清单协同处理】模块处理！");
+        sendHelpSmsContentMap.put("207","【DEP_NAME】邀请协同处理【TITLE】寻求创新发展的事项已被重新开启，请前往【实时清单协同处理】模块处理！");
+        sendHelpSmsContentMap.put("307","【DEP_NAME】邀请协同处理【TITLE】寻求资本支持的事项已被重新开启，请前往【实时清单协同处理】模块处理！");
+        sendHelpSmsContentMap.put("407","【DEP_NAME】邀请协同处理【TITLE】寻求高端人才的事项已被重新开启，请前往【实时清单协同处理】模块处理！");
 
         inventoryDataSourceClassToRoleMap = Maps.newHashMap();
         inventoryDataSourceClassToRoleMap.put(1,"devel_reform_role");

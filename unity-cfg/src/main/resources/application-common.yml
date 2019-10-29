@@ -36,7 +36,7 @@ system:
     upload-path: D:/test_dir/develTemp/
     multipart-path: "D:/test_dir/develTemp/"
     domain-name: http://localhost/
-    fastdfs-file-read-path-head: https://security-test.jingcaiwang.cn/
+    fastdfs-file-read-path-head: https://innovation-test.jingcaiwang.cn/
 
 
 spring:
@@ -108,7 +108,7 @@ system:
     upload-path: /data/upload/
     multipart-path: /data/upload/testTemp/
     domain-name: https://security-test.jingcaiwang.cn/
-    fastdfs-file-read-path-head: https://security-test.jingcaiwang.cn/
+    fastdfs-file-read-path-head: https://innovation-test.jingcaiwang.cn/
 
 fdfs:
   so-timeout: 8000
@@ -127,7 +127,7 @@ system:
     upload-path: /data/upload/
     multipart-path: /data/upload/uatTemp/
     domain-name: http://pocketbook.uat.jingcaiwang.cn/
-    fastdfs-file-read-path-head: https://esp.jingcaiwang.cn/
+    fastdfs-file-read-path-head: https://innovation-test.jingcaiwang.cn/
 spring:
   data:
     solr:

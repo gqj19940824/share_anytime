@@ -344,6 +344,11 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         //数据集合
         entity.setSnapshot(snapshot);
         if (entity.getId() == null) {
+            if (customer != null && customer.getIdRbacDepartment() == null) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("未获取到用户的单位id").build();
+            }
             //新增
             entity.setAttachmentCode(UUIDUtil.getUUID());
             //附件

@@ -188,7 +188,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
     @Transactional(rollbackFor = Exception.class)
     public void addInventoryMessage(InventoryMessage msg) {
         //保存系统消息
-        String title = MessageConstants.addInventoryMsgTitleMap.get(msg.getDataSourceClass().toString().concat(msg.getFlowStatus().toString()));
+        String title = MessageConstants.addInventoryMsgTitleMap.get(msg.getBizType().toString().concat(msg.getFlowStatus().toString()));
         if (StringUtils.isBlank(title)) {
             return;
         }
@@ -199,12 +199,13 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         //获取主责单位下用户进行系统消息及短信的发送
         List<UserVO> userList = rbacClient.getUserListByDepIdList(Arrays.asList(msg.getIdRbacDepartment()));
         if (CollectionUtils.isEmpty(userList)) {
+            log.error("======《addInventoryMessage》--新增实时清单推送系统消息未获取到指定单位下用户，单位id {}",msg.getIdRbacDepartment());
             return;
         }
         //保存系统通知并推送
         saveAndSendMessage(userList, msg.getSourceId(), msg.getIdRbacDepartment(),
                 msg.getDataSourceClass(), msg.getFlowStatus(), title);
-        String smsTitle = MessageConstants.sendSmsContentMap.get(msg.getDataSourceClass().toString()
+        String smsTitle = MessageConstants.sendSmsContentMap.get(msg.getBizType().toString()
                 .concat(msg.getFlowStatus().toString()));
         smsTitle = smsTitle.replace(MessageConstants.TITLE, StringUtils.isEmpty(msg.getTitle()) ? "未知企业" : msg.getTitle());
         //发送短信
@@ -237,13 +238,15 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         }
 
         //获取主责单位下用户进行系统消息及短信的发送
-        List<UserVO> userList = rbacClient.getUserListByDepIdList(Arrays.asList(msg.getIdRbacDepartment()));
+        List<UserVO> userList = rbacClient.getUserListByDepIdList(msg.getHelpDepartmentIdList());
         if (CollectionUtils.isNotEmpty(userList)) {
             //保存系统通知并推送
             saveAndSendMessage(userList, msg.getSourceId(), msg.getIdRbacDepartment(),
                     msg.getDataSourceClass(), msg.getFlowStatus(), title);
             //发送短信
             saveAndSendSms(msg, userList, smsTitle, depName);
+        } else {
+            log.error("======《addInventoryHelpMessage》--实时清单新增清单协同处理推送系统消息未获取到指定单位下用户，单位id {}",msg.getIdRbacDepartment());
         }
     }
 
@@ -283,6 +286,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
                 .map(UserVO::getId)
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(userIdList)) {
+            log.error("======《addReviewMessage》--发布审核流程推送系统消息未获取到指定单位下用户，单位id {}",msg.getIdRbacDepartment());
             return;
         }
         Long messageId = saveMessage(msg.getSourceId(), title, msg.getIdRbacDepartment(),
@@ -409,18 +413,18 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             if (SysMessageFlowStatusEnum.ONE.getId().equals(msg.getFlowStatus())
                     && !SysMessageDataSourceClassEnum.HELP.getId().equals(msg.getDataSourceClass())) {
                 //说明是企业填报需求，短信模板需要企业名称和模块名称两个参数
-                smsParem = "{\"enterpeiseName\":\"【"+msg.getTitle()+"】\",\"menuName\":\"【"+SysMessageDataSourceClassEnum.ofName(msg.getDataSourceClass())+"】\"}";
+                smsParem = "{\"enterpriseName\":\"【"+msg.getTitle()+"】\",\"menuName\":\"【"+SysMessageDataSourceClassEnum.ofName(msg.getDataSourceClass())+"】\"}";
             } else if (SysMessageFlowStatusEnum.SIX.getId().equals(msg.getFlowStatus())) {
-                smsParem = "{\"mainCompanyName\":\"【"+depName+"】\",\"enterpeiseName\":\"【"+msg.getTitle()+"】\"}";
+                smsParem = "{\"mainCompanyName\":\"【"+depName+"】\",\"enterpriseName\":\"【"+msg.getTitle()+"】\"}";
             } else {
                 BizTypeEnum typeEnum = BizTypeEnum.of(msg.getBizType());
                 String menuName = typeEnum == null ? "" : typeEnum.getName();
-                smsParem = "{\"mainCompanyName\":\"【"+depName+"】\",\"enterpeiseName\":\"【"+msg.getTitle()+"】\",\"menuName\":\"【"+menuName+"】\"}";
+                smsParem = "{\"mainCompanyName\":\"【"+depName+"】\",\"enterpriseName\":\"【"+msg.getTitle()+"】\",\"menuName\":\"【"+menuName+"】\"}";
             }
 
-            //获取对应模板 字典项code由数据来源归属加流程状态组成
-            Dic smsTemplateDic = dicUtils.getDicByCode(SmsConstants.ALI_SMS_GROUP, msg.getDataSourceClass().toString()
-                    .concat(msg.getFlowStatus().toString()));
+            //获取对应模板 清单类型+数据来源+流程状态组成dic_code
+            Dic smsTemplateDic = dicUtils.getDicByCode(SmsConstants.ALI_SMS_GROUP, msg.getBizType().toString().concat(msg.getDataSourceClass().toString()
+                    .concat(msg.getFlowStatus().toString())));
             if (smsTemplateDic == null || StringUtils.isEmpty(smsTemplateDic.getDicValue())) {
                 //未获取到模板，不执行短信发送
                 log.error("======《创新发布实时清单短信通知发送失败》---未获取到短信模板ID======");

@@ -19,9 +19,11 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.IplYzgtMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplYzgtMain;
+import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
 import com.unity.innovation.enums.SysMessageFlowStatusEnum;
+import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -130,13 +132,15 @@ public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplY
             save(entity);
             //====亦庄国投====企业新增填报实时清单需求========
             if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
+                Long idRbacDepartmentDuty = InnovationUtil.getIdRbacDepartmentDuty(BizTypeEnum.GROW.getType());
                 //企业需求填报才进行系统通知
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
-                        .idRbacDepartment(InnovationConstant.DEPARTMENT_YZGT_ID)
-                        .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                        .idRbacDepartment(idRbacDepartmentDuty)
+                        .dataSourceClass(SysMessageDataSourceClassEnum.INVESTMENT.getId())
                         .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
                         .title(entity.getEnterpriseName())
+                        .bizType(BizTypeEnum.INVESTMENT.getType())
                         .build());
             }
         } else {

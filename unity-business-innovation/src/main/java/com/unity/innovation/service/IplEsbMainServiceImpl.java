@@ -195,9 +195,10 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
                         .idRbacDepartment(departmentId)
-                        .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                        .dataSourceClass(SysMessageDataSourceClassEnum.DEVELOPING.getId())
                         .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
                         .title(entity.getEnterpriseName())
+                        .bizType(BizTypeEnum.ENTERPRISE.getType())
                         .build());
             }
         } else {
@@ -235,6 +236,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                         .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
                         .title(entity.getEnterpriseName())
                         .helpDepartmentIdList(assistsIdList)
+                        .bizType(BizTypeEnum.ENTERPRISE.getType())
                         .build());
             }
             updateById(entity);
@@ -273,6 +275,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                     .flowStatus(SysMessageFlowStatusEnum.FIVES.getId())
                     .title(entity.getEnterpriseName())
                     .helpDepartmentIdList(assistsIdList)
+                    .bizType(BizTypeEnum.ENTERPRISE.getType())
                     .build());
         });
 

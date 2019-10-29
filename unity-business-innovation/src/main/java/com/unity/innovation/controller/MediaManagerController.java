@@ -4,14 +4,17 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.collect.Lists;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.pojos.Dic;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.ui.tree.TNode;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.DicUtils;
 import com.unity.innovation.constants.ParamConstants;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.pojos.SystemResponse;
@@ -23,6 +26,8 @@ import reactor.core.publisher.Mono;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.util.Map;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import com.unity.innovation.service.MediaManagerServiceImpl;
 import com.unity.innovation.entity.MediaManager;
@@ -166,6 +171,58 @@ public class MediaManagerController extends BaseWebController {
                 , MediaManager::getId, MediaManager::getSort, MediaManager::getNotes, MediaManager::getMediaType, MediaManager::getMediaName, MediaManager::getContactPerson, MediaManager::getContactWay, MediaManager::getStatus
         );
     }
+
+
+    /**
+    * 获取媒体树
+    *
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/10/29 10:24
+    */
+    @PostMapping("/getMediaTree")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getMediaTree() {
+        List<MediaManager> list = service.list(new LambdaQueryWrapper<MediaManager>().eq(MediaManager::getStatus, YesOrNoEnum.YES.getType()));
+        //根节点
+        TNode root = new TNode();
+        root.setId("0");
+        root.setText("全部");
+        root.setIsParent(true);
+        List<TNode> rootChildren = Lists.newArrayList();
+        root.setChildren(rootChildren);
+        //按deptType分组
+        Map<Long, List<MediaManager>> map = list.stream().collect(Collectors.groupingBy(MediaManager::getMediaType));
+        //类型集合
+        Set<Long> typeSet = map.keySet();
+        for (long mediaType : typeSet) {
+            TNode typeNode = new TNode();
+            typeNode.setId("mediaType:"+mediaType);
+            Dic dic = dicUtils.getDicByCode(DicConstants.MEDIA_TYPE, mediaType + "");
+            if(dic != null){
+                typeNode.setText(dic.getDicValue());
+            }else {
+                typeNode.setText("");
+            }
+            typeNode.setIsParent(true);
+            List<TNode> typeChildren = Lists.newArrayList();
+            typeNode.setChildren(typeChildren);
+            List<MediaManager> listByType = map.get(mediaType);
+            if(CollectionUtils.isNotEmpty(listByType)) {
+                listByType.forEach(media -> {
+                    TNode node = new TNode();
+                    node.setId(media.getId().toString());
+                    node.setText(media.getMediaName());
+                    node.setIsParent(false);
+                    typeChildren.add(node);
+                });
+            }
+            rootChildren.add(typeNode);
+        }
+        return success(root);
+    }
+
+
+
 
 }
 

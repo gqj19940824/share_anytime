@@ -154,24 +154,23 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
             String uuid = UUIDUtil.getUUID();
             entity.setStatus(IplStatusEnum.UNDEAL.getId());
             entity.setAttachmentCode(uuid);
-            entity.setIdRbacDepartmentDuty(InnovationConstant.DEPARTMENT_PD_ID);
+            Long idRbacDepartmentDuty = InnovationUtil.getIdRbacDepartmentDuty(BizTypeEnum.SIGNUP.getType());
+            entity.setIdRbacDepartmentDuty(idRbacDepartmentDuty);
             this.save(entity);
             //附件处理
             if(CollectionUtils.isNotEmpty(entity.getAttachmentList())){
                 attachmentService.updateAttachments(uuid, entity.getAttachmentList());
             }
-            /*//预定义清单超时未处理
-            redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"), ListTypeConstants.DEAL_OVER_TIME, InnovationConstant.DEPARTMENT_PD_ID);*/
-
             //====宣传部====企业新增填报实时清单需求========
             if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
                 //企业需求填报才进行系统通知
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
-                        .idRbacDepartment(InnovationConstant.DEPARTMENT_PD_ID)
-                        .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                        .idRbacDepartment(idRbacDepartmentDuty)
+                        .dataSourceClass(SysMessageDataSourceClassEnum.PROPAGANDA.getId())
                         .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
                         .title(entity.getEnterpriseName())
+                        .bizType(BizTypeEnum.SIGNUP.getType())
                         .build());
             }
         } else {
@@ -186,27 +185,6 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
             this.updateById(entity);
             //附件处理
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
-            /*// 更新超时时间
-            Integer status = entity.getStatus();
-            // 设置处理超时时间
-            if (IplStatusEnum.UNDEAL.getId().equals(status)) {
-                redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
-                        ListTypeConstants.DEAL_OVER_TIME,entity.getIdRbacDepartmentDuty());
-                // 设置更新超时时间
-            } else if (IplStatusEnum.DEALING.getId().equals(status)) {
-                redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
-                        ListTypeConstants.UPDATE_OVER_TIME,entity.getIdRbacDepartmentDuty());
-                // 非"待处理"状态才记录日志
-                Integer lastDealStatus = iplLogService.getLastDealStatus(entity.getId(),
-                        entity.getIdRbacDepartmentDuty());
-                iplLogService.save(IplLog.newInstance()
-                        .idIplMain(entity.getId())
-                        .idRbacDepartmentAssist(0L)
-                        .processInfo("更新基本信息")
-                        .idRbacDepartmentDuty(entity.getIdRbacDepartmentDuty())
-                        .dealStatus(lastDealStatus)
-                        .build());
-            }*/
         }
 
     }
