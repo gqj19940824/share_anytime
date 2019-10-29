@@ -188,7 +188,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
     @Transactional(rollbackFor = Exception.class)
     public void addInventoryMessage(InventoryMessage msg) {
         //保存系统消息
-        String title = MessageConstants.addInventoryMsgTitleMap.get(msg.getDataSourceClass().toString().concat(msg.getFlowStatus().toString()));
+        String title = MessageConstants.addInventoryMsgTitleMap.get(msg.getBizType().toString().concat(msg.getFlowStatus().toString()));
         if (StringUtils.isBlank(title)) {
             return;
         }
@@ -204,7 +204,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         //保存系统通知并推送
         saveAndSendMessage(userList, msg.getSourceId(), msg.getIdRbacDepartment(),
                 msg.getDataSourceClass(), msg.getFlowStatus(), title);
-        String smsTitle = MessageConstants.sendSmsContentMap.get(msg.getDataSourceClass().toString()
+        String smsTitle = MessageConstants.sendSmsContentMap.get(msg.getBizType().toString()
                 .concat(msg.getFlowStatus().toString()));
         smsTitle = smsTitle.replace(MessageConstants.TITLE, StringUtils.isEmpty(msg.getTitle()) ? "未知企业" : msg.getTitle());
         //发送短信

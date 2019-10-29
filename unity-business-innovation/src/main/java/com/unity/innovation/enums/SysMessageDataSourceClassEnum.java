@@ -29,7 +29,8 @@ public enum SysMessageDataSourceClassEnum {
     WORK_RELEASE_REVIEW(50, "工作动态发布审核"),
     ENTERPRISE_RELEASE_REVIEW(60, "企业信息发布审核"),
     YZGT_RELEASE_REVIEW(70, "入区企业信息发布管理"),
-    SATB_RELEASE_REVIEW(71, "路演企业信息发布管理");
+    SATB_RELEASE_REVIEW(71, "路演企业信息发布管理"),
+    INVESTMENT_RELEASE_REVIEW(72, "投资机构信息发布管理");
 
 
     public static String ofName(Integer id) {
@@ -53,7 +54,25 @@ public enum SysMessageDataSourceClassEnum {
             case 60 : return ENTERPRISE_RELEASE_REVIEW.getName();
             case 70 : return YZGT_RELEASE_REVIEW.getName();
             case 71 : return SATB_RELEASE_REVIEW.getName();
+            case 72 : return INVESTMENT_RELEASE_REVIEW.getName();
             default: return "";
+        }
+    }
+
+    public static Integer getDataSourceClassByBizType(Integer bizType) {
+        switch (bizType) {
+            case 10:
+                return COOPERATION_RELEASE.getId();
+            case 20:
+                return DEVELOPING_RELEASE.getId();
+            case 30:
+                return TARGET_RELEASE.getId();
+            case 40:
+                return DEMAND_RELEASE.getId();
+            case 50:
+                return RELATION_RELEASE.getId();
+            default:
+                return null;
         }
     }
 

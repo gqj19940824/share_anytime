@@ -5,13 +5,14 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.ReviewMessage;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.innovation.dao.IpaManageMainDao;
 import com.unity.innovation.entity.DailyWorkStatusPackage;
 import com.unity.innovation.entity.PmInfoDept;
 import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.IpaStatusEnum;
+import com.unity.innovation.enums.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -35,23 +36,25 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
 
     @Resource
     private IplManageMainServiceImpl iplManageMainService;
-
     @Resource
     private DailyWorkStatusPackageServiceImpl dailyWorkStatusPackageService;
-
     @Resource
     private PmInfoDeptServiceImpl pmInfoDeptService;
+    @Resource
+    private SysMessageHelpService sysMessageHelpService;
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateIpaMain(IpaManageMain entity){
+    public void updateIpaMain(IpaManageMain entity) {
         // 更新二次包数据
         Integer status = entity.getStatus();
         LambdaUpdateWrapper<IpaManageMain> wrapper = new LambdaUpdateWrapper<IpaManageMain>().eq(IpaManageMain::getId, entity.getId()).set(IpaManageMain::getStatus, status);
-        if (StringUtils.isNotBlank(entity.getPublishResult())){
+        if (StringUtils.isNotBlank(entity.getPublishResult())) {
             wrapper.set(IpaManageMain::getPublishResult, entity.getPublishResult());
         }
         update(wrapper);
         updateFirstPackStatus(entity.getId(), status);
+        /*=========工作动态发布管理/5个xx清单发布管理/2个企业信息发布管理=======系统通知======================*/
+        sendSysMessage(entity);
     }
 
     private void updateFirstPackStatus(Long idIpaMain, Integer status) {
@@ -63,6 +66,80 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
         iplManageMainService
                 .update(new LambdaUpdateWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain).set(IplManageMain::getStatus, status));
     }
+
+    /**
+     * 工作动态发布管理/5个xx清单发布管理/2个企业信息发布管理 发布/更新发布效果
+     *
+     * @param entity 包含消息数据
+     * @author gengjiajia
+     * @since 2019/10/29 11:13
+     */
+    private void sendSysMessage(IpaManageMain entity) {
+        //通过发布管理id分别获取工作动态、5个清单、两个企业信息列表
+        if (WorkStatusAuditingStatusEnum.FIFTY.getId().equals(entity.getStatus())
+                || WorkStatusAuditingStatusEnum.SIXTY.getId().equals(entity.getStatus())) {
+            List<DailyWorkStatusPackage> packageList = dailyWorkStatusPackageService.list(
+                    new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, entity.getId())
+                            .eq(DailyWorkStatusPackage::getState, entity.getStatus()));
+            List<IplManageMain> mainList = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>()
+                    .eq(IplManageMain::getIdIpaMain, entity.getId())
+                    .eq(IplManageMain::getStatus, entity.getStatus()));
+            List<PmInfoDept> deptList = pmInfoDeptService.list(
+                    new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, entity.getId())
+                            .eq(PmInfoDept::getStatus, entity.getStatus()));
+            int flowStatus = entity.getStatus().equals(WorkStatusAuditingStatusEnum.FIFTY.getId())
+                    ? SysMsgFlowStatusEnum.FOUR.getId() : SysMsgFlowStatusEnum.FIVES.getId();
+            //发布 获取所有需要通知的单位id
+            packageList.forEach(work -> {
+                pushSysMessage(SysMessageDataSourceClassEnum.WORK_RELEASE_MANAGE.getId(),
+                        flowStatus,
+                        work.getIdRbacDepartment(),
+                        work.getId(),
+                        work.getTitle());
+            });
+            deptList.forEach(dep -> {
+                int dataSourceClass = dep.getBizType().equals(BizTypeEnum.RQDEPTINFO.getType())
+                        ? SysMessageDataSourceClassEnum.YZGT_RELEASE_REVIEW.getId() :
+                        dep.getBizType().equals(BizTypeEnum.LYDEPTINFO.getType()) ?
+                                SysMessageDataSourceClassEnum.SATB_RELEASE_REVIEW.getId() : SysMessageDataSourceClassEnum.INVESTMENT_RELEASE_REVIEW.getId();
+                pushSysMessage(dataSourceClass,
+                        flowStatus,
+                        dep.getIdRbacDepartment(),
+                        dep.getId(),
+                        dep.getTitle());
+            });
+            mainList.forEach(main -> {
+                Integer dataSourceClass = SysMessageDataSourceClassEnum.getDataSourceClassByBizType(main.getBizType());
+                pushSysMessage(dataSourceClass,
+                        flowStatus,
+                        main.getIdRbacDepartmentDuty(),
+                        main.getId(),
+                        main.getTitle());
+            });
+        }
+    }
+
+    /**
+     * 推送系统消息
+     *
+     * @param dataSourceClass  数据来源
+     * @param flowStatus       流程状态
+     * @param idRbacDepartment 提交单位
+     * @param sourceId         源id
+     * @param title            标题
+     * @author gengjiajia
+     * @since 2019/10/29 13:57
+     */
+    private void pushSysMessage(int dataSourceClass, int flowStatus, Long idRbacDepartment, Long sourceId, String title) {
+        sysMessageHelpService.addReviewMessage(ReviewMessage.newInstance()
+                .dataSourceClass(dataSourceClass)
+                .flowStatus(flowStatus)
+                .idRbacDepartment(idRbacDepartment)
+                .sourceId(sourceId)
+                .title(title)
+                .build());
+    }
+
 
     @Transactional(rollbackFor = Exception.class)
     public void delByIds(List<Long> ids) {
