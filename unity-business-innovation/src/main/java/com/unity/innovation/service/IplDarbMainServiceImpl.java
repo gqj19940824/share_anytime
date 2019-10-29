@@ -102,10 +102,11 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
             //企业需求填报才进行系统通知
             sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                     .sourceId(entity.getId())
-                    .idRbacDepartment(InnovationConstant.DEPARTMENT_DARB_ID)
+                    .idRbacDepartment(entity.getIdRbacDepartmentDuty())
                     .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
                     .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
                     .title(entity.getEnterpriseName())
+                    .bizType(BizTypeEnum.CITY.getType())
                     .build());
         }
         return entity.getId();
@@ -150,11 +151,12 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
             List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
             sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                     .sourceId(entity.getId())
-                    .idRbacDepartment(InnovationConstant.DEPARTMENT_DARB_ID)
+                    .idRbacDepartment(byId.getIdRbacDepartmentDuty())
                     .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
                     .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
                     .title(entity.getEnterpriseName())
                     .helpDepartmentIdList(assistsIdList)
+                    .bizType(BizTypeEnum.CITY.getType())
                     .build());
         }
     }
@@ -181,6 +183,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
                         .flowStatus(SysMessageFlowStatusEnum.FIVES.getId())
                         .title(entity.getEnterpriseName())
                         .helpDepartmentIdList(assistsIdList)
+                        .bizType(BizTypeEnum.CITY.getType())
                         .build());
             });
             //附件处理

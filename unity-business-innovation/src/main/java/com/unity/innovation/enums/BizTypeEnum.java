@@ -23,7 +23,8 @@ public enum BizTypeEnum {
     RQDEPTINFO(60,"入区企业信息"),
     LYDEPTINFO(70,"路演企业信息"),
     INVESTMENT(80,"投资机构信息管理"),
-    SUGGESTION(90,"意见与建议");
+    SUGGESTION(90,"意见与建议"),
+    SIGNUP(100,"报名参与发布会");
 
 
     public static BizTypeEnum of(Integer id) {
@@ -51,6 +52,9 @@ public enum BizTypeEnum {
         }
         if (id.equals(INVESTMENT.getType())) {
             return INVESTMENT;
+        }
+        if (id.equals(SIGNUP.getType())) {
+            return SIGNUP;
         }
         return null;
     }

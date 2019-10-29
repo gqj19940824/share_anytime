@@ -232,7 +232,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
                         .idRbacDepartment(entity.getIdRbacDepartmentDuty())
-                        .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                        .dataSourceClass(SysMessageDataSourceClassEnum.TARGET.getId())
                         .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
                         .title(entity.getEnterpriseName())
                         .bizType(BizTypeEnum.GROW.getType())
@@ -322,6 +322,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 .flowStatus(SysMessageFlowStatusEnum.FIVES.getId())
                 .title(main.getEnterpriseName())
                 .helpDepartmentIdList(assistsIdList)
+                .bizType(BizTypeEnum.GROW.getType())
                 .build());
         //关联删除协同信息
         iplAssistService.del(main);

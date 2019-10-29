@@ -139,9 +139,10 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
                         .idRbacDepartment(departmentId)
-                        .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                        .dataSourceClass(SysMessageDataSourceClassEnum.SUGGEST.getId())
                         .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
                         .title(entity.getEnterpriseName())
+                        .bizType(BizTypeEnum.SUGGESTION.getType())
                         .build());
             }
             redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, departmentId, BizTypeEnum.SUGGESTION.getType());
