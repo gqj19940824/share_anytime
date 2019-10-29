@@ -2,6 +2,25 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.unity.innovation.dao.IplAssistDao">
 
+    <!--需求趋势-->
+    <select id="demandTrendStatistics" resultType="java.util.Map">
+        SELECT FROM_UNIXTIME( s.gmt_create/1000, '%Y年%m月' )  AS month, COUNT(*) AS sum
+        FROM ${tableName} s
+        where s.is_deleted = 0
+
+        <if test="startLong != null">
+            and s.gmt_create &gt;= #{startLong}
+        </if>
+        <if test="endLong != null">
+            and s.gmt_create &lt; #{endLong}
+        </if>
+        <if test="source != null">
+            and s.source = #{source}
+        </if>
+
+        GROUP BY month
+    </select>
+
     <!--协同发改局列表-->
     <select id="assistDarbList" parameterType="java.util.Map" resultType="java.util.Map">
         SELECT m.project_name situation, '城市合作清单' listType,

@@ -171,11 +171,11 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
         }
         // 与会企业信息
         if (CollectionUtils.isNotEmpty(idPmpList)) {
-            editPmp(ipaId, idDwspList, idPmpList);
+            editPmp(ipaId, idPmpList);
         }
         // 创新发布清单
         if (CollectionUtils.isNotEmpty(idIplpList)) {
-            editIplp(ipaId, idDwspList, idIplpList);
+            editIplp(ipaId, idIplpList);
         }
     }
 
@@ -259,7 +259,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
         return pmInfoDeptService.count(new LambdaQueryWrapper<PmInfoDept>().in(PmInfoDept::getId, toSaveIdList).isNotNull(PmInfoDept::getIdIpaMain));
     }
 
-    private void editIplp(Long ipaId, List<Long> idDwspList, List<Long> idIplpList) {
+    private void editIplp(Long ipaId, List<Long> idIplpList) {
         List<IplManageMain> list = iplManageMainService
                 .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, ipaId));
         // 已存在的
@@ -271,13 +271,13 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
             saveIplp(ipaId, toSaveIdList);
         }
         // 需要删除的
-        List<Long> toDelIdList = savedIdList.stream().filter(e -> !idDwspList.contains(e)).collect(Collectors.toList());
+        List<Long> toDelIdList = savedIdList.stream().filter(e -> !idIplpList.contains(e)).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(toDelIdList)) {
             iplManageMainService.updateIdIpaMain(toDelIdList, null);
         }
     }
 
-    private void editPmp(Long ipaId, List<Long> idDwspList, List<Long> idPmpList) {
+    private void editPmp(Long ipaId, List<Long> idPmpList) {
         List<PmInfoDept> list = pmInfoDeptService
                 .list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, ipaId));
         // 已存在的
@@ -289,7 +289,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
             savePmp(ipaId, toSaveIdList);
         }
         // 需要删除的
-        List<Long> toDelIdList = savedIdList.stream().filter(e -> !idDwspList.contains(e)).collect(Collectors.toList());
+        List<Long> toDelIdList = savedIdList.stream().filter(e -> !idPmpList.contains(e)).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(toDelIdList)) {
             pmInfoDeptService.updateIdIpaMain(toDelIdList, null);
         }

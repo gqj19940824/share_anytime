@@ -4,6 +4,7 @@ package com.unity.innovation.dao;
 
 import com.unity.common.base.BaseDao;
 import com.unity.innovation.entity.generated.IplAssist;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -27,5 +28,7 @@ public interface IplAssistDao  extends BaseDao<IplAssist>{
     List<Map<String, Object>> assistEsbList(Map<String, Object> paramMap);
     List<Map<String, Object>> assistSatbList(Map<String, Object> paramMap);
     List<Map<String, Object>> assistOdList(Map<String, Object> paramMap);
+
+    List<Map<String, Object>> demandTrendStatistics(@Param("tableName") String tableName, @Param("source")Integer source, @Param("startLong") Long startLong, @Param("endLong") Long endLong);
 }
 
