@@ -329,11 +329,6 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     @Transactional(rollbackFor = Exception.class)
     public Long saveOrUpdateForPkg(IplManageMain entity) {
         Customer customer = LoginContextHolder.getRequestAttributes();
-        if (customer != null && customer.getIdRbacDepartment() == null) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                    .message("未获取到用户的单位id").build();
-        }
         //快照数据 根据不同单位 切换不同vo
         String snapshot = GsonUtils.format(entity.getDataList());
         //纪检组需要进行排序
@@ -349,6 +344,11 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         //数据集合
         entity.setSnapshot(snapshot);
         if (entity.getId() == null) {
+            if (customer != null && customer.getIdRbacDepartment() == null) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("未获取到用户的单位id").build();
+            }
             //新增
             entity.setAttachmentCode(UUIDUtil.getUUID());
             //附件
