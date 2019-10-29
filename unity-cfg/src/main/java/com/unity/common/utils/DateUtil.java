@@ -9,11 +9,7 @@ import java.text.ParseException;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -28,6 +24,34 @@ public class DateUtil
     private static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(pattern);
     public static DateTimeFormatter getDateTimeFormatter(){
         return dateFormatter;
+    }
+
+    /**
+     * 获得最近6个月的名称列表
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 2:37 下午
+     */
+    public static List<String> getMonthsList(String date) throws Exception{
+        Date parse;
+        if (date == null){
+            parse = new Date();
+        }else {
+           parse = new SimpleDateFormat("yyyy-MM").parse(date);
+        }
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(parse);
+        List<String> dataList = new ArrayList<>();
+        dataList.add(new SimpleDateFormat(("yyyy年MM月")).format(calendar.getTime()));
+        for (int i=0; i<5; i++){
+            calendar.add(Calendar.MONTH, -1);
+            System.out.println();
+            dataList.add(new SimpleDateFormat(("yyyy年MM月")).format(calendar.getTime()));
+        }
+        Collections.reverse(dataList);
+        return dataList;
     }
 
     /**
