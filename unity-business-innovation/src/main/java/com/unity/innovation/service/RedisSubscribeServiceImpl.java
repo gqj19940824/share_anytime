@@ -65,36 +65,7 @@ public class RedisSubscribeServiceImpl {
         return result;
     }
 
-    public String saveSubscribeInfo(String id, String overTimeType, Long departmentId) {
-        String result = "error";
-        Integer bizType = 10;
-        try {
-            Dic dicByCode = dicUtils.getDicByCode(ListTypeConstants.LIST_TIMEOUT, overTimeType);
-            if (dicByCode != null) {
-                String key = ListTypeConstants.LIST_CONTROL
-                        .concat(departmentId + RedisConstants.KEY_JOINER)
-                        .concat(overTimeType)
-                        .concat(RedisConstants.KEY_JOINER)
-                        .concat(id + RedisConstants.KEY_JOINER)
-                        .concat(bizType.toString());
-                log.info("【记录redis存储的key:】" + key);
-                //String[] idArrays = id.split("-");
-                //超时未处理
-                if (ListTypeConstants.DEAL_OVER_TIME.equals(overTimeType)) {
-                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600));
-                    //超时未更新
-                } else if (ListTypeConstants.UPDATE_OVER_TIME.equals(overTimeType)) {
-                    removeRecordInfo(id, ListTypeConstants.DEAL_OVER_TIME, departmentId, bizType);
-                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600 * 24));
-                } else {
-                    log.info("请确认参数");
-                }
-            }
-        } catch (Exception e) {
-            log.error("【操作异常:" + e.getMessage() + "】");
-        }
-        return result;
-    }
+
 
 
 
@@ -118,17 +89,7 @@ public class RedisSubscribeServiceImpl {
             log.info("【删除记录redis存储的key:】" + key);
             RedisPoolUtil.del(String.format(key, overTimeType));
     }
-    public void removeRecordInfo(String id, String overTimeType, Long departmentId) {
-        Integer bizType =10;
-        String key = ListTypeConstants.LIST_CONTROL
-                .concat(departmentId + RedisConstants.KEY_JOINER)
-                .concat("%s")
-                .concat(RedisConstants.KEY_JOINER)
-                .concat(id + RedisConstants.KEY_JOINER)
-                .concat(bizType.toString());
-        log.info("【删除记录redis存储的key:】" + key);
-        RedisPoolUtil.del(String.format(key, overTimeType));
-    }
+
     /**
      * 删除清单超时处理信息
      *
@@ -149,16 +110,5 @@ public class RedisSubscribeServiceImpl {
             RedisPoolUtil.del(String.format(key,ListTypeConstants.DEAL_OVER_TIME));
             RedisPoolUtil.del(String.format(key,ListTypeConstants.UPDATE_OVER_TIME));
     }
-    public void removeRecordInfo(String id, Long departmentId) {
-        Integer bizType =10;
-        String key = ListTypeConstants.LIST_CONTROL
-                .concat(departmentId + RedisConstants.KEY_JOINER)
-                .concat("%s")
-                .concat(RedisConstants.KEY_JOINER)
-                .concat(id + RedisConstants.KEY_JOINER)
-                .concat(bizType.toString());
-        log.info("【删除记录redis存储的key:】" + key);
-        RedisPoolUtil.del(String.format(key,ListTypeConstants.DEAL_OVER_TIME));
-        RedisPoolUtil.del(String.format(key,ListTypeConstants.UPDATE_OVER_TIME));
-    }
+
 }
