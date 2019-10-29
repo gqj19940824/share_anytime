@@ -209,7 +209,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             //待处理时
             if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
-                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, departmentId,BizTypeEnum.INTELLIGENCE.getType());
+                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, departmentId,BizTypeEnum.INTELLIGENCE.getType());
             } else if (IplStatusEnum.DEALING.getId().equals(vo.getStatus())) {
                 //处理中 如果超时 则置为进展正常
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());

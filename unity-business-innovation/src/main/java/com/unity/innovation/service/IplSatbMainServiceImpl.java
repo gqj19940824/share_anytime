@@ -219,16 +219,9 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
             if (CollectionUtils.isNotEmpty(entity.getAttachmentList())) {
                 attachmentService.updateAttachments(uuid, entity.getAttachmentList());
             }
-            //TODO 主责单位动态获取
-            String idRbacDepartmentDuty = dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE,
-                    BizTypeEnum.GROW.getType().toString());
-            if(StringUtils.isEmpty(idRbacDepartmentDuty)){
-                throw UnityRuntimeException.newInstance()
-                        .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
-                        .message("未获取到主责单位")
-                        .build();
-            }
-            entity.setIdRbacDepartmentDuty(Long.parseLong(idRbacDepartmentDuty));
+
+            Long idRbacDepartmentDuty = InnovationUtil.getIdRbacDepartmentDuty(BizTypeEnum.GROW.getType());
+            entity.setIdRbacDepartmentDuty(idRbacDepartmentDuty);
             entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             this.save(entity);
             redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),

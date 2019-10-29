@@ -13,6 +13,7 @@ public enum BizTypeEnum {
     /**
      * 10城市创新合作(发改局) 20企业创新发展（企服局） 30成长目标投资（科技局） 40高端才智需求（组织部）
      * 50亲清政商关系（纪检 ) 60入区企业信息发布管理  70路演企业信息发布管理  80投资机构信息发布管理
+     * 90意见与建议（纪检组）
      */
     CITY(10,"城市创新合作清单"),
     ENTERPRISE(20,"企业创新发展清单"),
@@ -21,7 +22,8 @@ public enum BizTypeEnum {
     POLITICAL(50,"亲清政商关系清单"),
     RQDEPTINFO(60,"入区企业信息"),
     LYDEPTINFO(70,"路演企业信息"),
-    INVESTMENT(80,"投资机构信息管理");
+    INVESTMENT(80,"投资机构信息管理"),
+    SUGGESTION(90,"意见与建议");
 
 
     public static BizTypeEnum of(Integer id) {

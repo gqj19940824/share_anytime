@@ -5,13 +5,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
-import com.unity.common.constant.InnovationConstant;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
+import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.dao.IplSuggestionDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplSuggestion;
@@ -48,7 +50,10 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
     private IplLogServiceImpl iplLogService;
     @Resource
     private SysMessageHelpService sysMessageHelpService;
-
+    @Resource
+    private RedisSubscribeServiceImpl redisSubscribeService;
+    @Resource
+    private DicUtils dicUtils;
     /**
      * 功能描述 分页接口
      *
@@ -119,6 +124,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
      */
     @Transactional(rollbackFor = Exception.class)
     public Long  saveEntity(IplSuggestion entity) {
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString()));
         if (entity.getId() == null) {
             entity.setAttachmentCode(UUIDUtil.getUUID());
             // 状态设为处理中
@@ -132,12 +138,13 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                 //企业需求填报才进行系统通知
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
-                        .idRbacDepartment(InnovationConstant.DEPARTMENT_SUGGESTION_ID)
+                        .idRbacDepartment(departmentId)
                         .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
                         .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
                         .title(entity.getEnterpriseName())
                         .build());
             }
+            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, departmentId, BizTypeEnum.SUGGESTION.getType());
             return entity.getId();
         } else {
             IplSuggestion vo = getById(entity.getId());
@@ -152,7 +159,9 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                 if (ProcessStatusEnum.DEAL_OVERTIME.getId().equals(vo.getProcessStatus())){
                     vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
                 }
+                redisSubscribeService.saveSubscribeInfo(vo.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, departmentId, BizTypeEnum.SUGGESTION.getType());
             }else if (IplStatusEnum.DEALING.getId().equals(vo.getStatus())) {
+                redisSubscribeService.saveSubscribeInfo(vo.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, departmentId, BizTypeEnum.SUGGESTION.getType());
                 //处理中 如果超时 则置为进展正常
                 if (ProcessStatusEnum.UPDATE_OVERTIME.getId().equals(vo.getProcessStatus())){
                     vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
@@ -208,6 +217,9 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                 .eq(IplLog::getIdRbacDepartmentDuty,customer.getIdRbacDepartment()));
         //主表
         removeByIds(ids);
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString()));
+        ids.forEach(id -> redisSubscribeService.removeRecordInfo(id + "-0", departmentId, BizTypeEnum.SUGGESTION.getType()));
+
     }
 
     /**
@@ -283,6 +295,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
      * @date 2019/9/24 16:06
      */
     public void dealById(IplSuggestion entity) {
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString()));
         IplSuggestion vo = getById(entity.getId());
         if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {
             throw UnityRuntimeException.newInstance()
@@ -290,6 +303,14 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                     .message("处理完毕的数据不可处理").build();
         }
         Customer customer = LoginContextHolder.getRequestAttributes();
+        //判断是否为第一次更新
+        if (vo != null) {
+            if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
+                if (IplStatusEnum.DEALING.getId().equals(entity.getStatus()) || IplStatusEnum.DONE.getId().equals(entity.getStatus())) {
+                    vo.setGmtFirstDeal(System.currentTimeMillis());
+                }
+            }
+        }
         //保存日志信息 主表id 单位id 流程状态 处理进展
         //待处理 或者 处理中 时
         if (IplStatusEnum.UNDEAL.getId().equals(entity.getStatus()) || IplStatusEnum.DEALING.getId().equals(entity.getStatus())) {
@@ -305,6 +326,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             vo.setStatus(IplStatusEnum.DEALING.getId());
             vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             updateById(vo);
+            redisSubscribeService.saveSubscribeInfo(vo.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, departmentId, BizTypeEnum.SUGGESTION.getType());
             //处理完成
         } else if (IplStatusEnum.DONE.getId().equals(entity.getStatus())) {
             IplLog iplLog = IplLog.newInstance()
@@ -319,6 +341,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             vo.setStatus(IplStatusEnum.DONE.getId());
             vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             updateById(vo);
+            redisSubscribeService.removeRecordInfo(vo.getId() + "-0", departmentId, BizTypeEnum.SUGGESTION.getType());
         }
 
     }

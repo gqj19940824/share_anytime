@@ -60,4 +60,9 @@ public class ReviewMessage {
      *     (50, "工作动态发布审核")
      */
     private Integer dataSourceClass;
+
+    /**
+     * 清单类型
+     */
+    private Integer bizType;
 }

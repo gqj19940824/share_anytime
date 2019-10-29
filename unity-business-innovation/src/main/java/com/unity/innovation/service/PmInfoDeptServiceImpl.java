@@ -11,6 +11,7 @@ import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.ReviewMessage;
 import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.DateUtils;
@@ -73,6 +74,8 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
     private SystemConfiguration systemConfiguration;
     @Resource
     private IplYzgtMainServiceImpl iplYzgtMainService;
+    @Resource
+    private SysMessageHelpService sysMessageHelpService;
 
     /**
      * 从二次打包中删除
@@ -170,7 +173,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
      * @date 2019/10/17 9:42
      */
     @Transactional(rollbackFor = Exception.class)
-    public void saveEntity(PmInfoDept entity) {
+    public Long saveEntity(PmInfoDept entity) {
         Customer customer = LoginContextHolder.getRequestAttributes();
         Long departmentId = customer.getIdRbacDepartment();
         List<Long> ids = entity.getDataIdList();
@@ -214,6 +217,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             updateById(entity);
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
         }
+        return entity.getId();
     }
 
     /**
@@ -408,8 +412,19 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         entity.setIdPmInfoDept(old.getId());
         entity.setId(null);
         logService.save(entity);
-
+        /*======================2个企业信息发布管理--通过/驳回======================系统通知======================*/
+        //通过清单类型获取数据分类
+        sysMessageHelpService.addReviewMessage(ReviewMessage.newInstance()
+                .dataSourceClass(old.getBizType().equals(BizTypeEnum.RQDEPTINFO.getType())
+                        ? SysMessageDataSourceClassEnum.YZGT_RELEASE_REVIEW.getId() : SysMessageDataSourceClassEnum.SATB_RELEASE_REVIEW.getId())
+                .flowStatus(YesOrNoEnum.YES.getType() == entity.getPassOrReject()
+                        ? SysMsgFlowStatusEnum.THREE.getId() : SysMsgFlowStatusEnum.TWO.getId())
+                .idRbacDepartment(old.getIdRbacDepartment())
+                .sourceId(old.getId())
+                .title(old.getTitle())
+                .build());
     }
+
 
     /**
      * 功能描述 导出接口
@@ -697,6 +712,13 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         log.setStatus(WorkStatusAuditingStatusEnum.TWENTY.getId());
         log.setContent("提交发布需求");
         logService.save(log);
+        /*======================企业信息发布审核======================系统通知======================*/
+        sysMessageHelpService.addReviewMessage(ReviewMessage.newInstance()
+                .dataSourceClass(SysMessageDataSourceClassEnum.ENTERPRISE_RELEASE_REVIEW.getId())
+                .flowStatus(SysMsgFlowStatusEnum.ONE.getId())
+                .idRbacDepartment(vo.getIdRbacDepartment())
+                .sourceId(vo.getId())
+                .build());
     }
 
     /**

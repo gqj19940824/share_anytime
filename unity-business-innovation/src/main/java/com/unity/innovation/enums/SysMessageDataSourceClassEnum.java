@@ -26,28 +26,34 @@ public enum SysMessageDataSourceClassEnum {
     RELATION_RELEASE(24, "亲清政商关系清单发布管理"),
     LIST_RELEASE_REVIEW(30, "清单发布审核"),
     WORK_RELEASE_MANAGE(40, "工作动态发布管理"),
-    WORK_RELEASE_REVIEW(50, "工作动态发布审核");
+    WORK_RELEASE_REVIEW(50, "工作动态发布审核"),
+    ENTERPRISE_RELEASE_REVIEW(60, "企业信息发布审核"),
+    YZGT_RELEASE_REVIEW(70, "入区企业信息发布管理"),
+    SATB_RELEASE_REVIEW(71, "路演企业信息发布管理");
 
 
-    public static SysMessageDataSourceClassEnum of(Integer id) {
+    public static String ofName(Integer id) {
         switch (id){
-            case 1 : return COOPERATION;
-            case 2 : return DEVELOPING;
-            case 3 : return TARGET;
-            case 4 : return DEMAND;
-            case 5 : return SUGGEST;
-            case 6 : return PROPAGANDA;
-            case 7 : return INVESTMENT;
-            case 10 : return HELP;
-            case 20 : return COOPERATION_RELEASE;
-            case 21 : return DEVELOPING_RELEASE;
-            case 22 : return TARGET_RELEASE;
-            case 23 : return DEMAND_RELEASE;
-            case 24 : return RELATION_RELEASE;
-            case 30 : return LIST_RELEASE_REVIEW;
-            case 40 : return WORK_RELEASE_MANAGE;
-            case 50 : return WORK_RELEASE_REVIEW;
-            default: return null;
+            case 1 : return COOPERATION.getName();
+            case 2 : return DEVELOPING.getName();
+            case 3 : return TARGET.getName();
+            case 4 : return DEMAND.getName();
+            case 5 : return SUGGEST.getName();
+            case 6 : return PROPAGANDA.getName();
+            case 7 : return INVESTMENT.getName();
+            case 10 : return HELP.getName();
+            case 20 : return COOPERATION_RELEASE.getName();
+            case 21 : return DEVELOPING_RELEASE.getName();
+            case 22 : return TARGET_RELEASE.getName();
+            case 23 : return DEMAND_RELEASE.getName();
+            case 24 : return RELATION_RELEASE.getName();
+            case 30 : return LIST_RELEASE_REVIEW.getName();
+            case 40 : return WORK_RELEASE_MANAGE.getName();
+            case 50 : return WORK_RELEASE_REVIEW.getName();
+            case 60 : return ENTERPRISE_RELEASE_REVIEW.getName();
+            case 70 : return YZGT_RELEASE_REVIEW.getName();
+            case 71 : return SATB_RELEASE_REVIEW.getName();
+            default: return "";
         }
     }
 

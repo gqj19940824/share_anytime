@@ -132,8 +132,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
     private void adapterField(Map<String, Object> m, SysMessage entity) {
         m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
         m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
-        SysMessageDataSourceClassEnum sourceClassEnum = SysMessageDataSourceClassEnum.of(entity.getDataSourceClass());
-        m.put("dataSourceClassTitle", sourceClassEnum != null ? sourceClassEnum.getName() : "");
+        m.put("dataSourceClassTitle", SysMessageDataSourceClassEnum.ofName(entity.getDataSourceClass()));
     }
 
     /**
@@ -409,9 +408,8 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             String smsParem;
             if (SysMessageFlowStatusEnum.ONE.getId().equals(msg.getFlowStatus())
                     && !SysMessageDataSourceClassEnum.HELP.getId().equals(msg.getDataSourceClass())) {
-                SysMessageDataSourceClassEnum e = SysMessageDataSourceClassEnum.of(msg.getDataSourceClass());
                 //说明是企业填报需求，短信模板需要企业名称和模块名称两个参数
-                smsParem = "{\"enterpeiseName\":\"【"+msg.getTitle()+"】\",\"menuName\":\"【"+e.getName()+"】\"}";
+                smsParem = "{\"enterpeiseName\":\"【"+msg.getTitle()+"】\",\"menuName\":\"【"+SysMessageDataSourceClassEnum.ofName(msg.getDataSourceClass())+"】\"}";
             } else if (SysMessageFlowStatusEnum.SIX.getId().equals(msg.getFlowStatus())) {
                 smsParem = "{\"mainCompanyName\":\"【"+depName+"】\",\"enterpeiseName\":\"【"+msg.getTitle()+"】\"}";
             } else {

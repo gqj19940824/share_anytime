@@ -48,6 +48,12 @@ public class DicConstants {
     public static final  String ACHIEVEMENT_INNOVATI = "ACHIEVEMENT_INNOVATI";
 
     /**
+     * 媒体类别典组编码
+     * */
+    public static final  String MEDIA_TYPE = "MEDIA_TYPE";
+
+
+    /**
      * 单位拥有的清单类型字典组
      */
     public static final String DEPART_HAVE_LIST_TYPE = "IPL_LIST";
