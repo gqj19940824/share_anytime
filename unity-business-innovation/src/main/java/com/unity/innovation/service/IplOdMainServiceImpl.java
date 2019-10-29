@@ -191,9 +191,10 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
                         .idRbacDepartment(departmentId)
-                        .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())
+                        .dataSourceClass(SysMessageDataSourceClassEnum.DEMAND.getId())
                         .flowStatus(SysMessageFlowStatusEnum.ONE.getId())
                         .title(entity.getEnterpriseName())
+                        .bizType(BizTypeEnum.INTELLIGENCE.getType())
                         .build());
             }
         } else {
@@ -230,6 +231,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                         .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
                         .title(entity.getEnterpriseName())
                         .helpDepartmentIdList(assistsIdList)
+                        .bizType(BizTypeEnum.INTELLIGENCE.getType())
                         .build());
             }
             updateById(entity);
@@ -267,6 +269,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                     .flowStatus(SysMessageFlowStatusEnum.FIVES.getId())
                     .title(entity.getEnterpriseName())
                     .helpDepartmentIdList(assistsIdList)
+                    .bizType(BizTypeEnum.INTELLIGENCE.getType())
                     .build());
         });
         // 删除主表
