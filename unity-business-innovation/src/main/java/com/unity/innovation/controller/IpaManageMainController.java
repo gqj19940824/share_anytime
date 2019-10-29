@@ -402,7 +402,7 @@ public class IpaManageMainController extends BaseWebController {
     }
 
     /**
-     * 更新发布效果
+     * 发布
      *
      * @param
      * @return
