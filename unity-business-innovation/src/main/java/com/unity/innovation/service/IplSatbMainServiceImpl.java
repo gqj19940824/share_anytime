@@ -225,7 +225,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
             entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
             this.save(entity);
             redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
-                    ListTypeConstants.DEAL_OVER_TIME,entity.getIdRbacDepartmentDuty());
+                    ListTypeConstants.DEAL_OVER_TIME,entity.getIdRbacDepartmentDuty(),BizTypeEnum.GROW.getType());
             //====科技局====企业新增填报实时清单需求========
             if (entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
                 //企业需求填报才进行系统通知
@@ -263,11 +263,11 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
             // 设置处理超时时间
             if (IplStatusEnum.UNDEAL.getId().equals(status)) {
                 redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
-                        ListTypeConstants.DEAL_OVER_TIME,entity.getIdRbacDepartmentDuty());
+                        ListTypeConstants.DEAL_OVER_TIME,entity.getIdRbacDepartmentDuty(),BizTypeEnum.GROW.getType());
                 // 设置更新超时时间
             } else if (IplStatusEnum.DEALING.getId().equals(status)) {
                 redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
-                        ListTypeConstants.UPDATE_OVER_TIME,entity.getIdRbacDepartmentDuty());
+                        ListTypeConstants.UPDATE_OVER_TIME,entity.getIdRbacDepartmentDuty(),BizTypeEnum.GROW.getType());
                 // 非"待处理"状态才记录日志
                 Integer lastDealStatus = iplLogService.getLastDealStatus(entity.getId(), BizTypeEnum.GROW.getType());
                 iplLogService.save(IplLog.newInstance()
