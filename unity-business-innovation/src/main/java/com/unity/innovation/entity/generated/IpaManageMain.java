@@ -60,7 +60,12 @@ public class IpaManageMain extends BaseEntity{
         @TableField("publish_result")
         private String publishResult ;
 
-
+        /**
+         * 发稿媒体
+         **/
+        @CommentTarget("发稿媒体")
+        @TableField("publish_media")
+        private String publishMedia ;
 
         /**
         * 与会企业信息一次包id

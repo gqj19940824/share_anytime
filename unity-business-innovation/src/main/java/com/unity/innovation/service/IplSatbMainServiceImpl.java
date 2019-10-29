@@ -106,7 +106,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @since 2019/10/08 17:52
      */
     private void wrapper(IplSatbMain entity, LambdaQueryWrapper<IplSatbMain> ew) {
-        ew.orderByAsc(IplSatbMain::getSort);
+        ew.orderByDesc(IplSatbMain::getSort);
         if (entity.getIndustryCategory() != null) {
             ew.eq(IplSatbMain::getIndustryCategory, entity.getIndustryCategory());
         }

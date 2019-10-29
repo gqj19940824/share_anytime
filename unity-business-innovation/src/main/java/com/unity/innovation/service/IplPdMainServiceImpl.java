@@ -53,10 +53,6 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
     private SysCfgServiceImpl sysCfgService;
     @Resource
     private SysMessageHelpService sysMessageHelpService;
-    /*@Resource
-    private RedisSubscribeServiceImpl redisSubscribeService;
-    @Resource
-    private IplLogServiceImpl iplLogService;*/
 
     /**
      * 发布会 列表数据
@@ -68,7 +64,7 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
      */
     public PageElementGrid<Map<String, Object>> listByPage(PageEntity<IplPdMain> pageEntity) {
         LambdaQueryWrapper<IplPdMain> wrapper = new LambdaQueryWrapper<>();
-        wrapper.orderByAsc(IplPdMain::getSort);
+        wrapper.orderByDesc(IplPdMain::getSort);
         IplPdMain entity = pageEntity.getEntity();
         if (entity != null) {
             if (entity.getIndustryCategory() != null) {
@@ -314,8 +310,7 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
      */
     public Map<Long, String> getSysCfgMap() {
         List<SysCfg> cfgList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>()
-                .eq(SysCfg::getCfgType, SysCfgEnum.THREE.getId())
-                .eq(SysCfg::getUseStatus, YesOrNoEnum.YES.getType()));
+                .eq(SysCfg::getCfgType, SysCfgEnum.THREE.getId()));
         return cfgList.stream()
                 .collect(groupingBy(SysCfg::getId, mapping(SysCfg::getCfgVal, joining())));
     }
