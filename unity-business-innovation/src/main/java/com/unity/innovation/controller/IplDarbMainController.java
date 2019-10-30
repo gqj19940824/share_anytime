@@ -2,6 +2,7 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.google.common.collect.Maps;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constants.ConstString;
@@ -26,6 +27,7 @@ import com.unity.innovation.service.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -192,7 +194,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplDarbMain> pageEntity) {
-        InnovationUtil.check(BizTypeEnum.CITY.getType()); // TODO 判断领导
+        InnovationUtil.check(BizTypeEnum.CITY.getType()); // TODO 登陆接口判断领导
         LambdaQueryWrapper<IplDarbMain> ew = wrapper(pageEntity);
         IPage<IplDarbMain> p = service.page(pageEntity.getPageable(), ew);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
@@ -232,7 +234,7 @@ public class IplDarbMainController extends BaseWebController {
 
         if (entity.getId() == null) { // 新增
             Integer source = entity.getSource();
-            if (SourceEnum.SELF.equals(source)){
+            if (SourceEnum.SELF.getId().equals(source)){
                 InnovationUtil.check(BizTypeEnum.CITY.getType());
             }
             String uuid = UUIDUtil.getUUID();
@@ -277,7 +279,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     private List<Map<String, Object>> convert2List(List<IplDarbMain> list) {
 
-        Map<Long, Object> collect_ = null;
+        Map<Long, Object> collect_;
         Set<Long> ids = new HashSet<>();
         if (CollectionUtils.isNotEmpty(list)) {
             list.forEach(e -> {
@@ -288,13 +290,12 @@ public class IplDarbMainController extends BaseWebController {
 
             List<SysCfg> values = sysCfgService.getValues(ids);
             collect_ = values.stream().collect(Collectors.toMap(BaseEntity::getId, mSysCfg::getCfgVal, (k1, k2) -> k2));
+        }else {
+            collect_ = Maps.newHashMap();
         }
-
-        Map<Long, Object> collect = collect_;
-
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
-                    adapterField(m, entity, collect);
+                    adapterField(m, entity, collect_);
                 }
                 , IplDarbMain::getId, IplDarbMain::getEnterpriseName, IplDarbMain::getProjectName, IplDarbMain::getContent, IplDarbMain::getTotalInvestment, IplDarbMain::getProjectProgress, IplDarbMain::getTotalAmount, IplDarbMain::getBank, IplDarbMain::getBond, IplDarbMain::getSelfRaise, IplDarbMain::getIncreaseTrustType, IplDarbMain::getWhetherIntroduceSocialCapital, IplDarbMain::getConstructionCategory, IplDarbMain::getConstructionStage, IplDarbMain::getConstructionModel, IplDarbMain::getContactPerson, IplDarbMain::getContactWay, IplDarbMain::getAttachmentCode
         );
