@@ -35,7 +35,9 @@ public class PieVoByDoc {
          * data : ["直接访问","邮件营销","联盟广告","视频广告","搜索引擎"]
          */
 
+        @Builder.Default
         private String orient="vertical";
+        @Builder.Default
         private String x="left";
         private List<String> data;
     }
