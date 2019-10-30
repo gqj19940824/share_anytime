@@ -37,7 +37,7 @@ public class PieVoByDoc {
 
         private String orient="vertical";
         private String x="left";
-        private List<Object> data;
+        private List<String> data;
     }
 
     @Builder(builderMethodName = "newInstance")
