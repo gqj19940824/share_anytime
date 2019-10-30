@@ -161,6 +161,8 @@ public class IpaManageMain extends BaseEntity{
          */
         @TableField(exist = false)
         private String createDate;
+
+
 }
 
 

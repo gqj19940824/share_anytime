@@ -37,4 +37,12 @@ public class StatisticsSearch {
      */
     @TableField(exist = false)
     private String idRbacDepartment;
+
+
+    /**
+     * 类型
+     */
+    @TableField(exist = false)
+    private Integer type;
+
 }
