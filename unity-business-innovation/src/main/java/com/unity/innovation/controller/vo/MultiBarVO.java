@@ -21,29 +21,6 @@ public class MultiBarVO {
     private List<XAxisBean> xAxis;
     private List<SeriesBean> series;
 
-    public LegendBean getLegend() {
-        return legend;
-    }
-
-    public void setLegend(LegendBean legend) {
-        this.legend = legend;
-    }
-
-    public List<XAxisBean> getXAxis() {
-        return xAxis;
-    }
-
-    public void setXAxis(List<XAxisBean> xAxis) {
-        this.xAxis = xAxis;
-    }
-
-    public List<SeriesBean> getSeries() {
-        return series;
-    }
-
-    public void setSeries(List<SeriesBean> series) {
-        this.series = series;
-    }
 
     @Builder(builderMethodName = "newInstance")
     @AllArgsConstructor
@@ -51,14 +28,6 @@ public class MultiBarVO {
     @Data
     public static class LegendBean {
         private List<String> data;
-
-        public List<String> getData() {
-            return data;
-        }
-
-        public void setData(List<String> data) {
-            this.data = data;
-        }
     }
 
     @Builder(builderMethodName = "newInstance")
@@ -73,22 +42,6 @@ public class MultiBarVO {
 
         private String type;
         private List<String> data;
-
-        public String getType() {
-            return type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
-        }
-
-        public List<String> getData() {
-            return data;
-        }
-
-        public void setData(List<String> data) {
-            this.data = data;
-        }
     }
 
     @Builder(builderMethodName = "newInstance")
@@ -107,37 +60,5 @@ public class MultiBarVO {
         private String type;
         private String stack;
         private List<Integer> data;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
-        }
-
-        public String getStack() {
-            return stack;
-        }
-
-        public void setStack(String stack) {
-            this.stack = stack;
-        }
-
-        public List<Integer> getData() {
-            return data;
-        }
-
-        public void setData(List<Integer> data) {
-            this.data = data;
-        }
     }
 }
