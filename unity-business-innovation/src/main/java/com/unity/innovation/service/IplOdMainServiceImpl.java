@@ -3,6 +3,7 @@ package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.google.common.collect.Maps;
 import com.google.gson.reflect.TypeToken;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.DicConstants;
@@ -40,6 +41,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
+import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -490,14 +492,34 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
      * @since 2019/10/30 13:42
      */
     public void changeInPersonnelNeeds(String yearMonth){
-        String fisrtMonth = DateUtil.getMonthsBySpecifiedMonthFirstFew(yearMonth, "yyyy-MM", 5);
-        long fisrtTime = InnovationUtil.getFirstTimeInMonth(fisrtMonth, false);
+        String firstMonth = DateUtil.getMonthsBySpecifiedMonthFirstFew(yearMonth, "yyyy-MM", 5);
+        long firstTime = InnovationUtil.getFirstTimeInMonth(firstMonth, false);
         long lastTime = InnovationUtil.getFirstTimeInMonth(yearMonth, false);
         //月度新增人才需求
-        List<Map<String, Object>> mapList = baseMapper.statisticsAddEmployeeNeedsNum(fisrtTime, lastTime);
-
+        List<Map<String, Object>> addMapList = baseMapper.statisticsAddEmployeeNeedsNum(firstTime, lastTime);
         //月度人才需求完成情况
-
-
+        List<Map<String, Object>> completionMapList = iplLogService.statisticsMonthlyDemandCompletionNum(firstTime, lastTime, BizTypeEnum.INTELLIGENCE.getType());
+        List<String> monthList = DateUtil.getMonthsList(yearMonth, "yyyy年MM月", 5);
+        List<Map<String, Object>> addDataMapList = Lists.newArrayList();
+        List<Map<String, Object>> completionDataMapList = Lists.newArrayList();
+        monthList.forEach(month ->{
+            Optional<Map<String, Object>> addOptional = addMapList.stream().filter(map -> map.containsKey(month)).findFirst();
+            if(!addOptional.isPresent()){
+                Map<String,Object> addDataMap = Maps.newHashMap();
+                addDataMap.put(month,0);
+                addDataMapList.add(addDataMap);
+            } else {
+                addDataMapList.add(addOptional.get());
+            }
+            Optional<Map<String, Object>> completionOptional = completionMapList.stream().filter(map -> map.containsKey(month))
+                    .findFirst();
+            if(completionOptional.isPresent()){
+                completionDataMapList.add(addOptional.get());
+            } else {
+                Map<String,Object> completionDataMap = Maps.newHashMap();
+                completionDataMap.put(month,0);
+                completionDataMapList.add(completionDataMap);
+            }
+        });
     }
 }

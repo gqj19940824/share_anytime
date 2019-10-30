@@ -17,7 +17,7 @@ import java.util.Map;
 public interface IplOdMainDao  extends BaseDao<IplOdMain>{
 
     /**
-     * 统计新增人员需求数量
+     * 统计月度新增人员需求数量
      *
      * @param  startTime 开始统计时间
      * @param  endTime 结束统计时间
@@ -26,7 +26,7 @@ public interface IplOdMainDao  extends BaseDao<IplOdMain>{
      * @since 2019/10/30 14:09
      */
     @Select("SELECT " +
-            " FROM_UNIXTIME(gmt_create / 1000, '%Y-%m') AS MONTH, " +
+            " FROM_UNIXTIME(gmt_create / 1000, '%Y年%m月') AS MONTH, " +
             " SUM(job_demand_num) AS num " +
             "FROM " +
             " ipl_od_main " +

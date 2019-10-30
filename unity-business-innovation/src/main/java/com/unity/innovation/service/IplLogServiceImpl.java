@@ -30,10 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * ClassName: IplLogService
@@ -398,5 +395,19 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             default:
                 return null;
         }
+    }
+
+    /**
+     * 统计月度需求完成情况数量
+     *
+     * @param  startTime 开始统计时间
+     * @param  endTime 结束统计时间
+     * @param bizType 清单类型
+     * @return 完成情况数量
+     * @author gengjiajia
+     * @since 2019/10/30 14:59
+     */
+    public List<Map<String,Object>> statisticsMonthlyDemandCompletionNum(Long startTime, Long endTime, Integer bizType){
+        return baseMapper.statisticsMonthlyDemandCompletionNum(startTime,endTime,bizType);
     }
 }
