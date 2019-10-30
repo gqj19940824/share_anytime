@@ -7,7 +7,6 @@ import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
-import com.unity.common.constant.DicConstants;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.FileDownload;
 import com.unity.common.pojos.InventoryMessage;
@@ -20,6 +19,7 @@ import com.unity.common.utils.ExcelExportByTemplate;
 import com.unity.common.utils.FileDownloadUtil;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ListTypeConstants;
+import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.dao.IplSatbMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplSatbMain;
@@ -75,6 +75,14 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     RedisSubscribeServiceImpl redisSubscribeService;
     @Resource
     SysMessageHelpService sysMessageHelpService;
+
+    public List<PieVoByDoc.DataBean> demandNew(Long start, Long end){
+        return baseMapper.demandNew(start, end);
+    }
+
+    public List<PieVoByDoc.DataBean> demandNewCatagory(Long start, Long end){
+        return baseMapper.demandNewCatagory(start, end);
+    }
 
     /**
      * 获取清单列表

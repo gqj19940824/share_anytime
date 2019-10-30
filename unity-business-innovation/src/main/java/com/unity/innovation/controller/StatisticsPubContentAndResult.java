@@ -10,6 +10,7 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.utils.DateUtil;
 import com.unity.common.utils.DicUtils;
 import com.unity.innovation.controller.vo.MultiBarVO;
+import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.IplOdMain;
 import com.unity.innovation.entity.IplSatbMain;
@@ -21,6 +22,7 @@ import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.*;
 import com.unity.innovation.util.InnovationUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
@@ -63,6 +65,64 @@ public class StatisticsPubContentAndResult extends BaseWebController {
     private InfoDeptSatbServiceImpl infoDeptSatbService;
     private static final String START_DATE = "startDate";
     private static final String END_DATE = "endDate";
+
+    /**
+     * 企业成长目标投资需求行业分布及变化-新增需求分类统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
+    @PostMapping("/satbDemandNewCatagory")
+    public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandNewCatagory(@RequestBody Map<String, String> map) {
+        String date = MapUtils.getString(map, "date");
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
+        }
+        long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+
+        List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNewCatagory(start, end);
+        List<String> legend = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(dataBeans)){
+            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+        }
+
+        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                .data(dataBeans).build();
+        return success(pieVoByDoc);
+    }
+
+    /**
+     * 企业成长目标投资需求行业分布及变化-新增需求统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
+    @PostMapping("/satbDemandNew")
+    public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandNew(@RequestBody Map<String, String> map) {
+        String date = MapUtils.getString(map, "date");
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
+        }
+        long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+
+        List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
+        List<String> legend = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(dataBeans)){
+            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+        }
+
+        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                .data(dataBeans).build();
+        return success(pieVoByDoc);
+    }
 
     /**
      * 北京亦庄创新发布清单情况-需求趋势统计
