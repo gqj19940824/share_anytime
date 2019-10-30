@@ -396,7 +396,7 @@ public class IpaManageMainController extends BaseWebController {
         if (entity.getId() == null || iplManageMainService.getById(entity.getId()) == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        entity.setStatus(IpaStatusEnum.UNPUBLISH.getId());
+        entity.setStatus(IpaStatusEnum.UPDATED.getId());
         ipaManageMainService.updateIpaMain(entity);
         return success();
     }
