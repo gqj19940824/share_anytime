@@ -298,8 +298,15 @@ public class IpaManageMainController extends BaseWebController {
         if (CollectionUtils.isNotEmpty(dwspList)) {
             dwspList.forEach(e -> {
                 e.setDataList(dailyWorkStatusPackageService.addDataList(e));
-                e.getDataList().forEach(d -> d.setAttachmentCode(
-                        d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
+                e.getDataList().forEach(d ->
+                        {
+                            if (CollectionUtils.isNotEmpty(d.getAttachmentList())) {
+                                d.setAttachmentCode(d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n")));
+                            } else {
+                                d.setAttachmentCode(" ");
+                            }
+                        }
+                );
                 // 发改局导出
                 List<List<Object>> data = iplManageMainService.getDwspData(e.getDataList());
                 XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/dwsp.xlsx");
