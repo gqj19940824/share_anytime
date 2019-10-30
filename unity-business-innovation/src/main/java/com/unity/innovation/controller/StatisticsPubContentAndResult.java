@@ -29,6 +29,7 @@ import reactor.core.publisher.Mono;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -69,23 +70,24 @@ public class StatisticsPubContentAndResult extends BaseWebController {
      */
     @PostMapping("/satbDemandNewCatagory")
     public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandNewCatagory(@RequestBody Map<String, String> map) {
-        String date = MapUtils.getString(map, "date");
-        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
-        }
-        long start = InnovationUtil.getFirstTimeInMonth(date, true);
-        long end = InnovationUtil.getFirstTimeInMonth(date, false);
-
-        List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNewCatagory(start, end);
-        List<String> legend = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(dataBeans)){
-            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
-        }
-
-        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
-                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
-                .data(dataBeans).build();
-        return success(pieVoByDoc);
+//        String date = MapUtils.getString(map, "date");
+////        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+////            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
+////        }
+////        long start = InnovationUtil.getFirstTimeInMonth(date, true);
+////        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+////
+////        List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNewCatagory(start, end);
+////        List<String> legend = new ArrayList<>();
+////        if (CollectionUtils.isNotEmpty(dataBeans)){
+////            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+////        }
+////
+////        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+////                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+////                .data(dataBeans).build();
+////        return success(pieVoByDoc);
+        return success();
     }
 
     /**
