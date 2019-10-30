@@ -1,11 +1,20 @@
 package com.unity.innovation.controller.vo;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 /**
  * <p>
  * create by qinhuan at 2019/10/30 10:34 上午
  */
+@Builder(builderMethodName = "newInstance")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class PieVoByDoc {
     /**
      * legend : {"orient":"vertical","x":"left","data":["直接访问","邮件营销","联盟广告","视频广告","搜索引擎"]}
@@ -31,6 +40,10 @@ public class PieVoByDoc {
         this.data = data;
     }
 
+    @Builder(builderMethodName = "newInstance")
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
     public static class LegendBean {
         /**
          * orient : vertical
@@ -67,6 +80,10 @@ public class PieVoByDoc {
         }
     }
 
+    @Builder(builderMethodName = "newInstance")
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
     public static class DataBean {
         /**
          * value : 335
