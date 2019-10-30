@@ -24,22 +24,6 @@ public class PieVoByDoc {
     private LegendBean legend;
     private List<DataBean> data;
 
-    public LegendBean getLegend() {
-        return legend;
-    }
-
-    public void setLegend(LegendBean legend) {
-        this.legend = legend;
-    }
-
-    public List<DataBean> getData() {
-        return data;
-    }
-
-    public void setData(List<DataBean> data) {
-        this.data = data;
-    }
-
     @Builder(builderMethodName = "newInstance")
     @AllArgsConstructor
     @NoArgsConstructor
@@ -54,30 +38,6 @@ public class PieVoByDoc {
         private String orient;
         private String x;
         private List<String> data;
-
-        public String getOrient() {
-            return orient;
-        }
-
-        public void setOrient(String orient) {
-            this.orient = orient;
-        }
-
-        public String getX() {
-            return x;
-        }
-
-        public void setX(String x) {
-            this.x = x;
-        }
-
-        public List<String> getData() {
-            return data;
-        }
-
-        public void setData(List<String> data) {
-            this.data = data;
-        }
     }
 
     @Builder(builderMethodName = "newInstance")
@@ -92,21 +52,5 @@ public class PieVoByDoc {
 
         private int value;
         private String name;
-
-        public int getValue() {
-            return value;
-        }
-
-        public void setValue(int value) {
-            this.value = value;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
     }
 }
