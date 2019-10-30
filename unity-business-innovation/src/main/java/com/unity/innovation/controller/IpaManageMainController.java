@@ -436,7 +436,7 @@ public class IpaManageMainController extends BaseWebController {
      */
     @PostMapping("/publish")
     public Mono<ResponseEntity<SystemResponse<Object>>> publish(@RequestBody IpaManageMain entity) {
-        if (entity.getId() == null || iplManageMainService.getById(entity.getId()) == null){
+        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         IpaManageMain build = IpaManageMain.newInstance().status(IpaStatusEnum.UNUPDATE.getId()).build();
