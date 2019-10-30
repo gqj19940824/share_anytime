@@ -393,7 +393,7 @@ public class IpaManageMainController extends BaseWebController {
         if (StringUtils.isBlank(entity.getPublishResult())){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
-        if (entity.getId() == null || iplManageMainService.getById(entity.getId()) == null){
+        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         entity.setStatus(IpaStatusEnum.UPDATED.getId());
