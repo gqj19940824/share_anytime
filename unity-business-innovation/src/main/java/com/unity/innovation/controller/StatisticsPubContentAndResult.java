@@ -59,7 +59,8 @@ public class StatisticsPubContentAndResult extends BaseWebController {
     private MediaManagerServiceImpl mediaManagerService;
     @Resource
     private DicUtils dicUtils;
-
+    @Resource
+    private InfoDeptSatbServiceImpl infoDeptSatbService;
     private static final String START_DATE = "startDate";
     private static final String END_DATE = "endDate";
 
@@ -338,5 +339,23 @@ public class StatisticsPubContentAndResult extends BaseWebController {
                                         .build()
                         )).build();
         return success(multiBarVO);
+    }
+
+    /**
+     * 媒体发稿情况
+     *
+     * @param map 包含开始时间及结束时间
+     * @return 统计数据
+     * @author gengjiajia
+     * @since 2019/10/29 19:55
+     */
+    @PostMapping("/avgStatistics")
+    public Mono<ResponseEntity<SystemResponse<Object>>> avgStatistics(@RequestBody Map<String, String> map) {
+        if (MapUtils.isEmpty(map) || StringUtils.isEmpty(map.get(START_DATE)) || StringUtils.isEmpty(map.get(END_DATE))) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取时间范围");
+        }
+        Long endTime = InnovationUtil.getFirstTimeInMonth(map.get(END_DATE), false);
+        Long startTime = InnovationUtil.getFirstTimeInMonth(map.get(START_DATE), true);
+        return success(infoDeptSatbService.avgStatistics(startTime, endTime));
     }
 }

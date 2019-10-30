@@ -3,6 +3,7 @@ package com.unity.innovation.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.enums.YesOrNoEnum;
@@ -12,17 +13,24 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
+import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.dao.InfoDeptSatbDao;
-import com.unity.innovation.entity.*;
+import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.InfoDeptSatb;
+import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +49,9 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
 
     @Resource
     private AttachmentServiceImpl attachmentService;
+
+    private static final String ACHIEVEMENT_LEVEL = "achievementLevel";
+    private static final String NUM = "num";
 
     /**
      * 功能描述 分页接口
@@ -99,7 +110,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         IPage<InfoDeptSatb> list = null;
         if (search != null) {
             list = page(search.getPageable(), lqw);
-            if ( CollectionUtils.isNotEmpty(list.getRecords())){
+            if (CollectionUtils.isNotEmpty(list.getRecords())) {
                 dealData(list.getRecords());
             }
         }
@@ -107,7 +118,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
     }
 
     public void dealData(List<InfoDeptSatb> records) {
-        if(CollectionUtils.isEmpty(records)) {
+        if (CollectionUtils.isEmpty(records)) {
             return;
         }
         List<Integer> enumList = Arrays.asList(new Integer[]{SysCfgEnum.THREE.getId(), SysCfgEnum.SIX.getId()});
@@ -199,7 +210,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         }
 
         //排序规则      未提请发布在前，已提请发布在后；各自按创建时间倒序
-        lqw.orderByDesc(InfoDeptSatb::getStatus,InfoDeptSatb::getGmtCreate);
+        lqw.orderByDesc(InfoDeptSatb::getStatus, InfoDeptSatb::getGmtCreate);
         IPage<InfoDeptSatb> list = null;
         if (search != null) {
             list = page(search.getPageable(), lqw);
@@ -236,28 +247,29 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
 
     /**
      * 功能描述 新增编辑提交
+     *
      * @param entity 实体
      * @author gengzhiqiang
      * @date 2019/10/16 10:40
      */
     @Transactional(rollbackFor = Exception.class)
     public void saveEntity(InfoDeptSatb entity) {
-        if(entity.getId() == null) {
+        if (entity.getId() == null) {
             //默认为提请发布
             entity.setStatus(YesOrNoEnum.NO.getType());
             String attachmentCode = UUIDUtil.getUUID();
             entity.setAttachmentCode(attachmentCode);
             save(entity);
             //保存附件
-            attachmentService.updateAttachments(attachmentCode,entity.getAttachmentList());
-        }else {
+            attachmentService.updateAttachments(attachmentCode, entity.getAttachmentList());
+        } else {
             InfoDeptSatb old = getById(entity.getId());
             if (old == null) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                         .message("未获取到对象").build();
             }
-            if (YesOrNoEnum.YES.getType()==old.getStatus()) {
+            if (YesOrNoEnum.YES.getType() == old.getStatus()) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
                         .message("已提请发布状态下数据不可编辑").build();
@@ -265,12 +277,13 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
             String attachmentCode = old.getAttachmentCode();
             updateById(entity);
             //保存附件
-            attachmentService.updateAttachments(attachmentCode,entity.getAttachmentList());
+            attachmentService.updateAttachments(attachmentCode, entity.getAttachmentList());
         }
     }
 
     /**
      * 功能描述 详情接口
+     *
      * @param entity 对象
      * @return com.unity.innovation.entity.DailyWorkStatus 对象
      * @author gengzhiqiang
@@ -284,9 +297,9 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
                     .message("未获取到对象").build();
         }
         //附件
-        List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
-                .eq(Attachment::getAttachmentCode,vo.getAttachmentCode()));
-        if (CollectionUtils.isNotEmpty(attachmentList)){
+        List<Attachment> attachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>()
+                .eq(Attachment::getAttachmentCode, vo.getAttachmentCode()));
+        if (CollectionUtils.isNotEmpty(attachmentList)) {
             vo.setAttachmentList(attachmentList);
         }
         HashSet<Long> set = new HashSet();
@@ -328,6 +341,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
 
     /**
      * 功能描述 批量删除
+     *
      * @param ids id集合
      * @author gengzhiqiang
      * @date 2019/9/17 16:14
@@ -347,5 +361,47 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         removeByIds(ids);
     }
 
-
+    /**
+     * 与会路演企业成果创新水平统计
+     *
+     * @param startTime 开始时间
+     * @param endTime   结束时间
+     * @return 统计结果
+     * @author gengjiajia
+     * @since 2019/10/30 09:37
+     */
+    public Map<String, Object> avgStatistics(Long startTime, Long endTime) {
+        Map<String, Object> data = Maps.newHashMap();
+        List<String> nameList = Lists.newArrayList();
+        List<PieVoByDoc.DataBean> dataList = Lists.newArrayList();
+        //查询 创新成功水平类型对应的数量信息 [{"achievementLevel":"1","num":"2"}]
+        List<Map<String, Long>> mapList = baseMapper.avgStatistics(startTime, endTime);
+        mapList.stream().filter(map -> !map.get(NUM).equals(0L)).forEach(map -> {
+            Dic dic = dicUtils.getDicByCode(DicConstants.ACHIEVEMENT_INNOVATI, map.get(ACHIEVEMENT_LEVEL).toString());
+            dataList.add(PieVoByDoc.DataBean.newInstance()
+                    .name(dic.getDicValue())
+                    .value(map.get(NUM).intValue())
+                    .build());
+            nameList.add(dic.getDicValue());
+        });
+        PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance()
+                        .data(nameList)
+                        .orient("vertical")
+                        .x("left")
+                        .build())
+                .data(dataList)
+                .build();
+        long sum = mapList.stream().mapToLong(map -> map.get(NUM)).sum();
+        data.put("totalNum", sum);
+        data.put("pieData", PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance()
+                        .data(nameList)
+                        .orient("vertical")
+                        .x("left")
+                        .build())
+                .data(dataList)
+                .build());
+        return data;
+    }
 }
