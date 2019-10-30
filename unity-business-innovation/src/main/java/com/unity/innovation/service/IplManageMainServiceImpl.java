@@ -12,6 +12,7 @@ import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.ReviewMessage;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.util.DateUtils;
 import com.unity.common.util.GsonUtils;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
@@ -215,13 +216,12 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                 List<Object> list = Arrays.asList(
                         e.getTitle(),
                         e.getTypeName(),
-                        e.getTypeName(),
                         e.getKeyWordStr(),
                         e.getTheme(),
                         e.getDescription(),
                         e.getNotes(),
                         e.getAttachmentCode(),
-                        e.getGmtCreate());
+                        DateUtils.timeStamp2Date(e.getGmtCreate()));
                 dataList.add(list);
             });
         }
