@@ -25,6 +25,7 @@ import com.unity.innovation.enums.SysMessageFlowStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -249,16 +250,12 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                 redisSubscribeService.removeRecordInfo(idIplMain + "-" + e.getIdRbacDepartmentAssist(), idRbacDepartmentDuty, bizType);
             });
 
-            if (builder.indexOf("、")>-1){
-                builder.deleteCharAt(builder.length() - 1);
-            }
-
             // 批量更新协同单位状态
             iplAssistService.updateBatchById(assists);
         }
 
         // 主责记录日志
-        String processInfo = String.format("关闭%s协同邀请", builder.toString());
+        String processInfo = String.format("关闭%s协同邀请", StringUtils.stripEnd(builder.toString(), ","));
         IplLog iplLogDuty = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty).bizType(bizType)
                 .idRbacDepartmentAssist(0L).idIplMain(idIplMain).processInfo(processInfo).build();
         iplLogs.add(iplLogDuty);

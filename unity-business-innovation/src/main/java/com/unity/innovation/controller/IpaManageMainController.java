@@ -21,10 +21,7 @@ import com.unity.innovation.entity.*;
 import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.*;
-import com.unity.innovation.service.DailyWorkStatusPackageServiceImpl;
-import com.unity.innovation.service.IpaManageMainServiceImpl;
-import com.unity.innovation.service.IplManageMainServiceImpl;
-import com.unity.innovation.service.PmInfoDeptServiceImpl;
+import com.unity.innovation.service.*;
 import com.unity.innovation.util.DownloadUtil;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.innovation.util.ZipUtil;
@@ -43,8 +40,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 
@@ -68,6 +65,8 @@ public class IpaManageMainController extends BaseWebController {
     private PmInfoDeptServiceImpl pmInfoDeptService;
     @Resource
     private DicUtils dicUtils;
+    @Resource
+    private MediaManagerServiceImpl mediaManagerService;
 
     /**
      * 入会一次包列表
@@ -422,7 +421,37 @@ public class IpaManageMainController extends BaseWebController {
         if (byId == null){
             return success();
         }
-        IpaManageMain build = IpaManageMain.newInstance().participateMedia(byId.getParticipateMedia()).publishMedia(byId.getPublishMedia()).publishResult(byId.getPublishResult()).build();
+        String participateMedia = byId.getParticipateMedia();
+        String publishMedia = byId.getPublishMedia();
+        Set<Long> idMedias = new HashSet<>();
+        if (StringUtils.isNotBlank(participateMedia)){
+            idMedias.addAll(Arrays.asList(participateMedia.split(",")).stream().map(s -> Long.parseLong(s)).collect(Collectors.toSet()));
+        }
+        if (StringUtils.isNotBlank(publishMedia)){
+            idMedias.addAll(Arrays.asList(publishMedia.split(",")).stream().map(s -> Long.parseLong(s)).collect(Collectors.toSet()));
+        }
+        StringBuilder participateMediaName = new StringBuilder();
+        StringBuilder publishMediaName = new StringBuilder();
+        if (CollectionUtils.isNotEmpty(idMedias)){
+            List<MediaManager> list = mediaManagerService.list(new LambdaQueryWrapper<MediaManager>().in(MediaManager::getId, idMedias));
+            Map<Long, String> collect = list.stream().collect(Collectors.toMap(MediaManager::getId, MediaManager::getMediaName));
+
+            if (StringUtils.isNotBlank(participateMedia)){
+                Arrays.stream(participateMedia.split(",")).forEach(e->{
+                    participateMediaName.append(collect.get(Long.parseLong(e)) + ",");
+                });
+            }
+            if (StringUtils.isNotBlank(publishMedia)){
+                Arrays.stream(publishMedia.split(",")).forEach(e->{
+                    publishMediaName.append(collect.get(Long.parseLong(e)) + ",");
+                });
+            }
+        }
+
+        IpaManageMain build = IpaManageMain.newInstance().participateMedia(participateMedia).publishMedia(publishMedia)
+                .publishResult(byId.getPublishResult()).publishMediaName(StringUtils.stripEnd(publishMediaName.toString(), ","))
+                .participateMediaName(StringUtils.stripEnd(participateMediaName.toString(), ",")).build();
+
         return success(build);
     }
 

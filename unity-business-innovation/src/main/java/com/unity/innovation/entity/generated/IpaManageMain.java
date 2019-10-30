@@ -75,6 +75,20 @@ public class IpaManageMain extends BaseEntity{
         private String participateMedia ;
 
         /**
+         * 发稿媒体名称
+         **/
+        @CommentTarget("发稿媒体名称")
+        @TableField(exist = false)
+        private String publishMediaName ;
+
+        /**
+         * 与会媒体名称
+         **/
+        @CommentTarget("与会媒体名称")
+        @TableField(exist = false)
+        private String participateMediaName ;
+
+        /**
          * 发布结果 0：草稿、1：发布
          **/
         @CommentTarget("发布结果")
