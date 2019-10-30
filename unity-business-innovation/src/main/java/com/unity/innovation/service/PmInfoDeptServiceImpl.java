@@ -100,8 +100,6 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
      */
     public LambdaQueryWrapper<PmInfoDept> wrapper(PmInfoDept entity) {
         LambdaQueryWrapper<PmInfoDept> ew = new LambdaQueryWrapper<>();
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        List<Long> roleList = customer.getRoleList();
         if (entity != null) {
             //提交时间
             if (StringUtils.isNotBlank(entity.getSubmitTime())) {
@@ -114,11 +112,8 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             if (entity.getBizType() != null) {
                 ew.eq(PmInfoDept::getBizType, entity.getBizType());
             } else {
-                //非宣传部审批角色必传category
-                if (!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE)))) {
-                    throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                            .message("提交单位不能为空").build();
-                }
+                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                        .message("提交单位不能为空").build();
             }
 
 
@@ -127,18 +122,11 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                 ew.eq(PmInfoDept::getStatus, entity.getStatus());
             }
 
-            //宣传部审批角色不查看 待提交、已驳回
-            if (roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE)))) {
-                ew.notIn(PmInfoDept::getStatus, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(), WorkStatusAuditingStatusEnum.FORTY.getId()));
-            }
             //排序
             ew.orderByDesc(PmInfoDept::getGmtSubmit, PmInfoDept::getGmtModified);
         } else {
-            //只有宣传部角色可以查询所有单位数据
-            if (!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE)))) {
-                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                        .message("信息类型不能为空").build();
-            }
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("信息类型不能为空").build();
         }
         return ew;
     }

@@ -270,9 +270,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     * @author JH
     * @date 2019/10/14 10:10
     */
-    private LambdaQueryWrapper<IplManageMain> wrapper(IplManageMain entity) {
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        List<Long> roleList = customer.getRoleList();
+    public LambdaQueryWrapper<IplManageMain> wrapper(IplManageMain entity) {
+
         LambdaQueryWrapper<IplManageMain> ew = new LambdaQueryWrapper<>();
         if (entity != null) {
             //提交时间
@@ -288,16 +287,10 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             if(entity.getBizType() != null) {
                 ew.eq(IplManageMain::getBizType,entity.getBizType());
             }else {
-                //非宣传部审批角色必传category
-                if(!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP,DicConstants.PD_B_ROLE)))) {
-                    throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                            .message("清单类型不能为空").build();
-                }
+                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                        .message("清单类型不能为空").build();
             }
-            //宣传部审批角色不查看 待提交、已驳回
-            if(roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP,DicConstants.PD_B_ROLE)))) {
-                ew.notIn(IplManageMain::getStatus, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(),WorkStatusAuditingStatusEnum.FORTY.getId()));
-            }
+
             //状态
             if (entity.getStatus() != null) {
                 ew.eq(IplManageMain::getStatus, entity.getStatus());
@@ -305,11 +298,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             //排序
             ew.orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified);
         } else {
-            //只有宣传部角色可以查询所有单位数据
-            if(!roleList.contains(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.ROLE_GROUP,DicConstants.PD_B_ROLE)))) {
-                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                        .message("清单类型不能为空").build();
-            }
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("清单类型不能为空").build();
         }
         return ew;
     }
