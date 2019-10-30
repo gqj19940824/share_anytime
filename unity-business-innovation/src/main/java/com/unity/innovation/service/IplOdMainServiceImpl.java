@@ -15,6 +15,7 @@ import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.FileReaderUtil;
 import com.unity.common.util.GsonUtils;
+import com.unity.common.utils.DateUtil;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.ExcelStyleUtil;
 import com.unity.common.utils.UUIDUtil;
@@ -46,8 +47,8 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -478,5 +479,25 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                     .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
                     .message("当前账号的单位不可操作数据").build();
         }
+    }
+
+    /**
+     * 高端才智需求变化统计
+     *
+     * @param  
+     * @return 
+     * @author gengjiajia
+     * @since 2019/10/30 13:42
+     */
+    public void changeInPersonnelNeeds(String yearMonth){
+        String fisrtMonth = DateUtil.getMonthsBySpecifiedMonthFirstFew(yearMonth, "yyyy-MM", 5);
+        long fisrtTime = InnovationUtil.getFirstTimeInMonth(fisrtMonth, false);
+        long lastTime = InnovationUtil.getFirstTimeInMonth(yearMonth, false);
+        //月度新增人才需求
+        List<Map<String, Object>> mapList = baseMapper.statisticsAddEmployeeNeedsNum(fisrtTime, lastTime);
+
+        //月度人才需求完成情况
+
+
     }
 }
