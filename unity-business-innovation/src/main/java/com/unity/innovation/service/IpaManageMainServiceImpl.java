@@ -51,7 +51,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
         if (StringUtils.isNotBlank(entity.getPublishResult())) {
             wrapper.set(IpaManageMain::getPublishResult, entity.getPublishResult());
         }
-        wrapper.set(IpaManageMain::getPublishMedia, entity.getPublishMedia()).set(IpaManageMain::getParticipateMedia, entity.getParticipateMedia());
+        wrapper.set(IpaManageMain::getPublishMedia, entity.getPublishMedia()).set(IpaManageMain::getParticipateMedia, entity.getParticipateMedia()).set(IpaManageMain::getPublishStatus, entity.getPublishStatus());
         update(wrapper);
         updateFirstPackStatus(entity.getId(), status);
         /*=========工作动态发布管理/5个xx清单发布管理/2个企业信息发布管理=======系统通知======================*/

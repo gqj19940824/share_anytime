@@ -409,6 +409,24 @@ public class IpaManageMainController extends BaseWebController {
      * @author qinhuan
      * @since 2019/10/19 11:32 上午
      */
+    @PostMapping("/getPublisResult/{id}")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getPublisResult(@PathVariable("id") Long id) {
+        IpaManageMain byId = ipaManageMainService.getById(id);
+        if (byId == null){
+            return success();
+        }
+        IpaManageMain build = IpaManageMain.newInstance().participateMedia(byId.getParticipateMedia()).publishMedia(byId.getPublishMedia()).publishResult(byId.getPublishResult()).build();
+        return success(build);
+    }
+
+    /**
+     * 发布
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/19 11:32 上午
+     */
     @PostMapping("/publish")
     public Mono<ResponseEntity<SystemResponse<Object>>> publish(@RequestBody IpaManageMain entity) {
         if (entity.getId() == null || iplManageMainService.getById(entity.getId()) == null){
