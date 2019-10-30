@@ -1,5 +1,6 @@
 package com.unity.common.utils;
 
+import com.google.common.collect.Lists;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +53,65 @@ public class DateUtil
         }
         Collections.reverse(dataList);
         return dataList;
+    }
+
+    /**
+     * 获取指定截止时间前指定个数的指定格式时间列表
+     *
+     * @param  date 指定截止时间
+     * @param  pattern 指定格式
+     * @param  num 指定个数
+     * @return 指定格式时间列表
+     * @author gengjiajia
+     * @since 2019/10/30 14:28
+     */
+    public static List<String> getMonthsList(String date,String pattern,int num){
+        Date parse;
+        if (StringUtils.isEmpty(date)){
+            parse = new Date();
+        }else {
+            try {
+                parse = new SimpleDateFormat("yyyy-MM").parse(date);
+            } catch (ParseException e) {
+                parse = new Date();
+            }
+        }
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(parse);
+        List<String> dataList = new ArrayList<>();
+        dataList.add(new SimpleDateFormat((pattern)).format(calendar.getTime()));
+        for (int i = 0; i < num; i++){
+            calendar.add(Calendar.MONTH, -1);
+            dataList.add(new SimpleDateFormat((pattern)).format(calendar.getTime()));
+        }
+        Collections.reverse(dataList);
+        return dataList;
+    }
+
+    /**
+     * 获取指定月份前第某个月
+     * @param date 指定月份
+     * @param pattern 要获取的月份格式
+     * @param num 要获取指定月份的第几个月
+     * @return 前第某个月
+     * @author gengjiajia
+     * @since 2019/10/30 14:28
+     */
+    public static String getMonthsBySpecifiedMonthFirstFew(String date,String pattern,int num){
+        Date parse;
+        if (StringUtils.isNotEmpty(date)){
+            try {
+                parse = new SimpleDateFormat("yyyy-MM").parse(date);
+            } catch (ParseException e) {
+                parse = new Date();
+            }
+        }else {
+            parse = new Date();
+        }
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(parse);
+        calendar.add(Calendar.MONTH, -num);
+        return new SimpleDateFormat((pattern)).format(calendar.getTime());
     }
 
     /**
@@ -439,5 +499,20 @@ public class DateUtil
         return time;
     }
 
-
+    public static void main(String[] args) throws ParseException {
+        List<String> dateStrList = Lists.newArrayList();
+        String yearMonth = "2019-05";
+        Date parse;
+        if (yearMonth == null){
+            parse = new Date();
+        }else {
+            parse = new SimpleDateFormat("yyyy-MM").parse(yearMonth);
+        }
+        dateStrList.add(yearMonth);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(parse);
+        calendar.add(Calendar.MONTH, -5);
+        dateStrList.add(new SimpleDateFormat(("yyyy-MM")).format(calendar.getTime()));
+        System.out.println(dateStrList.toString());
+    }
 }
