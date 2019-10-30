@@ -371,7 +371,18 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
      * @since 2019/09/30 09:10
      */
     public Map<String, Object> getMessageNumByCustomer() {
+        Map<String, Object> numMap = Maps.newHashMap();
         Customer customer = LoginContextHolder.getRequestAttributes();
+        //判断当前用户是否拥有宣传部a的角色
+        Dic pdA = dicUtils.getDicByCode(DicConstants.ROLE_GROUP, DicConstants.PD_A_ROLE);
+        Dic pdB = dicUtils.getDicByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE);
+        if(customer.getRoleList().contains(Long.parseLong(pdA.getDicValue()))
+                || customer.getRoleList().contains(Long.parseLong(pdB.getDicValue()))){
+            numMap.put("isAdd", 0);
+            numMap.put("sysMessageNum", 0);
+            numMap.put("noticeNum", 0);
+            return numMap;
+        }
         Map<String, Object> sysMegNumMap = hashRedisUtils.getObj(MessageSaveFormEnum.SYS_MSG.getName());
         Map<String, Object> noticeMegNumMap = hashRedisUtils.getObj(MessageSaveFormEnum.NOTICE.getName());
         //获取所有消息数量，判断是否有属于当前人的消息
@@ -388,7 +399,6 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             int numByNotice = numByNoticeObj == null ? 0 : Integer.parseInt(numByNoticeObj.toString());
             noticeNum += numByNotice;
         }
-        Map<String, Object> numMap = Maps.newHashMap();
         numMap.put("isAdd", sysMessageNum == 0 && noticeNum == 0 ? YesOrNoEnum.NO.getType() : YesOrNoEnum.YES.getType());
         numMap.put("sysMessageNum", sysMessageNum);
         numMap.put("noticeNum", noticeNum);
