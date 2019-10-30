@@ -2,7 +2,6 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.exception.UnityRuntimeException;
@@ -122,6 +121,14 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         return success(multiBarVO);
     }
 
+    /**
+     * 获取查询表名
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/30 9:53 上午
+     */
     private String getTableName(Integer bizType) {
         String tableName = "";
         switch (BizTypeEnum.of(bizType)) {
@@ -143,6 +150,14 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         return tableName;
     }
 
+    /**
+     * 获得对应月份的数量
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/30 9:52 上午
+     */
     private void getNum(Long startLong, Long endLong, Map<String, Integer> enMap, Map<String, Integer> sfMap, String tableName) {
         List<Map<String, Object>> enNum = assistService.demandTrendStatistics(tableName, SourceEnum.ENTERPRISE.getId(), startLong, endLong);
         List<Map<String, Object>> sfNum = assistService.demandTrendStatistics(tableName, SourceEnum.SELF.getId(), startLong, endLong);
@@ -216,6 +231,14 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         return success(multiBarVO);
     }
 
+    /**
+     * 如下四个分别是获取对应查询条件
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/30 9:51 上午
+     */
     private LambdaQueryWrapper<IplDarbMain> getIplDarbQw(Integer source, Long start, Long end) {
 
         LambdaQueryWrapper<IplDarbMain> qw = new LambdaQueryWrapper<>();
@@ -228,7 +251,6 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         }
         return qw;
     }
-
     private LambdaQueryWrapper<IplEsbMain> getIplEsbQw(Integer source, Long start, Long end) {
 
         LambdaQueryWrapper<IplEsbMain> iplDarbQw = new LambdaQueryWrapper<>();
@@ -241,7 +263,6 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         }
         return iplDarbQw;
     }
-
     private LambdaQueryWrapper<IplOdMain> getIplOdQw(Integer source, Long start, Long end) {
 
         LambdaQueryWrapper<IplOdMain> iplDarbQw = new LambdaQueryWrapper<>();
@@ -254,7 +275,6 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         }
         return iplDarbQw;
     }
-
     private LambdaQueryWrapper<IplSatbMain> getIplSatbQw(Integer source, Long start, Long end) {
 
         LambdaQueryWrapper<IplSatbMain> qw = new LambdaQueryWrapper<>();
