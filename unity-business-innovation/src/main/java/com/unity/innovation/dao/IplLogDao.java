@@ -1,7 +1,9 @@
 package com.unity.innovation.dao;
 
 import com.unity.common.base.BaseDao;
+import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.entity.generated.IplLog;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -42,6 +44,13 @@ public interface IplLogDao  extends BaseDao<IplLog>{
             "GROUP BY " +
             "  `month`")
     List<Map<String,Object>> statisticsMonthlyDemandCompletionNum(Long startTime, Long endTime, Integer bizType);
+
+    @Select("select if(sum(l.complete_num) is null, 0, cast(sum(l.complete_num) as decimal(20,2))) value, sc.cfg_val name " +
+            "from ipl_log l inner join ipl_satb_main ism on l.id_ipl_main = ism.id and l.biz_type = #{bizType} " +
+            "    inner join sys_cfg sc on ism.industry_category = sc.id " +
+            "where l.gmt_create >= #{start} and l.gmt_create < #{end} " +
+            "group by ism.industry_category")
+    List<PieVoByDoc.DataBean> satbDemandDone(@Param("start") Long start, @Param("end") Long end, @Param("bizType") Integer bizType);
 
     /**
      * 某年某月指定行业人才需求完成情况统计

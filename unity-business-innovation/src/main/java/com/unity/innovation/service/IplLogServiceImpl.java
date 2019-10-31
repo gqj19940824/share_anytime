@@ -10,6 +10,7 @@ import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
+import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.dao.IplLogDao;
 import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.IplOdMain;
@@ -68,6 +69,10 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
     private IplOdMainServiceImpl iplOdMainService;
     @Autowired
     private SysMessageHelpService sysMessageHelpService;
+
+    public List<PieVoByDoc.DataBean> satbDemandDone(Long start, Long end, Integer bizType){
+        return baseMapper.satbDemandDone(start, end, bizType);
+    }
 
     /**
      * 修改状态、插入日志

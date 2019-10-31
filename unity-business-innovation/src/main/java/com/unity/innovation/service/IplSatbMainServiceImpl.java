@@ -80,8 +80,14 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         return baseMapper.demandNew(start, end);
     }
 
-    public List<PieVoByDoc.DataBean> demandNewCatagory(Long start, Long end){
+    public Map<String, Double> demandNewCatagory(Long start, Long end){
+        
         return baseMapper.demandNewCatagory(start, end);
+    }
+
+    public List<Map<String, Object>> satbDemandTrend(Long start, Long end){
+
+        return baseMapper.satbDemandTrend(start, end);
     }
 
     /**

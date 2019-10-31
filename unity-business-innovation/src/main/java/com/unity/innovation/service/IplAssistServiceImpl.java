@@ -7,6 +7,7 @@ import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.enums.UserTypeEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.InventoryMessage;
@@ -323,7 +324,10 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
         Customer customer = LoginContextHolder.getRequestAttributes();
         // 非主责单位协同列表只查自己
-        if (!customer.getIdRbacDepartment().equals(idRbacDepartmentDuty)){ // TODO
+        Integer userType = customer.getUserType();
+        if (!UserTypeEnum.LEADER.getId().equals(userType) &&
+                !UserTypeEnum.ADMIN.getId().equals(userType) &&
+                !customer.getIdRbacDepartment().equals(idRbacDepartmentDuty)){ // TODO
             Iterator<IplAssist> iterator = assists.iterator();
             while (iterator.hasNext()){
                 IplAssist next = iterator.next();
