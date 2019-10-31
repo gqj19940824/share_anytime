@@ -76,7 +76,10 @@
 
         FROM ${table} m INNER JOIN ipl_assist a ON m.id = a.id_ipl_main AND a.id_rbac_department_duty = m.id_rbac_department_duty
         INNER JOIN sys_cfg s ON s.id = m.industry_category
-        AND a.biz_type = #{bizType} AND a.id_rbac_department_assist = #{idRbacDepartmentAssist}
+        AND a.biz_type = #{bizType}
+        <if test="idRbacDepartmentAssist != null and idRbacDepartmentAssist != ''">
+            AND a.id_rbac_department_assist = #{idRbacDepartmentAssist}
+        </if>
         AND a.is_deleted = 0 AND m.is_deleted = 0
         <if test="industryCategory != null and industryCategory != ''">
             AND m.industry_category = #{industryCategory}
