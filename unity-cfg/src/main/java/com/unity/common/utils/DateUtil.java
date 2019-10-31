@@ -28,6 +28,46 @@ public class DateUtil
     }
 
     /**
+     * 功能描述 返回年月日
+     * @param date yyyy-MM-dd
+     * @return java.lang.String yyyy年MM月dd日
+     * @author gengzhiqiang
+     * @date 2019/10/31 10:19
+     */
+    public static String getYearMonthDay(String date) throws Exception{
+        Date parse;
+        if (date == null){
+            parse = new Date();
+        }else {
+             parse = new SimpleDateFormat("yyyy-MM-dd").parse(date);
+        }
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(parse);
+        String str = new SimpleDateFormat(("yyyy年MM月dd日")).format(calendar.getTime());
+        return str;
+    }
+
+    /**
+     * 功能描述 返回年月
+     * @param date yyyy-MM
+     * @return java.lang.String yyyy年MM月
+     * @author gengzhiqiang
+     * @date 2019/10/31 10:19
+     */
+    public static String getYearMonth(String date) throws Exception{
+        Date parse;
+        if (date == null){
+            parse = new Date();
+        }else {
+            parse = new SimpleDateFormat("yyyy-MM").parse(date);
+        }
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(parse);
+        String str = new SimpleDateFormat(("yyyy年MM日")).format(calendar.getTime());
+        return str;
+    }
+
+    /**
      * 获得最近6个月的名称列表
      *
      * @param

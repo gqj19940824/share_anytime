@@ -19,6 +19,7 @@ public class PieVo {
     private String title;
     private LegendBean legend;
     private List<SeriesBean> series;
+    private Integer count;
 
     public String getTitle() {
         return title;

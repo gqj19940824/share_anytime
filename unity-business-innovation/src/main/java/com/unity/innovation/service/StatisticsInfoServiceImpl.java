@@ -100,7 +100,7 @@ public class StatisticsInfoServiceImpl {
             Map<Long, Long> rqIdCountByIndustryCategoryMap = yzgtList.stream().collect(Collectors.groupingBy(InfoDeptYzgt::getIndustryCategory, Collectors.counting()));
             Map<Long, Long> lyIdCountByIndustryCategoryMap = satbList.stream().collect(Collectors.groupingBy(InfoDeptSatb::getIndustryCategory, Collectors.counting()));
             //所有的行业类别
-            List<SysCfg> industryCategoryList = cfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, 3));
+            List<SysCfg> industryCategoryList = cfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, 3).eq(SysCfg::getUseStatus,YesOrNoEnum.YES.getType()));
 
             //data
             List<RadarVo.SeriesBean.DataBean> industryCategoryDataList = Lists.newArrayList();
@@ -147,7 +147,7 @@ public class StatisticsInfoServiceImpl {
             Map<Long, Long> rqIdCountByEnterpriseNatureMap = yzgtList.stream().collect(Collectors.groupingBy(InfoDeptYzgt::getEnterpriseNature, Collectors.counting()));
             Map<Long, Long> lyIdCountByEnterpriseNatureMap = satbList.stream().collect(Collectors.groupingBy(InfoDeptSatb::getEnterpriseNature, Collectors.counting()));
             //所有的企业性质
-            List<SysCfg> enterpriseNatureList = cfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, 6));
+            List<SysCfg> enterpriseNatureList = cfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, 6).eq(SysCfg::getUseStatus,YesOrNoEnum.YES.getType()));
             //data
             List<RadarVo.SeriesBean.DataBean> enterpriseNatureDataList = Lists.newArrayList();
             list.forEach(n -> {

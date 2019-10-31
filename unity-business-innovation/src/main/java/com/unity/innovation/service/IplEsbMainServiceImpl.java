@@ -220,7 +220,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
                 iplLogService.saveLog(vo.getId(),
                         IplStatusEnum.DEALING.getId(),
-                        departmentId,
+                        vo.getIdRbacDepartmentDuty(),
                         0L,
                         "更新基本信息",
                         BizTypeEnum.ENTERPRISE.getType());
@@ -231,7 +231,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                 List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
-                        .idRbacDepartment(departmentId)
+                        .idRbacDepartment(vo.getIdRbacDepartmentDuty())
                         .dataSourceClass(SysMessageDataSourceClassEnum.DEVELOPING.getId())
                         .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
                         .title(entity.getEnterpriseName())

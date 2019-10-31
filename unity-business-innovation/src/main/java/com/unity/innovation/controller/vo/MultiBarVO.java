@@ -19,7 +19,10 @@ public class MultiBarVO {
 
     private LegendBean legend;
     private List<XAxisBean> xAxis;
+    private List<YAxisBean> yAxis;
+
     private List<SeriesBean> series;
+    private String title;
 
 
     @Builder(builderMethodName = "newInstance")
@@ -42,7 +45,82 @@ public class MultiBarVO {
 
         private String type;
         private List<String> data;
+        private AxisPointerBean axisPointer;
+
+        public AxisPointerBean getAxisPointer() {
+            return axisPointer;
+        }
+
+        public void setAxisPointer(AxisPointerBean axisPointer) {
+            this.axisPointer = axisPointer;
+        }
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public List<String> getData() {
+            return data;
+        }
+
+        public void setData(List<String> data) {
+            this.data = data;
+        }
     }
+
+    @Builder(builderMethodName = "newInstance")
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    public static class YAxisBean {
+        /**
+         * type : category
+         * data : ["周一","周二","周三","周四","周五","周六","周日"]
+         */
+
+        private String type;
+        private List<String> data;
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public List<String> getData() {
+            return data;
+        }
+
+        public void setData(List<String> data) {
+            this.data = data;
+        }
+    }
+    @Builder(builderMethodName = "newInstance")
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    public static class AxisPointerBean {
+
+        /**
+         * type : shadow
+         */
+
+        private String type;
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+    }
+
 
     @Builder(builderMethodName = "newInstance")
     @AllArgsConstructor

@@ -85,6 +85,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
 
     private static final String NUM = "num";
     private static final String INDUSTRY = "industry";
+    private static final String MONTH = "MONTH";
 
     /**
      * 功能描述 分页接口
@@ -220,7 +221,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
                 iplLogService.saveLog(vo.getId(),
                         IplStatusEnum.DEALING.getId(),
-                        departmentId,
+                        vo.getIdRbacDepartmentDuty(),
                         0L,
                         "更新基本信息",BizTypeEnum.INTELLIGENCE.getType());
                 entity.setLatestProcess("更新基本信息");
@@ -230,7 +231,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                 List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
-                        .idRbacDepartment(departmentId)
+                        .idRbacDepartment(vo.getIdRbacDepartmentDuty())
                         .dataSourceClass(SysMessageDataSourceClassEnum.DEMAND.getId())
                         .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
                         .title(entity.getEnterpriseName())
@@ -494,7 +495,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
      */
     public MultiBarVO changeInPersonnelNeeds(String yearMonth){
         String firstMonth = DateUtil.getMonthsBySpecifiedMonthFirstFew(yearMonth, "yyyy-MM", 5);
-        long firstTime = InnovationUtil.getFirstTimeInMonth(firstMonth, false);
+        long firstTime = InnovationUtil.getFirstTimeInMonth(firstMonth, true);
         long lastTime = InnovationUtil.getFirstTimeInMonth(yearMonth, false);
         //月度新增人才需求
         List<Map<String, Object>> addMapList = baseMapper.statisticsAddEmployeeNeedsNum(firstTime, lastTime);
@@ -504,16 +505,16 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         List<Integer> addDataMapList = Lists.newArrayList();
         List<BigDecimal> completionDataMapList = Lists.newArrayList();
         monthList.forEach(month ->{
-            Optional<Map<String, Object>> addOptional = addMapList.stream().filter(map -> map.containsKey(month)).findFirst();
+            Optional<Map<String, Object>> addOptional = addMapList.stream().filter(map -> map.values().contains(month)).findFirst();
             if(!addOptional.isPresent()){
                 addDataMapList.add(0);
             } else {
-                addDataMapList.add(Integer.parseInt(addOptional.get().get("num").toString()));
+                addDataMapList.add(Integer.parseInt(addOptional.get().get(NUM).toString()));
             }
-            Optional<Map<String, Object>> completionOptional = completionMapList.stream().filter(map -> map.containsKey(month))
+            Optional<Map<String, Object>> completionOptional = completionMapList.stream().filter(map -> map.values().contains(month))
                     .findFirst();
             if(completionOptional.isPresent()){
-                completionDataMapList.add(new BigDecimal(addOptional.get().get("num").toString()));
+                completionDataMapList.add(new BigDecimal(addOptional.get().get(NUM).toString()));
             } else {
                 completionDataMapList.add(BigDecimal.ZERO);
             }

@@ -43,7 +43,7 @@ public interface IplLogDao  extends BaseDao<IplLog>{
             " gmt_create BETWEEN #{startTime} AND #{endTime} " +
             "GROUP BY " +
             "  `month`")
-    List<Map<String,Object>> statisticsMonthlyDemandCompletionNum(Long startTime, Long endTime, Integer bizType);
+    List<Map<String,Object>> statisticsMonthlyDemandCompletionNum(@Param("startTime") Long startTime, @Param("endTime") Long endTime,@Param("bizType") Integer bizType);
 
     @Select("select if(sum(l.complete_num) is null, 0, cast(sum(l.complete_num) as decimal(20,2))) value, sc.cfg_val name " +
             "from ipl_log l inner join ipl_satb_main ism on l.id_ipl_main = ism.id and l.biz_type = #{bizType} " +
@@ -79,6 +79,6 @@ public interface IplLogDao  extends BaseDao<IplLog>{
             "AND il.is_deleted = 0 " +
             "AND il.gmt_create BETWEEN #{startTime} AND #{endTime} " +
             "GROUP BY od.industry_category")
-    List<Map<String,Object>> statisticsIndustryDemandCompletionNum(Long startTime, Long endTime);
+    List<Map<String,Object>> statisticsIndustryDemandCompletionNum(@Param("startTime") Long startTime, @Param("endTime") Long endTime);
 }
 

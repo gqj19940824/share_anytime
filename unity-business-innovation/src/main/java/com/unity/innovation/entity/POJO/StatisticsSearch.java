@@ -1,6 +1,7 @@
 package com.unity.innovation.entity.POJO;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.unity.common.base.CommentTarget;
 import lombok.*;
 
 /**
@@ -17,18 +18,21 @@ public class StatisticsSearch {
     /**
      * 开始时间
      */
+    @CommentTarget("开始时间")
     @TableField(exist = false)
     private String beginTime;
 
     /**
      * 截止时间
      */
+    @CommentTarget("截止时间")
     @TableField(exist = false)
     private String endTime;
 
     /**
-     * 月份查询
+     * 月份查询 2018-06
      */
+    @CommentTarget("时间")
     @TableField(exist = false)
     private String monthTime;
 
@@ -37,6 +41,15 @@ public class StatisticsSearch {
      */
     @TableField(exist = false)
     private String idRbacDepartment;
+
+    /**
+     * 类型 10 20 30 40 50 60
+     */
+    @CommentTarget("类型")
+    @TableField(exist = false)
+    private Integer bizType;
+
+
 
 
     /**
