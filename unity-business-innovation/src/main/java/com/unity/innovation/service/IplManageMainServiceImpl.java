@@ -547,7 +547,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         }
         super.updateById(old);
         //记录日志
-        logService.saveLog(old.getIdRbacDepartmentDuty(), old.getStatus(), entity.getContent(), entity.getId());
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        logService.saveLog(customer.getIdRbacDepartment(), old.getStatus(), entity.getContent(), entity.getId());
         /*======================5个xx清单发布管理--通过/驳回======================系统通知======================*/
         //通过清单类型获取数据分类
         sysMessageHelpService.addReviewMessage(ReviewMessage.newInstance()
