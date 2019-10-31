@@ -227,6 +227,10 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     @Transactional(rollbackFor = Exception.class)
     public void saveOrUpdateIplSatbMain(IplSatbMain entity) {
         if (entity.getId() == null) {
+            //校验当前用户是否可操作
+            if(SourceEnum.SELF.getId().equals(entity.getSource())){
+                InnovationUtil.check(BizTypeEnum.GROW.getType());
+            }
             String uuid = UUIDUtil.getUUID();
             entity.setAttachmentCode(uuid);
             entity.setStatus(IplStatusEnum.UNDEAL.getId());
@@ -255,6 +259,8 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         } else {
             //编辑时必须登录
             LoginContextHolder.getRequestAttributes();
+            //校验当前用户是否可操作
+            InnovationUtil.check(BizTypeEnum.GROW.getType());
             IplSatbMain main = this.getById(entity.getId());
             entity.setAttachmentCode(main.getAttachmentCode());
             entity.setSource(main.getSource());
@@ -462,6 +468,8 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      */
     @Transactional(rollbackFor = Exception.class)
     public void realTimeUpdateStatus(IplLog entity) {
+        //校验当前用户是否可操作
+        InnovationUtil.check(BizTypeEnum.GROW.getType());
         IplSatbMain main = this.getById(entity.getIdIplMain());
         iplLogService.dutyUpdateStatus(main, entity);
     }
@@ -475,6 +483,8 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      */
     @Transactional(rollbackFor = Exception.class)
     public void realTimeUpdateStatusByDuty(IplLog entity) {
+        //校验当前用户是否可操作
+        InnovationUtil.check(BizTypeEnum.GROW.getType());
         IplSatbMain main = this.getById(entity.getIdIplMain());
         iplLogService.updateStatusByDuty(main, entity);
     }
