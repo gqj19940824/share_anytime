@@ -551,7 +551,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         /*======================5个xx清单发布管理--通过/驳回======================系统通知======================*/
         //通过清单类型获取数据分类
         sysMessageHelpService.addReviewMessage(ReviewMessage.newInstance()
-                .dataSourceClass(getDataSourceClassByBizType(entity.getBizType()))
+                .dataSourceClass(getDataSourceClassByBizType(old.getBizType()))
                 .flowStatus(YesOrNoEnum.YES.getType() == entity.getPassOrReject()
                         ? SysMsgFlowStatusEnum.THREE.getId() : SysMsgFlowStatusEnum.TWO.getId())
                 .idRbacDepartment(entity.getIdRbacDepartmentDuty())
