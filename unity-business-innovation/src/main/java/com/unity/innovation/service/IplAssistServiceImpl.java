@@ -77,6 +77,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     }
 
     public PageElementGrid listAssistByPage(PageEntity<Map<String, Object>> pageEntity){
+        Customer customer = LoginContextHolder.getRequestAttributes();
         com.baomidou.mybatisplus.extension.plugins.pagination.Page<Map<String, Object>> pageable = pageEntity.getPageable();
         Map<String, Object> entity = pageEntity.getEntity();
         String gmtCreate = MapUtils.getString(entity, "gmtCreate");
@@ -84,6 +85,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             entity.put("gmtCreateStart", InnovationUtil.getFirstTimeInMonth(gmtCreate, true));
             entity.put("gmtCreateEnd", InnovationUtil.getFirstTimeInMonth(gmtCreate, false));
         }
+        entity.put("idRbacDepartmentAssist", customer.getIdRbacDepartment());
         Integer bizType = MapUtils.getInteger(entity, "bizType");
         Page<Map<String, Object>> page = PageHelper.startPage((int)pageable.getCurrent(), (int)pageable.getSize(), true);
         List<Map<String, Object>> maps;
