@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.enums.UserTypeEnum;
 import com.unity.common.enums.YesOrNoEnum;
@@ -450,6 +451,11 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
      */
     @Transactional(rollbackFor = Exception.class)
     public void passOrReject(DailyWorkStatusPackage entity) {
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        Long deptId = InnovationConstant.DEPARTMENT_PD_ID;
+        if (customer != null && customer.getIdRbacDepartment() != null) {
+            deptId = customer.getIdRbacDepartment();
+        }
         DailyWorkStatusPackage vo = getById(entity.getId());
         if (vo == null) {
             throw UnityRuntimeException.newInstance()
@@ -468,7 +474,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             updateById(vo);
             //日志记录
             DailyWorkStatusLog log=DailyWorkStatusLog.newInstance().build();
-            log.setIdRbacDepartment(vo.getIdRbacDepartment());
+            log.setIdRbacDepartment(deptId);
             log.setIdPackage(vo.getId());
             log.setState(WorkStatusAuditingStatusEnum.THIRTY.getId());
             log.setActionDescribe("审核发布需求");
@@ -480,7 +486,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             updateById(vo);
             //日志记录
             DailyWorkStatusLog log=DailyWorkStatusLog.newInstance().build();
-            log.setIdRbacDepartment(vo.getIdRbacDepartment());
+            log.setIdRbacDepartment(deptId);
             log.setIdPackage(vo.getId());
             log.setState(WorkStatusAuditingStatusEnum.FORTY.getId());
             log.setActionDescribe("审核发布需求");
