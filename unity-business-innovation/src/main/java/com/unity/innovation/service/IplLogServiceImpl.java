@@ -10,6 +10,7 @@ import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.utils.ReflectionUtils;
 import com.unity.innovation.constants.ListTypeConstants;
+import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.dao.IplLogDao;
 import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.IplOdMain;
@@ -30,10 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * ClassName: IplLogService
@@ -71,6 +69,10 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
     private IplOdMainServiceImpl iplOdMainService;
     @Autowired
     private SysMessageHelpService sysMessageHelpService;
+
+    public List<PieVoByDoc.DataBean> satbDemandDone(Long start, Long end, Integer bizType){
+        return baseMapper.satbDemandDone(start, end, bizType);
+    }
 
     /**
      * 修改状态、插入日志
@@ -398,5 +400,32 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             default:
                 return null;
         }
+    }
+
+    /**
+     * 统计月度需求完成情况数量
+     *
+     * @param  startTime 开始统计时间
+     * @param  endTime 结束统计时间
+     * @param bizType 清单类型
+     * @return 完成情况数量
+     * @author gengjiajia
+     * @since 2019/10/30 14:59
+     */
+    public List<Map<String,Object>> statisticsMonthlyDemandCompletionNum(Long startTime, Long endTime, Integer bizType){
+        return baseMapper.statisticsMonthlyDemandCompletionNum(startTime,endTime,bizType);
+    }
+
+    /**
+     * 某年某月指定行业人才需求完成情况统计
+     *
+     * @param  startTime 统计开始时间范围
+     * @param endTime 统计截止时间范围
+     * @return 需求完成情况统计
+     * @author gengjiajia
+     * @since 2019/10/30 19:38
+     */
+    public List<Map<String,Object>> statisticsIndustryDemandCompletionNum(Long startTime, Long endTime){
+        return baseMapper.statisticsIndustryDemandCompletionNum(startTime,endTime);
     }
 }

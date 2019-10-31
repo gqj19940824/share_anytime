@@ -50,4 +50,12 @@ public class StatisticsSearch {
     private Integer bizType;
 
 
+
+
+    /**
+     * 类型
+     */
+    @TableField(exist = false)
+    private Integer type;
+
 }

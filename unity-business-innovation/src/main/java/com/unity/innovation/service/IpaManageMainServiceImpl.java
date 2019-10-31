@@ -46,14 +46,16 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     @Transactional(rollbackFor = Exception.class)
     public void updateIpaMain(IpaManageMain entity) {
         // 更新二次包数据
-        Integer status = entity.getStatus();
-        LambdaUpdateWrapper<IpaManageMain> wrapper = new LambdaUpdateWrapper<IpaManageMain>().eq(IpaManageMain::getId, entity.getId()).set(IpaManageMain::getStatus, status);
+        LambdaUpdateWrapper<IpaManageMain> wrapper = new LambdaUpdateWrapper<IpaManageMain>().eq(IpaManageMain::getId, entity.getId());
         if (StringUtils.isNotBlank(entity.getPublishResult())) {
             wrapper.set(IpaManageMain::getPublishResult, entity.getPublishResult());
         }
         wrapper.set(IpaManageMain::getPublishMedia, entity.getPublishMedia()).set(IpaManageMain::getParticipateMedia, entity.getParticipateMedia()).set(IpaManageMain::getPublishStatus, entity.getPublishStatus());
+        if ("1".equals(entity.getPublishStatus())){
+            wrapper.set(IpaManageMain::getStatus, IpaStatusEnum.UPDATED.getId());
+            updateFirstPackStatus(entity.getId(), IpaStatusEnum.UPDATED.getId());
+        }
         update(wrapper);
-        updateFirstPackStatus(entity.getId(), status);
         /*=========工作动态发布管理/5个xx清单发布管理/2个企业信息发布管理=======系统通知======================*/
         sendSysMessage(entity);
     }

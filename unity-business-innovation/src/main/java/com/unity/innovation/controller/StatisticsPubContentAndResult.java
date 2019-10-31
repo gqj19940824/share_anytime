@@ -1,26 +1,22 @@
 package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.google.common.collect.Lists;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constant.DicConstants;
 import com.unity.common.exception.UnityRuntimeException;
-import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.utils.DateUtil;
 import com.unity.common.utils.DicUtils;
 import com.unity.innovation.controller.vo.MultiBarVO;
+import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.IplOdMain;
 import com.unity.innovation.entity.IplSatbMain;
-import com.unity.innovation.entity.MediaManager;
-import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.enums.SourceEnum;
-import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.*;
 import com.unity.innovation.util.InnovationUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
@@ -61,8 +57,211 @@ public class StatisticsPubContentAndResult extends BaseWebController {
     private DicUtils dicUtils;
     @Resource
     private InfoDeptSatbServiceImpl infoDeptSatbService;
+    @Resource
+    private IplLogServiceImpl iplLogService;
+
     private static final String START_DATE = "startDate";
     private static final String END_DATE = "endDate";
+
+
+    /**
+     * 企业成长目标投资需求行业分布及变化-投资需求变化统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
+    @PostMapping("/satbDemandTrend")
+    public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandTrend(@RequestBody Map<String, String> map) throws Exception{
+        String date = MapUtils.getString(map, "date");
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
+        }
+        long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        List<String> monthsList = DateUtil.getMonthsList(date);
+
+        List<Map<String, Object>> maps = iplSatbMainService.satbDemandTrend(start, end);
+        Map<String, Double> sfMap = new LinkedHashMap<>();
+        if (CollectionUtils.isNotEmpty(maps)){
+            Map<String, Double> collect = maps.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "month"), e -> MapUtils.getDouble(e,"sum")));
+            monthsList.forEach(e -> {
+                Double o = collect.get(e);
+                sfMap.put(e, o==null?0:o);
+            });
+        }
+
+        List<Map<String, Object>> maps1 = iplLogService.statisticsMonthlyDemandCompletionNum(start, end, BizTypeEnum.CITY.getType());
+        Map<String, Double> enMap = new LinkedHashMap<>();
+        if (CollectionUtils.isNotEmpty(maps1)){
+            Map<String, Double> collect = maps1.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "month"), e -> MapUtils.getDouble(e,"num")));
+            monthsList.forEach(e -> {
+                Double o = collect.get(e);
+                enMap.put(e, o==null?0:o);
+            });
+        }
+
+        MultiBarVO multiBarVO = MultiBarVO.newInstance()
+                .legend(MultiBarVO.LegendBean.newInstance().data(Arrays.asList("月度新增融资需求额", "月度融资完成额")).build())
+                .xAxis(Arrays.asList(MultiBarVO.XAxisBean.newInstance().type("category").data(monthsList).build()))
+                .series(
+                        Arrays.asList(
+                                MultiBarVO.SeriesBean.newInstance().name("月度新增融资需求额").type("line").data(new ArrayList<>(sfMap.values())).build(),
+                                MultiBarVO.SeriesBean.newInstance().name("月度融资完成额").type("line").data(new ArrayList<>(enMap.values())).build()
+                        )
+                )
+                .build();
+
+        return success(multiBarVO);
+    }
+
+
+        /**
+         * 企业成长目标投资需求行业分布及变化-完成额度统计
+         *
+         * @param
+         * @return
+         * @author qinhuan
+         * @since 2019/10/29 10:11 上午
+         */
+    @PostMapping("/satbDemandDone")
+    public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandDone(@RequestBody Map<String, String> map) {
+        String date = MapUtils.getString(map, "date");
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
+        }
+        long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
+
+        List<String> legend = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(dataBeans)){
+            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+        }
+
+        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                .data(dataBeans).build();
+        return success(pieVoByDoc);
+    }
+
+        /**
+         * 企业成长目标投资需求行业分布及变化-完成额度统计
+         *
+         * @param
+         * @return
+         * @author qinhuan
+         * @since 2019/10/29 10:11 上午
+         */
+    @PostMapping("/satbDemandDoneToDate")
+    public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandDoneToDate(@RequestBody Map<String, String> map) {
+        String date = MapUtils.getString(map, "date");
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
+        }
+        long start = 0L;
+        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
+
+        List<String> legend = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(dataBeans)){
+            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+        }
+
+        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                .data(dataBeans).build();
+        return success(pieVoByDoc);
+    }
+
+    /**
+     * 企业成长目标投资需求行业分布及变化-新增需求分类统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
+    @PostMapping("/satbDemandNewCatagory")
+    public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandNewCatagory(@RequestBody Map<String, String> map) {
+        String date = MapUtils.getString(map, "date");
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
+        }
+        long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        Map<String, Double> dataBeans = iplSatbMainService.demandNewCatagory(start, end);
+        List<String> legend = Arrays.asList("银行", "债券","自筹");
+        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                .data(
+                        Arrays.asList(
+                                PieVoByDoc.DataBean.newInstance().name("银行").value(dataBeans.get("bank")).build(),
+                                PieVoByDoc.DataBean.newInstance().name("债券").value(dataBeans.get("bond")).build(),
+                                PieVoByDoc.DataBean.newInstance().name("自筹").value(dataBeans.get("raise")).build()
+                        )
+                ).build();
+        return success(pieVoByDoc);
+    }
+
+    /**
+     * 企业成长目标投资需求行业分布及变化-新增需求统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
+    @PostMapping("/satbDemandNew")
+    public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandNew(@RequestBody Map<String, String> map) {
+        String date = MapUtils.getString(map, "date");
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
+        }
+        long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+
+        List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
+        List<String> legend = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(dataBeans)){
+            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+        }
+
+        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                .data(dataBeans).build();
+        return success(pieVoByDoc);
+    }
+
+    /**
+     * 企业成长目标投资需求行业分布及变化-累计新增需求统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
+    @PostMapping("/satbDemandNewToDate")
+    public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandNewToDate(@RequestBody Map<String, String> map) {
+        String date = MapUtils.getString(map, "date");
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
+        }
+        long start = 0L;
+        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+
+        List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
+        List<String> legend = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(dataBeans)){
+            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+        }
+
+        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                .data(dataBeans).build();
+        return success(pieVoByDoc);
+    }
 
     /**
      * 北京亦庄创新发布清单情况-需求趋势统计
@@ -287,75 +486,5 @@ public class StatisticsPubContentAndResult extends BaseWebController {
             qw.le(IplSatbMain::getGmtCreate, end);
         }
         return qw;
-    }
-
-    /**
-     * 媒体发稿情况
-     *
-     * @param map 包含开始时间及结束时间
-     * @return 统计数据
-     * @author gengjiajia
-     * @since 2019/10/29 19:55
-     */
-    @PostMapping("/mediaReleaseSituation")
-    public Mono<ResponseEntity<SystemResponse<Object>>> mediaReleaseSituation(@RequestBody Map<String, String> map) {
-        if (MapUtils.isEmpty(map) || StringUtils.isEmpty(map.get(START_DATE)) || StringUtils.isEmpty(map.get(END_DATE))) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取时间范围");
-        }
-        Long startTime = InnovationUtil.getFirstTimeInMonth(map.get(START_DATE), true);
-        Long endTime = InnovationUtil.getFirstTimeInMonth(map.get(END_DATE), false);
-        List<IpaManageMain> manageMainList = ipaManageMainService.list(new LambdaQueryWrapper<IpaManageMain>()
-                .eq(IpaManageMain::getStatus, WorkStatusAuditingStatusEnum.SIXTY.getId())
-                .between(IpaManageMain::getGmtCreate, startTime, endTime));
-        List<Long> allMediaIdList = Lists.newArrayList();
-        for (IpaManageMain main : manageMainList) {
-            String[] mediaIdArr = main.getPublishMedia().split(",");
-            allMediaIdList.addAll(Arrays.stream(mediaIdArr).map(Long::parseLong).collect(Collectors.toList()));
-        }
-        List<MediaManager> mediaManagerList = mediaManagerService.list(new LambdaQueryWrapper<MediaManager>().in(MediaManager::getId, allMediaIdList));
-        Map<Long, Long> data = mediaManagerList.stream()
-                .collect(Collectors.groupingBy(MediaManager::getMediaType, Collectors.counting()));
-        List<String> xData = Lists.newArrayList();
-        List<Integer> yData = Lists.newArrayList();
-        for (Map.Entry<Long, Long> entry : data.entrySet()) {
-            if (!entry.getValue().equals(0L)) {
-                yData.add(entry.getValue().intValue());
-                Dic dic = dicUtils.getDicByCode(DicConstants.MEDIA_TYPE, entry.getKey().toString());
-                xData.add(dic.getDicValue());
-            }
-        }
-        MultiBarVO multiBarVO = MultiBarVO.newInstance()
-                .xAxis(
-                        Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
-                                .type("category")
-                                .data(xData)
-                                .build())
-                ).series(
-                        Arrays.asList(
-                                MultiBarVO.SeriesBean.newInstance()
-                                        .type("bar")
-                                        .name("媒体发稿情况")
-                                        .data(yData)
-                                        .build()
-                        )).build();
-        return success(multiBarVO);
-    }
-
-    /**
-     * 媒体发稿情况
-     *
-     * @param map 包含开始时间及结束时间
-     * @return 统计数据
-     * @author gengjiajia
-     * @since 2019/10/29 19:55
-     */
-    @PostMapping("/avgStatistics")
-    public Mono<ResponseEntity<SystemResponse<Object>>> avgStatistics(@RequestBody Map<String, String> map) {
-        if (MapUtils.isEmpty(map) || StringUtils.isEmpty(map.get(START_DATE)) || StringUtils.isEmpty(map.get(END_DATE))) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取时间范围");
-        }
-        Long endTime = InnovationUtil.getFirstTimeInMonth(map.get(END_DATE), false);
-        Long startTime = InnovationUtil.getFirstTimeInMonth(map.get(START_DATE), true);
-        return success(infoDeptSatbService.avgStatistics(startTime, endTime));
     }
 }

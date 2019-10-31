@@ -1,8 +1,12 @@
 package com.unity.innovation.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -15,7 +19,10 @@ import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.IplManageMainServiceImpl;
 import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.util.Lists;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,6 +61,60 @@ public class IplManageMainController extends BaseWebController {
                 .items(convert2ListForPkg(list.getRecords())).build();
         return success(result);
     }
+
+    /**
+     * 宣传部列表查询
+     * @param search 查询条件
+     * @return 分页数据
+     * @author gengzhiqiang
+     * @date 2019/9/17 13:36
+     */
+    @PostMapping("/listByPagePd")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listByPagePd(@RequestBody PageEntity<IplManageMain> search) {
+        Page<IplManageMain> pageable = search.getPageable();
+        IplManageMain entity = search.getEntity();
+
+        LambdaQueryWrapper<IplManageMain> ew = new LambdaQueryWrapper<>();
+        if (entity != null) {
+            //提交时间
+            if (StringUtils.isNotBlank(entity.getSubmitTime())) {
+                //gt 大于 lt 小于
+                long begin = InnovationUtil.getFirstTimeInMonth(entity.getSubmitTime(), true);
+                ew.gt(IplManageMain::getGmtSubmit, begin);
+                //gt 大于 lt 小于
+                long end = InnovationUtil.getFirstTimeInMonth(entity.getSubmitTime(), false);
+                ew.lt(IplManageMain::getGmtSubmit, end);
+            }
+            //清单类型
+            if(entity.getBizType() != null) {
+                ew.eq(IplManageMain::getBizType,entity.getBizType());
+            }
+            //宣传部审批角色不查看 待提交、已驳回
+            ew.notIn(IplManageMain::getStatus, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(),WorkStatusAuditingStatusEnum.FORTY.getId()));
+            //状态
+            if (entity.getStatus() != null) {
+                ew.eq(IplManageMain::getStatus, entity.getStatus());
+            }
+            //排序
+            ew.orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified);
+        }
+        IPage<IplManageMain> list = service.page(pageable, ew);
+        List<IplManageMain> records = list.getRecords();
+        if (CollectionUtils.isNotEmpty(records)) {
+            records.forEach(p -> {
+                if (p.getStatus() != null) {
+                    WorkStatusAuditingStatusEnum aa = WorkStatusAuditingStatusEnum.of(p.getStatus());
+                    p.setStatusName(aa != null ? aa.getName() : null);
+                }
+            });
+        }
+
+        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
+                .total(list.getTotal())
+                .items(convert2ListForPkg(records)).build();
+        return success(result);
+    }
+
 
     /**
      * 功能描述 数据整理

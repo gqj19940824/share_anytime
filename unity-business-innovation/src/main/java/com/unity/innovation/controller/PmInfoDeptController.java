@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -26,9 +28,11 @@ import com.unity.innovation.service.InfoDeptYzgtServiceImpl;
 import com.unity.innovation.service.IplYzgtMainServiceImpl;
 import com.unity.innovation.service.PmInfoDeptServiceImpl;
 import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.assertj.core.util.Lists;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -87,6 +91,47 @@ public class PmInfoDeptController extends BaseWebController {
 
     }
 
+    /**
+     * 宣传部列表查询
+     *
+     * @param pageEntity 分页条件
+     * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity < com.unity.common.pojos.SystemResponse < java.lang.Object>>>
+     * @author JH
+     * @date 2019/10/17 11:15
+     */
+    @PostMapping("/listByPagePd")
+    public Mono<ResponseEntity<SystemResponse<Object>>> listByPagePd(@RequestBody PageEntity<PmInfoDept> pageEntity) {
+        Page<PmInfoDept> pageable = pageEntity.getPageable();
+        PmInfoDept entity = pageEntity.getEntity();
+        LambdaQueryWrapper<PmInfoDept> ew = new LambdaQueryWrapper<>();
+        if (entity != null) {
+            //提交时间
+            if (StringUtils.isNotBlank(entity.getSubmitTime())) {
+                long end = InnovationUtil.getFirstTimeInMonth(entity.getSubmitTime(), false);
+                ew.lt(PmInfoDept::getGmtSubmit, end);
+                long begin = InnovationUtil.getFirstTimeInMonth(entity.getSubmitTime(), true);
+                ew.gt(PmInfoDept::getGmtSubmit, begin);
+            }
+            if (entity.getBizType() != null) {
+                ew.eq(PmInfoDept::getBizType, entity.getBizType());
+            }
+
+            //状态
+            if (entity.getStatus() != null) {
+                ew.eq(PmInfoDept::getStatus, entity.getStatus());
+            }
+            //宣传部审批角色不查看 待提交、已驳回
+            ew.notIn(PmInfoDept::getStatus, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(), WorkStatusAuditingStatusEnum.FORTY.getId()));
+            //排序
+            ew.orderByDesc(PmInfoDept::getGmtSubmit, PmInfoDept::getGmtModified);
+        }
+        IPage<PmInfoDept> p = service.page(pageable, ew);
+        PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
+                .total(p.getTotal())
+                .items(convert2List(p.getRecords())).build();
+        return success(result);
+
+    }
 
     /**
      * 功能描述

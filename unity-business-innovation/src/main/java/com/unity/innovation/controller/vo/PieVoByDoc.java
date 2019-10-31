@@ -35,8 +35,10 @@ public class PieVoByDoc {
          * data : ["直接访问","邮件营销","联盟广告","视频广告","搜索引擎"]
          */
 
-        private String orient;
-        private String x;
+        @Builder.Default
+        private String orient="vertical";
+        @Builder.Default
+        private String x="left";
         private List<String> data;
     }
 
@@ -50,7 +52,7 @@ public class PieVoByDoc {
          * name : 直接访问
          */
 
-        private int value;
+        private Object value;
         private String name;
     }
 }

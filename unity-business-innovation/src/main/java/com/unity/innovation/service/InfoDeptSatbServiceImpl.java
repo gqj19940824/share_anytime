@@ -51,6 +51,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
     private AttachmentServiceImpl attachmentService;
 
     private static final String ACHIEVEMENT_LEVEL = "achievementLevel";
+    private static final String YES_OR_NO = "yesOrNo";
     private static final String NUM = "num";
 
     /**
@@ -384,14 +385,6 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
                     .build());
             nameList.add(dic.getDicValue());
         });
-        PieVoByDoc.newInstance()
-                .legend(PieVoByDoc.LegendBean.newInstance()
-                        .data(nameList)
-                        .orient("vertical")
-                        .x("left")
-                        .build())
-                .data(dataList)
-                .build();
         long sum = mapList.stream().mapToLong(map -> map.get(NUM)).sum();
         data.put("totalNum", sum);
         data.put("pieData", PieVoByDoc.newInstance()
@@ -399,6 +392,42 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
                         .data(nameList)
                         .orient("vertical")
                         .x("left")
+                        .build())
+                .data(dataList)
+                .build());
+        return data;
+    }
+
+    /**
+     * 与会路演企业成果首次对外发布情况统计
+     *
+     * @param startTime 开始时间
+     * @param endTime   结束时间
+     * @return 统计结果
+     * @author gengjiajia
+     * @since 2019/10/30 09:37
+     */
+    public Map<String, Object> firstExternalRelease(Long startTime, Long endTime) {
+        Map<String, Object> data = Maps.newHashMap();
+        List<String> nameList = Lists.newArrayList();
+        List<PieVoByDoc.DataBean> dataList = Lists.newArrayList();
+        //查询 创新成功水平类型对应的数量信息 [{"yesOrNo":"1","num":"2"}]
+        List<Map<String, Integer>> mapList = baseMapper.firstExternalRelease(startTime, endTime);
+        mapList.stream().filter(map -> !map.get(NUM).equals(0L)).forEach(map -> {
+            String yesOrNo = map.get(YES_OR_NO).equals(YesOrNoEnum.YES.getType()) ? "是" : "否";
+            dataList.add(PieVoByDoc.DataBean.newInstance()
+                    .name(yesOrNo)
+                    .value(map.get(NUM).intValue())
+                    .build());
+            nameList.add(yesOrNo);
+        });
+        long sum = mapList.stream().mapToLong(map -> map.get(NUM)).sum();
+        data.put("totalNum", sum);
+        data.put("pieData", PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance()
+                        .data(nameList)
+                        .x("left")
+                        .orient("vertical")
                         .build())
                 .data(dataList)
                 .build());

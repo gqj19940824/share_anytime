@@ -137,6 +137,6 @@ public class MultiBarVO {
         private String name;
         private String type;
         private String stack;
-        private List<Integer> data;
+        private List<? extends Number> data;
     }
 }

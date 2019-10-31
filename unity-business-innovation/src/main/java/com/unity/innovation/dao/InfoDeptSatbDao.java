@@ -33,10 +33,37 @@ public interface InfoDeptSatbDao  extends BaseDao<InfoDeptSatb>{
             "INNER JOIN pm_info_dept pid ON ids.id_pm_info_dept = pid.id " +
             "INNER JOIN ipa_manage_main imm ON pid.id_ipa_main = imm.id " +
             "WHERE " +
-            " ids.gmt_create BETWEEN #{startTime} " +
-            "AND #{endTime} " +
+            " ids.is_deleted = 0 " +
+            "AND pid.is_deleted = 0 " +
+            "AND imm.is_deleted = 0 " +
+            "AND ids.gmt_create BETWEEN #{startTime} AND #{endTime} " +
+            "GROUP BY " +
+            " ids.achievement_level ")
+    List<Map<String,Long>> avgStatistics(Long startTime,Long endTime);
+
+    /**
+     * 与会路演企业成果首次对外发布情况统计
+     *
+     * @param  startTime 开始时间
+     * @param  endTime 结束时间
+     * @return 统计结果
+     * @author gengjiajia
+     * @since 2019/10/30 09:37
+     */
+    @Select("SELECT " +
+            " ids.is_publish_first AS yesOrNo, " +
+            " count(ids.id) AS num " +
+            "FROM " +
+            " info_dept_satb ids " +
+            "INNER JOIN pm_info_dept pid ON ids.id_pm_info_dept = pid.id " +
+            "INNER JOIN ipa_manage_main imm ON pid.id_ipa_main = imm.id " +
+            "WHERE " +
+            " ids.is_deleted = 0 " +
+            "AND pid.is_deleted = 0 " +
+            "AND imm.is_deleted = 0 " +
+            "AND ids.gmt_create BETWEEN #{startTime} AND #{endTime} " +
             "GROUP BY " +
             " ids.achievement_level")
-    List<Map<String,Long>>  avgStatistics(Long startTime,Long endTime);
+    List<Map<String,Integer>> firstExternalRelease(Long startTime,Long endTime);
 }
 
