@@ -149,7 +149,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
             //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
             List<IplAssist> assists = iplAssistService.getAssists(entity.getBizType(), entity.getId());
             List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
-            sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+            sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
                     .sourceId(entity.getId())
                     .idRbacDepartment(byId.getIdRbacDepartmentDuty())
                     .dataSourceClass(SysMessageDataSourceClassEnum.COOPERATION.getId())

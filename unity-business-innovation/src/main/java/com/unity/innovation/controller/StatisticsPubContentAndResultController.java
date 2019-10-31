@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.Lists;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.DicConstants;
+import com.unity.common.constants.ConstString;
 import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.utils.DicUtils;
@@ -50,6 +51,7 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
     private static final String START_DATE = "startDate";
     private static final String END_DATE = "endDate";
     private static final String YEAR_MONTH = "yearMonth";
+    private static final String TYPE = "type";
 
     /**
      * 媒体发稿情况
@@ -62,18 +64,18 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
     @PostMapping("/mediaReleaseSituation")
     public Mono<ResponseEntity<SystemResponse<Object>>> mediaReleaseSituation(@RequestBody Map<String, String> map) {
         if (MapUtils.isEmpty(map) || StringUtils.isEmpty(map.get(START_DATE)) || StringUtils.isEmpty(map.get(END_DATE))) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取时间范围");
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到时间范围");
         }
         Long startTime = InnovationUtil.getFirstTimeInMonth(map.get(START_DATE), true);
         Long endTime = InnovationUtil.getFirstTimeInMonth(map.get(END_DATE), false);
         List<IpaManageMain> manageMainList = ipaManageMainService.list(new LambdaQueryWrapper<IpaManageMain>()
                 .eq(IpaManageMain::getStatus, WorkStatusAuditingStatusEnum.SIXTY.getId())
                 .between(IpaManageMain::getGmtCreate, startTime, endTime));
-        List<Long> allMediaIdList = Lists.newArrayList();
-        for (IpaManageMain main : manageMainList) {
-            String[] mediaIdArr = main.getPublishMedia().split(",");
-            allMediaIdList.addAll(Arrays.stream(mediaIdArr).map(Long::parseLong).collect(Collectors.toList()));
-        }
+        List<Long> allMediaIdList = manageMainList.stream().map(main ->
+                Arrays.stream(main.getPublishMedia().split(ConstString.SPLIT_COMMA))
+                        .map(Long::parseLong)
+                        .collect(Collectors.toList())
+        ).flatMap(List::stream).collect(Collectors.toList());
         List<MediaManager> mediaManagerList = mediaManagerService.list(new LambdaQueryWrapper<MediaManager>().in(MediaManager::getId, allMediaIdList));
         Map<Long, Long> data = mediaManagerList.stream()
                 .collect(Collectors.groupingBy(MediaManager::getMediaType, Collectors.counting()));
@@ -87,19 +89,15 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
             }
         }
         MultiBarVO multiBarVO = MultiBarVO.newInstance()
-                .xAxis(
-                        Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
+                .xAxis(Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
                                 .type("category")
                                 .data(xData)
                                 .build())
-                ).series(
-                        Arrays.asList(
-                                MultiBarVO.SeriesBean.newInstance()
-                                        .type("bar")
-                                        .name("媒体发稿情况")
-                                        .data(yData)
-                                        .build()
-                        )).build();
+                ).series(Lists.newArrayList(MultiBarVO.SeriesBean.newInstance()
+                        .type("bar")
+                        .name("媒体发稿情况")
+                        .data(yData)
+                        .build())).build();
         return success(multiBarVO);
     }
 
@@ -111,14 +109,14 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
      * @author gengjiajia
      * @since 2019/10/29 19:55
      */
-    @PostMapping("/infoDeptSatb/avgStatistics")
-    public Mono<ResponseEntity<SystemResponse<Object>>> avgStatistics(@RequestBody Map<String, String> map) {
+    @PostMapping("/roadshowEnterprise/achievementInnovationLevel")
+    public Mono<ResponseEntity<SystemResponse<Object>>> achievementInnovationLevel(@RequestBody Map<String, String> map) {
         if (MapUtils.isEmpty(map) || StringUtils.isEmpty(map.get(START_DATE)) || StringUtils.isEmpty(map.get(END_DATE))) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取时间范围");
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到时间范围");
         }
         Long endTime = InnovationUtil.getFirstTimeInMonth(map.get(END_DATE), false);
         Long startTime = InnovationUtil.getFirstTimeInMonth(map.get(START_DATE), true);
-        return success(infoDeptSatbService.avgStatistics(startTime, endTime));
+        return success(infoDeptSatbService.roadshowEnterpriseInnovationLevel(startTime, endTime));
     }
 
     /**
@@ -129,13 +127,13 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
      * @author gengjiajia
      * @since 2019/10/29 19:55
      */
-    @PostMapping("/infoDeptSatb/firstExternalRelease")
-    public Mono<ResponseEntity<SystemResponse<Object>>> firstExternalRelease(@RequestBody Map<String, String> map) {
+    @PostMapping("/roadshowEnterprise/resultsFirstReleased")
+    public Mono<ResponseEntity<SystemResponse<Object>>> resultsFirstReleased(@RequestBody Map<String, String> map) {
         if (MapUtils.isEmpty(map)) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取时间范围");
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到时间范围");
         }
         if(StringUtils.isEmpty(map.get(START_DATE)) || StringUtils.isEmpty(map.get(END_DATE))){
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取时间范围");
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到时间范围");
         }
         Long startTime = InnovationUtil.getFirstTimeInMonth(map.get(START_DATE), true);
         Long endTime = InnovationUtil.getFirstTimeInMonth(map.get(END_DATE), false);
@@ -150,10 +148,10 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
      * @author gengjiajia
      * @since 2019/10/30 16:23  
      */
-    @PostMapping("/iplOdMain/talentCemandChanges")
-    public Mono<ResponseEntity<SystemResponse<Object>>> talentCemandChanges(@RequestBody Map<String, String> map) {
+    @PostMapping("/highendTalentDemand/changesStatistics")
+    public Mono<ResponseEntity<SystemResponse<Object>>> changesStatistics(@RequestBody Map<String, String> map) {
         if (MapUtils.isEmpty(map) || StringUtils.isEmpty(map.get(YEAR_MONTH))) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取时间范围");
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到时间范围");
         }
         return success(iplOdMainService.changeInPersonnelNeeds(map.get(YEAR_MONTH)));
     }
@@ -166,11 +164,13 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
      * @author gengjiajia
      * @since 2019/10/30 18:48
      */
-    @PostMapping("/iplOdMain/statisticsIndustryDemand/{type}")
-    public Mono<ResponseEntity<SystemResponse<Object>>> addEmployeeNeedsNumByIndustry(@PathVariable("type") Integer type, @RequestBody Map<String, String> map) {
+    @PostMapping("/highendTalentDemand/statisticsIndustryDemand")
+    public Mono<ResponseEntity<SystemResponse<Object>>> statisticsIndustryDemand(@RequestBody Map<String, String> map) {
         if (MapUtils.isEmpty(map) || StringUtils.isEmpty(map.get(YEAR_MONTH))) {
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取时间范围");
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到时间范围");
+        } else if(StringUtils.isEmpty(map.get(TYPE))){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要查询的类型");
         }
-        return success(iplOdMainService.statisticsIndustryDemand(map.get(YEAR_MONTH),type));
+        return success(iplOdMainService.statisticsIndustryDemand(map.get(YEAR_MONTH),Integer.parseInt(map.get(TYPE))));
     }
 }

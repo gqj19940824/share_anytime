@@ -4,6 +4,7 @@ package com.unity.innovation.dao;
 
 import com.unity.common.base.BaseDao;
 import com.unity.innovation.entity.IplOdMain;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public interface IplOdMainDao  extends BaseDao<IplOdMain>{
             "AND gmt_create BETWEEN #{startTime} AND #{endTime} " +
             "GROUP BY " +
             " `month`")
-    List<Map<String,Object>> statisticsAddEmployeeNeedsNum(Long startTime,Long endTime);
+    List<Map<String,Object>> statisticsAddEmployeeNeedsNum(@Param("startTime") Long startTime, @Param("endTime") Long endTime);
 
     /**
      * 根据行业统计新增人才需求
@@ -56,6 +57,6 @@ public interface IplOdMainDao  extends BaseDao<IplOdMain>{
             "AND gmt_create BETWEEN #{startTime} AND #{endTime} " +
             "GROUP BY " +
             " industry_category")
-    List<Map<String, Object>> statisticsAddEmployeeNeedsNumByIndustry(Long startTime, Long endTime);
+    List<Map<String, Object>> statisticsAddEmployeeNeedsNumByIndustry(@Param("startTime") Long startTime, @Param("endTime") Long endTime);
 }
 
