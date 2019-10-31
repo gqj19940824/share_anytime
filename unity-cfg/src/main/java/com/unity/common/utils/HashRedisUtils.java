@@ -59,6 +59,17 @@ public class HashRedisUtils {
         valueOperationSet(key, value);
     }
 
+    /**
+     * 同步存入指定对象
+     *
+     * @param key   redis 中的key
+     * @param value 当前要存储的对象
+     * @author gengjiajia
+     * @since 2019年07月11日13:56:45
+     */
+    public void synchPutValueByKey(String key, Map<String, Object> value) {
+        valueOperationSet(key, value);
+    }
 
     /**
      * 移除当前的对象

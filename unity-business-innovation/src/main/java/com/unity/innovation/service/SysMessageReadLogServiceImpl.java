@@ -12,7 +12,6 @@ import com.unity.innovation.interceptor.MyWebSocketHandler;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.TextMessage;
 
 import java.util.List;
@@ -63,8 +62,8 @@ public class SysMessageReadLogServiceImpl extends BaseServiceImpl<SysMessageRead
             num += value;
             numMap.put(userId.toString(), num < 0 ? 0 : num);
         }
-        hashRedisUtils.putValueByKey(formEnum.getName(), numMap);
-        sendMessageByUserIdList(userIdList, YesOrNoEnum.YES.getType());
+        hashRedisUtils.synchPutValueByKey(formEnum.getName(), numMap);
+        sendMessageByUserIdList(userIdList, isAdd);
     }
 
     /**
@@ -75,7 +74,7 @@ public class SysMessageReadLogServiceImpl extends BaseServiceImpl<SysMessageRead
      * @author gengjiajia
      * @since 2019/09/25 18:31
      */
-    private synchronized void sendMessageByUserIdList(List<Long> userIdList, int isAdd) {
+    private void sendMessageByUserIdList(List<Long> userIdList, int isAdd) {
         Map<String, Object> sysMegNumMap = hashRedisUtils.getObj(MessageSaveFormEnum.SYS_MSG.getName());
         Map<String, Object> noticeMegNumMap = hashRedisUtils.getObj(MessageSaveFormEnum.NOTICE.getName());
         userIdList.forEach(userId -> {

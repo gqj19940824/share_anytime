@@ -53,7 +53,7 @@ public class TopicMessageListener implements MessageListener {
         byte[] body = message.getBody();
         String itemValue = new String(body);
         // 请参考配置文件，本例中key，value的序列化方式均为string。
-        log.info("itemValue:" + itemValue);
+        log.info("itemValue====:" + itemValue);
         //itemValue:listControl:DEPARTMENT_DARB_CONTROL:DEAL_OVER_TIME:12-0:10
         String[] itemValueArrays = itemValue.split(RedisConstants.KEY_JOINER);
         if (itemValueArrays.length == 5) {
@@ -144,8 +144,6 @@ public class TopicMessageListener implements MessageListener {
     private void updateProcessStatus(String[] itemValueArrays) {
         // 主表id
         Long idIplMain = Long.parseLong(itemValueArrays[3].split("-")[0]);
-        // 主责单位id
-        Long idRbacDepartmentDuty = ListCategoryEnum.valueOfName(itemValueArrays[1]).getId();
         // 业务类型
         Integer bizType = Integer.parseInt(itemValueArrays[4]);
         // 超时类型
