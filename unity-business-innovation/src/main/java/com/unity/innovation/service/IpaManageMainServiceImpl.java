@@ -7,6 +7,7 @@ import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.ReviewMessage;
 import com.unity.common.pojos.SystemResponse;
+import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.dao.IpaManageMainDao;
 import com.unity.innovation.entity.DailyWorkStatusPackage;
 import com.unity.innovation.entity.PmInfoDept;
@@ -14,7 +15,6 @@ import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.*;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,21 +43,42 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     @Resource
     private SysMessageHelpService sysMessageHelpService;
 
+    public List<PieVoByDoc.DataBean> dwsTypeStatistics(Long start, Long end, Long idRbacDepartment){
+        return baseMapper.dwsTypeStatistics(start, end, idRbacDepartment);
+    }
+    public List<PieVoByDoc.DataBean> dwsKewWordStatistics(Long start, Long end, Long idRbacDepartment){
+        return baseMapper.dwsKewWordStatistics(start, end, idRbacDepartment);
+    }
+
     @Transactional(rollbackFor = Exception.class)
-    public void updateIpaMain(IpaManageMain entity) {
+    public void updatePublishResult(IpaManageMain entity) {
         // 更新二次包数据
         LambdaUpdateWrapper<IpaManageMain> wrapper = new LambdaUpdateWrapper<IpaManageMain>().eq(IpaManageMain::getId, entity.getId());
-        if (StringUtils.isNotBlank(entity.getPublishResult())) {
-            wrapper.set(IpaManageMain::getPublishResult, entity.getPublishResult());
-        }
-        wrapper.set(IpaManageMain::getPublishMedia, entity.getPublishMedia()).set(IpaManageMain::getParticipateMedia, entity.getParticipateMedia()).set(IpaManageMain::getPublishStatus, entity.getPublishStatus());
+        wrapper.set(IpaManageMain::getPublishResult, entity.getPublishResult())
+                .set(IpaManageMain::getPublishMedia, entity.getPublishMedia())
+                .set(IpaManageMain::getParticipateMedia, entity.getParticipateMedia())
+                .set(IpaManageMain::getPublishStatus, entity.getPublishStatus());
+
         if ("1".equals(entity.getPublishStatus())){
             wrapper.set(IpaManageMain::getStatus, IpaStatusEnum.UPDATED.getId());
             updateFirstPackStatus(entity.getId(), IpaStatusEnum.UPDATED.getId());
+
+            /*=========工作动态发布管理/5个xx清单发布管理/2个企业信息发布管理=======系统通知======================*/
+            sendSysMessage(IpaStatusEnum.UPDATED.getId(), entity.getId());
         }
         update(wrapper);
+
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void publish(Long id) {
+        // 更新二次包数据
+        LambdaUpdateWrapper<IpaManageMain> wrapper = new LambdaUpdateWrapper<IpaManageMain>().eq(IpaManageMain::getId, id);
+        wrapper.set(IpaManageMain::getStatus, IpaStatusEnum.UNUPDATE.getId());
+        update(wrapper);
+        updateFirstPackStatus(id, IpaStatusEnum.UNUPDATE.getId());
         /*=========工作动态发布管理/5个xx清单发布管理/2个企业信息发布管理=======系统通知======================*/
-        sendSysMessage(entity);
+        sendSysMessage(IpaStatusEnum.UNUPDATE.getId(), id);
     }
 
     private void updateFirstPackStatus(Long idIpaMain, Integer status) {
@@ -73,24 +94,23 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     /**
      * 工作动态发布管理/5个xx清单发布管理/2个企业信息发布管理 发布/更新发布效果
      *
-     * @param entity 包含消息数据
      * @author gengjiajia
      * @since 2019/10/29 11:13
      */
-    private void sendSysMessage(IpaManageMain entity) {
+    private void sendSysMessage(Integer status, Long id) {
         //通过发布管理id分别获取工作动态、5个清单、两个企业信息列表
-        if (WorkStatusAuditingStatusEnum.FIFTY.getId().equals(entity.getStatus())
-                || WorkStatusAuditingStatusEnum.SIXTY.getId().equals(entity.getStatus())) {
+        if (WorkStatusAuditingStatusEnum.FIFTY.getId().equals(status)
+                || WorkStatusAuditingStatusEnum.SIXTY.getId().equals(status)) {
             List<DailyWorkStatusPackage> packageList = dailyWorkStatusPackageService.list(
-                    new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, entity.getId())
-                            .eq(DailyWorkStatusPackage::getState, entity.getStatus()));
+                    new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, id)
+                            .eq(DailyWorkStatusPackage::getState, status));
             List<IplManageMain> mainList = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>()
-                    .eq(IplManageMain::getIdIpaMain, entity.getId())
-                    .eq(IplManageMain::getStatus, entity.getStatus()));
+                    .eq(IplManageMain::getIdIpaMain, id)
+                    .eq(IplManageMain::getStatus, status));
             List<PmInfoDept> deptList = pmInfoDeptService.list(
-                    new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, entity.getId())
-                            .eq(PmInfoDept::getStatus, entity.getStatus()));
-            int flowStatus = entity.getStatus().equals(WorkStatusAuditingStatusEnum.FIFTY.getId())
+                    new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, id)
+                            .eq(PmInfoDept::getStatus, status));
+            int flowStatus = status.equals(WorkStatusAuditingStatusEnum.FIFTY.getId())
                     ? SysMsgFlowStatusEnum.FOUR.getId() : SysMsgFlowStatusEnum.FIVES.getId();
             //发布 获取所有需要通知的单位id
             packageList.forEach(work -> {

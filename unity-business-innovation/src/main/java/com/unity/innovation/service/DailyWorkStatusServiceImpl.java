@@ -263,9 +263,10 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
     public void saveEntity(DailyWorkStatus entity) {
         if (entity.getId() == null) {
             Customer customer = LoginContextHolder.getRequestAttributes();
-            if (customer.getIdRbacDepartment() != null) {
-                entity.setIdRbacDepartment(customer.getIdRbacDepartment());
-            }
+//            if (customer.getIdRbacDepartment() != null) {
+//                entity.setIdRbacDepartment(customer.getIdRbacDepartment());
+//            }
+            entity.setIdRbacDepartment(customer.getIdRbacDepartment());
             //新增
             List<Long> keys = entity.getKeyWordList();
             entity.setAttachmentCode(UUIDUtil.getUUID().replace("-", ""));
