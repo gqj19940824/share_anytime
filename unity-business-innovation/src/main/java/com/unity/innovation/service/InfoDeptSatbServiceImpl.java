@@ -371,12 +371,12 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
      * @author gengjiajia
      * @since 2019/10/30 09:37
      */
-    public Map<String, Object> avgStatistics(Long startTime, Long endTime) {
+    public Map<String, Object> roadshowEnterpriseInnovationLevel(Long startTime, Long endTime) {
         Map<String, Object> data = Maps.newHashMap();
         List<String> nameList = Lists.newArrayList();
         List<PieVoByDoc.DataBean> dataList = Lists.newArrayList();
         //查询 创新成功水平类型对应的数量信息 [{"achievementLevel":"1","num":"2"}]
-        List<Map<String, Long>> mapList = baseMapper.avgStatistics(startTime, endTime);
+        List<Map<String, Long>> mapList = baseMapper.roadshowEnterpriseInnovationLevel(startTime, endTime);
         mapList.stream().filter(map -> !map.get(NUM).equals(0L)).forEach(map -> {
             Dic dic = dicUtils.getDicByCode(DicConstants.ACHIEVEMENT_INNOVATI, map.get(ACHIEVEMENT_LEVEL).toString());
             dataList.add(PieVoByDoc.DataBean.newInstance()
@@ -409,23 +409,22 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
      */
     public Map<String, Object> firstExternalRelease(Long startTime, Long endTime) {
         Map<String, Object> data = Maps.newHashMap();
-        List<String> nameList = Lists.newArrayList();
         List<PieVoByDoc.DataBean> dataList = Lists.newArrayList();
         //查询 创新成功水平类型对应的数量信息 [{"yesOrNo":"1","num":"2"}]
-        List<Map<String, Integer>> mapList = baseMapper.firstExternalRelease(startTime, endTime);
-        mapList.stream().filter(map -> !map.get(NUM).equals(0L)).forEach(map -> {
-            String yesOrNo = map.get(YES_OR_NO).equals(YesOrNoEnum.YES.getType()) ? "是" : "否";
-            dataList.add(PieVoByDoc.DataBean.newInstance()
-                    .name(yesOrNo)
-                    .value(map.get(NUM).intValue())
-                    .build());
-            nameList.add(yesOrNo);
-        });
-        long sum = mapList.stream().mapToLong(map -> map.get(NUM)).sum();
+        List<Map<String, Object>> mapList = baseMapper.firstExternalRelease(startTime, endTime);
+        mapList.forEach(map -> {
+                    Integer parseInt = Integer.parseInt(map.get(YES_OR_NO).toString());
+                    String yesOrNo = parseInt.equals(YesOrNoEnum.YES.getType()) ? "是" : "否";
+                    dataList.add(PieVoByDoc.DataBean.newInstance()
+                            .name(yesOrNo)
+                            .value(Long.parseLong(map.get(NUM).toString()))
+                            .build());
+                });
+        long sum = mapList.stream().mapToLong(map -> Long.parseLong(map.get(NUM).toString())).sum();
         data.put("totalNum", sum);
         data.put("pieData", PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance()
-                        .data(nameList)
+                        .data(Lists.newArrayList("是","否"))
                         .x("left")
                         .orient("vertical")
                         .build())
