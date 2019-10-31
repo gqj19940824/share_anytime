@@ -144,8 +144,6 @@ public class TopicMessageListener implements MessageListener {
     private void updateProcessStatus(String[] itemValueArrays) {
         // 主表id
         Long idIplMain = Long.parseLong(itemValueArrays[3].split("-")[0]);
-        // 主责单位id
-        Long idRbacDepartmentDuty = ListCategoryEnum.valueOfName(itemValueArrays[1]).getId();
         // 业务类型
         Integer bizType = Integer.parseInt(itemValueArrays[4]);
         // 超时类型
