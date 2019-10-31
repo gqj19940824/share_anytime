@@ -82,7 +82,6 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
             sendSysMessage(IpaStatusEnum.UPDATED.getId(), entity.getId());
         }
         update(wrapper);
-
     }
 
     @Transactional(rollbackFor = Exception.class)
