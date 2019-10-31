@@ -124,7 +124,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
      */
     @Transactional(rollbackFor = Exception.class)
     public Long  saveEntity(IplSuggestion entity) {
-        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString()));
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType().toString()));
         if (entity.getId() == null) {
             entity.setAttachmentCode(UUIDUtil.getUUID());
             // 状态设为处理中
@@ -218,7 +218,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                 .eq(IplLog::getIdRbacDepartmentDuty,customer.getIdRbacDepartment()));
         //主表
         removeByIds(ids);
-        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString()));
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType().toString()));
         ids.forEach(id -> redisSubscribeService.removeRecordInfo(id + "-0", departmentId, BizTypeEnum.SUGGESTION.getType()));
 
     }
@@ -296,7 +296,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
      * @date 2019/9/24 16:06
      */
     public void dealById(IplSuggestion entity) {
-        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString()));
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType().toString()));
         IplSuggestion vo = getById(entity.getId());
         if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {
             throw UnityRuntimeException.newInstance()
