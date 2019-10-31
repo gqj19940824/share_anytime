@@ -31,10 +31,31 @@ public interface IplOdMainDao  extends BaseDao<IplOdMain>{
             "FROM " +
             " ipl_od_main " +
             "WHERE " +
-            " gmt_create BETWEEN #{startTime} " +
-            "AND #{endTime} " +
+            " is_deleted = 0 " +
+            "AND gmt_create BETWEEN #{startTime} AND #{endTime} " +
             "GROUP BY " +
             " `month`")
     List<Map<String,Object>> statisticsAddEmployeeNeedsNum(Long startTime,Long endTime);
+
+    /**
+     * 根据行业统计新增人才需求
+     *
+     * @param  startTime 统计开始时间
+     * @param  endTime 统计结束时间
+     * @return 新增人才需求统计
+     * @author gengjiajia
+     * @since 2019/10/30 16:43
+     */
+    @Select("SELECT " +
+            " industry_category AS industry, " +
+            " SUM(job_demand_num) AS num " +
+            "FROM " +
+            " ipl_od_main " +
+            "WHERE " +
+            " is_deleted = 0 " +
+            "AND gmt_create BETWEEN #{startTime} AND #{endTime} " +
+            "GROUP BY " +
+            " industry_category")
+    List<Map<String, Object>> statisticsAddEmployeeNeedsNumByIndustry(Long startTime, Long endTime);
 }
 

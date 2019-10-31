@@ -36,10 +36,40 @@ public interface IplLogDao  extends BaseDao<IplLog>{
             " ipl_log " +
             "WHERE " +
             " biz_type = #{bizType} " +
+            "AND is_deleted = 0 " +
             " AND " +
             " gmt_create BETWEEN #{startTime} AND #{endTime} " +
             "GROUP BY " +
             "  `month`")
     List<Map<String,Object>> statisticsMonthlyDemandCompletionNum(Long startTime, Long endTime, Integer bizType);
+
+    /**
+     * 某年某月指定行业人才需求完成情况统计
+     *
+     * @param  startTime 统计开始时间范围
+     * @param endTime 统计截止时间范围
+     * @return 需求完成情况统计
+     * @author gengjiajia
+     * @since 2019/10/30 19:38
+     */
+    @Select("SELECT " +
+            " od.industry_category AS industry, " +
+            "IF ( " +
+            " SUM(il.complete_num) IS NULL, " +
+            " 0, " +
+            " CAST( " +
+            "  SUM(il.complete_num) AS DECIMAL (11, 2) " +
+            " ) " +
+            ") AS num " +
+            "FROM " +
+            " ipl_od_main od " +
+            "INNER JOIN ipl_log il ON od.id = il.id_ipl_main " +
+            "WHERE " +
+            " il.biz_type = 40 " +
+            "AND od.is_deleted = 0 " +
+            "AND il.is_deleted = 0 " +
+            "AND il.gmt_create BETWEEN #{startTime} AND #{endTime} " +
+            "GROUP BY od.industry_category")
+    List<Map<String,Object>> statisticsIndustryDemandCompletionNum(Long startTime, Long endTime);
 }
 

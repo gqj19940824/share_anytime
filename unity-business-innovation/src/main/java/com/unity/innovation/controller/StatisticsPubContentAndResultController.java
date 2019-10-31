@@ -13,15 +13,13 @@ import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.InfoDeptSatbServiceImpl;
 import com.unity.innovation.service.IpaManageMainServiceImpl;
+import com.unity.innovation.service.IplOdMainServiceImpl;
 import com.unity.innovation.service.MediaManagerServiceImpl;
 import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
@@ -34,6 +32,7 @@ import java.util.stream.Collectors;
 /**
  * <p>
  * create by qinhuan at 2019/10/28 4:40 下午
+ * @author gengjiajia
  */
 @RestController
 @RequestMapping("/statisticsPubContentAndResult")
@@ -46,8 +45,11 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
     private DicUtils dicUtils;
     @Resource
     private InfoDeptSatbServiceImpl infoDeptSatbService;
+    @Resource
+    private IplOdMainServiceImpl iplOdMainService;
     private static final String START_DATE = "startDate";
     private static final String END_DATE = "endDate";
+    private static final String YEAR_MONTH = "yearMonth";
 
     /**
      * 媒体发稿情况
@@ -138,5 +140,37 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
         Long startTime = InnovationUtil.getFirstTimeInMonth(map.get(START_DATE), true);
         Long endTime = InnovationUtil.getFirstTimeInMonth(map.get(END_DATE), false);
         return success(infoDeptSatbService.firstExternalRelease(startTime, endTime));
+    }
+
+    /**
+     * 企业高端才智需求变化统计
+     *
+     * @param  map 包含时间
+     * @return 高端才智需求变化统计
+     * @author gengjiajia
+     * @since 2019/10/30 16:23  
+     */
+    @PostMapping("/iplOdMain/talentCemandChanges")
+    public Mono<ResponseEntity<SystemResponse<Object>>> talentCemandChanges(@RequestBody Map<String, String> map) {
+        if (MapUtils.isEmpty(map) || StringUtils.isEmpty(map.get(YEAR_MONTH))) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取时间范围");
+        }
+        return success(iplOdMainService.changeInPersonnelNeeds(map.get(YEAR_MONTH)));
+    }
+
+    /**
+     * 企业高端才智需求行业分布及变化饼图统计
+     *
+     * @param map 包含指定年月
+     * @return 新增人才需求统计
+     * @author gengjiajia
+     * @since 2019/10/30 18:48
+     */
+    @PostMapping("/iplOdMain/statisticsIndustryDemand/{type}")
+    public Mono<ResponseEntity<SystemResponse<Object>>> addEmployeeNeedsNumByIndustry(@PathVariable("type") Integer type, @RequestBody Map<String, String> map) {
+        if (MapUtils.isEmpty(map) || StringUtils.isEmpty(map.get(YEAR_MONTH))) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取时间范围");
+        }
+        return success(iplOdMainService.statisticsIndustryDemand(map.get(YEAR_MONTH),type));
     }
 }

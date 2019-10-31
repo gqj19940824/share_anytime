@@ -21,6 +21,8 @@ import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.ExcelStyleUtil;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.constants.ListTypeConstants;
+import com.unity.innovation.controller.vo.MultiBarVO;
+import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.dao.IplOdMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplOdMain;
@@ -49,8 +51,11 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -63,27 +68,23 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
 
     @Resource
     private SysCfgServiceImpl sysCfgService;
-
     @Resource
     private AttachmentServiceImpl attachmentService;
-
     @Resource
     private IplLogServiceImpl iplLogService;
-
     @Resource
     private IplAssistServiceImpl iplAssistService;
-
     @Resource
     private RedisSubscribeServiceImpl redisSubscribeService;
-
     @Resource
     private SystemConfiguration systemConfiguration;
-
     @Resource
     private SysMessageHelpService sysMessageHelpService;
-
     @Resource
     private DicUtils dicUtils;
+
+    private static final String NUM = "num";
+    private static final String INDUSTRY = "industry";
 
     /**
      * 功能描述 分页接口
@@ -491,7 +492,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
      * @author gengjiajia
      * @since 2019/10/30 13:42
      */
-    public void changeInPersonnelNeeds(String yearMonth){
+    public MultiBarVO changeInPersonnelNeeds(String yearMonth){
         String firstMonth = DateUtil.getMonthsBySpecifiedMonthFirstFew(yearMonth, "yyyy-MM", 5);
         long firstTime = InnovationUtil.getFirstTimeInMonth(firstMonth, false);
         long lastTime = InnovationUtil.getFirstTimeInMonth(yearMonth, false);
@@ -500,26 +501,111 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         //月度人才需求完成情况
         List<Map<String, Object>> completionMapList = iplLogService.statisticsMonthlyDemandCompletionNum(firstTime, lastTime, BizTypeEnum.INTELLIGENCE.getType());
         List<String> monthList = DateUtil.getMonthsList(yearMonth, "yyyy年MM月", 5);
-        List<Map<String, Object>> addDataMapList = Lists.newArrayList();
-        List<Map<String, Object>> completionDataMapList = Lists.newArrayList();
+        List<Integer> addDataMapList = Lists.newArrayList();
+        List<BigDecimal> completionDataMapList = Lists.newArrayList();
         monthList.forEach(month ->{
             Optional<Map<String, Object>> addOptional = addMapList.stream().filter(map -> map.containsKey(month)).findFirst();
             if(!addOptional.isPresent()){
-                Map<String,Object> addDataMap = Maps.newHashMap();
-                addDataMap.put(month,0);
-                addDataMapList.add(addDataMap);
+                addDataMapList.add(0);
             } else {
-                addDataMapList.add(addOptional.get());
+                addDataMapList.add(Integer.parseInt(addOptional.get().get("num").toString()));
             }
             Optional<Map<String, Object>> completionOptional = completionMapList.stream().filter(map -> map.containsKey(month))
                     .findFirst();
             if(completionOptional.isPresent()){
-                completionDataMapList.add(addOptional.get());
+                completionDataMapList.add(new BigDecimal(addOptional.get().get("num").toString()));
             } else {
-                Map<String,Object> completionDataMap = Maps.newHashMap();
-                completionDataMap.put(month,0);
-                completionDataMapList.add(completionDataMap);
+                completionDataMapList.add(BigDecimal.ZERO);
             }
         });
+        return MultiBarVO.newInstance()
+                .legend(MultiBarVO.LegendBean.newInstance()
+                        .data(Arrays.asList("月度新增人才需求","月度人才需求完成情况"))
+                        .build())
+                .series(Arrays.asList(
+                        MultiBarVO.SeriesBean.newInstance()
+                        .name("月度新增人才需求")
+                        .data(addDataMapList)
+                        .build(),
+                        MultiBarVO.SeriesBean.newInstance()
+                                .name("月度人才需求完成情况")
+                                .data(completionDataMapList)
+                                .build()
+                        ))
+                .build();
+    }
+    
+    /**
+     * 统计行业人才需求
+     *
+     * @param  yearMonth 统计年月
+     * @return 人才需求统计
+     * @author gengjiajia
+     * @since 2019/10/30 16:43  
+     */
+    public Map<String,Object> statisticsIndustryDemand(String yearMonth,Integer type){
+        Map<String,Object> data = Maps.newHashMap();
+        List<String> nameList = Lists.newArrayList();
+        long startTime = InnovationUtil.getFirstTimeInMonth(yearMonth, true);
+        long endTime = InnovationUtil.getFirstTimeInMonth(yearMonth, false);
+        List<Map<String,Object>> mapList;
+        if(type.equals(1)){
+            //某年某月新增人才需求按行业分类统计
+            mapList = baseMapper.statisticsAddEmployeeNeedsNumByIndustry(startTime,endTime);
+        } else if(type.equals(2)){
+            //某年某月人才需求完成情况按行业分类统计
+            mapList = iplLogService.statisticsIndustryDemandCompletionNum(startTime, endTime);
+        } else if(type.equals(3)){
+            //截止到某年某月内累计新增人才需求按行业分类统计
+            mapList = baseMapper.statisticsAddEmployeeNeedsNumByIndustry(1L,endTime);
+        } else if(type.equals(4)){
+            //截止到某年某月内累计人才需求完成情况按行业分类统计
+            mapList = iplLogService.statisticsIndustryDemandCompletionNum(1L, endTime);
+        } else {
+            //截止到某年某月内累计人才缺口统计
+            mapList = Lists.newArrayList();
+            List<Map<String, Object>> addMapList = baseMapper.statisticsAddEmployeeNeedsNumByIndustry(1L, endTime);
+            List<Map<String, Object>> completionMapList = iplLogService.statisticsIndustryDemandCompletionNum(1L, endTime);
+            //相同的行业类别的数量相减
+            Map<Integer, Long> addDataMap = addMapList.stream()
+                    .collect(Collectors.toMap(map -> Integer.parseInt(map.get(INDUSTRY).toString()),
+                            map -> Long.parseLong(map.get(NUM).toString())));
+            Map<Integer, Long> completionDataMap = completionMapList.stream()
+                    .collect(Collectors.toMap(map -> Integer.parseInt(map.get(INDUSTRY).toString()),
+                            map -> Long.parseLong(map.get(NUM).toString())));
+            for (Map.Entry<Integer, Long> entry : addDataMap.entrySet()) {
+                Map<String,Object> dataMap = Maps.newHashMap();
+                dataMap.put(INDUSTRY,entry.getKey());
+                if(completionDataMap.containsKey(entry.getKey())){
+                    //包含，说明跟进了需求  未完成 = 新增减去完成
+                    dataMap.put(NUM,entry.getValue() - completionDataMap.get(entry.getKey()));
+                } else {
+                    //说明未跟进需求 新增数就是未完成数
+                    dataMap.put(NUM,entry.getValue());
+                }
+                mapList.add(dataMap);
+            }
+        }
+        Map<Long, String> sysCfgMap = sysCfgService.getSysCfgMap(SysCfgEnum.THREE.getId());
+        List<PieVoByDoc.DataBean> dataList = Lists.newArrayList();
+        mapList.stream().filter(map -> map.get(NUM) != null).forEach(map ->{
+            String name = sysCfgMap.get(Long.parseLong(map.get(INDUSTRY).toString()));
+            dataList.add(PieVoByDoc.DataBean.newInstance()
+                    .name(name)
+                    .value(Integer.parseInt(map.get(NUM).toString()))
+                    .build());
+            nameList.add(name);
+        });
+        long sum = mapList.stream().filter(map -> map.get(NUM) != null)
+                .mapToLong(map -> Long.parseLong(map.get(NUM).toString()))
+                .sum();
+        data.put("pieData",PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance()
+                        .data(nameList)
+                        .build())
+                .data(dataList)
+                .build());
+        data.put("totalNum",sum);
+        return data;
     }
 }

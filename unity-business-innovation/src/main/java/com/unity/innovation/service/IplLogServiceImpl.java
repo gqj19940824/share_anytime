@@ -410,4 +410,17 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
     public List<Map<String,Object>> statisticsMonthlyDemandCompletionNum(Long startTime, Long endTime, Integer bizType){
         return baseMapper.statisticsMonthlyDemandCompletionNum(startTime,endTime,bizType);
     }
+
+    /**
+     * 某年某月指定行业人才需求完成情况统计
+     *
+     * @param  startTime 统计开始时间范围
+     * @param endTime 统计截止时间范围
+     * @return 需求完成情况统计
+     * @author gengjiajia
+     * @since 2019/10/30 19:38
+     */
+    public List<Map<String,Object>> statisticsIndustryDemandCompletionNum(Long startTime, Long endTime){
+        return baseMapper.statisticsIndustryDemandCompletionNum(startTime,endTime);
+    }
 }
