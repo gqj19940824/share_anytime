@@ -64,7 +64,7 @@ public class SysMessageReadLogServiceImpl extends BaseServiceImpl<SysMessageRead
             numMap.put(userId.toString(), num < 0 ? 0 : num);
         }
         hashRedisUtils.putValueByKey(formEnum.getName(), numMap);
-        sendMessageByUserIdList(userIdList, YesOrNoEnum.YES.getType());
+        sendMessageByUserIdList(userIdList, isAdd);
     }
 
     /**

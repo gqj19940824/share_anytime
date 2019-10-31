@@ -555,9 +555,9 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                 .dataSourceClass(getDataSourceClassByBizType(old.getBizType()))
                 .flowStatus(YesOrNoEnum.YES.getType() == entity.getPassOrReject()
                         ? SysMsgFlowStatusEnum.THREE.getId() : SysMsgFlowStatusEnum.TWO.getId())
-                .idRbacDepartment(entity.getIdRbacDepartmentDuty())
-                .sourceId(entity.getId())
-                .title(entity.getTitle())
+                .idRbacDepartment(old.getIdRbacDepartmentDuty())
+                .sourceId(old.getId())
+                .title(old.getTitle())
                 .build());
     }
 
