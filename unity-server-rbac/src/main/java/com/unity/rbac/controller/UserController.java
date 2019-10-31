@@ -2,6 +2,7 @@ package com.unity.rbac.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.ParamConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -310,8 +311,8 @@ public class UserController extends BaseWebController {
     private UnityRuntimeException checkCanEmptyUserInfo(User user){
         if (StringUtils.isNotBlank(user.getPhone())) {
             user.setPhone(user.getPhone().replaceAll(" ",""));
-            if(!RegExpValidatorUtil.checkPhone(user.getPhone().trim())){
-                return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("联系电话为手机号形式，11位数字组成！").build();
+            if(user.getPhone().length() > ParamConstants.PARAM_MAX_LENGTH_20){
+                return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("联系电话最长支持输入20个字符！").build();
             }
             //校验手机号唯一
             LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
@@ -324,12 +325,12 @@ public class UserController extends BaseWebController {
             }
         }
         if (StringUtils.isNotBlank(user.getPosition())
-                && user.getPosition().length() > UserConstants.USER_NAME_COMPANY_POSITION_MAX_LENGTH) {
+                && user.getPosition().length() > ParamConstants.PARAM_MAX_LENGTH_20) {
             return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("职位限制长度不得超过20字！").build();
         }
         if (StringUtils.isNotBlank(user.getNotes())
-                && user.getNotes().length() > UserConstants.USER_NOTES_MAX_LENGTH) {
-            return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("备注长度不得超过255字！").build();
+                && user.getNotes().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
+            return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("备注长度不得超过500字！").build();
         }
         return null;
     }

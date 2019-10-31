@@ -3,6 +3,7 @@ package com.unity.rbac.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.Lists;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.ParamConstants;
 import com.unity.common.constants.ConstString;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
@@ -60,11 +61,14 @@ public class RoleController extends BaseWebController {
     @PostMapping("saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody Role dto) {
         if (dto == null || StringUtils.isBlank(dto.getName())) {
-            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到角色名称");
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到角色名称");
         }
         dto.setName(dto.getName().replaceAll(" ",""));
         if(dto.getName().length() > UserConstants.USER_NAME_COMPANY_POSITION_MAX_LENGTH){
-            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "角色名称为1到20个字符");
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "角色名称为1到20个字符");
+        }
+        if(StringUtils.isNotBlank(dto.getNotes()) && dto.getNotes().length() > ParamConstants.PARAM_MAX_LENGTH_20){
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "角色描述为1到20个字符");
         }
         roleService.saveOrUpdateRole(dto);
         return success("操作成功");
