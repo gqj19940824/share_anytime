@@ -10,6 +10,7 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.XyDates;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.HashRedisUtils;
+import com.unity.innovation.constants.ParamConstants;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -85,6 +86,57 @@ public class InnovationUtil {
         return calendar.getTimeInMillis();
     }
 
+    /**
+     * 功能描述 获取一天最开始的时间
+     * @param beginTime 2019-05-01
+     * @return long 时间戳
+     * @author gengzhiqiang
+     * @date 2019/10/28 20:13
+     */
+    public static long getFirstTimeInDay(String beginTime) {
+        if (StringUtils.isBlank(beginTime)){
+            return 0L;
+        }
+        String[] sp = beginTime.split("-");
+        int year = Integer.parseInt(sp[0]);
+        int month = Integer.parseInt(sp[1]);
+        int day = Integer.parseInt(sp[2]);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month - 1);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, day);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTimeInMillis();
+    }
+
+    /**
+     * 功能描述 获取一天最后的时间
+     * @param endTime 2019-05-01
+     * @return long 时间戳
+     * @author gengzhiqiang
+     * @date 2019/10/28 20:13
+     */
+    public static long getLastTimeInDay(String endTime) {
+        if (StringUtils.isBlank(endTime)){
+            return ParamConstants.GMT_SUBMIT;
+        }
+        String[] sp = endTime.split("-");
+        int year = Integer.parseInt(sp[0]);
+        int month = Integer.parseInt(sp[1]);
+        int day = Integer.parseInt(sp[2]);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month - 1);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, day+1);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTimeInMillis();
+    }
     /**
     * 返回 2019-05-01：00：00：00  、2019-10-31： 23：59：59：999 两个时间戳
     *
@@ -265,5 +317,22 @@ public class InnovationUtil {
             return Long.parseLong(dicValueByCode);
         }
     }
+
+    /**
+     * 功能描述 double取整
+     *
+     * @param number doubles数据
+     * @return int 取整数据
+     * @author gengzhiqiang
+     * @date 2019/9/24 16:30
+     */
+    public static int ceil(Double number) {
+        if (number == null || number == 0) {
+            return 0;
+        } else {
+            return (int) Math.ceil(number);
+        }
+    }
+
 
 }

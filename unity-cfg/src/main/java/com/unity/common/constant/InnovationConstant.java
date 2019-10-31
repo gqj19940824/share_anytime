@@ -107,4 +107,13 @@ public class InnovationConstant {
      */
     public final static String LINE_SEPARATOR = "line.separator";
 
+    /**
+     * 小时
+     */
+    public final static Long HOUR = 1000*60*60L;
+
+    /**
+     * 天
+     */
+    public final static Long DAY = 1000*60*60*24L;
 }
