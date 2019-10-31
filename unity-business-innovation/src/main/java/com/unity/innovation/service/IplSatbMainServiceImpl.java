@@ -196,7 +196,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         m.put("gmtModified", entity.getGmtModified());
         m.put("sourceTitle", entity.getSource().equals(SourceEnum.SELF.getId()) ? "科技局" : "企业");
         m.put("statusTitle", IplStatusEnum.ofName(entity.getStatus()));
-        m.put("processStatusTitle", ProcessStatusEnum.ofName(entity.getStatus()));
+        m.put("processStatusTitle", ProcessStatusEnum.ofName(entity.getProcessStatus()));
     }
 
     /**
@@ -294,7 +294,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
                 List<IplAssist> assists = iplAssistService.getAssists(BizTypeEnum.GROW.getType(), entity.getId());
                 List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
-                sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
                         .idRbacDepartment(entity.getIdRbacDepartmentDuty())
                         .dataSourceClass(SysMessageDataSourceClassEnum.TARGET.getId())

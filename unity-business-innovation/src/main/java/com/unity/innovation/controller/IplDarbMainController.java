@@ -17,6 +17,7 @@ import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.ExcelExportByTemplate;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
+import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.*;
 import com.unity.innovation.enums.BizTypeEnum;
@@ -393,48 +394,19 @@ public class IplDarbMainController extends BaseWebController {
             if (StringUtils.isNotBlank(contactWay)) {
                 ew.like(IplDarbMain::getContactWay, contactWay);
             }
-
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-01");
-            Calendar c = Calendar.getInstance();
             // 创建时间
             String creatTime = entity.getCreatTime();
             if (StringUtils.isNotBlank(creatTime)) {
-                String[] split = creatTime.split("-");
-
-                c.set(Calendar.YEAR, Integer.parseInt(split[0]));
-                c.set(Calendar.MONTH, Integer.parseInt(split[1]) - 1);
-
-                String start = df.format(c.getTime());
-                try {
-                    Date startDate = df.parse(start);
-                    c.add(Calendar.MONTH, 1);
-                    String end = df.format(c.getTime());
-                    Date endDate = df.parse(end);
-                    ew.ge(IplDarbMain::getGmtCreate, startDate.getTime());
-                    ew.lt(IplDarbMain::getGmtCreate, endDate.getTime());
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+                //gt 大于 lt 小于
+                ew.ge(IplDarbMain::getGmtCreate, InnovationUtil.getFirstTimeInMonth(creatTime, true));
+                ew.lt(IplDarbMain::getGmtCreate, InnovationUtil.getFirstTimeInMonth(creatTime, false));
             }
             // 更新时间
             String updateTime = entity.getUpdateTime();
             if (StringUtils.isNotBlank(updateTime)) {
-                String[] split = updateTime.split("-");
-
-                c.set(Calendar.YEAR, Integer.parseInt(split[0]));
-                c.set(Calendar.MONTH, Integer.parseInt(split[1]) - 1);
-
-                String start = df.format(c.getTime());
-                try {
-                    Date startDate = df.parse(start);
-                    c.add(Calendar.MONTH, 1);
-                    String end = df.format(c.getTime());
-                    Date endDate = df.parse(end);
-                    ew.ge(IplDarbMain::getGmtModified, startDate.getTime());
-                    ew.lt(IplDarbMain::getGmtModified, endDate.getTime());
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
+                //gt 大于 lt 小于
+                ew.ge(IplDarbMain::getGmtModified, InnovationUtil.getFirstTimeInMonth(updateTime, true));
+                ew.lt(IplDarbMain::getGmtModified, InnovationUtil.getFirstTimeInMonth(updateTime, false));
             }
 
             // 来源
