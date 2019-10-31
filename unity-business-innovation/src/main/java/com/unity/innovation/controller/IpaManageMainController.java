@@ -402,7 +402,7 @@ public class IpaManageMainController extends BaseWebController {
         if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        ipaManageMainService.updateIpaMain(entity);
+        ipaManageMainService.updatePublishResult(entity);
         return success();
     }
 
@@ -467,9 +467,8 @@ public class IpaManageMainController extends BaseWebController {
         if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        IpaManageMain build = IpaManageMain.newInstance().status(IpaStatusEnum.UNUPDATE.getId()).build();
-        build.setId(entity.getId());
-        ipaManageMainService.updateIpaMain(build);
+
+        ipaManageMainService.publish(entity.getId());
         return success();
     }
 

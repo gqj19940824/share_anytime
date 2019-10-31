@@ -52,7 +52,7 @@ public class PieVoByDoc {
          * name : 直接访问
          */
 
-        private Object value;
+        private Number value;
         private String name;
     }
 }

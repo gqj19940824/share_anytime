@@ -5,7 +5,6 @@ import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.utils.DateUtil;
-import com.unity.common.utils.DicUtils;
 import com.unity.innovation.controller.vo.MultiBarVO;
 import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.entity.IplEsbMain;
@@ -27,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,8 +36,8 @@ import java.util.stream.Collectors;
  * create by qinhuan at 2019/10/28 4:40 下午
  */
 @RestController
-@RequestMapping("/statisticsPubContentAndResult")
-public class StatisticsPubContentAndResult extends BaseWebController {
+@RequestMapping("/statisticsPubContentAndResults")
+public class StatisticsPubContentAndResultsController extends BaseWebController {
 
     @Resource
     private IplDarbMainServiceImpl iplDarbMainService;
@@ -52,17 +52,95 @@ public class StatisticsPubContentAndResult extends BaseWebController {
     @Resource
     private IpaManageMainServiceImpl ipaManageMainService;
     @Resource
-    private MediaManagerServiceImpl mediaManagerService;
-    @Resource
-    private DicUtils dicUtils;
-    @Resource
-    private InfoDeptSatbServiceImpl infoDeptSatbService;
-    @Resource
     private IplLogServiceImpl iplLogService;
 
     private static final String START_DATE = "startDate";
     private static final String END_DATE = "endDate";
 
+
+    /**
+     * 企业成长目标投资需求行业分布及变化-工作动态的关键字统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
+    @PostMapping("/dwsKewWordStatistics")
+    public Mono<ResponseEntity<SystemResponse<Object>>> dwsKewWordStatistics(@RequestBody Map<String, String> map) {
+        String startDate = MapUtils.getString(map, START_DATE);
+        String endDate = MapUtils.getString(map, END_DATE);
+        Long start = null;
+        Long end = null;
+        if (StringUtils.isNotBlank(startDate)){
+            start = InnovationUtil.getFirstTimeInMonth(startDate, true);
+        }
+        if (StringUtils.isNotBlank(endDate)){
+            end = InnovationUtil.getFirstTimeInMonth(endDate, false);
+        }
+
+        List<PieVoByDoc.DataBean> dataBeans = ipaManageMainService.dwsKewWordStatistics(start, end, MapUtils.getLong(map, "idRbacDepartment"));
+
+        List<String> legend = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(dataBeans)){
+            if (dataBeans.size() > 10){
+                List<PieVoByDoc.DataBean> otherDateBeans = dataBeans.subList(10, dataBeans.size());
+                int sum = otherDateBeans.stream().mapToInt(e -> (Integer) e.getValue()).sum();
+                dataBeans = dataBeans.subList(0, 10);
+                dataBeans.add(PieVoByDoc.DataBean.newInstance().name("其他").value(sum).build());
+            }
+            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+        }
+
+        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                .data(dataBeans)
+                .build();
+
+        return success(pieVoByDoc);
+    }
+
+    /**
+     * 企业成长目标投资需求行业分布及变化-工作动态的工作类别统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
+    @PostMapping("/dwsTypeStatistics")
+    public Mono<ResponseEntity<SystemResponse<Object>>> dwsTypeStatistics(@RequestBody Map<String, String> map) {
+        String startDate = MapUtils.getString(map, START_DATE);
+        String endDate = MapUtils.getString(map, END_DATE);
+        Long start = null;
+        Long end = null;
+        if (StringUtils.isNotBlank(startDate)){
+            start = InnovationUtil.getFirstTimeInMonth(startDate, true);
+        }
+        if (StringUtils.isNotBlank(endDate)){
+            end = InnovationUtil.getFirstTimeInMonth(endDate, false);
+        }
+
+        List<PieVoByDoc.DataBean> dataBeans = ipaManageMainService.dwsTypeStatistics(start, end, MapUtils.getLong(map, "idRbacDepartment"));
+
+        List<String> legend = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(dataBeans)){
+            if (dataBeans.size() > 10){
+                List<PieVoByDoc.DataBean> otherDateBeans = dataBeans.subList(10, dataBeans.size());
+                int sum = otherDateBeans.stream().mapToInt(e -> (Integer) e.getValue()).sum();
+                dataBeans = dataBeans.subList(0, 10);
+                dataBeans.add(PieVoByDoc.DataBean.newInstance().name("其他").value(sum).build());
+            }
+            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+        }
+
+        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                .data(dataBeans)
+                .build();
+
+        return success(pieVoByDoc);
+    }
 
     /**
      * 企业成长目标投资需求行业分布及变化-投资需求变化统计
@@ -73,7 +151,7 @@ public class StatisticsPubContentAndResult extends BaseWebController {
      * @since 2019/10/29 10:11 上午
      */
     @PostMapping("/satbDemandTrend")
-    public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandTrend(@RequestBody Map<String, String> map) throws Exception{
+    public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandTrend(@RequestBody Map<String, String> map) throws Exception {
         String date = MapUtils.getString(map, "date");
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
@@ -84,21 +162,21 @@ public class StatisticsPubContentAndResult extends BaseWebController {
 
         List<Map<String, Object>> maps = iplSatbMainService.satbDemandTrend(start, end);
         Map<String, Double> sfMap = new LinkedHashMap<>();
-        if (CollectionUtils.isNotEmpty(maps)){
-            Map<String, Double> collect = maps.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "month"), e -> MapUtils.getDouble(e,"sum")));
+        if (CollectionUtils.isNotEmpty(maps)) {
+            Map<String, Double> collect = maps.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "month"), e -> MapUtils.getDouble(e, "sum")));
             monthsList.forEach(e -> {
                 Double o = collect.get(e);
-                sfMap.put(e, o==null?0:o);
+                sfMap.put(e, o == null ? 0 : o);
             });
         }
 
         List<Map<String, Object>> maps1 = iplLogService.statisticsMonthlyDemandCompletionNum(start, end, BizTypeEnum.CITY.getType());
         Map<String, Double> enMap = new LinkedHashMap<>();
-        if (CollectionUtils.isNotEmpty(maps1)){
-            Map<String, Double> collect = maps1.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "month"), e -> MapUtils.getDouble(e,"num")));
+        if (CollectionUtils.isNotEmpty(maps1)) {
+            Map<String, Double> collect = maps1.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "month"), e -> MapUtils.getDouble(e, "num")));
             monthsList.forEach(e -> {
                 Double o = collect.get(e);
-                enMap.put(e, o==null?0:o);
+                enMap.put(e, o == null ? 0 : o);
             });
         }
 
@@ -117,18 +195,18 @@ public class StatisticsPubContentAndResult extends BaseWebController {
     }
 
 
-        /**
-         * 企业成长目标投资需求行业分布及变化-完成额度统计
-         *
-         * @param
-         * @return
-         * @author qinhuan
-         * @since 2019/10/29 10:11 上午
-         */
+    /**
+     * 企业成长目标投资需求行业分布及变化-完成额度统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
     @PostMapping("/satbDemandDone")
     public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandDone(@RequestBody Map<String, String> map) {
         String date = MapUtils.getString(map, "date");
-        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
         long start = InnovationUtil.getFirstTimeInMonth(date, true);
@@ -136,7 +214,7 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
 
         List<String> legend = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(dataBeans)){
+        if (CollectionUtils.isNotEmpty(dataBeans)) {
             legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
         }
 
@@ -146,18 +224,53 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         return success(pieVoByDoc);
     }
 
-        /**
-         * 企业成长目标投资需求行业分布及变化-完成额度统计
-         *
-         * @param
-         * @return
-         * @author qinhuan
-         * @since 2019/10/29 10:11 上午
-         */
+    /**
+     * 企业成长目标投资需求行业分布及变化-累计资金缺口统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
+    @PostMapping("/satbCashFlowGapToDate")
+    public Mono<ResponseEntity<SystemResponse<Object>>> satbCashFlowGapToDate(@RequestBody Map<String, String> map) {
+        String date = MapUtils.getString(map, "date");
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
+        }
+        long start = 0L;
+        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+
+        List<PieVoByDoc.DataBean> dataBeansDone = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
+        List<PieVoByDoc.DataBean> dataBeansNew = iplSatbMainService.demandNew(start, end);
+        Map<String, BigDecimal> collectDone = dataBeansDone.stream().collect(Collectors.toMap(PieVoByDoc.DataBean::getName, e->(BigDecimal)e.getValue()));
+        List<String> legend = new ArrayList<>();
+        List<PieVoByDoc.DataBean> dataBeans = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(dataBeansNew)){
+            dataBeansNew.stream().forEach(e->{
+                BigDecimal done = collectDone.get(e.getName());
+                BigDecimal newAdd = (BigDecimal) e.getValue();
+                legend.add(e.getName());
+                dataBeans.add(PieVoByDoc.DataBean.newInstance().name(e.getName()).value(done == null? newAdd : newAdd.subtract(done)).build());
+            });
+        }
+
+        PieVoByDoc build = PieVoByDoc.newInstance().legend(PieVoByDoc.LegendBean.newInstance().data(legend).build()).data(dataBeans).build();
+        return success(build);
+    }
+
+    /**
+     * 企业成长目标投资需求行业分布及变化-累计完成额度统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
     @PostMapping("/satbDemandDoneToDate")
     public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandDoneToDate(@RequestBody Map<String, String> map) {
         String date = MapUtils.getString(map, "date");
-        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
         long start = 0L;
@@ -165,7 +278,7 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
 
         List<String> legend = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(dataBeans)){
+        if (CollectionUtils.isNotEmpty(dataBeans)) {
             legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
         }
 
@@ -186,13 +299,13 @@ public class StatisticsPubContentAndResult extends BaseWebController {
     @PostMapping("/satbDemandNewCatagory")
     public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandNewCatagory(@RequestBody Map<String, String> map) {
         String date = MapUtils.getString(map, "date");
-        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
         long start = InnovationUtil.getFirstTimeInMonth(date, true);
         long end = InnovationUtil.getFirstTimeInMonth(date, false);
         Map<String, Double> dataBeans = iplSatbMainService.demandNewCatagory(start, end);
-        List<String> legend = Arrays.asList("银行", "债券","自筹");
+        List<String> legend = Arrays.asList("银行", "债券", "自筹");
         PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
                 .data(
@@ -216,7 +329,7 @@ public class StatisticsPubContentAndResult extends BaseWebController {
     @PostMapping("/satbDemandNew")
     public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandNew(@RequestBody Map<String, String> map) {
         String date = MapUtils.getString(map, "date");
-        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
         long start = InnovationUtil.getFirstTimeInMonth(date, true);
@@ -224,7 +337,7 @@ public class StatisticsPubContentAndResult extends BaseWebController {
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
         List<String> legend = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(dataBeans)){
+        if (CollectionUtils.isNotEmpty(dataBeans)) {
             legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
         }
 
@@ -245,7 +358,7 @@ public class StatisticsPubContentAndResult extends BaseWebController {
     @PostMapping("/satbDemandNewToDate")
     public Mono<ResponseEntity<SystemResponse<Object>>> satbDemandNewToDate(@RequestBody Map<String, String> map) {
         String date = MapUtils.getString(map, "date");
-        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")){
+        if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
         long start = 0L;
@@ -253,7 +366,7 @@ public class StatisticsPubContentAndResult extends BaseWebController {
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
         List<String> legend = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(dataBeans)){
+        if (CollectionUtils.isNotEmpty(dataBeans)) {
             legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
         }
 
@@ -451,6 +564,7 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         }
         return qw;
     }
+
     private LambdaQueryWrapper<IplEsbMain> getIplEsbQw(Integer source, Long start, Long end) {
 
         LambdaQueryWrapper<IplEsbMain> iplDarbQw = new LambdaQueryWrapper<>();
@@ -463,6 +577,7 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         }
         return iplDarbQw;
     }
+
     private LambdaQueryWrapper<IplOdMain> getIplOdQw(Integer source, Long start, Long end) {
 
         LambdaQueryWrapper<IplOdMain> iplDarbQw = new LambdaQueryWrapper<>();
@@ -475,6 +590,7 @@ public class StatisticsPubContentAndResult extends BaseWebController {
         }
         return iplDarbQw;
     }
+
     private LambdaQueryWrapper<IplSatbMain> getIplSatbQw(Integer source, Long start, Long end) {
 
         LambdaQueryWrapper<IplSatbMain> qw = new LambdaQueryWrapper<>();

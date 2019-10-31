@@ -85,6 +85,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
 
     private static final String NUM = "num";
     private static final String INDUSTRY = "industry";
+    private static final String MONTH = "MONTH";
 
     /**
      * 功能描述 分页接口
@@ -228,7 +229,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                 //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
                 List<IplAssist> assists = iplAssistService.getAssists(BizTypeEnum.INTELLIGENCE.getType(), entity.getId());
                 List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
-                sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
+                sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
                         .idRbacDepartment(vo.getIdRbacDepartmentDuty())
                         .dataSourceClass(SysMessageDataSourceClassEnum.DEMAND.getId())
@@ -494,7 +495,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
      */
     public MultiBarVO changeInPersonnelNeeds(String yearMonth){
         String firstMonth = DateUtil.getMonthsBySpecifiedMonthFirstFew(yearMonth, "yyyy-MM", 5);
-        long firstTime = InnovationUtil.getFirstTimeInMonth(firstMonth, false);
+        long firstTime = InnovationUtil.getFirstTimeInMonth(firstMonth, true);
         long lastTime = InnovationUtil.getFirstTimeInMonth(yearMonth, false);
         //月度新增人才需求
         List<Map<String, Object>> addMapList = baseMapper.statisticsAddEmployeeNeedsNum(firstTime, lastTime);
@@ -504,16 +505,16 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         List<Integer> addDataMapList = Lists.newArrayList();
         List<BigDecimal> completionDataMapList = Lists.newArrayList();
         monthList.forEach(month ->{
-            Optional<Map<String, Object>> addOptional = addMapList.stream().filter(map -> map.containsKey(month)).findFirst();
+            Optional<Map<String, Object>> addOptional = addMapList.stream().filter(map -> map.values().contains(month)).findFirst();
             if(!addOptional.isPresent()){
                 addDataMapList.add(0);
             } else {
-                addDataMapList.add(Integer.parseInt(addOptional.get().get("num").toString()));
+                addDataMapList.add(Integer.parseInt(addOptional.get().get(NUM).toString()));
             }
-            Optional<Map<String, Object>> completionOptional = completionMapList.stream().filter(map -> map.containsKey(month))
+            Optional<Map<String, Object>> completionOptional = completionMapList.stream().filter(map -> map.values().contains(month))
                     .findFirst();
             if(completionOptional.isPresent()){
-                completionDataMapList.add(new BigDecimal(addOptional.get().get("num").toString()));
+                completionDataMapList.add(new BigDecimal(addOptional.get().get(NUM).toString()));
             } else {
                 completionDataMapList.add(BigDecimal.ZERO);
             }

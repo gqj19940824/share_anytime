@@ -4,6 +4,7 @@ package com.unity.innovation.dao;
 
 import com.unity.common.base.BaseDao;
 import com.unity.innovation.entity.InfoDeptSatb;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public interface InfoDeptSatbDao  extends BaseDao<InfoDeptSatb>{
             "AND ids.gmt_create BETWEEN #{startTime} AND #{endTime} " +
             "GROUP BY " +
             " ids.achievement_level ")
-    List<Map<String,Long>> avgStatistics(Long startTime,Long endTime);
+    List<Map<String,Long>> roadshowEnterpriseInnovationLevel(@Param("startTime") Long startTime,@Param("endTime") Long endTime);
 
     /**
      * 与会路演企业成果首次对外发布情况统计
@@ -63,7 +64,7 @@ public interface InfoDeptSatbDao  extends BaseDao<InfoDeptSatb>{
             "AND imm.is_deleted = 0 " +
             "AND ids.gmt_create BETWEEN #{startTime} AND #{endTime} " +
             "GROUP BY " +
-            " ids.achievement_level")
-    List<Map<String,Integer>> firstExternalRelease(Long startTime,Long endTime);
+            " ids.is_publish_first")
+    List<Map<String,Object>> firstExternalRelease(@Param("startTime") Long startTime,@Param("endTime") Long endTime);
 }
 
