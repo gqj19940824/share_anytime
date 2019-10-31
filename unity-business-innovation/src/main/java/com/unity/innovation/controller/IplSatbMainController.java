@@ -8,7 +8,7 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ValidFieldUtil;
-import com.unity.innovation.constants.ParamConstants;
+import com.unity.common.constant.ParamConstants;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplLog;

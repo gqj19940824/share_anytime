@@ -1,4 +1,4 @@
-package com.unity.innovation.constants;
+package com.unity.common.constant;
 
 /**
  * @author zhqgeng

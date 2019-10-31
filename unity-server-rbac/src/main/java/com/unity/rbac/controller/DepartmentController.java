@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.common.collect.Lists;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.ParamConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Dic;
@@ -66,7 +67,15 @@ public class DepartmentController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到单位/部门名称");
         }
         if (entity.getName().length() > NAME_MAX_LENGTH) {
-            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "单位名称字数限制50字");
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "单位名称字数限制50字内");
+        }
+        if(StringUtils.isNotBlank(entity.getAddress())
+                && entity.getAddress().length() > ParamConstants.PARAM_MAX_LENGTH_100){
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "单位地址字数限制100字内");
+        }
+        if(StringUtils.isNotBlank(entity.getPhone())
+                && entity.getPhone().length() > ParamConstants.PARAM_MAX_LENGTH_20){
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "办公室电话最长支持20个字符长度内");
         }
         if (entity.getId() == null && 0 < service.count(new QueryWrapper<Department>().lambda()
                 .eq(Department::getName, entity.getName()))) {
