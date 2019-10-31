@@ -212,7 +212,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @GetMapping("/detailById/{id}")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@PathVariable("id") Long id) {
-        InnovationUtil.check(BizTypeEnum.CITY.getType());
+        //InnovationUtil.check(BizTypeEnum.CITY.getType());
         IplDarbMain entity = service.getById(id);
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());

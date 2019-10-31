@@ -173,9 +173,9 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         if (log.getIsRead().equals(YesOrNoEnum.NO.getType())) {
             log.setIsRead(YesOrNoEnum.YES.getType());
             sysMessageReadLogService.updateById(log);
+            // webSocket 提醒数量 -1
+            sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), Arrays.asList(customer.getId()), YesOrNoEnum.NO.getType());
         }
-        // webSocket 提醒数量 -1
-        sysMessageReadLogService.updateMessageNumToUserIdList(MessageSaveFormEnum.SYS_MSG.getId(), Arrays.asList(customer.getId()), YesOrNoEnum.NO.getType());
     }
 
     /**
