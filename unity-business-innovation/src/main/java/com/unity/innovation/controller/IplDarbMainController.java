@@ -17,7 +17,6 @@ import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.ExcelExportByTemplate;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.*;
 import com.unity.innovation.enums.BizTypeEnum;
@@ -28,7 +27,6 @@ import com.unity.innovation.service.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +36,6 @@ import reactor.core.publisher.Mono;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -115,7 +111,7 @@ public class IplDarbMainController extends BaseWebController {
     }
 
     /**
-     * 实时更新
+     * 协同单位实时更新
      *
      * @param iplLog
      * @return
@@ -214,6 +210,7 @@ public class IplDarbMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@PathVariable("id") Long id) {
         //InnovationUtil.check(BizTypeEnum.CITY.getType());
         IplDarbMain entity = service.getById(id);
+        entity.setIdRbacDepartmentName(InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
