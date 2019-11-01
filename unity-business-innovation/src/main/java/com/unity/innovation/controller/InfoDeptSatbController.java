@@ -9,7 +9,7 @@ import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
-import com.unity.innovation.constants.ParamConstants;
+import com.unity.common.constant.ParamConstants;
 import com.unity.innovation.entity.InfoDeptSatb;
 import com.unity.innovation.service.InfoDeptSatbServiceImpl;
 import org.apache.commons.lang3.StringUtils;

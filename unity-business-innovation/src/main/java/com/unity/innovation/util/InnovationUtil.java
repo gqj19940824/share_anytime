@@ -10,7 +10,7 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.XyDates;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.HashRedisUtils;
-import com.unity.innovation.constants.ParamConstants;
+import com.unity.common.constant.ParamConstants;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

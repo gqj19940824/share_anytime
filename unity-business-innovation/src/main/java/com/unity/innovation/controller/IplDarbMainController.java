@@ -17,7 +17,6 @@ import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.ExcelExportByTemplate;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.Attachment;
-import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.*;
 import com.unity.innovation.enums.BizTypeEnum;
@@ -28,7 +27,6 @@ import com.unity.innovation.service.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +36,6 @@ import reactor.core.publisher.Mono;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -87,7 +83,7 @@ public class IplDarbMainController extends BaseWebController {
         // 读取模板创建excel文件
         XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
         // 从excel的第5行开始插入数据，并给excel的sheet和标题命名
-        ExcelExportByTemplate.setData(4,iplManageMain.getTitle(), data, iplManageMain.getNotes(), wb);
+        ExcelExportByTemplate.setData(4, iplManageMain.getTitle(), data, iplManageMain.getNotes(), wb);
         // 将生成好的excel响应给用户
         ExcelExportByTemplate.download(request, response, wb, iplManageMain.getTitle());
     }
@@ -106,7 +102,7 @@ public class IplDarbMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         Integer dealStatus = iplLog.getDealStatus();
-        if (dealStatus == null){
+        if (dealStatus == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
         iplLogService.dutyUpdateStatus(entity, iplLog);
@@ -115,7 +111,7 @@ public class IplDarbMainController extends BaseWebController {
     }
 
     /**
-     * 实时更新
+     * 协同单位实时更新
      *
      * @param iplLog
      * @return
@@ -128,7 +124,7 @@ public class IplDarbMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         Integer dealStatus = iplLog.getDealStatus();
-        if (dealStatus == null){
+        if (dealStatus == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         iplLogService.assistUpdateStatus(entity, iplLog);
@@ -217,7 +213,7 @@ public class IplDarbMainController extends BaseWebController {
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-
+        entity.setIdRbacDepartmentName(InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
         Map<String, Object> resultMap = iplAssistService.totalProcessAndAssists(id, entity.getIdRbacDepartmentDuty(), entity.getProcessStatus(), BizTypeEnum.CITY.getType());
         resultMap.put("baseInfo", convert2Map(entity));
         return success(resultMap);
@@ -235,7 +231,7 @@ public class IplDarbMainController extends BaseWebController {
 
         if (entity.getId() == null) { // 新增
             Integer source = entity.getSource();
-            if (SourceEnum.SELF.getId().equals(source)){
+            if (SourceEnum.SELF.getId().equals(source)) {
                 InnovationUtil.check(BizTypeEnum.CITY.getType());
             }
             String uuid = UUIDUtil.getUUID();
@@ -291,7 +287,7 @@ public class IplDarbMainController extends BaseWebController {
 
             List<SysCfg> values = sysCfgService.getValues(ids);
             collect_ = values.stream().collect(Collectors.toMap(BaseEntity::getId, mSysCfg::getCfgVal, (k1, k2) -> k2));
-        }else {
+        } else {
             collect_ = Maps.newHashMap();
         }
         return JsonUtil.ObjectToList(list,
@@ -318,8 +314,11 @@ public class IplDarbMainController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m, entity, collect);
                 }
-                , IplDarbMain::getId, IplDarbMain::getEnterpriseName, IplDarbMain::getProjectName, IplDarbMain::getContent, IplDarbMain::getTotalInvestment, IplDarbMain::getProjectProgress, IplDarbMain::getTotalAmount, IplDarbMain::getBank, IplDarbMain::getBond, IplDarbMain::getSelfRaise, IplDarbMain::getIncreaseTrustType, IplDarbMain::getWhetherIntroduceSocialCapital, IplDarbMain::getConstructionCategory, IplDarbMain::getConstructionStage, IplDarbMain::getConstructionModel, IplDarbMain::getContactPerson, IplDarbMain::getContactWay, IplDarbMain::getAttachmentCode
-                , IplDarbMain::getIndustryCategory, IplDarbMain::getDemandItem, IplDarbMain::getDemandCategory
+                , IplDarbMain::getId, IplDarbMain::getEnterpriseName, IplDarbMain::getProjectName, IplDarbMain::getContent, IplDarbMain::getTotalInvestment,
+                IplDarbMain::getProjectProgress, IplDarbMain::getTotalAmount, IplDarbMain::getBank, IplDarbMain::getBond, IplDarbMain::getSelfRaise,
+                IplDarbMain::getIncreaseTrustType, IplDarbMain::getWhetherIntroduceSocialCapital, IplDarbMain::getConstructionCategory, IplDarbMain::getConstructionStage,
+                IplDarbMain::getConstructionModel, IplDarbMain::getContactPerson, IplDarbMain::getContactWay, IplDarbMain::getAttachmentCode
+                , IplDarbMain::getIndustryCategory, IplDarbMain::getDemandItem, IplDarbMain::getDemandCategory, IplDarbMain::getIdRbacDepartmentName
         );
     }
 

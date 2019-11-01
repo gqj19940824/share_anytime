@@ -8,7 +8,7 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ValidFieldUtil;
-import com.unity.innovation.constants.ParamConstants;
+import com.unity.common.constant.ParamConstants;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplLog;
@@ -83,6 +83,9 @@ public class IplSatbMainController extends BaseWebController {
         }
         if(entity.getProjectAddress().length() > ParamConstants.PARAM_MAX_LENGTH_100){
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH,"项目地址仅支持最长100个字");
+        }
+        if(entity.getProjectIntroduce().length() > ParamConstants.PARAM_MAX_LENGTH_500){
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH,"项目介绍支持最长500个字");
         }
         service.saveOrUpdateIplSatbMain(entity);
         return success("更新成功");

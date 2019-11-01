@@ -244,6 +244,9 @@ public class IplDarbMain extends BaseEntity{
         private List<Attachment> attachments;
 
         @TableField(exist = false)
+        private String idRbacDepartmentName;
+
+        @TableField(exist = false)
         private String creatTime;
 
         @TableField(exist = false)
