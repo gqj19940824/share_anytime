@@ -20,6 +20,15 @@ public class PieVo {
     private LegendBean legend;
     private List<SeriesBean> series;
     private Integer count;
+    private Long total;
+
+    public Long getTotal() {
+        return total;
+    }
+
+    public void setTotal(Long total) {
+        this.total = total;
+    }
 
     public String getTitle() {
         return title;

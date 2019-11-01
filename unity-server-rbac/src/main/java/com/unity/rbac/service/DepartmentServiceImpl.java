@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
@@ -37,7 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -220,19 +220,38 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
     public PageElementGrid<Map<String, Object>> listByPage(PageEntity<Department> pageEntity) {
         LambdaQueryWrapper<Department> wrapper = new LambdaQueryWrapper<Department>().orderByDesc(Department::getSort);
         Department entity = pageEntity.getEntity();
-        if(entity != null && entity.getDepType() != null){
-            wrapper.eq(Department::getDepType,entity.getDepType());
-        }
-        if(entity != null && StringUtils.isNotBlank(entity.getName())){
-            wrapper.like(Department::getName,entity.getName());
-        }
-        if(entity != null && entity.getUseStatus() != null){
-            wrapper.eq(Department::getUseStatus,entity.getUseStatus());
+        Map<String,Object> param = Maps.newHashMap();
+        if(entity != null){
+            param.put("depType",null);
+            param.put("name",null);
+            param.put("useStatus",null);
+            if(entity.getDepType() != null){
+                wrapper.eq(Department::getDepType,entity.getDepType());
+                param.put("depType",entity.getDepType());
+            }
+            if(StringUtils.isNotBlank(entity.getName())){
+                wrapper.like(Department::getName,entity.getName());
+                param.put("name",entity.getName());
+            }
+            if(entity.getUseStatus() != null){
+                wrapper.eq(Department::getUseStatus,entity.getUseStatus());
+                param.put("useStatus",entity.getUseStatus());
+            }
         }
         IPage<Department> page = super.page(pageEntity.getPageable(),wrapper);
+        if(Long.valueOf(page.getTotal()).equals(0L)){
+            return PageElementGrid.<Map<String, Object>>newInstance()
+                    .total(0L)
+                    .items(Lists.newArrayList())
+                    .build();
+        }
+        param.put("sort","asc");
+        Long idBySortAsc = baseMapper.getTheFirstDepartmentBySort(param);
+        param.put("sort","desc");
+        Long idBySortDesc = baseMapper.getTheFirstDepartmentBySort(param);
         return PageElementGrid.<Map<String, Object>>newInstance()
                 .total(page.getTotal())
-                .items(convert2List(page.getRecords()))
+                .items(convert2List(page.getRecords(),idBySortAsc,idBySortDesc))
                 .build();
     }
 
@@ -267,14 +286,7 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
      * @param list 实体列表
      * @return 返回转换后的列表
      */
-    private List<Map<String, Object>> convert2List(List<Department> list) {
-        List<Long> ids = list.stream().map(Department::getId).collect(toList());
-        Long idBySortAsc = 0L;
-        Long idBySortDesc = 0L;
-        if(CollectionUtils.isNotEmpty(ids)){
-            idBySortAsc = baseMapper.getTheFirstDepartmentBySortAsc(ids);
-            idBySortDesc = baseMapper.getTheFirstDepartmentBySortDesc(ids);
-        }
+    private List<Map<String, Object>> convert2List(List<Department> list,Long idBySortAsc,Long idBySortDesc) {
         Long ascId = idBySortAsc;
         Long descId = idBySortDesc;
         return JsonUtil.ObjectToList(list,

@@ -38,6 +38,8 @@ public class PmInfoDeptLog extends mPmInfoDeptLog{
      * */
     @TableField(exist = false)
     private String statusName ;
+
+
   
 }
 
