@@ -337,7 +337,8 @@ public class IplDarbMainController extends BaseWebController {
         m.put("demandItem", collect.get(entity.getDemandItem()));
         m.put("demandCategory", collect.get(entity.getDemandCategory()));
         m.put("source", SourceEnum.ENTERPRISE.getId().equals(entity.getSource()) ? "企业" : "发改局");
-        m.put("status", IplStatusEnum.ofName(entity.getStatus()));
+        m.put("statusName", IplStatusEnum.ofName(entity.getStatus()));
+        m.put("status", entity.getStatus());
         m.put("processStatus", ProcessStatusEnum.ofName(entity.getProcessStatus()));
         m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
         m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
