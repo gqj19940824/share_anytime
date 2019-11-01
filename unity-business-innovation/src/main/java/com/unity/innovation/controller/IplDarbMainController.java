@@ -83,7 +83,7 @@ public class IplDarbMainController extends BaseWebController {
         // 读取模板创建excel文件
         XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
         // 从excel的第5行开始插入数据，并给excel的sheet和标题命名
-        ExcelExportByTemplate.setData(4,iplManageMain.getTitle(), data, iplManageMain.getNotes(), wb);
+        ExcelExportByTemplate.setData(4, iplManageMain.getTitle(), data, iplManageMain.getNotes(), wb);
         // 将生成好的excel响应给用户
         ExcelExportByTemplate.download(request, response, wb, iplManageMain.getTitle());
     }
@@ -102,7 +102,7 @@ public class IplDarbMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         Integer dealStatus = iplLog.getDealStatus();
-        if (dealStatus == null){
+        if (dealStatus == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
         iplLogService.dutyUpdateStatus(entity, iplLog);
@@ -124,7 +124,7 @@ public class IplDarbMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         Integer dealStatus = iplLog.getDealStatus();
-        if (dealStatus == null){
+        if (dealStatus == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         iplLogService.assistUpdateStatus(entity, iplLog);
@@ -210,11 +210,10 @@ public class IplDarbMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@PathVariable("id") Long id) {
         //InnovationUtil.check(BizTypeEnum.CITY.getType());
         IplDarbMain entity = service.getById(id);
-        entity.setIdRbacDepartmentName(InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-
+        entity.setIdRbacDepartmentName(InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
         Map<String, Object> resultMap = iplAssistService.totalProcessAndAssists(id, entity.getIdRbacDepartmentDuty(), entity.getProcessStatus(), BizTypeEnum.CITY.getType());
         resultMap.put("baseInfo", convert2Map(entity));
         return success(resultMap);
@@ -232,7 +231,7 @@ public class IplDarbMainController extends BaseWebController {
 
         if (entity.getId() == null) { // 新增
             Integer source = entity.getSource();
-            if (SourceEnum.SELF.getId().equals(source)){
+            if (SourceEnum.SELF.getId().equals(source)) {
                 InnovationUtil.check(BizTypeEnum.CITY.getType());
             }
             String uuid = UUIDUtil.getUUID();
@@ -288,7 +287,7 @@ public class IplDarbMainController extends BaseWebController {
 
             List<SysCfg> values = sysCfgService.getValues(ids);
             collect_ = values.stream().collect(Collectors.toMap(BaseEntity::getId, mSysCfg::getCfgVal, (k1, k2) -> k2));
-        }else {
+        } else {
             collect_ = Maps.newHashMap();
         }
         return JsonUtil.ObjectToList(list,
@@ -315,8 +314,11 @@ public class IplDarbMainController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m, entity, collect);
                 }
-                , IplDarbMain::getId, IplDarbMain::getEnterpriseName, IplDarbMain::getProjectName, IplDarbMain::getContent, IplDarbMain::getTotalInvestment, IplDarbMain::getProjectProgress, IplDarbMain::getTotalAmount, IplDarbMain::getBank, IplDarbMain::getBond, IplDarbMain::getSelfRaise, IplDarbMain::getIncreaseTrustType, IplDarbMain::getWhetherIntroduceSocialCapital, IplDarbMain::getConstructionCategory, IplDarbMain::getConstructionStage, IplDarbMain::getConstructionModel, IplDarbMain::getContactPerson, IplDarbMain::getContactWay, IplDarbMain::getAttachmentCode
-                , IplDarbMain::getIndustryCategory, IplDarbMain::getDemandItem, IplDarbMain::getDemandCategory
+                , IplDarbMain::getId, IplDarbMain::getEnterpriseName, IplDarbMain::getProjectName, IplDarbMain::getContent, IplDarbMain::getTotalInvestment,
+                IplDarbMain::getProjectProgress, IplDarbMain::getTotalAmount, IplDarbMain::getBank, IplDarbMain::getBond, IplDarbMain::getSelfRaise,
+                IplDarbMain::getIncreaseTrustType, IplDarbMain::getWhetherIntroduceSocialCapital, IplDarbMain::getConstructionCategory, IplDarbMain::getConstructionStage,
+                IplDarbMain::getConstructionModel, IplDarbMain::getContactPerson, IplDarbMain::getContactWay, IplDarbMain::getAttachmentCode
+                , IplDarbMain::getIndustryCategory, IplDarbMain::getDemandItem, IplDarbMain::getDemandCategory, IplDarbMain::getIdRbacDepartmentName
         );
     }
 
