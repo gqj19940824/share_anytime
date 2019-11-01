@@ -22,7 +22,10 @@ import com.unity.rbac.service.DepartmentServiceImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -77,6 +80,7 @@ public class DepartmentController extends BaseWebController {
                 && entity.getPhone().length() > ParamConstants.PARAM_MAX_LENGTH_20){
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "办公室电话最长支持20个字符长度内");
         }
+        entity.setName(entity.getName().replaceAll(" ",""));
         if (entity.getId() == null && 0 < service.count(new QueryWrapper<Department>().lambda()
                 .eq(Department::getName, entity.getName()))) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_ALREADY_EXISTS, "单位名称已存在");
