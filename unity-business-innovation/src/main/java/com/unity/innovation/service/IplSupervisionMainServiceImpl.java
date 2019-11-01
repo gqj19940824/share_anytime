@@ -171,6 +171,7 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
         if (entity.getDescription() != null) {
             ew.like(IplSupervisionMain::getDescription, entity.getDescription());
         }
+        ew.orderByDesc(IplSupervisionMain::getGmtCreate);
         return ew;
     }
 
