@@ -239,7 +239,7 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
             }
         }
         IPage<Department> page = super.page(pageEntity.getPageable(),wrapper);
-        if(page.getTotal() < 1){
+        if(Long.valueOf(page.getTotal()).equals(0L)){
             return PageElementGrid.<Map<String, Object>>newInstance()
                     .total(0L)
                     .items(Lists.newArrayList())
