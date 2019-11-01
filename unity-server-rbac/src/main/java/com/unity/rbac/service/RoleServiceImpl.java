@@ -137,11 +137,11 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
         }
         Role role = pageEntity.getEntity();
         if(role != null && StringUtils.isNotBlank(role.getName())){
-            wrapper.eq(Role::getName,role.getName().trim());
+            wrapper.like(Role::getName,role.getName().trim());
         }
         //获取最后一条数据 列表是倒叙 获取正序第一条即可
-        Long lastId = baseMapper.getTheFirstRoleBySortAsc(customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType()) ? null : customer.getRoleList());
-        Long firstId = baseMapper.getTheFirstRoleBySortDesc(customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType()) ? null : customer.getRoleList());
+        Long lastId = baseMapper.getTheFirstRoleBySortAsc(null);
+        Long firstId = baseMapper.getTheFirstRoleBySortDesc(null);
         return JsonUtil.ObjectToMap(super.page(pageEntity.getPageable(), wrapper),
                 new String[]{"id", "name", "notes", "isDefault", "creator", "editor"},
                 (m, u) -> {
