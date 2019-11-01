@@ -4,11 +4,12 @@ package com.unity.rbac.dao;
 
 import com.unity.common.base.BaseDao;
 import com.unity.rbac.entity.Department;
-import org.apache.ibatis.annotations.*;
-import org.apache.ibatis.mapping.FetchType;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * 组织机构
@@ -31,47 +32,37 @@ public interface DepartmentDao extends BaseDao<Department> {
     void changeOrder(@Param("id") long id, @Param("sortId") long sortId);
 
     /**
-     * 获取正序排列的第一天单位id
-     *
-     * @param departmentIds 数据权限
-     * @return 单位id
-     * @author gengjiajia
-     * @since 2019/08/23 17:59
-     */
-    @Select("<script> " +
-            "   SELECT id FROM rbac_department " +
-            "   WHERE is_deleted = 0 " +
-            "   <if test='departmentIds != null'> " +
-            "   AND id IN " +
-            "   <foreach item='item' index='index' collection='departmentIds' open='(' separator=',' close=')'> " +
-            "       #{item} " +
-            "   </foreach> " +
-            "   </if>" +
-            "   ORDER BY i_sort ASC " +
-            "   LIMIT 0, 1" +
-            "</script>")
-    Long getTheFirstDepartmentBySortAsc(@Param("departmentIds") List<Long> departmentIds);
-
-    /**
      * 获取倒序排列的第一天单位id
      *
-     * @param departmentIds 数据权限
+     * @param param 查询条件
      * @return 单位id
      * @author gengjiajia
      * @since 2019/08/23 17:59
      */
     @Select("<script> " +
-            "   SELECT id FROM rbac_department " +
-            "   WHERE is_deleted = 0 " +
-            "   <if test='departmentIds != null'> " +
-            "   AND id IN " +
-            "   <foreach item='item' index='index' collection='departmentIds' open='(' separator=',' close=')'> " +
-            "       #{item} " +
-            "   </foreach> " +
-            "   </if>" +
-            "   ORDER BY i_sort DESC " +
-            "   LIMIT 0, 1" +
+            "SELECT " +
+            " id " +
+            "FROM " +
+            " rbac_department " +
+            "WHERE " +
+            " is_deleted = 0 " +
+            " <if test='depType != null'> " +
+            " AND dep_type = #{depType} " +
+            " </if> " +
+            " <if test='name != null'> " +
+            "AND name LIKE CONCAT('%', #{name}, '%') " +
+            " </if> " +
+            " <if test='useStatus != null'> " +
+            "AND use_status = #{useStatus} " +
+            " </if> " +
+            " <if test='sort == \"asc\"'> " +
+            "ORDER BY i_sort ASC " +
+            " </if> " +
+            " <if test='sort == \"desc\"'> " +
+            "ORDER BY i_sort DESC " +
+            " </if> " +
+            "LIMIT 0,1" +
             "</script>")
-    Long getTheFirstDepartmentBySortDesc(@Param("departmentIds") List<Long> departmentIds);
+    Long getTheFirstDepartmentBySort(Map<String,Object> param);
 }
 

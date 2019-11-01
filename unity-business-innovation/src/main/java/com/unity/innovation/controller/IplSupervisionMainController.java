@@ -5,14 +5,19 @@ package com.unity.innovation.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.constant.ParamConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.entity.generated.IplManageMain;
+import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.enums.IplCategoryEnum;
 import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.IplManageMainServiceImpl;
 import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.unity.common.base.controller.BaseWebController;
@@ -65,6 +70,7 @@ public class IplSupervisionMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplSupervisionMain> pageEntity) {
+        check();
         Page<IplSupervisionMain> pageable = pageEntity.getPageable();
         IplSupervisionMain entity = pageEntity.getEntity();
         LambdaQueryWrapper<IplSupervisionMain> ew = service.wrapper(entity);
@@ -88,9 +94,20 @@ public class IplSupervisionMainController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody IplSupervisionMain entity) {
-
+        check();
+        validate(entity);
         service.saveOrUpdate(entity);
         return success(null);
+    }
+
+    private void validate(IplSupervisionMain entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplSupervisionMain::getCategory, IplSupervisionMain::getDescription);
+        if (StringUtils.isNotBlank(msg)){
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "缺少必要参数");
+        }
+        if (entity.getDescription().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "内容限制50字");
+        }
     }
 
 
@@ -122,6 +139,7 @@ public class IplSupervisionMainController extends BaseWebController {
      */
     @PostMapping("/removeByIds")
     public Mono<ResponseEntity<SystemResponse<Object>>> removeByIds(@RequestBody List<Long> ids) {
+        check();
         if (CollectionUtils.isNotEmpty(ids)) {
             service.removeByIds(ids);
             return success(null);
@@ -140,6 +158,7 @@ public class IplSupervisionMainController extends BaseWebController {
      */
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody IplSupervisionMain entity) {
+        check();
         if (entity == null || entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "缺少id");
         }
@@ -158,6 +177,7 @@ public class IplSupervisionMainController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdateIplManageMain")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdateIplManageMain(@RequestBody IplManageMain entity) {
+        check();
         validateIplManageMain(entity);
         service.saveOrUpdateIplManageMain(entity);
         return success(null);
@@ -209,6 +229,7 @@ public class IplSupervisionMainController extends BaseWebController {
     @SuppressWarnings("unchecked")
     @PostMapping("/listByPageIplManageMain")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPageIplManageMain(@RequestBody PageEntity<IplManageMain> pageEntity) {
+        check();
         Page<IplManageMain> pageable = pageEntity.getPageable();
         IplManageMain entity = pageEntity.getEntity();
         LambdaQueryWrapper<IplManageMain> ew = wrapperIplManageMain(entity);
@@ -266,6 +287,7 @@ public class IplSupervisionMainController extends BaseWebController {
      */
     @PostMapping("/detailIplManageMainById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailIplManageMainById(@RequestBody IplManageMain entity) {
+        check();
         if (entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "缺少id");
         }
@@ -282,6 +304,7 @@ public class IplSupervisionMainController extends BaseWebController {
      */
     @PostMapping("/listSupervisionToAdd")
     public Mono<ResponseEntity<SystemResponse<Object>>> listSupervisionToAdd(@RequestBody IplSupervisionMain entity) {
+        check();
         if (entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "缺少id");
         }
@@ -298,6 +321,7 @@ public class IplSupervisionMainController extends BaseWebController {
      */
     @PostMapping("/removeIplManageMainById")
     public Mono<ResponseEntity<SystemResponse<Object>>> removeIplManageMainById(@RequestBody IplManageMain entity) {
+        check();
         if (entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "缺少id");
         }
@@ -316,6 +340,7 @@ public class IplSupervisionMainController extends BaseWebController {
      */
     @GetMapping("/download/{id}")
     public Mono<ResponseEntity<byte[]>> download(@PathVariable Long id) {
+        check();
         byte[] content;
         HttpHeaders headers = new HttpHeaders();
         try {
@@ -336,6 +361,14 @@ public class IplSupervisionMainController extends BaseWebController {
             throw new UnityRuntimeException(SystemResponse.FormalErrorCode.SERVER_ERROR, e.getMessage());
         }
         return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
+    }
+    public void check(){
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (!customer.getTypeRangeList().contains(BizTypeEnum.POLITICAL.getType())) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("当前账号的单位不可操作数据").build();
+        }
     }
 }
 

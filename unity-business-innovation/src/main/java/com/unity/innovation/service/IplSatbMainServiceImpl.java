@@ -9,6 +9,7 @@ import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.FileDownload;
 import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemResponse;
@@ -257,6 +258,12 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                         .build());
             }
         } else {
+            Customer customer = LoginContextHolder.getRequestAttributes();
+            if (!customer.getTypeRangeList().contains(BizTypeEnum.GROW.getType())) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("当前账号的单位不可操作数据").build();
+            }
             //编辑时必须登录
             LoginContextHolder.getRequestAttributes();
             //校验当前用户是否可操作

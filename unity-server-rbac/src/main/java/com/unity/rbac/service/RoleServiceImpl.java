@@ -71,10 +71,10 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
     public void saveOrUpdateRole(Role dto) {
         // 非超级管理员不允许修改角色
         Customer customer = LoginContextHolder.getRequestAttributes();
-        if (!customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())) {
+        if (!customer.getIsAdmin().equals(YesOrNoEnum.YES.getType())) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.OPERATION_NO_AUTHORITY)
-                    .message("非超级管理员不允许创建或修改角色")
+                    .message("非管理员不允许创建或修改角色")
                     .build();
         }
         if (dto.getId() == null) {
@@ -137,11 +137,11 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
         }
         Role role = pageEntity.getEntity();
         if(role != null && StringUtils.isNotBlank(role.getName())){
-            wrapper.eq(Role::getName,role.getName().trim());
+            wrapper.like(Role::getName,role.getName().trim());
         }
         //获取最后一条数据 列表是倒叙 获取正序第一条即可
-        Long lastId = baseMapper.getTheFirstRoleBySortAsc(customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType()) ? null : customer.getRoleList());
-        Long firstId = baseMapper.getTheFirstRoleBySortDesc(customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType()) ? null : customer.getRoleList());
+        Long lastId = baseMapper.getTheFirstRoleBySortAsc(null);
+        Long firstId = baseMapper.getTheFirstRoleBySortDesc(null);
         return JsonUtil.ObjectToMap(super.page(pageEntity.getPageable(), wrapper),
                 new String[]{"id", "name", "notes", "isDefault", "creator", "editor"},
                 (m, u) -> {
@@ -180,7 +180,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
     public void delRole(Long id) {
         // 非超级管理员不允许修改角色
         Customer customer = LoginContextHolder.getRequestAttributes();
-        if (!customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())) {
+        if (!customer.getIsAdmin().equals(YesOrNoEnum.YES.getType())) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.OPERATION_NO_AUTHORITY)
                     .message("非超级管理员不允许修改角色")
@@ -223,33 +223,14 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
         Customer customer = LoginContextHolder.getRequestAttributes();
         String creator = customer.getId().toString().concat(ConstString.SEPARATOR_POINT).concat(customer.getName());
         long time = XyDates.getTime(new Date());
-        List<Long> roleList = customer.getRoleList();
         Long[] bindRoleIds = relation.getBindRoleIds();
-        // 自身没有角色不能给别人分配角色
         if (!customer.getIsAdmin().equals(YesOrNoEnum.YES.getType())) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.OPERATION_NO_AUTHORITY)
                     .message("非管理员不能分配角色")
                     .build();
         }
-        if (YesOrNoEnum.YES.getType() != customer.isSuperAdmin && CollectionUtils.isEmpty(roleList)) {
-            throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.OPERATION_NO_AUTHORITY)
-                    .message("当前管理员非超管或未拥有角色，不能给他人分配角色")
-                    .build();
-        }
-        // 当前账号给其他用户分配角色时不能分配自身没有的角色
         if (ArrayUtils.isNotEmpty(bindRoleIds)) {
-            if(YesOrNoEnum.YES.getType() != customer.isSuperAdmin) {
-                Arrays.stream(bindRoleIds).forEach(roleId -> {
-                    if (!roleList.contains(roleId)) {
-                        throw UnityRuntimeException.newInstance()
-                                .code(SystemResponse.FormalErrorCode.OPERATION_NO_AUTHORITY)
-                                .message("当前管理员角色权限不足，不能分配部分角色")
-                                .build();
-                    }
-                });
-            }
             List<UserRole> userRoleList = Arrays.stream(bindRoleIds)
                     .map(roleId -> {
                         UserRole userRole = new UserRole();
@@ -286,19 +267,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
                     .message("非管理员不允许此操作")
                     .build();
         }
-        //判断当前管理员是否有权限处理指定的用户角色分配
-        List<Long> idsByUserId = userRoleService.selectRoleIdsByUserId(userId);
-        List<Long> customerRoleList = customer.getRoleList();
-        //普通管理员判断权限范围，超管不做限制
-        if(customer.getIsSuperAdmin().equals(YesOrNoEnum.NO.getType())){
-            if (idsByUserId.size() > customerRoleList.size() || !customerRoleList.containsAll(idsByUserId)){
-                throw UnityRuntimeException.newInstance()
-                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("您的权限不足，请联系高级管理员")
-                        .build();
-            }
-        }
-        //1、指定用户的角色数量多于当前管理员，禁止当前管理员处理  2、判断管理员拥有的角色是否完全包含用户拥有的角色
+        //管理员权限范围不做限制
         User user = userHelpService.getById(userId);
         //非管理员不能分配角色 指定用户基本信息不完整不能分配角色
         if (!customer.getIsAdmin().equals(YesOrNoEnum.YES.getType()) || user == null) {
@@ -306,18 +275,15 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
             data.put("userBindRoleIdList", Lists.newArrayList());
             return data;
         }
-        //超级管理员分配全部角色
+        //管理员分配全部角色
         List<Long> roleList;
-        if (YesOrNoEnum.YES.getType() == customer.getIsSuperAdmin()) {
-            List<Role> list = super.list();
-            if (CollectionUtils.isNotEmpty(list)) {
-                roleList = list.stream().map(Role::getId).collect(toList());
-            } else {
-                roleList = Lists.newArrayList();
-            }
+        List<Role> list = super.list();
+        if (CollectionUtils.isNotEmpty(list)) {
+            roleList = list.stream().map(Role::getId).collect(toList());
         } else {
-            roleList = customer.getRoleList();
+            roleList = Lists.newArrayList();
         }
+
         wrapper.in(Role::getId, roleList.toArray());
         List<Map<String, Object>> allRoleList = JsonUtil.ObjectToList(super.list(wrapper), new String[]{"id", "name"},
                 (m, entity) -> m.put("disabled", false));

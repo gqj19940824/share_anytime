@@ -4,6 +4,8 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -11,7 +13,9 @@ import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.constant.ParamConstants;
 import com.unity.innovation.entity.IplSuggestion;
+import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.service.IplSuggestionServiceImpl;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -47,6 +51,7 @@ public class IplSuggestionController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplSuggestion> search) {
+        check();
         IPage<IplSuggestion> list = service.listByPage(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
@@ -133,6 +138,7 @@ public class IplSuggestionController extends BaseWebController {
      */
     @PostMapping("/removeByIds")
     public Mono<ResponseEntity<SystemResponse<Object>>> removeByIds(@RequestBody List<Long> ids) {
+        check();
         if (ids == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要删除的ID");
         }
@@ -150,6 +156,7 @@ public class IplSuggestionController extends BaseWebController {
      */
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody IplSuggestion entity) {
+        check();
         String msg = ValidFieldUtil.checkEmptyStr(entity,IplSuggestion::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -167,6 +174,7 @@ public class IplSuggestionController extends BaseWebController {
      */
     @PostMapping("/dealById")
     public Mono<ResponseEntity<SystemResponse<Object>>> dealById(@RequestBody IplSuggestion entity) {
+        check();
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplSuggestion::getId, IplSuggestion::getStatus, IplSuggestion::getProcessMessage);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -174,6 +182,13 @@ public class IplSuggestionController extends BaseWebController {
         service.dealById(entity);
         return success("操作成功");
     }
-
+    public void check(){
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (!customer.getTypeRangeList().contains(BizTypeEnum.SUGGESTION.getType())) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("当前账号的单位不可操作数据").build();
+        }
+    }
 }
 

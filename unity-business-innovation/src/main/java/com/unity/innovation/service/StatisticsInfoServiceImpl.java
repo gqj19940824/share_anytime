@@ -287,6 +287,7 @@ public class StatisticsInfoServiceImpl {
                     .title(title)
                     .legend(PieVo.LegendBean.newInstance().data(enterpriseScaleLegendData).build())
                     .series(Lists.newArrayList(PieVo.SeriesBean.newInstance().data(enterpriseScaleSeriesDataList).build()))
+                    .total(enterpriseScaleSeriesDataList.stream().mapToLong(PieVo.SeriesBean.DataBean::getValue).sum())
                     .build();
             res.put("enterpriseScale", enterpriseScale);
 
@@ -314,11 +315,11 @@ public class StatisticsInfoServiceImpl {
                 }
 
             }
-
             PieVo enterpriseLocation = PieVo.newInstance()
                     .title(title)
                     .legend(PieVo.LegendBean.newInstance().data(legendData).build())
                     .series(Lists.newArrayList(PieVo.SeriesBean.newInstance().data(seriesDataList).build()))
+                    .total(seriesDataList.stream().mapToLong(PieVo.SeriesBean.DataBean::getValue).sum())
                     .build();
             res.put("enterpriseLocation", enterpriseLocation);
 
@@ -332,23 +333,23 @@ public class StatisticsInfoServiceImpl {
             //seriesData
             List<PieVo.SeriesBean.DataBean> enterpriseNatureSeriesDataList = Lists.newArrayList();
             for (SysCfg cfg : enterpriseNatureList) {
-                Long NatureCount = countByEnterpriseNatureMap.getOrDefault(cfg.getId(), 0L);
-                if(NatureCount != 0L){
+                Long natureCount = countByEnterpriseNatureMap.getOrDefault(cfg.getId(), 0L);
+                if(natureCount != 0L){
                     enterpriseNatureLegendData.add(cfg.getCfgVal());
                     PieVo.SeriesBean.DataBean seriesData = PieVo.SeriesBean.DataBean
                             .newInstance()
                             .name(cfg.getCfgVal())
-                            .value(NatureCount)
+                            .value(natureCount)
                             .build();
                     enterpriseNatureSeriesDataList.add(seriesData);
                 }
 
             }
-
             PieVo enterpriseNature = PieVo.newInstance()
                     .title(title)
                     .legend(PieVo.LegendBean.newInstance().data(enterpriseNatureLegendData).build())
                     .series(Lists.newArrayList(PieVo.SeriesBean.newInstance().data(enterpriseNatureSeriesDataList).build()))
+                    .total(enterpriseNatureSeriesDataList.stream().mapToLong(PieVo.SeriesBean.DataBean::getValue).sum())
                     .build();
             res.put("enterpriseNature", enterpriseNature);
 
