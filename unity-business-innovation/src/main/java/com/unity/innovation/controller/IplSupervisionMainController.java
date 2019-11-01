@@ -5,10 +5,12 @@ package com.unity.innovation.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.constant.ParamConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.enums.IplCategoryEnum;
@@ -93,8 +95,19 @@ public class IplSupervisionMainController extends BaseWebController {
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveOrUpdate(@RequestBody IplSupervisionMain entity) {
         check();
+        validate(entity);
         service.saveOrUpdate(entity);
         return success(null);
+    }
+
+    private void validate(IplSupervisionMain entity) {
+        String msg = ValidFieldUtil.checkEmptyStr(entity, IplSupervisionMain::getCategory, IplSupervisionMain::getDescription);
+        if (StringUtils.isNotBlank(msg)){
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "缺少必要参数");
+        }
+        if (entity.getDescription().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
+            throw new UnityRuntimeException(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "内容限制50字");
+        }
     }
 
 
