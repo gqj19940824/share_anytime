@@ -180,7 +180,7 @@ public class IplManageMain extends BaseEntity{
          * 审批意见
          **/
         @TableField(exist = false)
-        private String comment;
+        private String content;
 
         /**
          * 查询类型
