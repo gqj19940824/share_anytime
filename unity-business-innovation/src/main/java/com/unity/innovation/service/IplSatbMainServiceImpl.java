@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
+import com.unity.common.constant.RedisConstants;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.FileDownload;
 import com.unity.common.pojos.InventoryMessage;
@@ -14,10 +15,7 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.JsonUtil;
-import com.unity.common.utils.DicUtils;
-import com.unity.common.utils.ExcelExportByTemplate;
-import com.unity.common.utils.FileDownloadUtil;
-import com.unity.common.utils.UUIDUtil;
+import com.unity.common.utils.*;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.dao.IplSatbMainDao;
@@ -75,6 +73,8 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     RedisSubscribeServiceImpl redisSubscribeService;
     @Resource
     SysMessageHelpService sysMessageHelpService;
+    @Resource
+    HashRedisUtils hashRedisUtils;
 
     public List<PieVoByDoc.DataBean> demandNew(Long start, Long end){
         return baseMapper.demandNew(start, end);
@@ -382,12 +382,15 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         SysCfg demandCategory = sysCfgService.getById(ent.getDemandCategory());
         //获取总体进展
         Map<String, Object> assists = iplAssistService.totalProcessAndAssists(ent.getId(), ent.getIdRbacDepartmentDuty(), ent.getStatus(), BizTypeEnum.GROW.getType());
+        String depName = hashRedisUtils.getFieldValueByFieldName(RedisConstants.DEPARTMENT
+                .concat(ent.getIdRbacDepartmentDuty().toString()), RedisConstants.NAME);
         Map<String, Object> detail = JsonUtil.ObjectToMap(ent,
                 (m, entity) -> {
                     adapterField(m, entity);
                     m.put("attachmentList", convertList2MapByAttachment(attachmentList));
                     m.put("industryCategoryTitle", industryCategory.getCfgVal());
                     m.put("demandCategoryTitle", demandCategory.getCfgVal());
+                    m.put("nameRbacDepartmentDuty",depName);
                 }
                 , IplSatbMain::getId, IplSatbMain::getIndustryCategory, IplSatbMain::getEnterpriseName
                 , IplSatbMain::getDemandCategory, IplSatbMain::getProjectName, IplSatbMain::getProjectAddress
@@ -395,7 +398,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 , IplSatbMain::getRaise, IplSatbMain::getTechDemondInfo, IplSatbMain::getContactPerson, IplSatbMain::getContactWay
                 , IplSatbMain::getSource, IplSatbMain::getStatus
         );
-        assists.put("detail", detail);
+        assists.put("baseInfo", detail);
         return assists;
     }
 
