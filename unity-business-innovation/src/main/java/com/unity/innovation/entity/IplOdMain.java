@@ -67,5 +67,11 @@ public class IplOdMain extends mIplOdMain{
 
     @TableField(exist = false)
     private Integer bizType = BizTypeEnum.INTELLIGENCE.getType();
+
+    /**
+     * 单位名称
+     */
+    @TableField(exist = false)
+    private String idRbacDepartmentName;
 }
 

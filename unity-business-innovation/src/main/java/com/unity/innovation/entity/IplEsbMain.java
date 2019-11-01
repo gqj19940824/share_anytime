@@ -87,5 +87,11 @@ public class IplEsbMain extends mIplEsbMain{
 
     @TableField(exist = false)
     private Integer bizType = BizTypeEnum.ENTERPRISE.getType();
+
+    /**
+     * 单位名称
+     */
+    @TableField(exist = false)
+    private String idRbacDepartmentName;
 }
 
