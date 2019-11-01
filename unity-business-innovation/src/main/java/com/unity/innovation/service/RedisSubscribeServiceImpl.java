@@ -50,11 +50,13 @@ public class RedisSubscribeServiceImpl {
                 //String[] idArrays = id.split("-");
                 //超时未处理
                 if (ListTypeConstants.DEAL_OVER_TIME.equals(overTimeType)) {
-                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600));
+                    //result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600));
+                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 60));//1分钟
                     //超时未更新
                 } else if (ListTypeConstants.UPDATE_OVER_TIME.equals(overTimeType)) {
                     removeRecordInfo(id, ListTypeConstants.DEAL_OVER_TIME, departmentId, bizType);
-                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600 * 24));
+                    //result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600 * 24));
+                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 60 * 5));//5分钟
                 } else {
                     log.info("请确认参数");
                 }
