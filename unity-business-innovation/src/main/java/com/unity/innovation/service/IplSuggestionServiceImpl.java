@@ -148,6 +148,12 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, departmentId, BizTypeEnum.SUGGESTION.getType());
             return entity.getId();
         } else {
+            Customer customer = LoginContextHolder.getRequestAttributes();
+            if (!customer.getTypeRangeList().contains(BizTypeEnum.SUGGESTION.getType())) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("当前账号的单位不可操作数据").build();
+            }
             IplSuggestion vo = getById(entity.getId());
             if (IplStatusEnum.DONE.getId().equals(vo.getStatus())) {
                 throw UnityRuntimeException.newInstance()
@@ -175,7 +181,6 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                 //更新基本信息
                 iplLog.setProcessInfo("更新基本信息");
                 //主责单位
-                Customer customer = LoginContextHolder.getRequestAttributes();
                 if (customer.getIdRbacDepartment() != null) {
                     iplLog.setIdRbacDepartmentDuty(customer.getIdRbacDepartment());
                 }

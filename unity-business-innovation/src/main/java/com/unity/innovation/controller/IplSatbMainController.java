@@ -3,18 +3,20 @@ package com.unity.innovation.controller;
 
 
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.ParamConstants;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ValidFieldUtil;
-import com.unity.common.constant.ParamConstants;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.service.IplAssistServiceImpl;
 import com.unity.innovation.service.IplSatbMainServiceImpl;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplSatbMain> pageEntity) {
+        check();
         PageElementGrid result = service.listByPage(pageEntity);
         return success(result);
     }
@@ -101,6 +104,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @PostMapping("/deleteById")
     public Mono<ResponseEntity<SystemResponse<Object>>> deleteById(@RequestBody IplSatbMain entity) {
+        check();
         service.deleteById(entity.getId());
         return success("删除成功");
     }
@@ -115,6 +119,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody IplSatbMain entity) {
+        check();
         return success(service.detailById(entity.getId()));
     }
 
@@ -128,6 +133,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @PostMapping("/getCategoryByCfgType")
     public Mono<ResponseEntity<SystemResponse<Object>>> getCategoryBySysType(@RequestBody SysCfg sysCfg) {
+        check();
         if (sysCfg.getCfgType() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到系统类型");
         }
@@ -144,6 +150,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @PostMapping("/getAssistDepartmentList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getAssistDepartmentList(@RequestBody IplSatbMain entity) {
+        check();
         if (entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到业务ID");
         }
@@ -160,6 +167,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @PostMapping("/saveAssistDepartmentList")
     public Mono<ResponseEntity<SystemResponse<Object>>> saveAssistDepartmentList(@RequestBody IplSatbMain entity) {
+        check();
         if (entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到业务ID");
         }
@@ -180,6 +188,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @PostMapping("/dutyUpdateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> realTimeUpdateStatus(@RequestBody IplLog entity) {
+        check();
         if (entity.getIdIplMain() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到业务ID");
         }
@@ -203,6 +212,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @PostMapping("/assistUpdateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> assistRealTimeUpdateStatus(@RequestBody IplLog iplLog) {
+        check();
         if (iplLog.getDealStatus() == null){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到处理状态");
         }
@@ -223,6 +233,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @PostMapping("/updateStatusByDuty")
     public Mono<ResponseEntity<SystemResponse<Object>>> realTimeUpdateStatusByDuty(@RequestBody IplLog entity) {
+        check();
         if (entity.getIdIplMain() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到业务ID");
         }
@@ -248,6 +259,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @GetMapping("/downloadIplSatbMainDataToZip/{id}")
     public Mono<ResponseEntity<byte[]>> downloadIplSatbMainDataToZip(@PathVariable("id") Long id) {
+        check();
         if(id == null){
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
@@ -269,6 +281,7 @@ public class IplSatbMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> downloadIplSatbMainDataPkgToExcel(@PathVariable("id") Long id,
                                                                           HttpServletRequest request,
                                                                           HttpServletResponse response) {
+        check();
         if(id == null){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到成长目标投资清单发布ID");
         }
@@ -285,6 +298,7 @@ public class IplSatbMainController extends BaseWebController {
      */
     @PostMapping("/getAssistList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getAssistList(@RequestBody IplSatbMain entity) {
+        check();
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplSatbMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -297,6 +311,15 @@ public class IplSatbMainController extends BaseWebController {
                     .message("未获取到对象").build();
         }
         return success(iplAssistService.getAssistList(vo.getId(), BizTypeEnum.GROW.getType()));
+    }
+
+    public void check(){
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (!customer.getTypeRangeList().contains(BizTypeEnum.GROW.getType())) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("当前账号的单位不可操作数据").build();
+        }
     }
 }
 
