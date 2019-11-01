@@ -275,7 +275,6 @@ public class PmInfoDeptController extends BaseWebController {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("此状态不能不能审核").build();
         }
-        entity.setContent(entity.getComment());
         service.passOrReject(entity, old);
         return success();
     }
