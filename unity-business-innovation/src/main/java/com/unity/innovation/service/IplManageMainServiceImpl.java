@@ -498,7 +498,6 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      */
     public IplManageMain detailIplManageMainById(Long id) {
         IplManageMain iplManageMain = super.getById(id);
-        check(iplManageMain.getBizType());
         if (iplManageMain == null) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("数据不存在").build();
