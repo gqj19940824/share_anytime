@@ -264,7 +264,7 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
     public void saveEntity(DailyWorkStatus entity) {
         if (entity.getId() == null) {
             Customer customer = LoginContextHolder.getRequestAttributes();
-            if (!UserTypeEnum.ORDINARY.equals(customer.getUserType())) {
+            if (!UserTypeEnum.ORDINARY.getId().equals(customer.getUserType())) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                         .message("该用户无操作数据权限").build();
