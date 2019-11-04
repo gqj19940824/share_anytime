@@ -145,6 +145,16 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
     @Transactional(rollbackFor = Exception.class)
     public void deleteById(Long messageId) {
         Customer customer = LoginContextHolder.getRequestAttributes();
+        int count = sysMessageReadLogService.count(new LambdaQueryWrapper<SysMessageReadLog>()
+                .eq(SysMessageReadLog::getMessageId, messageId)
+                .eq(SysMessageReadLog::getTargetUserId, customer.getId())
+                .eq(SysMessageReadLog::getIsRead, YesOrNoEnum.NO.getType()));
+        if(count > 0){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("操作错误")
+                    .build();
+        }
         this.removeById(messageId);
         sysMessageReadLogService.remove(new LambdaQueryWrapper<SysMessageReadLog>()
                 .eq(SysMessageReadLog::getMessageId, messageId)
