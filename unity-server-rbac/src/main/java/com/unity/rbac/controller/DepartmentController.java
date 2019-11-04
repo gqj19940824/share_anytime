@@ -223,7 +223,7 @@ public class DepartmentController extends BaseWebController {
         if(department != null && department.getDepType() != null){
             wrapper.eq(Department::getDepType,department.getDepType());
         }
-        wrapper.eq(Department::getUseStatus,YesOrNoEnum.YES.getType());
+        //wrapper.eq(Department::getUseStatus,YesOrNoEnum.YES.getType());
         wrapper.orderByDesc(Department::getSort);
         List<Map<String, Object>> maps = JsonUtil.ObjectToList(service.list(wrapper),
                 null
