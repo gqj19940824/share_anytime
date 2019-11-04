@@ -46,6 +46,7 @@ public class TopicMessageListener implements MessageListener {
     private SysMessageHelpService sysMessageHelpService;
     @Resource
     private DicUtils dicUtils;
+    private static final String ZERO = "0";
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -76,10 +77,9 @@ public class TopicMessageListener implements MessageListener {
      * @since 2019/10/17 10:01
      */
     private void addSysMessage(String[] itemValueArrays) {
-        String departmentType = itemValueArrays[1];
-        ListCategoryEnum listCategoryEnum = ListCategoryEnum.valueOfName(departmentType);
+        //listControl: 6: DEAL_OVER_TIME: 5-0: 30
         //主责单位id
-        Long idRbacDepartmentDuty = listCategoryEnum == null ? null : listCategoryEnum.getId();
+        Long idRbacDepartmentDuty = Long.parseLong(itemValueArrays[1]);
         // 主表id
         String[] idStrArr = itemValueArrays[3].split("-");
         Integer bizType = Integer.parseInt(itemValueArrays[4]);
@@ -91,6 +91,7 @@ public class TopicMessageListener implements MessageListener {
         InventoryMessage inventoryMessage = InventoryMessage.newInstance()
                 .sourceId(idIplMain)
                 .time(time)
+                .bizType(bizType)
                 .flowStatus(itemValueArrays[2].equals(ListTypeConstants.DEAL_OVER_TIME)
                         //超时未处理
                         ? SysMessageFlowStatusEnum.TWO.getId()
@@ -123,9 +124,8 @@ public class TopicMessageListener implements MessageListener {
             inventoryMessage.setIdRbacDepartment(idRbacDepartmentDuty);
             inventoryMessage.setDataSourceClass(SysMessageDataSourceClassEnum.TARGET.getId());
         }
-        if (!"0".equals(idStrArr[1])) {
+        if (!ZERO.equals(idStrArr[1])) {
             //说明是协同单位超时
-            inventoryMessage.setBizType(bizType);
             inventoryMessage.setHelpDepartmentIdList(Arrays.asList(Long.parseLong(idStrArr[1])));
             sysMessageHelpService.addInventoryHelpMessage(inventoryMessage);
         } else {

@@ -138,8 +138,7 @@ public class DailyWorkStatusPackageController extends BaseWebController {
         if (obj!=null){
             return obj;
         }
-        service.saveEntity(entity);
-        return success("操作成功");
+        return success( service.saveEntity(entity));
     }
 
     /**

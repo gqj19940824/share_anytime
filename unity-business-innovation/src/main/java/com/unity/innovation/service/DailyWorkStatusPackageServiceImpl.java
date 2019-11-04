@@ -218,7 +218,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
      * @date 2019/9/18 15:54
      */
     @Transactional(rollbackFor = Exception.class)
-    public void saveEntity(DailyWorkStatusPackage entity) {
+    public Long saveEntity(DailyWorkStatusPackage entity) {
         if (entity.getId() == null) {
             Customer customer = LoginContextHolder.getRequestAttributes();
             if (!UserTypeEnum.ORDINARY.getId().equals(customer.getUserType())) {
@@ -246,6 +246,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             save(entity);
             //处理中间表
             workMPackageService.updateWorkPackage(entity.getId(), works);
+            return entity.getId();
         } else {
             //编辑
             DailyWorkStatusPackage vo = getById(entity.getId());
@@ -272,6 +273,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             workMPackageService.updateWorkPackage(entity.getId(), works);
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
             updateById(entity);
+            return vo.getId();
         }
     }
 
