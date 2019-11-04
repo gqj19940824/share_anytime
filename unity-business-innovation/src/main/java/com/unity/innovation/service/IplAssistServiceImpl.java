@@ -395,7 +395,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
     private boolean check(List<Long> assistDeptIds, Long idDept) {
         Customer customer = LoginContextHolder.getRequestAttributes();
-        return !assistDeptIds.contains(idDept) && !InnovationConstant.DEPARTMENT_PD_ID.equals(idDept) && !idDept.equals(customer.getIdRbacDepartment());
+        return !assistDeptIds.contains(idDept) && !idDept.equals(customer.getIdRbacDepartment());
     }
 
 }
