@@ -128,7 +128,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
         if (search.getEntity().getIdRbacDepartment() != null) {
             lqw.eq(DailyWorkStatusPackage::getIdRbacDepartment, search.getEntity().getIdRbacDepartment());
         }
-        lqw.orderByDesc(DailyWorkStatusPackage::getGmtSubmit,DailyWorkStatusPackage::getGmtCreate);
+        lqw.orderByDesc(DailyWorkStatusPackage::getGmtSubmit,DailyWorkStatusPackage::getGmtModified);
        // lqw.last(" ORDER BY gmt_modified desc , gmt_modified desc ");
         IPage<DailyWorkStatusPackage> list = page(search.getPageable(), lqw);
         if (CollectionUtils.isNotEmpty(list.getRecords())){
