@@ -93,15 +93,16 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         if (iplAssist == null) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName()).build();
         }
-        Integer dealStatus = iplAssist.getDealStatus();
+        Integer dealStatusNew = iplLog.getDealStatus();
+        Integer dealStatusOld = iplAssist.getDealStatus();
         //确认当前状态变更方向
         Integer flowStatus = null;
 
-        if (dealStatus.equals(IplStatusEnum.DEALING.getId())
+        if (dealStatusOld.equals(IplStatusEnum.DEALING.getId())
                 && iplLog.getDealStatus().equals(IplStatusEnum.DONE.getId())) {
             //处理中→处理完毕--清单协同处理--增加系统消息
             flowStatus = SysMessageFlowStatusEnum.SIX.getId();
-        } else if (dealStatus.equals(IplStatusEnum.DONE.getId())
+        } else if (dealStatusOld.equals(IplStatusEnum.DONE.getId())
                 && iplLog.getDealStatus().equals(IplStatusEnum.DEALING.getId())) {
             //处理完毕→处理中--清单协同处理--增加系统消息
             flowStatus = SysMessageFlowStatusEnum.SEVEN.getId();
@@ -111,10 +112,10 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         iplAssistService.updateById(iplAssist);
 
         // 主责单位改变协同单位的状态需要向协同单位和主责单位的操作日志中同时插入一条记录
-        String switchType = IplStatusEnum.DEALING.getId().equals(dealStatus) ? "开启" : "关闭";
-        IplLog assistDeptLog = IplLog.newInstance().dealStatus(dealStatus).bizType(bizType).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo(String.format("主责单位%s协同邀请", switchType)).idRbacDepartmentAssist(iplAssist.getIdRbacDepartmentAssist()).build();
+        String switchType = IplStatusEnum.DEALING.getId().equals(dealStatusNew) ? "开启" : "关闭";
+        IplLog assistDeptLog = IplLog.newInstance().dealStatus(dealStatusNew).bizType(bizType).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo(String.format("主责单位%s协同邀请", switchType)).idRbacDepartmentAssist(iplAssist.getIdRbacDepartmentAssist()).build();
         String processInfo = switchType + InnovationUtil.getDeptNameById(iplAssist.getIdRbacDepartmentAssist()) + "协同邀请";
-        IplLog dutyDeptLog = IplLog.newInstance().dealStatus(dealStatus).bizType(bizType).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo(processInfo).idRbacDepartmentAssist(0L).build();
+        IplLog dutyDeptLog = IplLog.newInstance().dealStatus(dealStatusNew).bizType(bizType).idRbacDepartmentDuty(iplAssist.getIdRbacDepartmentDuty()).idIplMain(iplAssist.getIdIplMain()).processInfo(processInfo).idRbacDepartmentAssist(0L).build();
 
         iplLogService.save(assistDeptLog);
         iplLogService.save(dutyDeptLog);
