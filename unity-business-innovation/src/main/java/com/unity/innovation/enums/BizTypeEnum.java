@@ -26,6 +26,27 @@ public enum BizTypeEnum {
     SUGGESTION(90,"意见与建议"),
     SIGNUP(100,"报名参与发布会");
 
+    public static String ofName(Integer bizType){
+        String name = "";
+        switch (BizTypeEnum.of(bizType)){
+            case CITY:
+                name = BizTypeEnum.CITY.name;
+                break;
+            case ENTERPRISE:
+                name = BizTypeEnum.ENTERPRISE.name;
+                break;
+            case GROW:
+                name = BizTypeEnum.GROW.name;
+                break;
+            case INTELLIGENCE:
+                name = BizTypeEnum.INTELLIGENCE.name;
+                break;
+            case POLITICAL:
+                name = BizTypeEnum.POLITICAL.name;
+                break;
+        }
+        return name;
+    }
 
     public static BizTypeEnum of(Integer id) {
 

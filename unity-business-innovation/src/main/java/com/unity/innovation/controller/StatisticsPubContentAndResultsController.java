@@ -310,9 +310,9 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                 .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
                 .data(
                         Arrays.asList(
-                                PieVoByDoc.DataBean.newInstance().name("银行").value(dataBeans.get("bank")).build(),
-                                PieVoByDoc.DataBean.newInstance().name("债券").value(dataBeans.get("bond")).build(),
-                                PieVoByDoc.DataBean.newInstance().name("自筹").value(dataBeans.get("raise")).build()
+                                PieVoByDoc.DataBean.newInstance().name("银行").value(dataBeans == null?0:dataBeans.get("bank")).build(),
+                                PieVoByDoc.DataBean.newInstance().name("债券").value(dataBeans == null?0:dataBeans.get("bond")).build(),
+                                PieVoByDoc.DataBean.newInstance().name("自筹").value(dataBeans == null?0:dataBeans.get("raise")).build()
                         )
                 ).build();
         return success(pieVoByDoc);

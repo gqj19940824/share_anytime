@@ -252,13 +252,12 @@ public class IpaManageMainController extends BaseWebController {
      */
     private List<Map<String, Object>> convert2ListForPkg(List<IplManageMain> list) {
         return JsonUtil.ObjectToList(list,
-                this::adapterField, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit);
+                this::adapterField, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getBizType);
     }
 
     private void adapterField(Map<String, Object> m, IplManageMain entity) {
         // 清单类型
-        ListCategoryEnum of = ListCategoryEnum.of(entity.getIdRbacDepartmentDuty());
-        m.put("listType", of == null ? "" : of.getListType());
+        m.put("listType", BizTypeEnum.ofName(entity.getBizType()));
         // 单位名称
         m.put("idRbacDepartmentDutyName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
     }
