@@ -91,6 +91,7 @@ public class TopicMessageListener implements MessageListener {
         InventoryMessage inventoryMessage = InventoryMessage.newInstance()
                 .sourceId(idIplMain)
                 .time(time)
+                .bizType(bizType)
                 .flowStatus(itemValueArrays[2].equals(ListTypeConstants.DEAL_OVER_TIME)
                         //超时未处理
                         ? SysMessageFlowStatusEnum.TWO.getId()
@@ -125,7 +126,6 @@ public class TopicMessageListener implements MessageListener {
         }
         if (!ZERO.equals(idStrArr[1])) {
             //说明是协同单位超时
-            inventoryMessage.setBizType(bizType);
             inventoryMessage.setHelpDepartmentIdList(Arrays.asList(Long.parseLong(idStrArr[1])));
             sysMessageHelpService.addInventoryHelpMessage(inventoryMessage);
         } else {
