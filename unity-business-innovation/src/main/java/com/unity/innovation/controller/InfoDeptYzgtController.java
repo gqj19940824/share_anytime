@@ -125,7 +125,7 @@ public class InfoDeptYzgtController extends BaseWebController {
         }
         ValidFieldUtil.checkReg(entity
                 ,ValidFieldFactory.lengthReg(1, 50, "企业名称不能超过50字符!", InfoDeptYzgt::getEnterpriseName)
-                ,ValidFieldFactory.lengthReg(1, 20, "企业简介不能超过500字符!", InfoDeptYzgt::getEnterpriseIntroduction)
+                ,ValidFieldFactory.lengthReg(1, 500, "企业简介不能超过500字符!", InfoDeptYzgt::getEnterpriseIntroduction)
                 ,ValidFieldFactory.lengthReg(1, 20, "联系人不能超过20字符!", InfoDeptYzgt::getContactPerson)
                 ,ValidFieldFactory.lengthReg(1, 20, "联系方式不能超过50字符!", InfoDeptYzgt::getContactWay)
         );

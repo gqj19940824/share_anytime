@@ -29,7 +29,6 @@ import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.assertj.core.util.Lists;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -97,7 +96,7 @@ public class IpaManageMainController extends BaseWebController {
                 ew.lt(PmInfoDept::getGmtSubmit, end);
             }
 
-            ew.notIn(PmInfoDept::getStatus, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(), WorkStatusAuditingStatusEnum.FORTY.getId()));
+            ew.in(PmInfoDept::getStatus, WorkStatusAuditingStatusEnum.THIRTY.getId());
             if (entity.getIdRbacDepartment() != null) {
                 ew.eq(PmInfoDept::getIdRbacDepartment, entity.getIdRbacDepartment());
             }
@@ -145,7 +144,7 @@ public class IpaManageMainController extends BaseWebController {
             }
         }
         //审核角色查看四种状态的数据
-        ew.notIn(DailyWorkStatusPackage::getState, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(), WorkStatusAuditingStatusEnum.FORTY.getId()));
+        ew.in(DailyWorkStatusPackage::getState, WorkStatusAuditingStatusEnum.THIRTY.getId());
         // 提交单位
         if (entity.getIdRbacDepartment() != null) {
             ew.eq(DailyWorkStatusPackage::getIdRbacDepartment, entity.getIdRbacDepartment());
@@ -191,7 +190,7 @@ public class IpaManageMainController extends BaseWebController {
                 ew.lt(IplManageMain::getGmtSubmit, end);
             }
 
-            ew.notIn(IplManageMain::getStatus, Lists.newArrayList(WorkStatusAuditingStatusEnum.TEN.getId(), WorkStatusAuditingStatusEnum.FORTY.getId()));
+            ew.notIn(IplManageMain::getStatus, WorkStatusAuditingStatusEnum.THIRTY.getId());
             if (entity.getIdRbacDepartmentDuty() != null) {
                 ew.eq(IplManageMain::getIdRbacDepartmentDuty, entity.getIdRbacDepartmentDuty());
             }
