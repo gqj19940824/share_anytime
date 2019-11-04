@@ -12,6 +12,7 @@ import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
+import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.HashRedisUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.DailyWorkStatusDao;
@@ -324,6 +325,10 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
         vo.setTypeName(typeName);
         vo.setKeyWordStr(keyName);
         vo.setKeyWordList(list.stream().map(DailyWorkKeyword::getIdKeyword).collect(Collectors.toList()));
+        List<Map<String, Object>> val = JsonUtil.<SysCfg>ObjectToList(two,
+                (m, key) -> {
+                }, SysCfg::getId, SysCfg::getCfgVal);
+        vo.setKeyCfgList(val);
         //附件
         List<Attachment> attachmentList=attachmentService.list(new LambdaQueryWrapper<Attachment>()
                 .eq(Attachment::getAttachmentCode,vo.getAttachmentCode()));
