@@ -200,6 +200,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         //保存系统消息
         String title = MessageConstants.addInventoryMsgTitleMap.get(msg.getBizType().toString().concat(msg.getFlowStatus().toString()));
         if (StringUtils.isBlank(title)) {
+            log.error("======《addInventoryMessage》--新增实时清单推送系统消息未获取到消息标题，bizType {}，flowStatus {}",msg.getBizType(),msg.getFlowStatus());
             return;
         }
         title = title.replace(MessageConstants.TITLE, StringUtils.isEmpty(msg.getTitle()) ? "未知企业" : msg.getTitle());
@@ -234,6 +235,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         //保存系统消息
         String title = MessageConstants.addInventoryHelpMsgTitleMap.get(msg.getBizType().toString().concat(msg.getFlowStatus().toString()));
         if (StringUtils.isBlank(title)) {
+            log.error("======《addInventoryHelpMessage》--新增清单协同处理推送系统消息未获取到消息标题，bizType {}，flowStatus {}",msg.getBizType(),msg.getFlowStatus());
             return;
         }
         String smsTitle = MessageConstants.sendHelpSmsContentMap.get(msg.getBizType().toString()
@@ -282,6 +284,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             //工作动态发布审核/清单发布审核/企业信息发布审核 这三种情况要发送短信到宣传部对应角色下
             Dic dic = dicUtils.getDicByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE);
             if(dic == null || StringUtils.isEmpty(dic.getDicValue())){
+                log.error("======《addReviewMessage》--发布审核流程推送系统消息未获取到字典组配置的宣传部B角色======");
                 return;
             }
             userList = rbacClient.getUserListByRoleIdList(Arrays.asList(Long.parseLong(dic.getDicValue())));
