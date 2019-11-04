@@ -99,16 +99,16 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         Integer flowStatus = null;
 
         if (dealStatusOld.equals(IplStatusEnum.DEALING.getId())
-                && iplLog.getDealStatus().equals(IplStatusEnum.DONE.getId())) {
+                && IplStatusEnum.DONE.getId().equals(dealStatusNew)) {
             //处理中→处理完毕--清单协同处理--增加系统消息
             flowStatus = SysMessageFlowStatusEnum.SIX.getId();
         } else if (dealStatusOld.equals(IplStatusEnum.DONE.getId())
-                && iplLog.getDealStatus().equals(IplStatusEnum.DEALING.getId())) {
+                && IplStatusEnum.DEALING.getId().equals(dealStatusNew)) {
             //处理完毕→处理中--清单协同处理--增加系统消息
             flowStatus = SysMessageFlowStatusEnum.SEVEN.getId();
         }
         // 修改状态、插入日志
-        iplAssist.setDealStatus(iplLog.getDealStatus());
+        iplAssist.setDealStatus(dealStatusNew);
         iplAssistService.updateById(iplAssist);
 
         // 主责单位改变协同单位的状态需要向协同单位和主责单位的操作日志中同时插入一条记录
