@@ -216,11 +216,16 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         //保存系统通知并推送
         saveAndSendMessage(userList, msg.getSourceId(), msg.getIdRbacDepartment(),
                 msg.getDataSourceClass(), msg.getFlowStatus(), title);
-        String smsTitle = MessageConstants.sendSmsContentMap.get(msg.getBizType().toString()
-                .concat(msg.getFlowStatus().toString()));
-        smsTitle = smsTitle.replace(MessageConstants.TITLE, StringUtils.isEmpty(msg.getTitle()) ? "未知企业" : msg.getTitle());
-        //发送短信
-        saveAndSendSms(msg, userList, smsTitle, "");
+        //这几种流程下发送短信
+        if (SysMessageFlowStatusEnum.ONE.getId().equals(msg.getFlowStatus())
+                || SysMessageFlowStatusEnum.SIX.getId().equals(msg.getFlowStatus())
+                || SysMessageFlowStatusEnum.SEVEN.getId().equals(msg.getFlowStatus())) {
+            String smsTitle = MessageConstants.sendSmsContentMap.get(msg.getBizType().toString()
+                    .concat(msg.getFlowStatus().toString()));
+            smsTitle = smsTitle.replace(MessageConstants.TITLE, StringUtils.isEmpty(msg.getTitle()) ? "未知企业" : msg.getTitle());
+            //发送短信
+            saveAndSendSms(msg, userList, smsTitle, "");
+        }
     }
 
     /**
