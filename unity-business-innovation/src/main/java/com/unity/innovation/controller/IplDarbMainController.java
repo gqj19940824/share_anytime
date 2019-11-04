@@ -402,14 +402,14 @@ public class IplDarbMainController extends BaseWebController {
             if (StringUtils.isNotBlank(creatTime)) {
                 //gt 大于 lt 小于
                 ew.ge(IplDarbMain::getGmtCreate, InnovationUtil.getFirstTimeInMonth(creatTime, true));
-                ew.lt(IplDarbMain::getGmtCreate, InnovationUtil.getFirstTimeInMonth(creatTime, false));
+                ew.le(IplDarbMain::getGmtCreate, InnovationUtil.getFirstTimeInMonth(creatTime, false));
             }
             // 更新时间
             String updateTime = entity.getUpdateTime();
             if (StringUtils.isNotBlank(updateTime)) {
                 //gt 大于 lt 小于
                 ew.ge(IplDarbMain::getGmtModified, InnovationUtil.getFirstTimeInMonth(updateTime, true));
-                ew.lt(IplDarbMain::getGmtModified, InnovationUtil.getFirstTimeInMonth(updateTime, false));
+                ew.le(IplDarbMain::getGmtModified, InnovationUtil.getFirstTimeInMonth(updateTime, false));
             }
 
             // 来源
