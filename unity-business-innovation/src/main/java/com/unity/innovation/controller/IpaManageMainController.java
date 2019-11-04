@@ -190,7 +190,7 @@ public class IpaManageMainController extends BaseWebController {
                 ew.lt(IplManageMain::getGmtSubmit, end);
             }
 
-            ew.notIn(IplManageMain::getStatus, WorkStatusAuditingStatusEnum.THIRTY.getId());
+            ew.in(IplManageMain::getStatus, WorkStatusAuditingStatusEnum.THIRTY.getId());
             if (entity.getIdRbacDepartmentDuty() != null) {
                 ew.eq(IplManageMain::getIdRbacDepartmentDuty, entity.getIdRbacDepartmentDuty());
             }
