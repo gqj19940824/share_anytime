@@ -287,10 +287,8 @@ public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentDao, Depart
      * @return 返回转换后的列表
      */
     private List<Map<String, Object>> convert2List(List<Department> list,Long idBySortAsc,Long idBySortDesc) {
-        Long ascId = idBySortAsc;
-        Long descId = idBySortDesc;
         return JsonUtil.ObjectToList(list,
-                (m,entity) -> adapterField(m,entity,ascId,descId)
+                (m,entity) -> adapterField(m,entity,idBySortAsc,idBySortDesc)
                 , Department::getId, Department::getGmtModified, Department::getName,Department::getPhone,
                 Department::getAddress,Department::getNotes,Department::getDepType,Department::getUseStatus
         );

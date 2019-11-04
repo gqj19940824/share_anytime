@@ -169,8 +169,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
     private void adapterFieldByList(Map<String, Object> m, User entity, Customer customer, Map<Long,
             List<Long>> roleIdListOfUserIdMap, boolean isQueryByRoleId, Map<Long, String> groupConcatRoleNameMap) {
         adapterField(m, entity);
-        m.put("receiveSmsName", entity.getReceiveSms() != null ? entity.getReceiveSms() == 0 ? "是" : "否" : "");
-        m.put("isLockName", entity.getIsLock() != null  ? entity.getIsLock() == 0 ? "已启用" : "已禁用" : "");
+        m.put("receiveSmsName", entity.getReceiveSms() != null && entity.getReceiveSms() == 1 ? "是" : "否");
+        m.put("isLockName", entity.getIsLock() != null  && entity.getIsLock() == 0 ? "已启用" : "已禁用");
         List<Long> roleIdListOfUserId = roleIdListOfUserIdMap.get(entity.getId());
         if (customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())) {
             //超管可分配所有角色

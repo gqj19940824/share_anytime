@@ -5,6 +5,7 @@ package com.unity.innovation.dao;
 import com.unity.common.base.BaseDao;
 import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.entity.generated.IpaManageMain;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -30,9 +31,9 @@ public interface IpaManageMainDao  extends BaseDao<IpaManageMain>{
             "<if test='idRbacDepartment != null'>" +
             "and dws.id_rbac_department =#{idRbacDepartment} " +
             "</if>" +
-            "group by sc.id " +
+            "group by sc.id  order by value desc" +
             "</script>")
-    List<PieVoByDoc.DataBean> dwsTypeStatistics(Long start, Long end, Long idRbacDepartment);
+    List<PieVoByDoc.DataBean> dwsTypeStatistics(@Param("start") Long start, @Param("end") Long end, @Param("idRbacDepartment") Long idRbacDepartment);
 
     @Select("<script>" +
             "select COUNT(1) value, sc.cfg_val name from ipa_manage_main a inner join daily_work_status_package p on a.id = p.id_ipa_main " +
@@ -48,8 +49,8 @@ public interface IpaManageMainDao  extends BaseDao<IpaManageMain>{
             "<if test='idRbacDepartment != null'>" +
             "and dws.id_rbac_department =#{idRbacDepartment} " +
             "</if>" +
-            "group by sc.id " +
+            "group by sc.id order by value desc" +
             "</script>")
-    List<PieVoByDoc.DataBean> dwsKewWordStatistics(Long start, Long end, Long idRbacDepartment);
+    List<PieVoByDoc.DataBean> dwsKewWordStatistics(@Param("start") Long start, @Param("end") Long end, @Param("idRbacDepartment") Long idRbacDepartment);
 }
 

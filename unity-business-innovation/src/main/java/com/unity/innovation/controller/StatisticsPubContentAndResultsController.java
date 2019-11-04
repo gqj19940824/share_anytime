@@ -497,7 +497,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
      * @since 2019/10/29 10:11 上午
      */
     @PostMapping("/innovationPublishInfo/demandStatistics")
-    public Mono<ResponseEntity<SystemResponse<Object>>> demandStatistics(@RequestBody Map<String, String> map) {
+    public Mono<ResponseEntity<SystemResponse<Object>>> demandStatistics(@RequestBody Map<String, Object> map) {
         Long start = null;
         String startDate = MapUtils.getString(map, "startDate");
         if (StringUtils.isNotBlank(startDate)) {
