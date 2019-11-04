@@ -10,7 +10,9 @@
         INNER JOIN sys_message_read_log mr ON m.id = mr.message_id
         WHERE m.is_deleted = 0
           and mr.is_deleted = 0
+        <if test="userId != null">
           and mr.target_user_id = #{userId}
+        </if>
         <if test="dataSourceClass != null">
             AND m.data_source_class = #{dataSourceClass}
         </if>
@@ -33,7 +35,9 @@
                 INNER JOIN sys_message_read_log mr ON m.id = mr.message_id
         WHERE m.is_deleted = 0
         and mr.is_deleted = 0
-        and mr.target_user_id = #{userId}
+        <if test="userId != null">
+            and mr.target_user_id = #{userId}
+        </if>
         <if test="dataSourceClass != null">
             AND m.data_source_class = #{dataSourceClass}
         </if>

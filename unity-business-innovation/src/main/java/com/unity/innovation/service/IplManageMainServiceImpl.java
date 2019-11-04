@@ -284,12 +284,12 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             }
             //清单类型
             if(entity.getBizType() != null) {
+                check(entity.getBizType());
                 ew.eq(IplManageMain::getBizType,entity.getBizType());
             }else {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                         .message("清单类型不能为空").build();
             }
-
             //状态
             if (entity.getStatus() != null) {
                 ew.eq(IplManageMain::getStatus, entity.getStatus());
@@ -317,11 +317,12 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      */
     @Transactional(rollbackFor = Exception.class)
     public Long saveOrUpdateForPkg(IplManageMain entity) {
+        check(entity.getBizType());
         Customer customer = LoginContextHolder.getRequestAttributes();
         //快照数据 根据不同单位 切换不同vo
         String snapshot = GsonUtils.format(entity.getDataList());
         //纪检组需要进行排序
-        if (ListCategoryEnum.DEPARTMENT_SUGGESTION_ID.getName().equals(entity.getCategory())) {
+        if (BizTypeEnum.POLITICAL.getType().equals(entity.getBizType())) {
             List<IplSupervisionMain> iplSupervisionMainList = GsonUtils.parse(snapshot, new TypeToken<List<IplSupervisionMain>>() {
             });
             iplSupervisionMainList.sort(comparing(IplSupervisionMain::getCategory)
@@ -386,6 +387,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     @Transactional(rollbackFor = Exception.class)
     public void removeByIdsForPkg(List<Long> ids) {
         List<IplManageMain> list = list(new LambdaQueryWrapper<IplManageMain>().in(IplManageMain::getId, ids));
+        list.forEach(i -> check(i.getBizType()));
         //状态为处理完毕 不可删除
         List<Integer> stateList = com.google.common.collect.Lists.newArrayList();
         stateList.add(WorkStatusAuditingStatusEnum.TEN.getId());
@@ -447,6 +449,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     @Transactional(rollbackFor = Exception.class)
     public void submit(IplManageMain entity) {
         IplManageMain vo = getById(entity.getId());
+        check(vo.getBizType());
         if (vo == null) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
@@ -495,6 +498,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      */
     public IplManageMain detailIplManageMainById(Long id) {
         IplManageMain iplManageMain = super.getById(id);
+        check(iplManageMain.getBizType());
         if (iplManageMain == null) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("数据不存在").build();
@@ -610,5 +614,12 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
 
         }
     }
-
+    public void check(Integer bizType) {
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (!customer.getTypeRangeList().contains(bizType)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("当前账号的单位不可操作数据").build();
+        }
+    }
 }

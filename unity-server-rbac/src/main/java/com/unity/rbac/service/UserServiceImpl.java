@@ -119,12 +119,9 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                 isQueryByRoleId = true;
             }
         }
-        if (customer.getIsSuperAdmin().equals(YesOrNoEnum.YES.getType())) {
-            //超级管理员或一级管理员 放开数据权限
-            data.put("dataPermissionIdList", null);
-        } else {
-            data.put("dataPermissionIdList", customer.getDataPermissionIdList());
-        }
+
+        // 放开数据权限
+        data.put("dataPermissionIdList", null);
         long total = baseMapper.countUserTotalNum(data);
         if (total > 0) {
             List<User> userList = baseMapper.findUserListByPage(data);

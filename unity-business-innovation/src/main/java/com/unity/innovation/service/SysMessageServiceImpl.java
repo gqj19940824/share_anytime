@@ -83,7 +83,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
     public PageElementGrid<Map<String, Object>> listByPage(PageEntity<SysMessage> pageEntity) {
         Customer customer = LoginContextHolder.getRequestAttributes();
         Map<String, Object> paramMap = Maps.newHashMap();
-        paramMap.put("userId", customer.getId());
+        paramMap.put("userId", customer.getIsAdmin().equals(YesOrNoEnum.YES.getType()) ? null : customer.getId());
         SysMessage entity = pageEntity.getEntity();
         if (entity != null) {
             paramMap.put("dataSourceClass", entity.getDataSourceClass());
