@@ -9,7 +9,10 @@ import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.*;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplDarbMain;
-import com.unity.innovation.enums.*;
+import com.unity.innovation.enums.BizTypeEnum;
+import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
+import com.unity.innovation.enums.SysMessageFlowStatusEnum;
+import com.unity.innovation.enums.UnitCategoryEnum;
 import com.unity.innovation.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
@@ -66,7 +69,7 @@ public class TopicMessageListener implements MessageListener {
                 updateProcessStatus(itemValueArrays);
                 //增加系统消息
                 addSysMessage(itemValueArrays);
-            }else {
+            } else {
                 log.info("【该对象已经消费完毕】====" + itemValue);
             }
         }
@@ -189,7 +192,7 @@ public class TopicMessageListener implements MessageListener {
      * @author zhangxiaogang
      * @since 2019/10/8 18:37
      */
-    private boolean recordTimeOutLog(String type, String departmentId, String overTimeType, String... idArrays) {
+    private synchronized boolean recordTimeOutLog(String type, String departmentId, String overTimeType, String... idArrays) {
         IplTimeOutLog iplTimeOutLog = new IplTimeOutLog();
         iplTimeOutLog.setMainId(Long.valueOf(idArrays[0]));
         Long aLong = Long.valueOf(idArrays[1]);
@@ -212,7 +215,5 @@ public class TopicMessageListener implements MessageListener {
         } else {
             return false;
         }
-
-
     }
 }
