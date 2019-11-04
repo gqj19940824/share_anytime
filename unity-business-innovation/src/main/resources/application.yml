@@ -28,6 +28,7 @@ spring:
       - /api/user/pushUcsUserToSecurity
       - /resource/saveRoleResource
       - /redisSubscribe/pushRedisSubscribeInfo
+      - /sysCfg/listByPage
 pagehelper:
   auto-dialect: mysql
   params: count=countSql

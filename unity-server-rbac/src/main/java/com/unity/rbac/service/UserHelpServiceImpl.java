@@ -138,7 +138,8 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
                     .collect(Collectors.toList());
             customer.setTypeRangeList(bizTypeList);
         } else if(user.getSuperAdmin().equals(YesOrNoEnum.YES.getType())
-                || user.getUserType().equals(UserTypeEnum.LEADER.getId())){
+                || user.getUserType().equals(UserTypeEnum.LEADER.getId())
+                || user.getUserType().equals(UserTypeEnum.ADMIN.getId())){
             List<Dic> dicList = dicUtils.getDicsByGroupCode(DicConstants.DEPART_HAVE_LIST_TYPE);
             List<Integer> bizTypeList = dicList.stream()
                     .map(dic -> Integer.parseInt(dic.getDicCode()))

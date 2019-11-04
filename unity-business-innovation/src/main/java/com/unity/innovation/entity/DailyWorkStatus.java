@@ -7,6 +7,7 @@ import com.unity.innovation.entity.generated.mDailyWorkStatus;
 import lombok.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Builder(builderMethodName = "newInstance")
 @AllArgsConstructor
@@ -73,6 +74,11 @@ public class DailyWorkStatus extends mDailyWorkStatus {
     @TableField(exist = false)
     private String idPackage;
 
+    /**
+     * 关键字主键集合
+     */
+    @TableField(exist = false)
+    private  List<Map<String, Object>>  KeyCfgList;
 }
 
 
