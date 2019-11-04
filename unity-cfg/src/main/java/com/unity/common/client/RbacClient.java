@@ -27,7 +27,7 @@ public interface RbacClient {
      * @author gengjiajia
      * @since 2019/09/23 16:15
      */
-    @PostMapping("/feign/role/getUserIdListByRoleIdList")
+    @PostMapping("/feign/role/getUserListByRoleIdList")
     List<UserVO> getUserListByRoleIdList(@RequestBody List<Long> roleIdList);
 
     /**
