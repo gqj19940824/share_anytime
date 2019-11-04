@@ -242,19 +242,22 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                     iterator.remove();
                 }
             }
-            // 更新协同单位状态、删除协同单位的redis超时设置
-            assists.forEach(e -> {
-                builder.append(e.getNameRbacDepartmentAssist()).append("、");
-                e.setDealStatus(dealStatus);
-                IplLog iplLogAssit = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty).bizType(bizType).idRbacDepartmentAssist(e.getId()).idIplMain(idIplMain).processInfo("主责单位关闭协同邀请").build();
-                iplLogs.add(iplLogAssit);
 
-                // 删除协同单位的redis超时设置
-                redisSubscribeService.removeRecordInfo(idIplMain + "-" + e.getIdRbacDepartmentAssist(), idRbacDepartmentDuty, bizType);
-            });
+            if (CollectionUtils.isNotEmpty(assists)){
+                // 更新协同单位状态、删除协同单位的redis超时设置
+                assists.forEach(e -> {
+                    builder.append(e.getNameRbacDepartmentAssist()).append("、");
+                    e.setDealStatus(dealStatus);
+                    IplLog iplLogAssit = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty).bizType(bizType).idRbacDepartmentAssist(e.getIdRbacDepartmentAssist()).idIplMain(idIplMain).processInfo("主责单位关闭协同邀请").build();
+                    iplLogs.add(iplLogAssit);
 
-            // 批量更新协同单位状态
-            iplAssistService.updateBatchById(assists);
+                    // 删除协同单位的redis超时设置
+                    redisSubscribeService.removeRecordInfo(idIplMain + "-" + e.getIdRbacDepartmentAssist(), idRbacDepartmentDuty, bizType);
+                });
+
+                // 批量更新协同单位状态
+                iplAssistService.updateBatchById(assists);
+            }
         }
 
         // 主责记录日志
