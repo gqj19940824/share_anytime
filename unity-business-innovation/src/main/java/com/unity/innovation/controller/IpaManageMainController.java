@@ -257,8 +257,7 @@ public class IpaManageMainController extends BaseWebController {
 
     private void adapterField(Map<String, Object> m, IplManageMain entity) {
         // 清单类型
-        ListCategoryEnum of = ListCategoryEnum.of(entity.getIdRbacDepartmentDuty());
-        m.put("listType", of == null ? "" : of.getListType());
+        m.put("listType", entity.getBizType());
         // 单位名称
         m.put("idRbacDepartmentDutyName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
     }
