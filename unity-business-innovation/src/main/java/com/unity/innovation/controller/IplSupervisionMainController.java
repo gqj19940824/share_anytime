@@ -115,7 +115,7 @@ public class IplSupervisionMainController extends BaseWebController {
      * 将实体列表 转换为List Map
      *
      * @param list 实体列表
-     * @return java.util.List<java.util.Map < java.lang.String, java.lang.Object>>
+     * @return java.util.List<java.util.Map < java .lang.String, java.lang.Object>>
      * @author JH
      * @date 2019/9/26 14:19
      */
