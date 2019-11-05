@@ -455,7 +455,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
                     .concat(msg.getFlowStatus().toString())));
             if (smsTemplateDic == null || StringUtils.isEmpty(smsTemplateDic.getDicValue())) {
                 //未获取到模板，不执行短信发送
-                log.error("======《创新发布实时清单短信通知发送失败》---未获取到短信模板ID======");
+                log.error("======《创新发布实时清单短信通知发送失败》---未获取到短信模板ID--bizType {},sourceClass {},flowStatus {}",msg.getBizType(),msg.getDataSourceClass(),msg.getFlowStatus());
                 return;
             }
             //获取所有目标用户手机号批量发送
