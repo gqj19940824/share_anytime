@@ -432,7 +432,7 @@ public interface StatisticsPublishWorkDao {
             "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(*) count " +
             " FROM  ipl_time_out_log s WHERE s.is_deleted = 0  " +
             "  <if test=\"bizType !=null\"> " +
-            "  and s.bizType = #{bizType} " +
+            "  and s.biz_Type = #{bizType} " +
             "  </if>" +
             "  <if test=\"beginTime !=null\"> " +
             "  and s.gmt_create &gt;= #{beginTime} " +
