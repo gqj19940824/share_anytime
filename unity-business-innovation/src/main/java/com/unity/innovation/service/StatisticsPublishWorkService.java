@@ -95,9 +95,9 @@ public class StatisticsPublishWorkService {
                 ).series(
                         Arrays.asList(
                                 MultiBarVO.SeriesBean.newInstance().type("bar").name("平均首次响应时间(h)")
-                                        .data(Arrays.asList(satbFirst, esbFirst, darbFirst, sugFirst, odFirst)).build()
+                                        .data(Arrays.asList(darbFirst, esbFirst+satbFirst, odFirst, sugFirst)).build()
                                 , MultiBarVO.SeriesBean.newInstance().type("bar").name("平均完成时间(d)")
-                                        .data(Arrays.asList(satbFinish, esbFinish, darbFinish, sugFinish, odFinish)).build())).build();
+                                        .data(Arrays.asList(darbFinish, esbFinish+satbFinish, odFinish, sugFinish)).build())).build();
     }
 
     /**
@@ -473,22 +473,18 @@ public class StatisticsPublishWorkService {
             countEnterprise = enterprise.stream().map(c -> GsonUtils.parse(c.getSnapshot(), new TypeToken<List<IplEsbMain>>() {
             })).mapToInt(List::size).sum();
         }
-        statisticsList.add(Statistics.newInstance()
-                .deptName(InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString()))))
-                .deptId(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString())))
-                .count(countEnterprise)
-                .build());
-        //科技局
-        List<IplManageMain> grow = collect.get(BizTypeEnum.GROW.getType().toString());
+        //原来科技局与企服局合并 加在一起
         int countGrow = 0;
+        List<IplManageMain> grow = collect.get(BizTypeEnum.GROW.getType().toString());
         if (CollectionUtils.isNotEmpty(grow)) {
             countGrow = grow.stream().map(c -> GsonUtils.parse(c.getSnapshot(), new TypeToken<List<IplSatbMain>>() {
             })).mapToInt(List::size).sum();
         }
+        countEnterprise+=countGrow;
         statisticsList.add(Statistics.newInstance()
-                .deptName(InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.GROW.getType().toString()))))
-                .deptId(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.GROW.getType().toString())))
-                .count(countGrow)
+                .deptName(InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString()))))
+                .deptId(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString())))
+                .count(countEnterprise)
                 .build());
         //纪检组
         List<IplManageMain> suggestion = collect.get(BizTypeEnum.SUGGESTION.getType().toString());
@@ -531,8 +527,8 @@ public class StatisticsPublishWorkService {
         String endStr = DateUtil.getYearMonth(search.getEndTime());
         String title=beginStr+"-"+endStr;
         //时间期间内的数据
-        Long beginTime = InnovationUtil.getFirstTimeInDay(search.getBeginTime());
-        Long endTime = InnovationUtil.getLastTimeInDay(search.getEndTime());
+        Long beginTime = InnovationUtil.getFirstTimeInMonth(search.getBeginTime(), true);
+        Long endTime = InnovationUtil.getFirstTimeInMonth(search.getEndTime(), false);
         List<IpaManageMain> list = ipaManageMainService.list(new LambdaQueryWrapper<IpaManageMain>()
                 .gt(IpaManageMain::getGmtCreate, beginTime).lt(IpaManageMain::getGmtCreate, endTime).isNotNull(IpaManageMain::getLevel));
         Integer count = list.size();
@@ -565,18 +561,16 @@ public class StatisticsPublishWorkService {
      * @date 2019/10/28 19:07
      */
     private List getDeptNames() {
-        //五大局子
-        String sarbName = InnovationUtil.getDeptNameById(InnovationConstant.DEPARTMENT_SATB_ID);
-        String esbName = InnovationUtil.getDeptNameById(InnovationConstant.DEPARTMENT_ESB_ID);
-        String darbName = InnovationUtil.getDeptNameById(InnovationConstant.DEPARTMENT_DARB_ID);
-        String suggestionName = InnovationUtil.getDeptNameById(InnovationConstant.DEPARTMENT_SUGGESTION_ID);
-        String odName = InnovationUtil.getDeptNameById(InnovationConstant.DEPARTMENT_OD_ID);
+        //四大局子
         List<String> list = Lists.newArrayList();
-        list.add(sarbName);
-        list.add(esbName);
-        list.add(darbName);
-        list.add(suggestionName);
-        list.add(odName);
+        String one = InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.CITY.getType().toString())));
+        String two = InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString())));
+        String three = InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.INTELLIGENCE.getType().toString())));
+        String four = InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType().toString())));
+        list.add(one);
+        list.add(two);
+        list.add(three);
+        list.add(four);
         return list;
     }
 
