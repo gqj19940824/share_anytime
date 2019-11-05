@@ -282,7 +282,7 @@ public class IpaManageMainController extends BaseWebController {
         }
 
         // 创建文件夹
-        String basePath = systemConfiguration.getUploadPath() + File.separator + "bachExport" + File.separator + UUIDUtil.getUUID() + File.separator ;
+        String basePath = systemConfiguration.getUploadPath() + "bachExport" + File.separator + UUIDUtil.getUUID() + File.separator ;
         logger.info("basePath:" + basePath);
         String filePaht = basePath + "创新发布/";
         ZipUtil.createFile(filePaht + "工作动态/");
@@ -317,7 +317,7 @@ public class IpaManageMainController extends BaseWebController {
         DownloadUtil.downloadFile(new File(basePath + "创新发布.zip"), "创新发布.zip", response, request);
 
         //删除目录下所有的文件;
-        ZipUtil.delFile(new File(basePath));
+        // ZipUtil.delFile(new File(basePath));
     }
 
     private void iplExcel(List<IplManageMain> list, String filePaht) {
