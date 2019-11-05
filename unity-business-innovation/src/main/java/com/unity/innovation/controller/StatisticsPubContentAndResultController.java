@@ -20,7 +20,10 @@ import com.unity.innovation.util.InnovationUtil;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
@@ -68,6 +71,19 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
         }
         Long startTime = InnovationUtil.getFirstTimeInMonth(map.get(START_DATE), true);
         Long endTime = InnovationUtil.getFirstTimeInMonth(map.get(END_DATE), false);
+        //开始时间≤截止时间≤当前月，最多可查12个月的数据
+        /*long thisMillis = System.currentTimeMillis();
+        if(endTime > thisMillis || startTime > thisMillis){
+            return error(SystemResponse.FormalErrorCode.DATA_NO_REQUIRE,"选择的时间范围必须在当前时间之前");
+        }
+        if(startTime > endTime){
+            return error(SystemResponse.FormalErrorCode.DATA_NO_REQUIRE,"选择的开始时间必须在截止时间之前");
+        }
+        String months = DateUtil.getMonthsBySpecifiedMonthFirstFew(map.get(END_DATE), "yyyy-MM", 12);
+        long firstTimeInMonth = InnovationUtil.getFirstTimeInMonth(months, true);
+        if(startTime < firstTimeInMonth){
+            return error(SystemResponse.FormalErrorCode.DATA_NO_REQUIRE,"选择的开始时间必须在截止时间之前12个月以内");
+        }*/
         List<IpaManageMain> manageMainList = ipaManageMainService.list(new LambdaQueryWrapper<IpaManageMain>()
                 .eq(IpaManageMain::getStatus, WorkStatusAuditingStatusEnum.SIXTY.getId())
                 .between(IpaManageMain::getGmtCreate, startTime, endTime));
