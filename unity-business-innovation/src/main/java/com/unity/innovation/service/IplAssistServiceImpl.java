@@ -62,9 +62,6 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     private RedisSubscribeServiceImpl redisSubscribeService;
 
     @Resource
-    protected IplDarbMainServiceImpl iplDarbMainService;
-
-    @Resource
     private RbacClient rbacClient;
 
     @Resource

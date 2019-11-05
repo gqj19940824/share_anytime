@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.DicConstants;
-import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -20,7 +19,10 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.*;
 import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.*;
+import com.unity.innovation.enums.BizTypeEnum;
+import com.unity.innovation.enums.InfoTypeEnum;
+import com.unity.innovation.enums.IpaStatusEnum;
+import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.*;
 import com.unity.innovation.util.DownloadUtil;
 import com.unity.innovation.util.InnovationUtil;
@@ -355,28 +357,25 @@ public class IpaManageMainController extends BaseWebController {
             list.forEach(e -> {
                 XSSFWorkbook wb;
                 String snapshot = e.getSnapshot();
-                // 发改局导出
-                if (InnovationConstant.DEPARTMENT_DARB_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = iplManageMainService.getDarbData(snapshot);
-                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
-                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
-                    //  科技局导出
-                } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = iplManageMainService.getSatbData(snapshot);
-                    wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
-                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
-                    // 组织部导出
-                } else if (InnovationConstant.DEPARTMENT_OD_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = iplManageMainService.getOdData(e.getSnapshot());
-                    wb = ExcelExportByTemplate.getWorkBook("template/od.xls");
-                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                    //  企服局导出
-                } else if (InnovationConstant.DEPARTMENT_ESB_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = iplManageMainService.getEbsData(e.getSnapshot());
-                    wb = ExcelExportByTemplate.getWorkBook("template/esb.xls");
-                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                } else {
-                    throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
+                switch (BizTypeEnum.of(e.getBizType())){
+                    case INTELLIGENCE: // 组织部
+                        wb = ExcelExportByTemplate.getWorkBook("template/od.xls");
+                        ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getOdData(e.getSnapshot()), e.getNotes(), wb);
+                        break;
+                    case ENTERPRISE: // 企服局
+                        wb = ExcelExportByTemplate.getWorkBook("template/esb.xls");
+                        ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getEbsData(e.getSnapshot()), e.getNotes(), wb);
+                        break;
+                    case GROW: // 科技局
+                        wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
+                        ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getSatbData(snapshot), e.getNotes(), wb);
+                        break;
+                    case CITY: // 发改局
+                        wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                        ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getDarbData(snapshot), e.getNotes(), wb);
+                        break;
+                    default:
+                        throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
                 }
 
                 ExcelExportByTemplate.downloadToPath(filePaht + "创新发布清单/" + e.getTitle() + ".xlsx", wb);
