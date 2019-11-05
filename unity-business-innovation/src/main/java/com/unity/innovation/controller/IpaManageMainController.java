@@ -8,6 +8,7 @@ import com.unity.common.constant.DicConstants;
 import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -40,7 +41,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,6 +68,8 @@ public class IpaManageMainController extends BaseWebController {
     private DicUtils dicUtils;
     @Resource
     private MediaManagerServiceImpl mediaManagerService;
+    @Resource
+    private SystemConfiguration systemConfiguration;
 
     /**
      * 入会一次包列表
@@ -102,9 +104,9 @@ public class IpaManageMainController extends BaseWebController {
             if (entity.getIdRbacDepartment() != null) {
                 ew.eq(PmInfoDept::getIdRbacDepartment, entity.getIdRbacDepartment());
             }
-            if (entity.getId() != null){
-                ew.and(e->e.isNull(PmInfoDept::getIdIpaMain).or().eq(PmInfoDept::getIdIpaMain, entity.getId()));
-            }else {
+            if (entity.getId() != null) {
+                ew.and(e -> e.isNull(PmInfoDept::getIdIpaMain).or().eq(PmInfoDept::getIdIpaMain, entity.getId()));
+            } else {
                 ew.isNull(PmInfoDept::getIdIpaMain);
             }
         }
@@ -151,9 +153,9 @@ public class IpaManageMainController extends BaseWebController {
         if (entity.getIdRbacDepartment() != null) {
             ew.eq(DailyWorkStatusPackage::getIdRbacDepartment, entity.getIdRbacDepartment());
         }
-        if (entity.getId() != null){
-            ew.and(e->e.isNull(DailyWorkStatusPackage::getIdIpaMain).or().eq(DailyWorkStatusPackage::getIdIpaMain, entity.getId()));
-        }else {
+        if (entity.getId() != null) {
+            ew.and(e -> e.isNull(DailyWorkStatusPackage::getIdIpaMain).or().eq(DailyWorkStatusPackage::getIdIpaMain, entity.getId()));
+        } else {
             ew.isNull(DailyWorkStatusPackage::getIdIpaMain);
         }
         ew.orderByDesc(DailyWorkStatusPackage::getGmtSubmit);
@@ -197,9 +199,9 @@ public class IpaManageMainController extends BaseWebController {
                 ew.eq(IplManageMain::getIdRbacDepartmentDuty, entity.getIdRbacDepartmentDuty());
             }
         }
-        if (entity.getId() != null){
-            ew.and(e->e.isNull(IplManageMain::getIdIpaMain).or().eq(IplManageMain::getIdIpaMain, entity.getId()));
-        }else {
+        if (entity.getId() != null) {
+            ew.and(e -> e.isNull(IplManageMain::getIdIpaMain).or().eq(IplManageMain::getIdIpaMain, entity.getId()));
+        } else {
             ew.isNull(IplManageMain::getIdIpaMain);
         }
         //排序
@@ -280,9 +282,8 @@ public class IpaManageMainController extends BaseWebController {
         }
 
         // 创建文件夹
-        URL resource = Thread.currentThread().getContextClassLoader().getResource("");
-        String basePath = resource.getPath() + UUIDUtil.getUUID() + "/";
-        logger.info(basePath);
+        String basePath = systemConfiguration.getUploadPath() + File.separator + "bachExport" + File.separator + UUIDUtil.getUUID() + File.separator ;
+        logger.info("basePath:" + basePath);
         String filePaht = basePath + "创新发布/";
         ZipUtil.createFile(filePaht + "工作动态/");
         ZipUtil.createFile(filePaht + "创新发布清单/");
@@ -323,7 +324,7 @@ public class IpaManageMainController extends BaseWebController {
         list.forEach(e -> {
             XSSFWorkbook wb;
             String snapshot = e.getSnapshot();
-            switch (BizTypeEnum.of(e.getBizType())){
+            switch (BizTypeEnum.of(e.getBizType())) {
                 case INTELLIGENCE: // 组织部
                     wb = ExcelExportByTemplate.getWorkBook("template/od.xls");
                     ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getOdData(e.getSnapshot()), e.getNotes(), wb);
@@ -386,11 +387,11 @@ public class IpaManageMainController extends BaseWebController {
                 List<List<Object>> data = pmInfoDeptService.getSatbData(dataList);
                 wb = ExcelExportByTemplate.getWorkBook("template/ly.xlsx");
                 ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-            } else if(BizTypeEnum.INVESTMENT.equals(e.getBizType())) {
+            } else if (BizTypeEnum.INVESTMENT.equals(e.getBizType())) {
                 List<List<Object>> data = pmInfoDeptService.getYzgtData(e.getSnapShot());
                 wb = ExcelExportByTemplate.getWorkBook("template/invest.xlsx");
                 ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-            }else {
+            } else {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
             }
 
@@ -408,10 +409,10 @@ public class IpaManageMainController extends BaseWebController {
      */
     @PostMapping("/updatePublishResult")
     public Mono<ResponseEntity<SystemResponse<Object>>> updatePublishResult(@RequestBody IpaManageMain entity) {
-        if (StringUtils.isBlank(entity.getPublishResult())){
+        if (StringUtils.isBlank(entity.getPublishResult())) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
-        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null){
+        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         ipaManageMainService.updatePublishResult(entity);
@@ -429,31 +430,31 @@ public class IpaManageMainController extends BaseWebController {
     @PostMapping("/getPublisResult/{id}")
     public Mono<ResponseEntity<SystemResponse<Object>>> getPublisResult(@PathVariable("id") Long id) {
         IpaManageMain byId = ipaManageMainService.getById(id);
-        if (byId == null){
+        if (byId == null) {
             return success();
         }
         String participateMedia = byId.getParticipateMedia();
         String publishMedia = byId.getPublishMedia();
         Set<Long> idMedias = new HashSet<>();
-        if (StringUtils.isNotBlank(participateMedia)){
+        if (StringUtils.isNotBlank(participateMedia)) {
             idMedias.addAll(Arrays.asList(participateMedia.split(",")).stream().map(s -> Long.parseLong(s)).collect(Collectors.toSet()));
         }
-        if (StringUtils.isNotBlank(publishMedia)){
+        if (StringUtils.isNotBlank(publishMedia)) {
             idMedias.addAll(Arrays.asList(publishMedia.split(",")).stream().map(s -> Long.parseLong(s)).collect(Collectors.toSet()));
         }
         StringBuilder participateMediaName = new StringBuilder();
         StringBuilder publishMediaName = new StringBuilder();
-        if (CollectionUtils.isNotEmpty(idMedias)){
+        if (CollectionUtils.isNotEmpty(idMedias)) {
             List<MediaManager> list = mediaManagerService.list(new LambdaQueryWrapper<MediaManager>().in(MediaManager::getId, idMedias));
             Map<Long, String> collect = list.stream().collect(Collectors.toMap(MediaManager::getId, MediaManager::getMediaName));
 
-            if (StringUtils.isNotBlank(participateMedia)){
-                Arrays.stream(participateMedia.split(",")).forEach(e->{
+            if (StringUtils.isNotBlank(participateMedia)) {
+                Arrays.stream(participateMedia.split(",")).forEach(e -> {
                     participateMediaName.append(collect.get(Long.parseLong(e)) + ",");
                 });
             }
-            if (StringUtils.isNotBlank(publishMedia)){
-                Arrays.stream(publishMedia.split(",")).forEach(e->{
+            if (StringUtils.isNotBlank(publishMedia)) {
+                Arrays.stream(publishMedia.split(",")).forEach(e -> {
                     publishMediaName.append(collect.get(Long.parseLong(e)) + ",");
                 });
             }
@@ -476,7 +477,7 @@ public class IpaManageMainController extends BaseWebController {
      */
     @PostMapping("/publish")
     public Mono<ResponseEntity<SystemResponse<Object>>> publish(@RequestBody IpaManageMain entity) {
-        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null){
+        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
 
@@ -499,7 +500,7 @@ public class IpaManageMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
         int count = ipaManageMainService.count(new LambdaQueryWrapper<IpaManageMain>().in(IpaManageMain::getId, ids).ne(IpaManageMain::getStatus, IpaStatusEnum.UNPUBLISH));
-        if (count > 0){
+        if (count > 0) {
             return error(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION, "非待发布状态数据不允许删除");
         }
         ipaManageMainService.delByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
@@ -564,10 +565,10 @@ public class IpaManageMainController extends BaseWebController {
             // 编辑
         } else {
             IpaManageMain byId = ipaManageMainService.getById(entity.getId());
-            if (byId == null){
+            if (byId == null) {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
             }
-            if (!IpaStatusEnum.UNPUBLISH.getId().equals(byId.getStatus())){
+            if (!IpaStatusEnum.UNPUBLISH.getId().equals(byId.getStatus())) {
                 return error(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION, "非待发布状态数据不允许编辑");
             }
             ipaManageMainService.edit(entity);
