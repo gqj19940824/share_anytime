@@ -162,16 +162,16 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         Long customerIdRbacDepartment = customer.getIdRbacDepartment();
 
         if (IplStatusEnum.DONE.getId().equals(dealStatus)) {
-            // 如果协同单位关闭了协同则修改协同状态
-            LambdaUpdateWrapper<IplAssist> qw = new LambdaUpdateWrapper<>();
-            qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, iplLog.getIdIplMain()).eq(IplAssist::getIdRbacDepartmentAssist, customerIdRbacDepartment);
-            iplAssistService.update(IplAssist.newInstance().dealStatus(dealStatus).build(), qw);
             // 删除redis超时
             redisSubscribeService.removeRecordInfo(idIplMain + "-" + customerIdRbacDepartment, idRbacDepartmentDuty, bizType);
         } else {
             // 更新redis超时
             redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + customerIdRbacDepartment, ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty, bizType);
         }
+
+        LambdaUpdateWrapper<IplAssist> qw = new LambdaUpdateWrapper<>();
+        qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, iplLog.getIdIplMain()).eq(IplAssist::getIdRbacDepartmentAssist, customerIdRbacDepartment);
+        iplAssistService.update(IplAssist.newInstance().dealStatus(dealStatus).processStatus(ProcessStatusEnum.NORMAL.getId()).build(), qw);
 
         // 记录日志
         iplLog.setIdRbacDepartmentDuty(idRbacDepartmentDuty);
