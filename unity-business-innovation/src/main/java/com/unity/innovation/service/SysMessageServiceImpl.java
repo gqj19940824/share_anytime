@@ -197,6 +197,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
      */
     @Transactional(rollbackFor = Exception.class)
     public void addInventoryMessage(InventoryMessage msg) {
+        log.debug("======《addInventoryMessage》--入参数据 {}",GsonUtils.format(msg));
         //保存系统消息
         String title = MessageConstants.addInventoryMsgTitleMap.get(msg.getBizType().toString().concat(msg.getFlowStatus().toString()));
         if (StringUtils.isBlank(title)) {
@@ -237,6 +238,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
      */
     @Transactional(rollbackFor = Exception.class)
     public void addInventoryHelpMessage(InventoryMessage msg) {
+        log.debug("======《addInventoryHelpMessage》--入参数据 {}",GsonUtils.format(msg));
         //保存系统消息
         String title = MessageConstants.addInventoryHelpMsgTitleMap.get(msg.getBizType().toString().concat(msg.getFlowStatus().toString()));
         if (StringUtils.isBlank(title)) {
@@ -276,6 +278,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
      */
     @Transactional(rollbackFor = Exception.class)
     public void addReviewMessage(ReviewMessage msg) {
+        log.debug("======《addReviewMessage》--入参数据 {}",GsonUtils.format(msg));
         String title = MessageConstants.reviewMsgTitleMap.get(msg.getFlowStatus().toString());
         //提交审核 标题包含单位名称
         if (msg.getFlowStatus().equals(YesOrNoEnum.YES.getType())) {
