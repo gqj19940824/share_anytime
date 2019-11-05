@@ -301,7 +301,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                     .message("未获取到对象").build();
         }
-        vo.setIdRbacDepartmentName(InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
+        vo.setIdRbacDepartmentName(InnovationUtil.getDeptNameById(vo.getIdRbacDepartmentDuty()));
         //来源名称
         if (vo.getSource() != null) {
             if (SourceEnum.SELF.getId().equals(vo.getSource())) {
