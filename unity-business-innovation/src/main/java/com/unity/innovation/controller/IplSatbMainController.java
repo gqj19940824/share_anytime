@@ -255,7 +255,6 @@ public class IplSatbMainController extends BaseWebController {
      */
     @GetMapping("/downloadIplSatbMainDataToZip/{id}")
     public Mono<ResponseEntity<byte[]>> downloadIplSatbMainDataToZip(@PathVariable("id") Long id) {
-        check();
         if(id == null){
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
@@ -277,7 +276,6 @@ public class IplSatbMainController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> downloadIplSatbMainDataPkgToExcel(@PathVariable("id") Long id,
                                                                           HttpServletRequest request,
                                                                           HttpServletResponse response) {
-        check();
         if(id == null){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到成长目标投资清单发布ID");
         }

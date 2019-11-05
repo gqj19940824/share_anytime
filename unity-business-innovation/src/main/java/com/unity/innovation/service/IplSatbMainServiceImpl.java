@@ -258,14 +258,13 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                         .build());
             }
         } else {
+            //编辑时必须登录
             Customer customer = LoginContextHolder.getRequestAttributes();
             if (!customer.getTypeRangeList().contains(BizTypeEnum.GROW.getType())) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
                         .message("当前账号的单位不可操作数据").build();
             }
-            //编辑时必须登录
-            LoginContextHolder.getRequestAttributes();
             //校验当前用户是否可操作
             InnovationUtil.check(BizTypeEnum.GROW.getType());
             IplSatbMain main = this.getById(entity.getId());
@@ -289,27 +288,27 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
             // 更新超时时间
             // 设置处理超时时间
             if (IplStatusEnum.UNDEAL.getId().equals(status)) {
-                redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
-                        ListTypeConstants.DEAL_OVER_TIME,entity.getIdRbacDepartmentDuty(),BizTypeEnum.GROW.getType());
+                redisSubscribeService.saveSubscribeInfo(main.getId().toString().concat("-0"),
+                        ListTypeConstants.DEAL_OVER_TIME,main.getIdRbacDepartmentDuty(),BizTypeEnum.GROW.getType());
                 // 设置更新超时时间
             } else if (IplStatusEnum.DEALING.getId().equals(status)) {
-                redisSubscribeService.saveSubscribeInfo(entity.getId().toString().concat("-0"),
-                        ListTypeConstants.UPDATE_OVER_TIME,entity.getIdRbacDepartmentDuty(),BizTypeEnum.GROW.getType());
+                redisSubscribeService.saveSubscribeInfo(main.getId().toString().concat("-0"),
+                        ListTypeConstants.UPDATE_OVER_TIME,main.getIdRbacDepartmentDuty(),BizTypeEnum.GROW.getType());
                 // 非"待处理"状态才记录日志
                 Integer lastDealStatus = iplLogService.getLastDealStatus(entity.getId(), BizTypeEnum.GROW.getType());
                 iplLogService.save(IplLog.newInstance()
-                        .idIplMain(entity.getId())
+                        .idIplMain(main.getId())
                         .idRbacDepartmentAssist(0L)
                         .processInfo("更新基本信息")
-                        .idRbacDepartmentDuty(entity.getIdRbacDepartmentDuty())
+                        .idRbacDepartmentDuty(main.getIdRbacDepartmentDuty())
                         .dealStatus(lastDealStatus)
                         .build());
                 //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
-                List<IplAssist> assists = iplAssistService.getAssists(BizTypeEnum.GROW.getType(), entity.getId());
+                List<IplAssist> assists = iplAssistService.getAssists(BizTypeEnum.GROW.getType(), main.getId());
                 List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
                 sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
-                        .sourceId(entity.getId())
-                        .idRbacDepartment(entity.getIdRbacDepartmentDuty())
+                        .sourceId(main.getId())
+                        .idRbacDepartment(main.getIdRbacDepartmentDuty())
                         .dataSourceClass(SysMessageDataSourceClassEnum.TARGET.getId())
                         .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
                         .title(entity.getEnterpriseName())
