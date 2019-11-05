@@ -282,6 +282,7 @@ public class IpaManageMainController extends BaseWebController {
         // 创建文件夹
         URL resource = Thread.currentThread().getContextClassLoader().getResource("");
         String basePath = resource.getPath() + UUIDUtil.getUUID() + "/";
+        logger.info(basePath);
         String filePaht = basePath + "创新发布/";
         ZipUtil.createFile(filePaht + "工作动态/");
         ZipUtil.createFile(filePaht + "创新发布清单/");
@@ -289,18 +290,21 @@ public class IpaManageMainController extends BaseWebController {
 
         Long idIpaMain = entity.getId();
         // 创新发布清单的excel
+        logger.info("下载创新发布清单excel");
         List<IplManageMain> iplList = iplManageMainService
                 .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(iplList)) {
             iplExcel(iplList, filePaht);
         }
         // 工作动态的excel
+        logger.info("下载工作动态excel");
         List<DailyWorkStatusPackage> dwspList = dailyWorkStatusPackageService
                 .list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(dwspList)) {
             dwsExcel(dwspList, filePaht);
         }
         // 与会信息的excel
+        logger.info("下载与会信息excel");
         List<PmInfoDept> pmpList = pmInfoDeptService
                 .list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(pmpList)) {
