@@ -94,13 +94,15 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         }
         lqw.orderByDesc(IplSuggestion::getGmtCreate);
         IPage<IplSuggestion> list = page(search.getPageable(), lqw);
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType() + ""));
+        String name = InnovationUtil.getDeptNameById(departmentId);
         list.getRecords().forEach(is -> {
             //来源名称
             if (is.getSource() != null) {
                 if (SourceEnum.ENTERPRISE.getId().equals(is.getSource())) {
                     is.setSourceName(SourceEnum.ENTERPRISE.getName());
                 } else if (SourceEnum.SELF.getId().equals(is.getSource())) {
-                    is.setSourceName("纪检组");
+                    is.setSourceName(name);
                 }
             }
             //状态名称
