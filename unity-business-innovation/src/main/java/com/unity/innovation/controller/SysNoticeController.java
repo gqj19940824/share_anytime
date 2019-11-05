@@ -106,7 +106,7 @@ public class SysNoticeController extends BaseWebController {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message(result).build();
         }
-        ValidFieldUtil.checkReg(entity, ValidFieldFactory.lengthReg(1, 20, "标题不能超过50字符!", SysNotice::getTitle));
+        ValidFieldUtil.checkReg(entity, ValidFieldFactory.lengthReg(1, 50, "标题不能超过50字符!", SysNotice::getTitle));
         if (entity.getId() != null) {
             SysNotice old = service.getById(entity.getId());
             if (YesOrNoEnum.YES.getType() == old.getIsSend()) {

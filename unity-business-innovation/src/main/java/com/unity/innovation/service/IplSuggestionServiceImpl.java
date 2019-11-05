@@ -94,13 +94,15 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         }
         lqw.orderByDesc(IplSuggestion::getGmtCreate);
         IPage<IplSuggestion> list = page(search.getPageable(), lqw);
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType() + ""));
+        String name = InnovationUtil.getDeptNameById(departmentId);
         list.getRecords().forEach(is -> {
             //来源名称
             if (is.getSource() != null) {
                 if (SourceEnum.ENTERPRISE.getId().equals(is.getSource())) {
                     is.setSourceName(SourceEnum.ENTERPRISE.getName());
                 } else if (SourceEnum.SELF.getId().equals(is.getSource())) {
-                    is.setSourceName("纪检组");
+                    is.setSourceName(name);
                 }
             }
             //状态名称
@@ -164,14 +166,14 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             //待处理时
             if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
                 if (ProcessStatusEnum.DEAL_OVERTIME.getId().equals(vo.getProcessStatus())){
-                    vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+                    entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
                 }
                 redisSubscribeService.saveSubscribeInfo(vo.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, departmentId, BizTypeEnum.SUGGESTION.getType());
             }else if (IplStatusEnum.DEALING.getId().equals(vo.getStatus())) {
                 redisSubscribeService.saveSubscribeInfo(vo.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, departmentId, BizTypeEnum.SUGGESTION.getType());
                 //处理中 如果超时 则置为进展正常
                 if (ProcessStatusEnum.UPDATE_OVERTIME.getId().equals(vo.getProcessStatus())){
-                    vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+                    entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
                 }
                 IplLog iplLog = IplLog.newInstance().build();
                 //纪检组 意见建议id

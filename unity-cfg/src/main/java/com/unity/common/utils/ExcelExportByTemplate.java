@@ -80,7 +80,7 @@ public class ExcelExportByTemplate {
         XSSFWorkbook wb = null;
         try {
             //excel模板路径
-            InputStream in = new FileInputStream(r.getFile());
+            InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(templateAddress);
             //读取excel模板
             wb = new XSSFWorkbook(in);
         } catch (FileNotFoundException e) {

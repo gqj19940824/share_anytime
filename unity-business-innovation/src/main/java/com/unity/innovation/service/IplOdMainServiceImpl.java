@@ -137,13 +137,15 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             list = page(search.getPageable(), lqw);
             List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, SysCfgEnum.THREE.getId()));
             Map<Long, String> collect = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
+            Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.INTELLIGENCE.getType() + ""));
+            String name = InnovationUtil.getDeptNameById(departmentId);
             list.getRecords().forEach(is -> {
                 //来源名称
                 if (is.getSource() != null) {
                     if (SourceEnum.ENTERPRISE.getId().equals(is.getSource())) {
                         is.setSourceName(SourceEnum.ENTERPRISE.getName());
                     } else if (SourceEnum.SELF.getId().equals(is.getSource())) {
-                        is.setSourceName("组织部");
+                        is.setSourceName(name);
                     }
                 }
                 //备注名称

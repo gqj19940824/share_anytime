@@ -171,6 +171,9 @@ public interface UserDao extends BaseDao<User> {
             "</script>")
     List<User> getUserIdsByRoleIdAndDepartmentIds(Map<String,Object> map);
 
+
+
+
     /**
      * 根据单位id修改对应用户状态
      *

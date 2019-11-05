@@ -180,6 +180,10 @@ public class TopicMessageListener implements MessageListener {
                 IplSatbMain iplSatbMain = new IplSatbMain();
                 iplSatbMain.setProcessStatus(processStatus);
                 iplSatbMainService.update(iplSatbMain, new LambdaQueryWrapper<IplSatbMain>().eq(IplSatbMain::getId, idIplMain));
+            } else if (BizTypeEnum.SUGGESTION.getType().equals(bizType)) {
+                IplSuggestion iplSuggestion = new IplSuggestion();
+                iplSuggestion.setProcessStatus(processStatus);
+                iplSuggestionService.update(iplSuggestion, new LambdaQueryWrapper<IplSuggestion>().eq(IplSuggestion::getId, idIplMain));
             }
             // 更新协同表
         } else {

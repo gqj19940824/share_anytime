@@ -5,10 +5,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.DicConstants;
-import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -20,7 +20,10 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.*;
 import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.*;
+import com.unity.innovation.enums.BizTypeEnum;
+import com.unity.innovation.enums.InfoTypeEnum;
+import com.unity.innovation.enums.IpaStatusEnum;
+import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.*;
 import com.unity.innovation.util.DownloadUtil;
 import com.unity.innovation.util.InnovationUtil;
@@ -38,7 +41,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,6 +68,8 @@ public class IpaManageMainController extends BaseWebController {
     private DicUtils dicUtils;
     @Resource
     private MediaManagerServiceImpl mediaManagerService;
+    @Resource
+    private SystemConfiguration systemConfiguration;
 
     /**
      * 入会一次包列表
@@ -100,9 +104,9 @@ public class IpaManageMainController extends BaseWebController {
             if (entity.getIdRbacDepartment() != null) {
                 ew.eq(PmInfoDept::getIdRbacDepartment, entity.getIdRbacDepartment());
             }
-            if (entity.getId() != null){
-                ew.and(e->e.isNull(PmInfoDept::getIdIpaMain).or().eq(PmInfoDept::getIdIpaMain, entity.getId()));
-            }else {
+            if (entity.getId() != null) {
+                ew.and(e -> e.isNull(PmInfoDept::getIdIpaMain).or().eq(PmInfoDept::getIdIpaMain, entity.getId()));
+            } else {
                 ew.isNull(PmInfoDept::getIdIpaMain);
             }
         }
@@ -149,9 +153,9 @@ public class IpaManageMainController extends BaseWebController {
         if (entity.getIdRbacDepartment() != null) {
             ew.eq(DailyWorkStatusPackage::getIdRbacDepartment, entity.getIdRbacDepartment());
         }
-        if (entity.getId() != null){
-            ew.and(e->e.isNull(DailyWorkStatusPackage::getIdIpaMain).or().eq(DailyWorkStatusPackage::getIdIpaMain, entity.getId()));
-        }else {
+        if (entity.getId() != null) {
+            ew.and(e -> e.isNull(DailyWorkStatusPackage::getIdIpaMain).or().eq(DailyWorkStatusPackage::getIdIpaMain, entity.getId()));
+        } else {
             ew.isNull(DailyWorkStatusPackage::getIdIpaMain);
         }
         ew.orderByDesc(DailyWorkStatusPackage::getGmtSubmit);
@@ -195,9 +199,9 @@ public class IpaManageMainController extends BaseWebController {
                 ew.eq(IplManageMain::getIdRbacDepartmentDuty, entity.getIdRbacDepartmentDuty());
             }
         }
-        if (entity.getId() != null){
-            ew.and(e->e.isNull(IplManageMain::getIdIpaMain).or().eq(IplManageMain::getIdIpaMain, entity.getId()));
-        }else {
+        if (entity.getId() != null) {
+            ew.and(e -> e.isNull(IplManageMain::getIdIpaMain).or().eq(IplManageMain::getIdIpaMain, entity.getId()));
+        } else {
             ew.isNull(IplManageMain::getIdIpaMain);
         }
         //排序
@@ -278,66 +282,34 @@ public class IpaManageMainController extends BaseWebController {
         }
 
         // 创建文件夹
-        URL resource = Thread.currentThread().getContextClassLoader().getResource("");
-        String basePath = resource.getPath() + UUIDUtil.getUUID() + "/";
+        String basePath = systemConfiguration.getUploadPath() + File.separator + "bachExport" + File.separator + UUIDUtil.getUUID() + File.separator ;
+        logger.info("basePath:" + basePath);
         String filePaht = basePath + "创新发布/";
-        //创建文件夹;
         ZipUtil.createFile(filePaht + "工作动态/");
         ZipUtil.createFile(filePaht + "创新发布清单/");
         ZipUtil.createFile(filePaht + "与会企业信息/");
 
         Long idIpaMain = entity.getId();
         // 创新发布清单的excel
-        iplExcel(idIpaMain, filePaht);
+        logger.info("下载创新发布清单excel");
+        List<IplManageMain> iplList = iplManageMainService
+                .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
+        if (CollectionUtils.isNotEmpty(iplList)) {
+            iplExcel(iplList, filePaht);
+        }
         // 工作动态的excel
+        logger.info("下载工作动态excel");
         List<DailyWorkStatusPackage> dwspList = dailyWorkStatusPackageService
                 .list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(dwspList)) {
-            dwspList.forEach(e -> {
-                e.setDataList(dailyWorkStatusPackageService.addDataList(e));
-                e.getDataList().forEach(d ->
-                        {
-                            if (CollectionUtils.isNotEmpty(d.getAttachmentList())) {
-                                d.setAttachmentCode(d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n")));
-                            } else {
-                                d.setAttachmentCode(" ");
-                            }
-                        }
-                );
-                // 发改局导出
-                List<List<Object>> data = iplManageMainService.getDwspData(e.getDataList());
-                XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/dwsp.xlsx");
-                ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                ExcelExportByTemplate.downloadToPath(filePaht + "工作动态/" + e.getTitle() + ".xlsx", wb);
-            });
+            dwsExcel(dwspList, filePaht);
         }
         // 与会信息的excel
+        logger.info("下载与会信息excel");
         List<PmInfoDept> pmpList = pmInfoDeptService
                 .list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(pmpList)) {
-            pmpList.forEach(e -> {
-                XSSFWorkbook wb;
-                // 入区
-                PmInfoDept pmInfoDept = pmInfoDeptService.detailById(e.getId());
-                if (BizTypeEnum.RQDEPTINFO.equals(e.getBizType())) {
-                    List<InfoDeptYzgt> dataList = pmInfoDept.getDataList();
-                    dataList.forEach(d -> d.setAttachmentCode(
-                            d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
-                    List<List<Object>> data = pmInfoDeptService.getYzgtData(dataList);
-                    wb = ExcelExportByTemplate.getWorkBook("template/rq.xlsx");
-                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                    //  路演
-                } else if (BizTypeEnum.LYDEPTINFO.equals(e.getBizType())) {
-                    List<InfoDeptSatb> dataList = pmInfoDept.getDataList();
-                    List<List<Object>> data = pmInfoDeptService.getSatbData(dataList);
-                    wb = ExcelExportByTemplate.getWorkBook("template/ly.xlsx");
-                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                } else if(BizTypeEnum.INVESTMENT.equals(e.getBizType())) {
-                    List<List<Object>> data = pmInfoDeptService.getYzgtData(e.getSnapShot());
-                    wb = ExcelExportByTemplate.getWorkBook("template/invest.xlsx");
-                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                }
-            });
+            pmExcel(pmpList, filePaht);
         }
 
         //生成.zip文件;
@@ -348,40 +320,83 @@ public class IpaManageMainController extends BaseWebController {
         ZipUtil.delFile(new File(basePath));
     }
 
-    private void iplExcel(Long idIpaMain, String filePaht) {
-        List<IplManageMain> list = iplManageMainService
-                .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
-        if (CollectionUtils.isNotEmpty(list)) {
-            list.forEach(e -> {
-                XSSFWorkbook wb;
-                String snapshot = e.getSnapshot();
-                // 发改局导出
-                if (InnovationConstant.DEPARTMENT_DARB_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = iplManageMainService.getDarbData(snapshot);
-                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
-                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
-                    //  科技局导出
-                } else if (InnovationConstant.DEPARTMENT_SATB_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = iplManageMainService.getSatbData(snapshot);
-                    wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
-                    ExcelExportByTemplate.setData(4, e.getTitle(), data, e.getNotes(), wb);
-                    // 组织部导出
-                } else if (InnovationConstant.DEPARTMENT_OD_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = iplManageMainService.getOdData(e.getSnapshot());
+    private void iplExcel(List<IplManageMain> list, String filePaht) {
+        list.forEach(e -> {
+            XSSFWorkbook wb;
+            String snapshot = e.getSnapshot();
+            switch (BizTypeEnum.of(e.getBizType())) {
+                case INTELLIGENCE: // 组织部
                     wb = ExcelExportByTemplate.getWorkBook("template/od.xls");
-                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                    //  企服局导出
-                } else if (InnovationConstant.DEPARTMENT_ESB_ID.equals(e.getIdRbacDepartmentDuty())) {
-                    List<List<Object>> data = iplManageMainService.getEbsData(e.getSnapshot());
+                    ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getOdData(e.getSnapshot()), e.getNotes(), wb);
+                    break;
+                case ENTERPRISE: // 企服局
                     wb = ExcelExportByTemplate.getWorkBook("template/esb.xls");
-                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                } else {
+                    ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getEbsData(e.getSnapshot()), e.getNotes(), wb);
+                    break;
+                case GROW: // 科技局
+                    wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
+                    ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getSatbData(snapshot), e.getNotes(), wb);
+                    break;
+                case CITY: // 发改局
+                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                    ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getDarbData(snapshot), e.getNotes(), wb);
+                    break;
+                default:
                     throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
-                }
+            }
 
-                ExcelExportByTemplate.downloadToPath(filePaht + "创新发布清单/" + e.getTitle() + ".xlsx", wb);
-            });
-        }
+            ExcelExportByTemplate.downloadToPath(filePaht + "创新发布清单/" + e.getTitle() + ".xlsx", wb);
+        });
+    }
+
+    private void dwsExcel(List<DailyWorkStatusPackage> list, String filePaht) {
+        list.forEach(e -> {
+            e.setDataList(dailyWorkStatusPackageService.addDataList(e));
+            e.getDataList().forEach(d ->
+                    {
+                        if (CollectionUtils.isNotEmpty(d.getAttachmentList())) {
+                            d.setAttachmentCode(d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n")));
+                        } else {
+                            d.setAttachmentCode(" ");
+                        }
+                    }
+            );
+            // 发改局导出
+            List<List<Object>> data = iplManageMainService.getDwspData(e.getDataList());
+            XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/dwsp.xlsx");
+            ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
+            ExcelExportByTemplate.downloadToPath(filePaht + "工作动态/" + e.getTitle() + ".xlsx", wb);
+        });
+    }
+
+    private void pmExcel(List<PmInfoDept> list, String filePaht) {
+        list.forEach(e -> {
+            XSSFWorkbook wb;
+            // 入区
+            PmInfoDept pmInfoDept = pmInfoDeptService.detailById(e.getId());
+            if (BizTypeEnum.RQDEPTINFO.equals(e.getBizType())) {
+                List<InfoDeptYzgt> dataList = pmInfoDept.getDataList();
+                dataList.forEach(d -> d.setAttachmentCode(
+                        d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
+                List<List<Object>> data = pmInfoDeptService.getYzgtData(dataList);
+                wb = ExcelExportByTemplate.getWorkBook("template/rq.xlsx");
+                ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
+                //  路演
+            } else if (BizTypeEnum.LYDEPTINFO.equals(e.getBizType())) {
+                List<InfoDeptSatb> dataList = pmInfoDept.getDataList();
+                List<List<Object>> data = pmInfoDeptService.getSatbData(dataList);
+                wb = ExcelExportByTemplate.getWorkBook("template/ly.xlsx");
+                ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
+            } else if (BizTypeEnum.INVESTMENT.equals(e.getBizType())) {
+                List<List<Object>> data = pmInfoDeptService.getYzgtData(e.getSnapShot());
+                wb = ExcelExportByTemplate.getWorkBook("template/invest.xlsx");
+                ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
+            } else {
+                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
+            }
+
+            ExcelExportByTemplate.downloadToPath(filePaht + "与会企业信息/" + e.getTitle() + ".xlsx", wb);
+        });
     }
 
     /**
@@ -394,10 +409,10 @@ public class IpaManageMainController extends BaseWebController {
      */
     @PostMapping("/updatePublishResult")
     public Mono<ResponseEntity<SystemResponse<Object>>> updatePublishResult(@RequestBody IpaManageMain entity) {
-        if (StringUtils.isBlank(entity.getPublishResult())){
+        if (StringUtils.isBlank(entity.getPublishResult())) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
-        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null){
+        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         ipaManageMainService.updatePublishResult(entity);
@@ -415,31 +430,31 @@ public class IpaManageMainController extends BaseWebController {
     @PostMapping("/getPublisResult/{id}")
     public Mono<ResponseEntity<SystemResponse<Object>>> getPublisResult(@PathVariable("id") Long id) {
         IpaManageMain byId = ipaManageMainService.getById(id);
-        if (byId == null){
+        if (byId == null) {
             return success();
         }
         String participateMedia = byId.getParticipateMedia();
         String publishMedia = byId.getPublishMedia();
         Set<Long> idMedias = new HashSet<>();
-        if (StringUtils.isNotBlank(participateMedia)){
+        if (StringUtils.isNotBlank(participateMedia)) {
             idMedias.addAll(Arrays.asList(participateMedia.split(",")).stream().map(s -> Long.parseLong(s)).collect(Collectors.toSet()));
         }
-        if (StringUtils.isNotBlank(publishMedia)){
+        if (StringUtils.isNotBlank(publishMedia)) {
             idMedias.addAll(Arrays.asList(publishMedia.split(",")).stream().map(s -> Long.parseLong(s)).collect(Collectors.toSet()));
         }
         StringBuilder participateMediaName = new StringBuilder();
         StringBuilder publishMediaName = new StringBuilder();
-        if (CollectionUtils.isNotEmpty(idMedias)){
+        if (CollectionUtils.isNotEmpty(idMedias)) {
             List<MediaManager> list = mediaManagerService.list(new LambdaQueryWrapper<MediaManager>().in(MediaManager::getId, idMedias));
             Map<Long, String> collect = list.stream().collect(Collectors.toMap(MediaManager::getId, MediaManager::getMediaName));
 
-            if (StringUtils.isNotBlank(participateMedia)){
-                Arrays.stream(participateMedia.split(",")).forEach(e->{
+            if (StringUtils.isNotBlank(participateMedia)) {
+                Arrays.stream(participateMedia.split(",")).forEach(e -> {
                     participateMediaName.append(collect.get(Long.parseLong(e)) + ",");
                 });
             }
-            if (StringUtils.isNotBlank(publishMedia)){
-                Arrays.stream(publishMedia.split(",")).forEach(e->{
+            if (StringUtils.isNotBlank(publishMedia)) {
+                Arrays.stream(publishMedia.split(",")).forEach(e -> {
                     publishMediaName.append(collect.get(Long.parseLong(e)) + ",");
                 });
             }
@@ -462,7 +477,7 @@ public class IpaManageMainController extends BaseWebController {
      */
     @PostMapping("/publish")
     public Mono<ResponseEntity<SystemResponse<Object>>> publish(@RequestBody IpaManageMain entity) {
-        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null){
+        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
 
@@ -485,7 +500,7 @@ public class IpaManageMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
         int count = ipaManageMainService.count(new LambdaQueryWrapper<IpaManageMain>().in(IpaManageMain::getId, ids).ne(IpaManageMain::getStatus, IpaStatusEnum.UNPUBLISH));
-        if (count > 0){
+        if (count > 0) {
             return error(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION, "非待发布状态数据不允许删除");
         }
         ipaManageMainService.delByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
@@ -550,10 +565,10 @@ public class IpaManageMainController extends BaseWebController {
             // 编辑
         } else {
             IpaManageMain byId = ipaManageMainService.getById(entity.getId());
-            if (byId == null){
+            if (byId == null) {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
             }
-            if (!IpaStatusEnum.UNPUBLISH.getId().equals(byId.getStatus())){
+            if (!IpaStatusEnum.UNPUBLISH.getId().equals(byId.getStatus())) {
                 return error(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION, "非待发布状态数据不允许编辑");
             }
             ipaManageMainService.edit(entity);

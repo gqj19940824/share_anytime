@@ -39,10 +39,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
@@ -590,8 +587,14 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
     public Map<Long,List<Long>> listUserInDepartment(List<Long> departmentIds) {
 
         if (CollectionUtils.isNotEmpty(departmentIds)) {
-            List<User> userList = baseMapper.selectList(new LambdaQueryWrapper<User>().in(User::getIdRbacDepartment, departmentIds).orderByDesc(User::getGmtCreate));
-           return userList.stream().collect(groupingBy(User::getIdRbacDepartment, mapping(User::getId, toList())));
+
+            List<Dic> dicList = dicUtils.getDicListByGroupCodeAndDicCodes(DicConstants.ROLE_GROUP, Lists.newArrayList(DicConstants.PD_A_ROLE, DicConstants.PD_B_ROLE, DicConstants.PD_C_ROLE));
+            //宣传部的三种角色
+            List<Long> pdRules = dicList.stream().map(Dic::getDicValue).map(Long::parseLong).collect(toList());
+            //所有拥有宣传部角色的userId集合
+            Set<Long> userIds = userRoleService.list(new LambdaQueryWrapper<UserRole>().in(UserRole::getIdRbacRole, pdRules)).stream().map(UserRole::getIdRbacUser).collect(toSet());
+            List<User> userList = super.list(new LambdaQueryWrapper<User>().in(User::getIdRbacDepartment,departmentIds).notIn(User::getId,userIds));
+            return userList.stream().collect(groupingBy(User::getIdRbacDepartment, mapping(User::getId, toList())));
         }
         return new HashMap<>(InnovationConstant.HASHMAP_DEFAULT_LENGTH);
     }
