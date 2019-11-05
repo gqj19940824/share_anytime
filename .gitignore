@@ -10,5 +10,4 @@ classes
 build
 .gradle
 .idea
-.gitignore
 gradle

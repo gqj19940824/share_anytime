@@ -34,8 +34,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,7 +73,7 @@ public class IplDarbMainController extends BaseWebController {
      * @since 2019/10/19 5:04 下午
      */
     @GetMapping("exportExcel")
-    public void outputEXcel(HttpServletRequest request, HttpServletResponse response, @RequestParam("id") Long id) {
+    public Mono<ResponseEntity<byte[]>> outputEXcel(@RequestParam("id") Long id) {
         InnovationUtil.check(BizTypeEnum.CITY.getType());
         IplManageMain iplManageMain = iplManageMainService.getById(id);
         // 组装excel需要的数据
@@ -85,7 +83,7 @@ public class IplDarbMainController extends BaseWebController {
         // 从excel的第5行开始插入数据，并给excel的sheet和标题命名
         ExcelExportByTemplate.setData(4, iplManageMain.getTitle(), data, iplManageMain.getNotes(), wb);
         // 将生成好的excel响应给用户
-        ExcelExportByTemplate.download(request, response, wb, iplManageMain.getTitle());
+        return ExcelExportByTemplate.download(wb, iplManageMain.getTitle());
     }
 
     /**

@@ -132,7 +132,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
                     .sourceId(idIplMain)
                     .idRbacDepartment(idRbacDepartmentDuty)
-                    .dataSourceClass(getDataSourceByBizType(bizType))
+                    .dataSourceClass(SysMessageDataSourceClassEnum.HELP.getId())
                     .flowStatus(flowStatus)
                     .title(enterpriseName)
                     .helpDepartmentIdList(Arrays.asList(iplAssist.getIdRbacDepartmentAssist()))
