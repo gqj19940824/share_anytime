@@ -108,6 +108,11 @@ public class InnovationConstant {
     public final static String LINE_SEPARATOR = "line.separator";
 
     /**
+     * 换行
+     */
+    public final static String ENT= "\r\n";
+
+    /**
      * 小时
      */
     public final static Long HOUR = 1000*60*60L;

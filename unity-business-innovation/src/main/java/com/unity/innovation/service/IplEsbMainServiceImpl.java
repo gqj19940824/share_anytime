@@ -153,10 +153,13 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             }
             StringBuilder stringBuilder = new StringBuilder();
             if (StringUtils.isNotBlank(is.getNewProduct())) {
-                stringBuilder.append("新产品：").append(System.getProperty(InnovationConstant.LINE_SEPARATOR)).append(is.getNewProduct()).append(System.getProperty(InnovationConstant.LINE_SEPARATOR));
+                stringBuilder.append("新产品：").append(InnovationConstant.ENT).append(is.getNewProduct());
+            }
+            if (StringUtils.isNotBlank(is.getNewProduct()) && StringUtils.isNotBlank(is.getNewTech())) {
+                stringBuilder.append(InnovationConstant.ENT);
             }
             if (StringUtils.isNotBlank(is.getNewTech())) {
-                stringBuilder.append("新技术：").append(System.getProperty(InnovationConstant.LINE_SEPARATOR)).append(is.getNewTech());
+                stringBuilder.append("新技术：").append(InnovationConstant.ENT).append(is.getNewTech());
             }
             is.setNewProductAndTech(stringBuilder.toString());
         });
