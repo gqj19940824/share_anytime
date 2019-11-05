@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum SourceEnum {
     ENTERPRISE(1, "企业"),
-    SELF(2, "各局");
+    SELF(2, "职能局");
 
     public static SourceEnum of(Integer id) {
         if (ENTERPRISE.getId().equals(id)) {

@@ -137,14 +137,13 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             list = page(search.getPageable(), lqw);
             List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, SysCfgEnum.THREE.getId()));
             Map<Long, String> collect = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
-            Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.INTELLIGENCE.getType() + ""));
-            String name = InnovationUtil.getDeptNameById(departmentId);
             list.getRecords().forEach(is -> {
                 //来源名称
                 if (is.getSource() != null) {
                     if (SourceEnum.ENTERPRISE.getId().equals(is.getSource())) {
                         is.setSourceName(SourceEnum.ENTERPRISE.getName());
                     } else if (SourceEnum.SELF.getId().equals(is.getSource())) {
+                        String name = InnovationUtil.getDeptNameById(is.getIdRbacDepartmentDuty());
                         is.setSourceName(name);
                     }
                 }
@@ -282,7 +281,6 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         // 删除主表
         removeByIds(ids);
         // 批量删除主表附带的日志、协同、附件，调用方法必须要有事物
-        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.INTELLIGENCE.getType().toString()));
         iplAssistService.batchDel(ids, list, codes,BizTypeEnum.INTELLIGENCE.getType());
     }
 
@@ -305,8 +303,8 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         //来源名称
         if (vo.getSource() != null) {
             if (SourceEnum.SELF.getId().equals(vo.getSource())) {
-                vo.setSourceName("组织部");
-            } else if (SourceEnum.SELF.getId().equals(vo.getSource())) {
+                vo.setSourceName(InnovationUtil.getDeptNameById(vo.getIdRbacDepartmentDuty()));
+            } else if (SourceEnum.ENTERPRISE.getId().equals(vo.getSource())) {
                 vo.setSourceName(SourceEnum.ENTERPRISE.getName());
             }
         }

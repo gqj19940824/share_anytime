@@ -118,6 +118,16 @@ public class mIplSuggestion extends BaseEntity{
         @TableField("gmt_first_deal")
         private Long gmtFirstDeal ;
 
+
+        /**
+         * 单位id
+         **/
+        @CommentTarget("单位id")
+        @TableField("id_rbac_department_duty")
+        private Long idRbacDepartmentDuty ;
+
+
+
 }
 
 
