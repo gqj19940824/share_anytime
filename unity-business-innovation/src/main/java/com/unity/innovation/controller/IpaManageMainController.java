@@ -41,8 +41,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -279,7 +277,7 @@ public class IpaManageMainController extends BaseWebController {
      * @since 2019/10/21 2:42 下午
      */
     @GetMapping("batchExport")
-    public Mono<ResponseEntity<byte[]>> batchExport(HttpServletRequest request, HttpServletResponse response, @RequestParam("id") Long id) throws Exception {
+    public Mono<ResponseEntity<byte[]>> batchExport(@RequestParam("id") Long id) throws Exception {
         IpaManageMain entity = ipaManageMainService.getById(id);
         if (entity == null) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
@@ -316,18 +314,19 @@ public class IpaManageMainController extends BaseWebController {
             pmExcel(pmpList, filePaht);
         }
 
-        //生成.zip文件;
+        // 生成.zip文件;
         ZipUtil.zip(basePath + "创新发布.zip", filePaht);
-//        DownloadUtil.downloadFile(, "创新发布.zip", response, request);
 
-        //处理乱码
+        // 下载
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("", new String("创新发布".getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1) + ".zip");
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         byte[] content = FileReaderUtil.getBytes(new File(basePath + "创新发布.zip"));
-        return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
+
         //删除目录下所有的文件;
-        // ZipUtil.delFile(new File(basePath));
+        ZipUtil.delFile(new File(basePath));
+
+        return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
     }
 
     private void iplExcel(List<IplManageMain> list, String filePaht) {
