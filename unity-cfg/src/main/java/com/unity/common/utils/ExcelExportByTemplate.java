@@ -3,7 +3,6 @@ package com.unity.common.utils;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -78,13 +77,10 @@ public class ExcelExportByTemplate {
     public static XSSFWorkbook getWorkBook(String templateAddress) {
         //报表模板路径
         Resource r = new ClassPathResource(templateAddress);
-        String path = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-        path = StringUtils.replace(path, "classes", "resources") + templateAddress;
-        log.info(path);
         XSSFWorkbook wb = null;
         try {
             //excel模板路径
-            InputStream in = new FileInputStream(new File(path));
+            InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(templateAddress);
             //读取excel模板
             wb = new XSSFWorkbook(in);
         } catch (FileNotFoundException e) {
