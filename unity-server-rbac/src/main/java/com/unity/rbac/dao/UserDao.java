@@ -172,30 +172,7 @@ public interface UserDao extends BaseDao<User> {
     List<User> getUserIdsByRoleIdAndDepartmentIds(Map<String,Object> map);
 
 
-    /**
-    * 所属单位在单位集合中，同时不包含几种角色
-    *
-    * @param map 参数
-    * @return java.util.List<com.unity.rbac.entity.User>
-    * @author JH
-    * @date 2019/11/5 9:54
-    */
-    @Select("<script>" +
-            " select a.id,a.id_rbac_department from rbac_user a" +
-            " inner join rbac_m_user_role b" +
-            " on a.id = b.id_rbac_user" +
-            " where a.is_deleted = 0 " +
-            " and b.is_deleted = 0 " +
-            " and b.id_rbac_role not in " +
-            " <foreach collection='pdRules' index='index' open='(' separator=',' close=')' item='item'> " +
-            "       #{item} " +
-            "   </foreach>" +
-            " and a.id_rbac_department in" +
-            " <foreach collection='departmentIds' index='index' open='(' separator=',' close=')' item='item'> " +
-            "       #{item} " +
-            "   </foreach>" +
-            "</script>")
-    List<User> listUserInDepartmentAndNotContainsRuleList(Map<String,Object> map);
+
 
     /**
      * 根据单位id修改对应用户状态
