@@ -8,9 +8,13 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import reactor.core.publisher.Mono;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -89,20 +93,17 @@ public class ExcelExportByTemplate {
         return wb;
     }
 
-    public static void download(HttpServletRequest request, HttpServletResponse response, XSSFWorkbook wb, String fileName) {
+    public static Mono<ResponseEntity<byte[]>> download(XSSFWorkbook wb, String fileName) {
         try {
-            //下载时文件的名称
-            String filename = getFileName(request, fileName + ".xlsx");
-            //文件类型
-            response.setContentType("application/vnd.ms-excel");
-            //导出文件的信息
-            response.setHeader("Content-disposition", "attachment;filename=" + filename);
-            OutputStream ouputStream = response.getOutputStream();
+            ByteArrayOutputStream ouputStream=new ByteArrayOutputStream();
             wb.write(ouputStream);
-            ouputStream.flush();
-            ouputStream.close();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDispositionFormData("", new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1) + ".xlsx");
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            return Mono.just(new ResponseEntity<>(ouputStream.toByteArray(), headers, HttpStatus.CREATED));
         } catch (IOException e) {
             log.error("写出Excel IO异常", e);
+            return null;
         }
     }
 

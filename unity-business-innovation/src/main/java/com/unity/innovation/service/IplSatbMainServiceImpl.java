@@ -38,8 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -540,8 +538,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @author gengjiajia
      * @since 2019/10/11 11:27
      */
-    public void downloadIplSatbMainDataPkgToExcel(Long id, HttpServletRequest request,
-                                                  HttpServletResponse response) {
+    public void downloadIplSatbMainDataPkgToExcel(Long id) {
         IplManageMain main = iplManageMainService.getById(id);
         if (main == null || StringUtils.isEmpty(main.getSnapshot())) {
             throw UnityRuntimeException.newInstance()
@@ -553,7 +550,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         //判断状态，是否可以下载
         XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
         ExcelExportByTemplate.setData(4,main.getTitle(), satbData, main.getNotes(), wb);
-        ExcelExportByTemplate.download(request, response, wb, main.getTitle());
+        ExcelExportByTemplate.download(wb, main.getTitle());
     }
 
     /**
