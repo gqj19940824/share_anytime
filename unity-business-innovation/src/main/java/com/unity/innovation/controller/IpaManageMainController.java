@@ -283,63 +283,28 @@ public class IpaManageMainController extends BaseWebController {
         URL resource = Thread.currentThread().getContextClassLoader().getResource("");
         String basePath = resource.getPath() + UUIDUtil.getUUID() + "/";
         String filePaht = basePath + "创新发布/";
-        //创建文件夹;
         ZipUtil.createFile(filePaht + "工作动态/");
         ZipUtil.createFile(filePaht + "创新发布清单/");
         ZipUtil.createFile(filePaht + "与会企业信息/");
 
         Long idIpaMain = entity.getId();
         // 创新发布清单的excel
-        iplExcel(idIpaMain, filePaht);
+        List<IplManageMain> iplList = iplManageMainService
+                .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
+        if (CollectionUtils.isNotEmpty(iplList)) {
+            iplExcel(iplList, filePaht);
+        }
         // 工作动态的excel
         List<DailyWorkStatusPackage> dwspList = dailyWorkStatusPackageService
                 .list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(dwspList)) {
-            dwspList.forEach(e -> {
-                e.setDataList(dailyWorkStatusPackageService.addDataList(e));
-                e.getDataList().forEach(d ->
-                        {
-                            if (CollectionUtils.isNotEmpty(d.getAttachmentList())) {
-                                d.setAttachmentCode(d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n")));
-                            } else {
-                                d.setAttachmentCode(" ");
-                            }
-                        }
-                );
-                // 发改局导出
-                List<List<Object>> data = iplManageMainService.getDwspData(e.getDataList());
-                XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/dwsp.xlsx");
-                ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                ExcelExportByTemplate.downloadToPath(filePaht + "工作动态/" + e.getTitle() + ".xlsx", wb);
-            });
+            dwsExcel(dwspList, filePaht);
         }
         // 与会信息的excel
         List<PmInfoDept> pmpList = pmInfoDeptService
                 .list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(pmpList)) {
-            pmpList.forEach(e -> {
-                XSSFWorkbook wb;
-                // 入区
-                PmInfoDept pmInfoDept = pmInfoDeptService.detailById(e.getId());
-                if (BizTypeEnum.RQDEPTINFO.equals(e.getBizType())) {
-                    List<InfoDeptYzgt> dataList = pmInfoDept.getDataList();
-                    dataList.forEach(d -> d.setAttachmentCode(
-                            d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
-                    List<List<Object>> data = pmInfoDeptService.getYzgtData(dataList);
-                    wb = ExcelExportByTemplate.getWorkBook("template/rq.xlsx");
-                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                    //  路演
-                } else if (BizTypeEnum.LYDEPTINFO.equals(e.getBizType())) {
-                    List<InfoDeptSatb> dataList = pmInfoDept.getDataList();
-                    List<List<Object>> data = pmInfoDeptService.getSatbData(dataList);
-                    wb = ExcelExportByTemplate.getWorkBook("template/ly.xlsx");
-                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                } else if(BizTypeEnum.INVESTMENT.equals(e.getBizType())) {
-                    List<List<Object>> data = pmInfoDeptService.getYzgtData(e.getSnapShot());
-                    wb = ExcelExportByTemplate.getWorkBook("template/invest.xlsx");
-                    ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-                }
-            });
+            pmExcel(pmpList, filePaht);
         }
 
         //生成.zip文件;
@@ -350,37 +315,83 @@ public class IpaManageMainController extends BaseWebController {
         ZipUtil.delFile(new File(basePath));
     }
 
-    private void iplExcel(Long idIpaMain, String filePaht) {
-        List<IplManageMain> list = iplManageMainService
-                .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
-        if (CollectionUtils.isNotEmpty(list)) {
-            list.forEach(e -> {
-                XSSFWorkbook wb;
-                String snapshot = e.getSnapshot();
-                switch (BizTypeEnum.of(e.getBizType())){
-                    case INTELLIGENCE: // 组织部
-                        wb = ExcelExportByTemplate.getWorkBook("template/od.xls");
-                        ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getOdData(e.getSnapshot()), e.getNotes(), wb);
-                        break;
-                    case ENTERPRISE: // 企服局
-                        wb = ExcelExportByTemplate.getWorkBook("template/esb.xls");
-                        ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getEbsData(e.getSnapshot()), e.getNotes(), wb);
-                        break;
-                    case GROW: // 科技局
-                        wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
-                        ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getSatbData(snapshot), e.getNotes(), wb);
-                        break;
-                    case CITY: // 发改局
-                        wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
-                        ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getDarbData(snapshot), e.getNotes(), wb);
-                        break;
-                    default:
-                        throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
-                }
+    private void iplExcel(List<IplManageMain> list, String filePaht) {
+        list.forEach(e -> {
+            XSSFWorkbook wb;
+            String snapshot = e.getSnapshot();
+            switch (BizTypeEnum.of(e.getBizType())){
+                case INTELLIGENCE: // 组织部
+                    wb = ExcelExportByTemplate.getWorkBook("template/od.xls");
+                    ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getOdData(e.getSnapshot()), e.getNotes(), wb);
+                    break;
+                case ENTERPRISE: // 企服局
+                    wb = ExcelExportByTemplate.getWorkBook("template/esb.xls");
+                    ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getEbsData(e.getSnapshot()), e.getNotes(), wb);
+                    break;
+                case GROW: // 科技局
+                    wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
+                    ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getSatbData(snapshot), e.getNotes(), wb);
+                    break;
+                case CITY: // 发改局
+                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                    ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getDarbData(snapshot), e.getNotes(), wb);
+                    break;
+                default:
+                    throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
+            }
 
-                ExcelExportByTemplate.downloadToPath(filePaht + "创新发布清单/" + e.getTitle() + ".xlsx", wb);
-            });
-        }
+            ExcelExportByTemplate.downloadToPath(filePaht + "创新发布清单/" + e.getTitle() + ".xlsx", wb);
+        });
+    }
+
+    private void dwsExcel(List<DailyWorkStatusPackage> list, String filePaht) {
+        list.forEach(e -> {
+            e.setDataList(dailyWorkStatusPackageService.addDataList(e));
+            e.getDataList().forEach(d ->
+                    {
+                        if (CollectionUtils.isNotEmpty(d.getAttachmentList())) {
+                            d.setAttachmentCode(d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n")));
+                        } else {
+                            d.setAttachmentCode(" ");
+                        }
+                    }
+            );
+            // 发改局导出
+            List<List<Object>> data = iplManageMainService.getDwspData(e.getDataList());
+            XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/dwsp.xlsx");
+            ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
+            ExcelExportByTemplate.downloadToPath(filePaht + "工作动态/" + e.getTitle() + ".xlsx", wb);
+        });
+    }
+
+    private void pmExcel(List<PmInfoDept> list, String filePaht) {
+        list.forEach(e -> {
+            XSSFWorkbook wb;
+            // 入区
+            PmInfoDept pmInfoDept = pmInfoDeptService.detailById(e.getId());
+            if (BizTypeEnum.RQDEPTINFO.equals(e.getBizType())) {
+                List<InfoDeptYzgt> dataList = pmInfoDept.getDataList();
+                dataList.forEach(d -> d.setAttachmentCode(
+                        d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
+                List<List<Object>> data = pmInfoDeptService.getYzgtData(dataList);
+                wb = ExcelExportByTemplate.getWorkBook("template/rq.xlsx");
+                ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
+                //  路演
+            } else if (BizTypeEnum.LYDEPTINFO.equals(e.getBizType())) {
+                List<InfoDeptSatb> dataList = pmInfoDept.getDataList();
+                List<List<Object>> data = pmInfoDeptService.getSatbData(dataList);
+                wb = ExcelExportByTemplate.getWorkBook("template/ly.xlsx");
+                ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
+            } else if(BizTypeEnum.INVESTMENT.equals(e.getBizType())) {
+                List<List<Object>> data = pmInfoDeptService.getYzgtData(e.getSnapShot());
+                wb = ExcelExportByTemplate.getWorkBook("template/invest.xlsx");
+                ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
+            }else {
+                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
+            }
+
+            ExcelExportByTemplate.downloadToPath(filePaht + "与会企业信息/" + e.getTitle() + ".xlsx", wb);
+        });
     }
 
     /**
