@@ -139,6 +139,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                     .flowStatus(flowStatus)
                     .title(enterpriseName)
                     .helpDepartmentIdList(Arrays.asList(iplAssist.getIdRbacDepartmentAssist()))
+                    .bizType(bizType)
                     .build());
         }
     }
