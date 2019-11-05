@@ -25,8 +25,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 
 /**
@@ -273,13 +271,11 @@ public class IplSatbMainController extends BaseWebController {
      * @since 2019/10/11 11:27
      */
     @GetMapping("/downloadIplSatbMainDataPkgToExcel/{id}")
-    public Mono<ResponseEntity<SystemResponse<Object>>> downloadIplSatbMainDataPkgToExcel(@PathVariable("id") Long id,
-                                                                          HttpServletRequest request,
-                                                                          HttpServletResponse response) {
+    public Mono<ResponseEntity<SystemResponse<Object>>> downloadIplSatbMainDataPkgToExcel(@PathVariable("id") Long id) {
         if(id == null){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到成长目标投资清单发布ID");
         }
-        service.downloadIplSatbMainDataPkgToExcel(id,request,response);
+        service.downloadIplSatbMainDataPkgToExcel(id);
         return success();
     }
 

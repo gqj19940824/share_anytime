@@ -365,7 +365,6 @@ public class IplEsbMainController extends BaseWebController {
                     .build();
         }
         return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
-
     }
 }
 

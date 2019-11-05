@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.ParamConstants;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
@@ -13,7 +14,6 @@ import com.unity.common.ui.PageEntity;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.ExcelExportByTemplate;
-import com.unity.common.constant.ParamConstants;
 import com.unity.innovation.entity.InfoDeptSatb;
 import com.unity.innovation.entity.InfoDeptYzgt;
 import com.unity.innovation.entity.PmInfoDept;
@@ -37,8 +37,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -288,7 +286,7 @@ public class PmInfoDeptController extends BaseWebController {
      * @date 2019/10/11 11:07
      */
     @GetMapping({"/export/excel"})
-    public Mono<ResponseEntity<byte[]>> exportExcel(@RequestParam("id") Long id) {
+    public Mono<ResponseEntity<byte[]>> excel(@RequestParam("id") Long id) {
         if (id == null) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
@@ -380,14 +378,12 @@ public class PmInfoDeptController extends BaseWebController {
     /**
      * 下载接口
      *
-     * @param request  请求
-     * @param response 响应
      * @param id       主键
      * @author JH
      * @date 2019/10/25 16:55
      */
     @GetMapping("exportExcel")
-    public void exportExcel(HttpServletRequest request, HttpServletResponse response, @RequestParam("id") Long id) {
+    public void exportExcel(@RequestParam("id") Long id) {
 
         PmInfoDept dept = service.getById(id);
         // 组装excel需要的数据
@@ -397,7 +393,7 @@ public class PmInfoDeptController extends BaseWebController {
         // 从excel的第5行开始插入数据，并给excel的sheet和标题命名
         ExcelExportByTemplate.setData(2, dept.getTitle(), data, dept.getNotes(), wb);
         // 将生成好的excel响应给用户
-        ExcelExportByTemplate.download(request, response, wb, dept.getTitle());
+        ExcelExportByTemplate.download(wb, dept.getTitle());
     }
 
 }
