@@ -56,14 +56,10 @@ public class DownloadUtil {
              */
             String type = req.getHeader("User-Agent").toLowerCase();
             if(type.indexOf("firefox")>0 || type.indexOf("chrome")>0){
-                /**
-                 * 谷歌或火狐
-                 */
+                //  谷歌或火狐
                 fileName = new String(fileName.getBytes(charsetCode), "iso8859-1");
             }else{
-                /**
-                 * IE
-                 */
+                // IE
                 fileName = URLEncoder.encode(fileName, charsetCode);
             }
             // 设置响应的头部信息
