@@ -23,7 +23,7 @@
 
     <!--协同发改局列表-->
     <select id="assistDarbList" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT m.project_name situation, '城市合作清单' listType,
+        SELECT m.project_name situation,
         <include refid="publicFile">
             <property name="table" value="ipl_darb_main"/>
         </include>
@@ -35,7 +35,7 @@
 
     <!--协同企服局列表-->
     <select id="assistEsbList" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT m.summary situation, '企业创新发布清单' listType,
+        SELECT m.summary situation,
         <include refid="publicFile">
             <property name="table" value="ipl_esb_main"/>
         </include>
@@ -47,7 +47,7 @@
 
     <!--协同科技局列表-->
     <select id="assistSatbList" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT m.project_name situation, '成长目标投资清单' listType,
+        SELECT m.project_name situation,
         <include refid="publicFile">
             <property name="table" value="ipl_satb_main"/>
         </include>
@@ -59,7 +59,7 @@
 
     <!--协同组织部列表-->
     <select id="assistOdList" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT m.jd_name situation, '高端才智需求清单' listType,
+        SELECT m.jd_name situation,
         <include refid="publicFile">
             <property name="table" value="ipl_od_main"/>
         </include>

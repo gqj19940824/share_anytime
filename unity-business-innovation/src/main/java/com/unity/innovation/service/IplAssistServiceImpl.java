@@ -6,7 +6,6 @@ import com.github.pagehelper.PageHelper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
-import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.UserTypeEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -89,18 +88,38 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         Integer bizType = MapUtils.getInteger(entity, "bizType");
         Page<Map<String, Object>> page = PageHelper.startPage((int)pageable.getCurrent(), (int)pageable.getSize(), true);
         List<Map<String, Object>> maps;
-        if (BizTypeEnum.ENTERPRISE.getType().equals(bizType)){
-            maps = baseMapper.assistEsbList(entity);
-        }else if (BizTypeEnum.CITY.getType().equals(bizType)){
-            maps = baseMapper.assistDarbList(entity);
-        }else if (BizTypeEnum.INTELLIGENCE.getType().equals(bizType)){
-            maps = baseMapper.assistOdList(entity);
-        }else if (BizTypeEnum.GROW.getType().equals(bizType)){
-            maps = baseMapper.assistSatbList(entity);
-        } else {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("业务类型错误").build();
+        switch (BizTypeEnum.of(bizType)){
+            case CITY:
+                maps = baseMapper.assistDarbList(entity);
+                maps.forEach(e->{
+                    e.put("bizType", BizTypeEnum.CITY.getType());
+                    e.put("bizTypeName", BizTypeEnum.CITY.getName());
+                });
+                break;
+            case GROW:
+                maps = baseMapper.assistSatbList(entity);
+                maps.forEach(e->{
+                    e.put("bizType", BizTypeEnum.GROW.getType());
+                    e.put("bizTypeName", BizTypeEnum.GROW.getName());
+                });
+                break;
+            case ENTERPRISE:
+                maps = baseMapper.assistEsbList(entity);
+                maps.forEach(e->{
+                    e.put("bizType", BizTypeEnum.ENTERPRISE.getType());
+                    e.put("bizTypeName", BizTypeEnum.ENTERPRISE.getName());
+                });
+                break;
+            case INTELLIGENCE:
+                maps = baseMapper.assistOdList(entity);
+                maps.forEach(e->{
+                    e.put("bizType", BizTypeEnum.INTELLIGENCE.getType());
+                    e.put("bizTypeName", BizTypeEnum.INTELLIGENCE.getName());
+                });
+                break;
+            default:
+                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("业务类型错误").build();
         }
-
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
                 .total(page.getTotal())
                 .items(convert(maps)).build();
@@ -109,11 +128,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     }
 
     private List<Map<String,Object>> convert(List<Map<String,Object>> maps){
-        if (CollectionUtils.isNotEmpty(maps)){
-            maps.forEach(e->{
-                e.put("idRbacDepartmentDutyName", InnovationUtil.getDeptNameById(MapUtils.getLong(e, "idRbacDepartmentDuty")));
-            });
-        }
+        maps.forEach(e->e.put("idRbacDepartmentDutyName", InnovationUtil.getDeptNameById(MapUtils.getLong(e, "idRbacDepartmentDuty"))));
         return maps;
     }
 
