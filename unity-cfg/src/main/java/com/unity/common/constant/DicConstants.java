@@ -35,6 +35,10 @@ public class DicConstants {
      * */
     public static final  String PD_B_ROLE = "PD_B_ROLE";
     /**
+     * 宣传部业务角色 C
+     * */
+    public static final  String PD_C_ROLE = "PD_C_ROLE";
+    /**
      * 企业规模字典组编码
      * */
     public static final  String ENTERPRISE_SCALE = "ENTERPRISE_SCALE";

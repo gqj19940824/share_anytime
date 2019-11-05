@@ -590,8 +590,15 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
     public Map<Long,List<Long>> listUserInDepartment(List<Long> departmentIds) {
 
         if (CollectionUtils.isNotEmpty(departmentIds)) {
-            List<User> userList = baseMapper.selectList(new LambdaQueryWrapper<User>().in(User::getIdRbacDepartment, departmentIds).orderByDesc(User::getGmtCreate));
-           return userList.stream().collect(groupingBy(User::getIdRbacDepartment, mapping(User::getId, toList())));
+
+            List<Dic> dicList = dicUtils.getDicListByGroupCodeAndDicCodes(DicConstants.ROLE_GROUP, Lists.newArrayList(DicConstants.PD_A_ROLE, DicConstants.PD_B_ROLE, DicConstants.PD_C_ROLE));
+            //宣传部的三种角色
+            List<Long> pdRules = dicList.stream().map(Dic::getDicValue).map(Long::parseLong).collect(toList());
+            Map<String,Object> map = new HashMap<>(InnovationConstant.HASHMAP_DEFAULT_LENGTH);
+            map.put("departmentIds",departmentIds);
+            map.put("pdRules",pdRules);
+            List<User> userList = baseMapper.listUserInDepartmentAndNotContainsRuleList(map);
+            return userList.stream().collect(groupingBy(User::getIdRbacDepartment, mapping(User::getId, toList())));
         }
         return new HashMap<>(InnovationConstant.HASHMAP_DEFAULT_LENGTH);
     }
