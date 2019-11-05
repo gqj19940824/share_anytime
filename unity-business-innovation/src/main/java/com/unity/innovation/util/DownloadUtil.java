@@ -1,5 +1,7 @@
 package com.unity.innovation.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -8,6 +10,7 @@ import java.net.URLEncoder;
 /***
  * 将文件内容响应到浏览器
  */
+@Slf4j
 public class DownloadUtil {
 
     /**
@@ -72,7 +75,7 @@ public class DownloadUtil {
             // 输出
             outStream(new FileInputStream(file), resp.getOutputStream());
         } catch (Exception e) {
-            System.out.println("执行downloadFile发生了异常：" + e.getMessage());
+            log.error("执行downloadFile发生了异常：" + e.getMessage(), e);
         }
     }
 
@@ -82,21 +85,23 @@ public class DownloadUtil {
     private static void outStream(InputStream is, OutputStream os) {
         try {
             byte[] buffer = new byte[10240];
-            int length = -1;
+            int length;
             while ((length = is.read(buffer)) != -1) {
                 os.write(buffer, 0, length);
                 os.flush();
             }
         } catch (Exception e) {
-            System.out.println("执行 outStream 发生了异常：" + e.getMessage());
+            log.error("执行 outStream 发生了异常1：" + e.getMessage(), e);
         } finally {
             try {
                 os.close();
             } catch (IOException e) {
+                log.error("执行 outStream 发生了异常2：" + e.getMessage(), e);
             }
             try {
                 is.close();
             } catch (IOException e) {
+                log.error("执行 outStream 发生了异常3：" + e.getMessage(), e);
             }
         }
     }

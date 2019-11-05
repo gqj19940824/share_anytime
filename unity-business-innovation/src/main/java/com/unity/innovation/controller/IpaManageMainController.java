@@ -342,6 +342,7 @@ public class IpaManageMainController extends BaseWebController {
                     ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getDarbData(snapshot), e.getNotes(), wb);
                     break;
                 default:
+                    logger.error("bizType错误:" + e.getBizType(), e);
                     throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
             }
 
@@ -392,6 +393,7 @@ public class IpaManageMainController extends BaseWebController {
                 wb = ExcelExportByTemplate.getWorkBook("template/invest.xlsx");
                 ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
             } else {
+                logger.error("bizType-错误：" + e.getBizType(), e);
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
             }
 
