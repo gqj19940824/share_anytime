@@ -284,6 +284,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             }
             //清单类型
             if(entity.getBizType() != null) {
+                check(entity.getBizType());
                 ew.eq(IplManageMain::getBizType,entity.getBizType());
             }else {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
