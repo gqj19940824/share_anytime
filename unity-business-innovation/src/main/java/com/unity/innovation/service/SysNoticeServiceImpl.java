@@ -222,19 +222,28 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
         Long noticeId = entity.getIdSysNotice();
         SysNotice sysNotice = baseMapper.selectById(noticeId);
         List<SysNoticeUser> res = Lists.newArrayList();
+        String s = (String) redisTemplate.opsForValue().get(RedisConstants.DEPARTMENT_ORDER_LIST);
+        List<Long> orderByList = JSON.parseArray(s, Long.class);
+        StringBuffer sb = new StringBuffer();
+        sb.append("  order by field ( id_rbac_department ");
+        orderByList.forEach(o -> sb.append(",").append(o.toString()));
+        sb.append(") ");
         //未发送
         if (YesOrNoEnum.NO.getType() == sysNotice.getIsSend()) {
             //接收单位集合
-            List<SysNoticeDepartment> list = noticeDepartmentService.list(new LambdaQueryWrapper<SysNoticeDepartment>().eq(SysNoticeDepartment::getIdSysNotice, noticeId));
+            LambdaQueryWrapper<SysNoticeDepartment> queryWrapper =  new LambdaQueryWrapper<>();
+            queryWrapper.eq(SysNoticeDepartment::getIdSysNotice, noticeId);
+            queryWrapper.last(sb.toString());
+            List<SysNoticeDepartment> list = noticeDepartmentService.list(queryWrapper);
             List<Long> departmentIds = list.stream().map(SysNoticeDepartment::getIdRbacDepartment).collect(Collectors.toList());
             //返回单位包含的用户集合
             Map<Long, List<Long>> map = rbacClient.listUserInDepartment(departmentIds);
-            departmentIds.forEach(departmentId -> {
-                List<Long> userIds = map.get(departmentId);
+            list.forEach(n -> {
+                List<Long> userIds = map.get(n.getIdRbacDepartment());
                 if (CollectionUtils.isNotEmpty(userIds)) {
                     userIds.forEach(userId -> {
                         SysNoticeUser noticeUser = new SysNoticeUser();
-                        noticeUser.setIdRbacDepartment(departmentId);
+                        noticeUser.setIdRbacDepartment(n.getIdRbacDepartment());
                         noticeUser.setIdRbacUser(userId);
                         res.add(noticeUser);
                     });
@@ -253,10 +262,7 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
             isReadWrapper.orderByDesc(SysNoticeUser::getGmtRead);
             List<SysNoticeUser> isReadList = noticeUserService.list(isReadWrapper);
 
-
             //未浏览
-            String s = (String) redisTemplate.opsForValue().get(RedisConstants.DEPARTMENT_ORDER_LIST);
-            List<Long> orderByList = JSON.parseArray(s, Long.class);
             //单位排序
             LambdaQueryWrapper<SysNoticeUser> noReadWrapper = new LambdaQueryWrapper<>();
             noReadWrapper.eq(SysNoticeUser::getIsRead, YesOrNoEnum.NO.getType());
@@ -264,15 +270,8 @@ public class SysNoticeServiceImpl extends BaseServiceImpl<SysNoticeDao, SysNotic
             if (entity.getIdRbacDepartment() != null) {
                 noReadWrapper.eq(SysNoticeUser::getIdRbacDepartment, entity.getIdRbacDepartment());
             }
-            if (orderByList != null && orderByList.size() > 0) {
-                StringBuffer sb = new StringBuffer();
-                sb.append("  order by field ( id_rbac_department ");
-                orderByList.forEach(o -> sb.append(",").append(o.toString()));
-                sb.append(") ");
-                noReadWrapper.last(sb.toString());
-            }
+            noReadWrapper.last(sb.toString());
             List<SysNoticeUser> noReadList = noticeUserService.list(noReadWrapper);
-
 
             if (isRead != null) {
                 //已浏览
