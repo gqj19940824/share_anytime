@@ -394,7 +394,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                     m.put("attachmentList", convertList2MapByAttachment(attachmentList));
                     m.put("industryCategoryTitle", industryCategory.getCfgVal());
                     m.put("demandCategoryTitle", demandCategory.getCfgVal());
-                    m.put("nameRbacDepartmentDuty",depName);
+                    m.put("idRbacDepartmentName",depName);
                 }
                 , IplSatbMain::getId, IplSatbMain::getIndustryCategory, IplSatbMain::getEnterpriseName
                 , IplSatbMain::getDemandCategory, IplSatbMain::getProjectName, IplSatbMain::getProjectAddress
