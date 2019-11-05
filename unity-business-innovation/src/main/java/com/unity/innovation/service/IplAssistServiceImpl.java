@@ -29,7 +29,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,19 +49,19 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssist> {
-    @Autowired
+    @Resource
     private IplLogServiceImpl iplLogService;
 
-    @Autowired
+    @Resource
     private IplAssistServiceImpl iplAssistService;
 
-    @Autowired
+    @Resource
     private AttachmentServiceImpl attachmentService;
 
-    @Autowired
+    @Resource
     private RedisSubscribeServiceImpl redisSubscribeService;
 
-    @Autowired
+    @Resource
     protected IplDarbMainServiceImpl iplDarbMainService;
 
     @Resource
