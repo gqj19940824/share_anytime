@@ -8,8 +8,6 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -76,11 +74,10 @@ public class ExcelExportByTemplate {
 
     public static XSSFWorkbook getWorkBook(String templateAddress) {
         //报表模板路径
-        Resource r = new ClassPathResource(templateAddress);
         XSSFWorkbook wb = null;
         try {
             //excel模板路径
-            InputStream in = new FileInputStream(r.getFile());
+            InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(templateAddress);
             //读取excel模板
             wb = new XSSFWorkbook(in);
         } catch (FileNotFoundException e) {

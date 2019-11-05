@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.InventoryMessage;
+import com.unity.common.util.DateUtils;
+import com.unity.common.utils.DateUtil;
 import com.unity.common.utils.DicUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.*;
@@ -14,6 +16,7 @@ import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
 import com.unity.innovation.enums.SysMessageFlowStatusEnum;
 import com.unity.innovation.enums.UnitCategoryEnum;
 import com.unity.innovation.service.*;
+import com.unity.innovation.util.InnovationUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -50,6 +53,10 @@ public class TopicMessageListener implements MessageListener {
     @Resource
     private DicUtils dicUtils;
     private static final String ZERO = "0";
+    /**
+     * 5分钟
+     */
+    private final long timeInterval = 60*1*1000;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -173,6 +180,10 @@ public class TopicMessageListener implements MessageListener {
                 IplSatbMain iplSatbMain = new IplSatbMain();
                 iplSatbMain.setProcessStatus(processStatus);
                 iplSatbMainService.update(iplSatbMain, new LambdaQueryWrapper<IplSatbMain>().eq(IplSatbMain::getId, idIplMain));
+            } else if (BizTypeEnum.SUGGESTION.getType().equals(bizType)) {
+                IplSuggestion iplSuggestion = new IplSuggestion();
+                iplSuggestion.setProcessStatus(processStatus);
+                iplSuggestionService.update(iplSuggestion, new LambdaQueryWrapper<IplSuggestion>().eq(IplSuggestion::getId, idIplMain));
             }
             // 更新协同表
         } else {
@@ -209,6 +220,9 @@ public class TopicMessageListener implements MessageListener {
         iplTimeOutLog.setTimeType(overTimeType);
         LambdaQueryWrapper<IplTimeOutLog> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.setEntity(iplTimeOutLog);
+        long nowTime = System.currentTimeMillis();
+        //查询当前5分钟内是否已经出现超时
+        lambdaQueryWrapper.between(IplTimeOutLog::getGmtCreate,nowTime-timeInterval, nowTime);
         int count = iplTimeOutLogService.count(lambdaQueryWrapper);
         if (count == 0) {
             return iplTimeOutLogService.save(iplTimeOutLog);
@@ -216,4 +230,5 @@ public class TopicMessageListener implements MessageListener {
             return false;
         }
     }
+
 }

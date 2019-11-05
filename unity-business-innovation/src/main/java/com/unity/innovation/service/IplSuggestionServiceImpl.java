@@ -166,14 +166,14 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
             //待处理时
             if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
                 if (ProcessStatusEnum.DEAL_OVERTIME.getId().equals(vo.getProcessStatus())){
-                    vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+                    entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
                 }
                 redisSubscribeService.saveSubscribeInfo(vo.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, departmentId, BizTypeEnum.SUGGESTION.getType());
             }else if (IplStatusEnum.DEALING.getId().equals(vo.getStatus())) {
                 redisSubscribeService.saveSubscribeInfo(vo.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, departmentId, BizTypeEnum.SUGGESTION.getType());
                 //处理中 如果超时 则置为进展正常
                 if (ProcessStatusEnum.UPDATE_OVERTIME.getId().equals(vo.getProcessStatus())){
-                    vo.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+                    entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
                 }
                 IplLog iplLog = IplLog.newInstance().build();
                 //纪检组 意见建议id
