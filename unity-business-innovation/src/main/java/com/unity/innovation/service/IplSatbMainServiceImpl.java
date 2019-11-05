@@ -443,7 +443,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 .map(IplAssist::getIdRbacDepartmentAssist)
                 .collect(Collectors.toList());
         List<DepartmentVO> voList = departmentList.stream()
-                .filter(d -> !ids.contains(d.getId()))
+                .filter(d -> !ids.contains(d.getId()) && !d.getId().equals(satbMain.getIdRbacDepartmentDuty()))
                 .collect(Collectors.toList());
         return JsonUtil.ObjectToList(voList, null, DepartmentVO::getId, DepartmentVO::getName);
     }

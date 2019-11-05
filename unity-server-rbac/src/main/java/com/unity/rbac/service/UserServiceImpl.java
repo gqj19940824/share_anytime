@@ -593,7 +593,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
             List<Long> pdRules = dicList.stream().map(Dic::getDicValue).map(Long::parseLong).collect(toList());
             //所有拥有宣传部角色的userId集合
             Set<Long> userIds = userRoleService.list(new LambdaQueryWrapper<UserRole>().in(UserRole::getIdRbacRole, pdRules)).stream().map(UserRole::getIdRbacUser).collect(toSet());
-            List<User> userList = super.list(new LambdaQueryWrapper<User>().in(User::getIdRbacDepartment,departmentIds).notIn(User::getId,userIds));
+            List<User> userList = super.list(new LambdaQueryWrapper<User>().in(User::getIdRbacDepartment,departmentIds).notIn(User::getId,userIds).orderByDesc(User::getGmtCreate));
             return userList.stream().collect(groupingBy(User::getIdRbacDepartment, mapping(User::getId, toList())));
         }
         return new HashMap<>(InnovationConstant.HASHMAP_DEFAULT_LENGTH);
