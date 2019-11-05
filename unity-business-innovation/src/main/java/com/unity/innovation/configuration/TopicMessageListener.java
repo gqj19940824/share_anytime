@@ -140,6 +140,7 @@ public class TopicMessageListener implements MessageListener {
         }
         if (!ZERO.equals(idStrArr[1])) {
             //说明是协同单位超时
+            inventoryMessage.setDataSourceClass(SysMessageDataSourceClassEnum.HELP.getId());
             inventoryMessage.setHelpDepartmentIdList(Arrays.asList(Long.parseLong(idStrArr[1])));
             sysMessageHelpService.addInventoryHelpMessage(inventoryMessage);
         } else {

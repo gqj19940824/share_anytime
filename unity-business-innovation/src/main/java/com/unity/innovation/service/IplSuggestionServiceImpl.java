@@ -94,14 +94,13 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         }
         lqw.orderByDesc(IplSuggestion::getGmtCreate);
         IPage<IplSuggestion> list = page(search.getPageable(), lqw);
-        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType() + ""));
-        String name = InnovationUtil.getDeptNameById(departmentId);
         list.getRecords().forEach(is -> {
             //来源名称
             if (is.getSource() != null) {
                 if (SourceEnum.ENTERPRISE.getId().equals(is.getSource())) {
                     is.setSourceName(SourceEnum.ENTERPRISE.getName());
                 } else if (SourceEnum.SELF.getId().equals(is.getSource())) {
+                    String name = InnovationUtil.getDeptNameById(is.getIdRbacDepartmentDuty());
                     is.setSourceName(name);
                 }
             }
@@ -128,6 +127,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
     public Long  saveEntity(IplSuggestion entity) {
         Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType().toString()));
         if (entity.getId() == null) {
+            entity.setIdRbacDepartmentDuty(departmentId);
             entity.setAttachmentCode(UUIDUtil.getUUID());
             // 状态设为处理中
             entity.setStatus(IplStatusEnum.UNDEAL.getId());
@@ -248,8 +248,8 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         //来源名称
         if (vo.getSource() != null) {
             if (SourceEnum.SELF.getId().equals(vo.getSource())) {
-                vo.setSourceName("纪检组");
-            } else if (SourceEnum.SELF.getId().equals(vo.getSource())) {
+                vo.setSourceName(InnovationUtil.getDeptNameById(vo.getIdRbacDepartmentDuty()));
+            } else if (SourceEnum.ENTERPRISE.getId().equals(vo.getSource())) {
                 vo.setSourceName(SourceEnum.ENTERPRISE.getName());
             }
         }
@@ -279,7 +279,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         l1List.add(l1);
         iplLogMap1.put("logs", l1List);
         Map<String, Object> iplLogMap2 = new HashMap<>(16);
-        iplLogMap2.put("department", "主责单位：纪检组");
+        iplLogMap2.put("department", InnovationUtil.getDeptNameById(vo.getIdRbacDepartmentDuty()));
         iplLogMap2.put("processStatus", vo.getStatus());
         l1.setGmtCreate(vo.getGmtCreate());
         iplLogMap2.put("logs", logList);

@@ -130,14 +130,13 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         IPage<IplEsbMain> list = page(search.getPageable(), lqw);
         List<SysCfg> typeList = sysCfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, SysCfgEnum.THREE.getId()));
         Map<Long, String> collect = typeList.stream().collect(Collectors.toMap(SysCfg::getId, SysCfg::getCfgVal));
-        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString()));
-        String name = InnovationUtil.getDeptNameById(departmentId);
         list.getRecords().forEach(is -> {
             //来源名称
             if (is.getSource() != null) {
                 if (SourceEnum.ENTERPRISE.getId().equals(is.getSource())) {
                     is.setSourceName(SourceEnum.ENTERPRISE.getName());
                 } else if (SourceEnum.SELF.getId().equals(is.getSource())) {
+                    String name = InnovationUtil.getDeptNameById(is.getIdRbacDepartmentDuty());
                     is.setSourceName(name);
                 }
             }
@@ -237,7 +236,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                 sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
                         .idRbacDepartment(vo.getIdRbacDepartmentDuty())
-                        .dataSourceClass(SysMessageDataSourceClassEnum.DEVELOPING.getId())
+                        .dataSourceClass(SysMessageDataSourceClassEnum.HELP.getId())
                         .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
                         .title(entity.getEnterpriseName())
                         .helpDepartmentIdList(assistsIdList)
@@ -276,7 +275,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
             sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
                     .sourceId(entity.getId())
                     .idRbacDepartment(entity.getIdRbacDepartmentDuty())
-                    .dataSourceClass(SysMessageDataSourceClassEnum.DEVELOPING.getId())
+                    .dataSourceClass(SysMessageDataSourceClassEnum.HELP.getId())
                     .flowStatus(SysMessageFlowStatusEnum.FIVES.getId())
                     .title(entity.getEnterpriseName())
                     .helpDepartmentIdList(assistsIdList)
@@ -308,8 +307,8 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         //来源名称
         if (vo.getSource() != null) {
             if (SourceEnum.SELF.getId().equals(vo.getSource())) {
-                vo.setSourceName("企业服务局");
-            } else if (SourceEnum.SELF.getId().equals(vo.getSource())) {
+                vo.setSourceName(InnovationUtil.getDeptNameById(vo.getIdRbacDepartmentDuty()));
+            } else if (SourceEnum.ENTERPRISE.getId().equals(vo.getSource())) {
                 vo.setSourceName(SourceEnum.ENTERPRISE.getName());
             }
         }
