@@ -164,7 +164,7 @@ public class HashRedisUtils {
                     value = redisTemplate.opsForHash().entries(key);
                     if (MapUtils.isEmpty(value)){
                         value = getDataByKeyId(key);
-                        log.info("====== 《commonGetObjValue》 --- "+key+"：DB {}",value);
+                        //log.info("====== 《commonGetObjValue》 --- "+key+"：DB {}",value);
                         putValueByKey(key,value);
                     }
                 }
