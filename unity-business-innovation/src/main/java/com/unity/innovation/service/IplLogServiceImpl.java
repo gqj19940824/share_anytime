@@ -19,10 +19,7 @@ import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
-import com.unity.innovation.enums.IplStatusEnum;
-import com.unity.innovation.enums.ProcessStatusEnum;
-import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
-import com.unity.innovation.enums.SysMessageFlowStatusEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
@@ -135,7 +132,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
                     .sourceId(idIplMain)
                     .idRbacDepartment(idRbacDepartmentDuty)
-                    .dataSourceClass(getDataSourceByIdRbacDepartmentDuty(idRbacDepartmentDuty.toString()))
+                    .dataSourceClass(getDataSourceByBizType(bizType))
                     .flowStatus(flowStatus)
                     .title(enterpriseName)
                     .helpDepartmentIdList(Arrays.asList(iplAssist.getIdRbacDepartmentAssist()))
@@ -387,20 +384,20 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
     /**
      * 根据主责单位id获取数据来源
      *
-     * @param idRbacDepartmentDuty 主责单位id
+     * @param bizType 清单类型
      * @return 数据来源
      * @author gengjiajia
      * @since 2019/10/17 14:38
      */
-    private Integer getDataSourceByIdRbacDepartmentDuty(String idRbacDepartmentDuty) {
-        switch (idRbacDepartmentDuty) {
-            case "10":
+    private Integer getDataSourceByBizType(Integer bizType) {
+        switch (bizType) {
+            case 10:
                 return SysMessageDataSourceClassEnum.COOPERATION.getId();
-            case "12":
+            case 20:
                 return SysMessageDataSourceClassEnum.DEVELOPING.getId();
-            case "13":
+            case 30:
                 return SysMessageDataSourceClassEnum.TARGET.getId();
-            case "2":
+            case 40:
                 return SysMessageDataSourceClassEnum.DEMAND.getId();
             default:
                 return null;
