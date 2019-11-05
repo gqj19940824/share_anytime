@@ -195,7 +195,6 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody IplEsbMain entity) {
-        service.check();
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplEsbMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
@@ -315,7 +314,6 @@ public class IplEsbMainController extends BaseWebController {
      */
     @PostMapping("/assistUpdateStatus")
     public Mono<ResponseEntity<SystemResponse<Object>>> assistUpdateStatus(@RequestBody IplLog iplLog) {
-        service.check();
         IplEsbMain entity = service.getById(iplLog.getIdIplMain());
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
@@ -339,7 +337,6 @@ public class IplEsbMainController extends BaseWebController {
      */
     @GetMapping({"/export/excel"})
     public Mono<ResponseEntity<byte[]>> exportExcel(@RequestParam("id") Long id) {
-        service.check();
         if (id == null) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
