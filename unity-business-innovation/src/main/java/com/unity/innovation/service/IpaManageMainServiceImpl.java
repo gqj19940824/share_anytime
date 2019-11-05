@@ -76,7 +76,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
             // 更新一次包状态
             updateFirstPackStatus(entity.getId(), IpaStatusEnum.UPDATED.getId());
             // 记录一次包日志
-            saveFirstPackageLog(entity.getId(), IpaStatusEnum.UPDATED.getId());
+            saveFirstPackageLog(entity, IpaStatusEnum.UPDATED.getId());
 
             /*=========工作动态发布管理/5个xx清单发布管理/2个企业信息发布管理=======系统通知======================*/
             sendSysMessage(IpaStatusEnum.UPDATED.getId(), entity.getId());
@@ -85,24 +85,24 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void publish(Long id) {
+    public void publish(IpaManageMain entity) {
         Integer status = IpaStatusEnum.UNUPDATE.getId();
-        LambdaUpdateWrapper<IpaManageMain> wrapper = new LambdaUpdateWrapper<IpaManageMain>().eq(IpaManageMain::getId, id);
+        LambdaUpdateWrapper<IpaManageMain> wrapper = new LambdaUpdateWrapper<IpaManageMain>().eq(IpaManageMain::getId, entity.getId());
         wrapper.set(IpaManageMain::getStatus, status);
         // 更新二次包数据
         update(wrapper);
         // 更新一次包状态
-        updateFirstPackStatus(id, status);
+        updateFirstPackStatus(entity.getId(), status);
         // 记录日志
-        saveFirstPackageLog(id, status);
+        saveFirstPackageLog(entity, status);
         /*=========工作动态发布管理/5个xx清单发布管理/2个企业信息发布管理=======系统通知======================*/
-        sendSysMessage(status, id);
+        sendSysMessage(status, entity.getId());
     }
 
-    private void saveFirstPackageLog(Long idIpaMain, Integer status) {
+    private void saveFirstPackageLog(IpaManageMain entity, Integer status) {
         Customer customer = LoginContextHolder.getRequestAttributes();
         Long idRbacDepartment = customer.getIdRbacDepartment();
-        List<IplManageMain> iplManageMains = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
+        List<IplManageMain> iplManageMains = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, entity.getId()));
         if (CollectionUtils.isNotEmpty(iplManageMains)){
             List<IplmManageLog> ls = new ArrayList<>();
             iplManageMains.forEach(e->{
@@ -110,20 +110,21 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
             });
             iplmManageLogService.saveBatch(ls);
         }
-        List<PmInfoDept> pmInfoDepts = pmInfoDeptService.list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, idIpaMain));
+        List<PmInfoDept> pmInfoDepts = pmInfoDeptService.list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, entity.getId()));
         if (CollectionUtils.isNotEmpty(pmInfoDepts)){
             List<PmInfoDeptLog> ls = new ArrayList<>();
             pmInfoDepts.forEach(e->{
                 PmInfoDeptLog pmInfoDeptLog = new PmInfoDeptLog();
                 pmInfoDeptLog.setStatus(status);
                 pmInfoDeptLog.setIdPmInfoDept(e.getId());
+                pmInfoDeptLog.setContent(entity.getTitle());
                 pmInfoDeptLog.setIdRbacDepartment(idRbacDepartment);
                 pmInfoDeptLogService.save(pmInfoDeptLog);
                 ls.add(pmInfoDeptLog);
             });
             pmInfoDeptLogService.saveBatch(ls);
         }
-        List<DailyWorkStatusPackage> dailyWorkStatusPackages = dailyWorkStatusPackageService.list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain));
+        List<DailyWorkStatusPackage> dailyWorkStatusPackages = dailyWorkStatusPackageService.list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, entity.getId()));
         if (CollectionUtils.isNotEmpty(dailyWorkStatusPackages)){
             List<DailyWorkStatusLog> ls = new ArrayList<>();
             dailyWorkStatusPackages.forEach(e->{

@@ -492,7 +492,7 @@ public class IpaManageMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
 
-        ipaManageMainService.publish(entity.getId());
+        ipaManageMainService.publish(entity);
         return success();
     }
 
