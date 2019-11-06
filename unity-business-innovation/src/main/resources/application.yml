@@ -30,6 +30,7 @@ spring:
       - /iplSuggestion/saveOrUpdate
       - /iplSuperVisionMain/saveOrUpdate
       - /iplyzgtmain/saveOrUpdate
+      - /attachment/getAttachmentByCode
       - /ipldarbmain/exportExcel
       - /iplEsbMain/export/excel
       - /iplManageMain/downloadIplSatbMainDataPkgToExcel/*
