@@ -55,7 +55,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     private IplLogServiceImpl iplLogService;
 
     /**
-     * 企业成长目标投资需求行业分布及变化-工作动态的关键字统计
+     * 企业成长目标投资需求行业分布及变化-开发区重点工作关键字统计
      *
      * @param
      * @return
@@ -138,8 +138,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        Long start = getStart(map);
-        Long end = getEnd(map);
+        Long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<String> monthsList = DateUtil.getMonthsList(date);
 
         List<Map<String, Object>> newAddMaps = iplSatbMainService.satbDemandTrend(start, end);
@@ -152,10 +152,10 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
             });
         }
 
-        List<Map<String, Object>> doneMaps = iplLogService.statisticsMonthlyDemandCompletionNum(start, end, BizTypeEnum.CITY.getType());
+        List<Map<String, Object>> doneMaps = iplLogService.statisticsMonthlyDemandCompletionNum(start, end, BizTypeEnum.GROW.getType());
         Map<String, Double> doneMap = new LinkedHashMap<>();
         if (CollectionUtils.isNotEmpty(doneMaps)) {
-            Map<String, Double> collect = doneMaps.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "month"), e -> MapUtils.getDouble(e, "num")));
+            Map<String, Double> collect = doneMaps.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "MONTH"), e -> MapUtils.getDouble(e, "num")));
             monthsList.forEach(e -> {
                 Double o = collect.get(e);
                 doneMap.put(e, o == null ? 0 : o);
@@ -185,7 +185,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     }
 
     /**
-     * 企业成长目标投资需求行业分布及变化-完成额度统计
+     * 企业成长目标投资需求行业分布及变化-融资完成额度统计
      *
      * @param
      * @return
@@ -198,8 +198,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        Long start = getStart(map);
-        Long end = getEnd(map);
+        Long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
 
         if (CollectionUtils.isNotEmpty(dataBeans)) {
@@ -228,7 +228,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
         Long start = 0L;
-        Long end = getEnd(map);
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeansDone = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
         List<PieVoByDoc.DataBean> dataBeansNew = iplSatbMainService.demandNew(start, end);
@@ -263,7 +263,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
         Long start = 0L;
-        Long end = getEnd(map);
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
 
         List<String> legend = new ArrayList<>();
@@ -278,7 +278,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     }
 
     /**
-     * 企业成长目标投资需求行业分布及变化-新增需求分类统计
+     * 企业成长目标投资需求行业分布及变化-新增融资需求融资类别统计
      *
      * @param
      * @return
@@ -291,9 +291,9 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        Long start = getStart(map);
-        Long end = getEnd(map);
-        Map<String, Double> dataBeans = iplSatbMainService.demandNewCatagory(start, end);
+        Long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        Map<String, BigDecimal> dataBeans = iplSatbMainService.demandNewCatagory(start, end);
         List<String> legend = Arrays.asList("银行", "债券", "自筹");
         PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
@@ -308,7 +308,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     }
 
     /**
-     * 企业成长目标投资需求行业分布及变化-新增需求统计
+     * 企业成长目标投资需求行业分布及变化-新增融资需求统计
      *
      * @param
      * @return
@@ -321,8 +321,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        Long start = getStart(map);
-        Long end = getEnd(map);
+        Long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
         List<String> legend = new ArrayList<>();
@@ -351,7 +351,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
         Long start = 0L;
-        Long end = getEnd(map);
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
         List<String> legend = new ArrayList<>();

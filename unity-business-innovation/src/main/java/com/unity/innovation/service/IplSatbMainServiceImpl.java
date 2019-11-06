@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -79,7 +80,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         return baseMapper.demandNew(start, end);
     }
 
-    public Map<String, Double> demandNewCatagory(Long start, Long end){
+    public Map<String, BigDecimal> demandNewCatagory(Long start, Long end){
         
         return baseMapper.demandNewCatagory(start, end);
     }

@@ -324,7 +324,7 @@ public class IpaManageMainController extends BaseWebController {
         byte[] content = FileReaderUtil.getBytes(new File(basePath + "创新发布.zip"));
 
         //删除目录下所有的文件;
-        ZipUtil.delFile(new File(basePath));
+        // ZipUtil.delFile(new File(basePath)); TODO
 
         return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
     }

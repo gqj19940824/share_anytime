@@ -8,6 +8,7 @@ import com.unity.innovation.entity.IplSatbMain;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ public interface IplSatbMainDao extends BaseDao<IplSatbMain> {
     @Select("select cast(sum(m.bank) as decimal(20,2)) bank, cast(sum(m.bond) as decimal(15,2)) bond, cast(sum(m.raise) as decimal(15,2)) raise " +
             "from ipl_satb_main m " +
             "where m.gmt_create >= #{start} and m.gmt_create < #{end} and m.is_deleted = 0 ")
-    Map<String, Double> demandNewCatagory(@Param("start") Long start, @Param("end") Long end);
+    Map<String, BigDecimal> demandNewCatagory(@Param("start") Long start, @Param("end") Long end);
 
     @Select("SELECT FROM_UNIXTIME( s.gmt_create/1000, '%Y年%m月' )  AS month, cast(sum(s.total_amount) as decimal(20, 2)) AS sum " +
             "FROM ipl_satb_main s " +
