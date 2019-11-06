@@ -82,6 +82,10 @@ public class StatisticsPublishWorkService {
         //组织部
         int odFirst = InnovationUtil.ceil(dao.odFirst(beginTime, endTime));
         int odFinish = InnovationUtil.ceil(dao.odFinish(beginTime, endTime));
+        if ((satbFirst + satbFinish + esbFirst + esbFinish +
+                darbFirst + darbFinish + sugFirst + sugFinish + odFirst + odFinish) == 0) {
+            return null;
+        }
         return MultiBarVO.newInstance().title(title)
                 .legend(
                         MultiBarVO.LegendBean.newInstance().data(
