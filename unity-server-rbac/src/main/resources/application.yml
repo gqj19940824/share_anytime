@@ -29,9 +29,3 @@ spring:
       - /identity/saveUserIdentiryList/*
       - /api/user/pushUcsUserToSecurity
       - /resource/saveRoleResource
-      - /ipldarbmain/exportExcel
-      - /iplEsbMain/export/excel
-      - /iplManageMain/downloadIplSatbMainDataPkgToExcel/*
-      - /iplOdMain/export/excel
-      - /iplSuperVisionMain/download
-      - /sysCfg/list
