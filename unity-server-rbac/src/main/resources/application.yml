@@ -34,3 +34,4 @@ spring:
       - /iplManageMain/downloadIplSatbMainDataPkgToExcel/*
       - /iplOdMain/export/excel
       - /iplSuperVisionMain/download
+      - /sysCfg/list
