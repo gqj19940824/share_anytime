@@ -384,7 +384,7 @@ public class IpaManageMainController extends BaseWebController {
             XSSFWorkbook wb;
             // 入区
             PmInfoDept pmInfoDept = pmInfoDeptService.detailById(e.getId());
-            if (BizTypeEnum.RQDEPTINFO.equals(e.getBizType())) {
+            if (BizTypeEnum.RQDEPTINFO.getType().equals(e.getBizType())) {
                 List<InfoDeptYzgt> dataList = pmInfoDept.getDataList();
                 dataList.forEach(d -> d.setAttachmentCode(
                         d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
@@ -392,12 +392,12 @@ public class IpaManageMainController extends BaseWebController {
                 wb = ExcelExportByTemplate.getWorkBook("template/rq.xlsx");
                 ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
                 //  路演
-            } else if (BizTypeEnum.LYDEPTINFO.equals(e.getBizType())) {
+            } else if (BizTypeEnum.LYDEPTINFO.getType().equals(e.getBizType())) {
                 List<InfoDeptSatb> dataList = pmInfoDept.getDataList();
                 List<List<Object>> data = pmInfoDeptService.getSatbData(dataList);
                 wb = ExcelExportByTemplate.getWorkBook("template/ly.xlsx");
                 ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-            } else if (BizTypeEnum.INVESTMENT.equals(e.getBizType())) {
+            } else if (BizTypeEnum.INVESTMENT.getType().equals(e.getBizType())) {
                 List<List<Object>> data = pmInfoDeptService.getYzgtData(e.getSnapShot());
                 wb = ExcelExportByTemplate.getWorkBook("template/invest.xlsx");
                 ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
