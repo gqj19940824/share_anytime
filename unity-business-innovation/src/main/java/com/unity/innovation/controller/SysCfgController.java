@@ -120,8 +120,11 @@ public class SysCfgController extends BaseWebController {
             }
 
         }
+        PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
+                .total(Long.parseLong(String.valueOf(list.size())))
+                .items(convert2List(list)).build();
+        return success(result);
 
-        return success(list);
     }
 
 
