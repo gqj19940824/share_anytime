@@ -372,11 +372,15 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
      * @since 2019/10/30 09:37
      */
     public Map<String, Object> roadshowEnterpriseInnovationLevel(Long startTime, Long endTime) {
-        Map<String, Object> data = Maps.newHashMap();
         List<String> nameList = Lists.newArrayList();
         List<PieVoByDoc.DataBean> dataList = Lists.newArrayList();
         //查询 创新成功水平类型对应的数量信息 [{"achievementLevel":"1","num":"2"}]
         List<Map<String, Long>> mapList = baseMapper.roadshowEnterpriseInnovationLevel(startTime, endTime);
+        long sum = mapList.stream().mapToLong(map -> map.get(NUM)).sum();
+        if(sum < 1){
+            //说明没数据
+            return null;
+        }
         mapList.stream().filter(map -> !map.get(NUM).equals(0L)).forEach(map -> {
             Dic dic = dicUtils.getDicByCode(DicConstants.ACHIEVEMENT_INNOVATI, map.get(ACHIEVEMENT_LEVEL).toString());
             dataList.add(PieVoByDoc.DataBean.newInstance()
@@ -385,7 +389,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
                     .build());
             nameList.add(dic.getDicValue());
         });
-        long sum = mapList.stream().mapToLong(map -> map.get(NUM)).sum();
+        Map<String, Object> data = Maps.newHashMap();
         data.put("totalNum", sum);
         data.put("pieData", PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance()
@@ -396,6 +400,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
                 .data(dataList)
                 .build());
         return data;
+
     }
 
     /**
@@ -408,19 +413,22 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
      * @since 2019/10/30 09:37
      */
     public Map<String, Object> firstExternalRelease(Long startTime, Long endTime) {
-        Map<String, Object> data = Maps.newHashMap();
         List<PieVoByDoc.DataBean> dataList = Lists.newArrayList();
         //查询 创新成功水平类型对应的数量信息 [{"yesOrNo":"1","num":"2"}]
         List<Map<String, Object>> mapList = baseMapper.firstExternalRelease(startTime, endTime);
+        long sum = mapList.stream().mapToLong(map -> Long.parseLong(map.get(NUM).toString())).sum();
+        if(sum < 0){
+            return null;
+        }
         mapList.forEach(map -> {
-                    Integer parseInt = Integer.parseInt(map.get(YES_OR_NO).toString());
-                    String yesOrNo = parseInt.equals(YesOrNoEnum.YES.getType()) ? "是" : "否";
-                    dataList.add(PieVoByDoc.DataBean.newInstance()
+            Integer parseInt = Integer.parseInt(map.get(YES_OR_NO).toString());
+            String yesOrNo = parseInt.equals(YesOrNoEnum.YES.getType()) ? "是" : "否";
+            dataList.add(PieVoByDoc.DataBean.newInstance()
                             .name(yesOrNo)
                             .value(Long.parseLong(map.get(NUM).toString()))
                             .build());
-                });
-        long sum = mapList.stream().mapToLong(map -> Long.parseLong(map.get(NUM).toString())).sum();
+        });
+        Map<String, Object> data = Maps.newHashMap();
         data.put("totalNum", sum);
         data.put("pieData", PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance()
