@@ -1,6 +1,5 @@
 package com.unity.common.utils;
 
-import com.google.common.collect.Lists;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -537,22 +536,5 @@ public class DateUtil
             e.printStackTrace();
         }
         return time;
-    }
-
-    public static void main(String[] args) throws ParseException {
-        List<String> dateStrList = Lists.newArrayList();
-        String yearMonth = "2019-05";
-        Date parse;
-        if (yearMonth == null){
-            parse = new Date();
-        }else {
-            parse = new SimpleDateFormat("yyyy-MM").parse(yearMonth);
-        }
-        dateStrList.add(yearMonth);
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(parse);
-        calendar.add(Calendar.MONTH, -5);
-        dateStrList.add(new SimpleDateFormat(("yyyy-MM")).format(calendar.getTime()));
-        System.out.println(dateStrList.toString());
     }
 }

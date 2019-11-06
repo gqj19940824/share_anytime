@@ -4,7 +4,7 @@
 
     <!--需求趋势-->
     <select id="demandTrendStatistics" resultType="java.util.Map">
-        SELECT FROM_UNIXTIME( s.gmt_create/1000, '%Y年%m月' )  AS month, COUNT(*) AS sum
+        SELECT FROM_UNIXTIME( s.gmt_create/1000, '%Y年%m月' )  AS month, source, COUNT(*) AS sum
         FROM ${tableName} s
         where s.is_deleted = 0
 
@@ -14,11 +14,10 @@
         <if test="endLong != null">
             and s.gmt_create &lt; #{endLong}
         </if>
-        <if test="source != null">
-            and s.source = #{source}
-        </if>
-
-        GROUP BY month
+<!--        <if test="source != null">-->
+<!--            and s.source = #{source}-->
+<!--        </if>-->
+        GROUP BY month, source
     </select>
 
     <!--协同发改局列表-->

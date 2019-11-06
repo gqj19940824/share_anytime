@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,8 +66,8 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     @Resource
     private SysMessageHelpService sysMessageHelpService;
 
-    public List<Map<String, Object>> demandTrendStatistics(@Param("tableName") String tableName, @Param("source")Integer source, @Param("startLong") Long startLong, @Param("endLong") Long endLong){
-        return baseMapper.demandTrendStatistics(tableName, source, startLong, endLong);
+    public List<Map<String, Object>> demandTrendStatistics(String tableName, Long startLong, Long endLong){
+        return baseMapper.demandTrendStatistics(tableName, startLong, endLong);
     }
 
     public PageElementGrid listAssistByPage(PageEntity<Map<String, Object>> pageEntity){
