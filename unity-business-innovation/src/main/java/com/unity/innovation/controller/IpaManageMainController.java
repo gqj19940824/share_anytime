@@ -335,11 +335,11 @@ public class IpaManageMainController extends BaseWebController {
             String snapshot = e.getSnapshot();
             switch (BizTypeEnum.of(e.getBizType())) {
                 case INTELLIGENCE: // 组织部
-                    wb = ExcelExportByTemplate.getWorkBook("template/od.xls");
+                    wb = ExcelExportByTemplate.getWorkBook("template/od.xlsx");
                     ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getOdData(e.getSnapshot()), e.getNotes(), wb);
                     break;
                 case ENTERPRISE: // 企服局
-                    wb = ExcelExportByTemplate.getWorkBook("template/esb.xls");
+                    wb = ExcelExportByTemplate.getWorkBook("template/esb.xlsx");
                     ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getEbsData(e.getSnapshot()), e.getNotes(), wb);
                     break;
                 case GROW: // 科技局

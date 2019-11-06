@@ -366,7 +366,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     }
 
     /**
-     * 北京亦庄创新发布清单情况-需求趋势统计
+     * 北京亦庄创新发布清单情况-需求数量变化统计
      *
      * @param
      * @return
