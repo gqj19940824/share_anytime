@@ -6,13 +6,18 @@ package com.unity.innovation.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.enums.UserTypeEnum;
+import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ValidFieldFactory;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.innovation.entity.SysCfgScope;
+import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.innovation.service.SysCfgScopeServiceImpl;
 import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.unity.common.base.controller.BaseWebController;
@@ -83,6 +88,43 @@ public class SysCfgController extends BaseWebController {
         return success(result);
 
     }
+
+
+    /**
+    * 企业性质/行业类别/关键字下拉框
+    *
+    * @param pageEntity 查询条件
+    * @return reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<com.unity.common.pojos.SystemResponse<java.lang.Object>>>
+    * @author JH
+    * @date 2019/11/6 13:50
+    */
+    @PostMapping("/list")
+    public Mono<ResponseEntity<SystemResponse<Object>>> list(@RequestBody PageEntity<SysCfg> pageEntity) {
+        SysCfg cfg = pageEntity.getEntity();
+        LambdaQueryWrapper<SysCfg> ew = new LambdaQueryWrapper<>();
+        Integer cfgType = cfg.getCfgType();
+        ew.eq(SysCfg::getCfgType,cfgType);
+        ew.eq(SysCfg::getUseStatus, YesOrNoEnum.YES.getType());
+        List<SysCfg> list = service.list(ew);
+        if(SysCfgEnum.ONE.getId().equals(cfgType) || SysCfgEnum.TWO.getId().equals(cfgType)||SysCfgEnum.FOUR.getId().equals(cfgType)) {
+            Customer customer = LoginContextHolder.getRequestAttributes();
+            Integer userType = customer.getUserType();
+            //普通账号进行适用范围校验
+            if(userType.equals(UserTypeEnum.ORDINARY.getId())) {
+                Long departmentId = customer.getIdRbacDepartment();
+                List<Long> ids = list.stream().map(SysCfg::getId).collect(Collectors.toList());
+                List<SysCfgScope> scopeList = scopeService.list(new LambdaQueryWrapper<SysCfgScope>().in(SysCfgScope::getIdSysCfg,ids));
+                //key cfgId  value 适用范围集合
+                Map<Long, List<Long>> collect = scopeList.stream().collect(Collectors.groupingBy(SysCfgScope::getIdSysCfg, Collectors.mapping(SysCfgScope::getIdRbacDepartment, Collectors.toList())));
+                list =  list.stream().filter(n -> collect.get(n.getId()).contains(0L) || collect.get(n.getId()).contains(departmentId)).collect(Collectors.toList());
+            }
+
+        }
+
+        return success(list);
+    }
+
+
 
     /**
     * 查询条件封装
