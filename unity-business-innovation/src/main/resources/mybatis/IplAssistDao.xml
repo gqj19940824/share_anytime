@@ -71,7 +71,7 @@
 
     <sql id="publicFile">
         m.id idIplMain, m.enterprise_name enterpriseName, m.contact_person contactPerson, m.contact_way contactWay,
-        m.gmt_create gmtCreate, m.gmt_modified gmtModified, m.source, m.id_rbac_department_duty idRbacDepartmentDuty, a.deal_status,
+        m.gmt_create gmtCreate, m.gmt_modified gmtModified, m.source, m.id_rbac_department_duty idRbacDepartmentDuty, a.deal_status status,
         a.process_status processStatus, s.cfg_val industryCategoryName
 
         FROM ${table} m INNER JOIN ipl_assist a ON m.id = a.id_ipl_main AND a.id_rbac_department_duty = m.id_rbac_department_duty
