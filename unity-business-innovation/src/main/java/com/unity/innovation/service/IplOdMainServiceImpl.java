@@ -520,6 +520,11 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                 completionDataMapList.add(BigDecimal.ZERO);
             }
         });
+        Integer addTotalNum = addDataMapList.stream().reduce(0, (x, y) -> x + y);
+        BigDecimal completionTotalNum = completionDataMapList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        if(addTotalNum.equals(0) && completionTotalNum.compareTo(BigDecimal.ZERO) == 0){
+            return null;
+        }
         return MultiBarVO.newInstance()
                 .legend(MultiBarVO.LegendBean.newInstance()
                         .data(Arrays.asList("月度新增人才需求","月度人才需求完成情况"))
@@ -588,6 +593,12 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                 mapList.add(dataMap);
             }
         }
+        long sum = mapList.stream().filter(map -> map.get(NUM) != null)
+                .mapToLong(map -> Long.parseLong(map.get(NUM).toString()))
+                .sum();
+        if(sum < 0){
+            return null;
+        }
         Map<Long, String> sysCfgMap = sysCfgService.getSysCfgMap(SysCfgEnum.THREE.getId());
         List<PieVoByDoc.DataBean> dataList = Lists.newArrayList();
         mapList.stream().filter(map -> map.get(NUM) != null).forEach(map ->{
@@ -598,9 +609,6 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                     .build());
             nameList.add(name);
         });
-        long sum = mapList.stream().filter(map -> map.get(NUM) != null)
-                .mapToLong(map -> Long.parseLong(map.get(NUM).toString()))
-                .sum();
         data.put("pieData",PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance()
                         .data(nameList)

@@ -30,6 +30,13 @@ spring:
       - /iplSuggestion/saveOrUpdate
       - /iplSuperVisionMain/saveOrUpdate
       - /iplyzgtmain/saveOrUpdate
+      - /attachment/getAttachmentByCode
+      - /ipldarbmain/exportExcel
+      - /iplEsbMain/export/excel
+      - /iplManageMain/downloadIplSatbMainDataPkgToExcel/*
+      - /iplOdMain/export/excel
+      - /iplSuperVisionMain/download
+      - /sysCfg/list
 
 pagehelper:
   auto-dialect: mysql
