@@ -210,6 +210,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             // 将状数据态置为"处理中"，将超时状态置为"进展正常"
             ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DEALING.getId());
             ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
+            ReflectionUtils.setFieldValue(entity, "latestProcess", iplLog.getProcessInfo());
             updateMain(entity);
 
             // 更新redis的超时
@@ -269,6 +270,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         redisSubscribeService.removeRecordInfo(idIplMain + "-0", idRbacDepartmentDuty, bizType);
 
         // 更新主表状态、删除主表的redis超时设置
+        ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
         ReflectionUtils.setFieldValue(entity, "status", IplStatusEnum.DONE.getId());
         ReflectionUtils.setFieldValue(entity, "latestProcess", processInfo);
         updateMain(entity);
