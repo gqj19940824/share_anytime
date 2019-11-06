@@ -97,10 +97,10 @@
             AND m.source = #{source}
         </if>
         <if test="status != null and status != ''">
-            AND m.`status` = #{status}
+            AND a.deal_status = #{status}
         </if>
         <if test="processStatus != null and processStatus != ''">
-            AND m.process_status = #{processStatus}
+            AND a.process_status = #{processStatus}
         </if>
     </sql>
 </mapper>
