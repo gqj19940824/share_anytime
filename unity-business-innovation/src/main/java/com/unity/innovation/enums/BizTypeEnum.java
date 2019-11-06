@@ -77,6 +77,9 @@ public enum BizTypeEnum {
         if (id.equals(SIGNUP.getType())) {
             return SIGNUP;
         }
+        if (id.equals(SUGGESTION.getType())) {
+            return SUGGESTION;
+        }
         return null;
     }
 
