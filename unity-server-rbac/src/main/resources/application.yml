@@ -29,4 +29,4 @@ spring:
       - /identity/saveUserIdentiryList/*
       - /api/user/pushUcsUserToSecurity
       - /resource/saveRoleResource
-      - /department/listAllDepartmentList/1
+      - /department/listAllDepartmentList/*
