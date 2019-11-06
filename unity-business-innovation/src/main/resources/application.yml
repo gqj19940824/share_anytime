@@ -30,7 +30,7 @@ spring:
       - /iplSuggestion/saveOrUpdate
       - /iplSuperVisionMain/saveOrUpdate
       - /iplyzgtmain/saveOrUpdate
-
+      - /attachment/getAttachmentByCode
 pagehelper:
   auto-dialect: mysql
   params: count=countSql
