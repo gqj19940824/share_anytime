@@ -15,11 +15,11 @@ public enum BizTypeEnum {
      * 50亲清政商关系（纪检 ) 60入区企业信息发布管理  70路演企业信息发布管理  80投资机构信息发布管理
      * 90意见与建议（纪检组）
      */
-    CITY(10,"城市创新合作清单"),
-    ENTERPRISE(20,"企业创新发展清单"),
-    GROW(30,"成长目标投资清单"),
-    INTELLIGENCE(40,"高端才智需求清单"),
-    POLITICAL(50,"亲清政商关系清单"),
+    CITY(10,"城市创新合作"),
+    ENTERPRISE(20,"企业创新发展"),
+    GROW(30,"成长目标投资"),
+    INTELLIGENCE(40,"高端才智需求"),
+    POLITICAL(50,"亲清政商关系"),
     RQDEPTINFO(60,"入区企业信息"),
     LYDEPTINFO(70,"路演企业信息"),
     INVESTMENT(80,"投资机构信息管理"),
