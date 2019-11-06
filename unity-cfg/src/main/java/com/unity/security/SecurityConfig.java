@@ -85,7 +85,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .and().authorizeRequests().and().exceptionHandling()
                         .accessDeniedHandler(customAccessDeniedHandler)
                         .authenticationEntryPoint(customAuthenticationEntryPoint).and().authorizeRequests()
-                        .antMatchers("/**").permitAll()
+                        .antMatchers("/feign/**","/actuator/**","/dic/**").permitAll()
                         .antMatchers(HttpMethod.OPTIONS).permitAll();
 
         requestMappingHandlerMapping
@@ -132,7 +132,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         }
 
         expressionInterceptUrlRegistry
-                .antMatchers("/**/**").authenticated()
+                .antMatchers("/**").authenticated()
                 .and().addFilterBefore(authenticationTokenFilter, org.springframework.security
                 .web.authentication.UsernamePasswordAuthenticationFilter.class)
         ;

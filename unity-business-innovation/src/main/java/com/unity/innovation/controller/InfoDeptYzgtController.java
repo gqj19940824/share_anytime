@@ -196,7 +196,7 @@ public class InfoDeptYzgtController extends BaseWebController {
             }
         }
         //排序规则      未提请发布在前，已提请发布在后；各自按创建时间倒序
-        ew.orderByDesc(InfoDeptYzgt::getStatus,InfoDeptYzgt::getGmtCreate);
+        ew.last(" ORDER BY status ASC , gmt_create desc ");
         return ew;
     }
 

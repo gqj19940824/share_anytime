@@ -146,7 +146,7 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
                     .collect(Collectors.toList());
             customer.setTypeRangeList(bizTypeList);
         }
-        redisUtils.putCurrentUserByToken(tokenStr, customer, day);
+        redisUtils.syncPutCurrentUserByToken(tokenStr, customer, day);
     }
 
     /**

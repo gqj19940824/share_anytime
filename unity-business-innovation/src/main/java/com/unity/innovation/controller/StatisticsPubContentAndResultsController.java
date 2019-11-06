@@ -415,6 +415,21 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
             getNum(startLong, endLong, enMap, sfMap, getTableName(bizType));
         }
 
+        Collection<Integer> enValues = enMap.values();
+        Collection<Integer> sfValues = sfMap.values();
+        int enSum = enValues.stream().mapToInt(Integer::intValue).sum();
+        int sfSum = sfValues.stream().mapToInt(Integer::intValue).sum();
+        List<MultiBarVO.SeriesBean> seriesBeans;
+        if (enSum + sfSum > 0){
+            seriesBeans = Arrays.asList(
+                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
+                            .data(new ArrayList<>(enValues)).build()
+                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
+                            .data(new ArrayList<>(sfValues)).build());
+        }else {
+            seriesBeans = null;
+        }
+
         MultiBarVO multiBarVO = MultiBarVO.newInstance()
                 .legend(
                         MultiBarVO.LegendBean.newInstance().data(
@@ -424,12 +439,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                         Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
                                 .type("category")
                                 .data(monthsList).build())
-                ).series(
-                        Arrays.asList(
-                                MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
-                                        .data(new ArrayList<>(enMap.values())).build()
-                                , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
-                                        .data(new ArrayList<>(sfMap.values())).build())).build();
+                ).series(seriesBeans).build();
 
         return success(multiBarVO);
     }
@@ -525,6 +535,18 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         int esbSelfCount = iplEsbMainService.count(getIplEsbQw(SourceEnum.SELF.getId(), start, end));
         int esbEnterpriseCount = iplEsbMainService.count(getIplEsbQw(SourceEnum.ENTERPRISE.getId(), start, end));
 
+        List<MultiBarVO.SeriesBean> seriesBeans;
+        int total = satbSelfCount + satbEnterpriseCount + odSelfCount + odEnterpriseCount + darbSelfCount + darbEnterpriseCount + esbSelfCount + esbEnterpriseCount;
+        if (total == 0){
+            seriesBeans = null;
+        }else {
+           seriesBeans = Arrays.asList(
+                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
+                            .data(Arrays.asList(satbSelfCount, odSelfCount, darbSelfCount, esbSelfCount)).build()
+                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
+                            .data(Arrays.asList(satbEnterpriseCount, odEnterpriseCount, darbEnterpriseCount, esbEnterpriseCount)).build());
+        }
+
         MultiBarVO multiBarVO = MultiBarVO.newInstance()
                 .legend(
                         MultiBarVO.LegendBean.newInstance().data(
@@ -534,12 +556,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                         Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
                                 .type("category")
                                 .data(Arrays.asList("成长目标投资", "高端才智需求", "城市创新合作", "企业创新发展")).build())
-                ).series(
-                        Arrays.asList(
-                                MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
-                                        .data(Arrays.asList(satbSelfCount, odSelfCount, darbSelfCount, esbSelfCount)).build()
-                                , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
-                                        .data(Arrays.asList(satbEnterpriseCount, odEnterpriseCount, darbEnterpriseCount, esbEnterpriseCount)).build())).build();
+                ).series(seriesBeans).build();
 
         return success(multiBarVO);
     }
