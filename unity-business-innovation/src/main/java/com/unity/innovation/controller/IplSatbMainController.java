@@ -281,12 +281,11 @@ public class IplSatbMainController extends BaseWebController {
      * @since 2019/10/11 11:27
      */
     @GetMapping("/downloadIplSatbMainDataPkgToExcel/{id}")
-    public Mono<ResponseEntity<SystemResponse<Object>>> downloadIplSatbMainDataPkgToExcel(@PathVariable("id") Long id) {
+    public Mono<ResponseEntity<byte[]>> downloadIplSatbMainDataPkgToExcel(@PathVariable("id") Long id) {
         if(id == null){
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到成长目标投资清单发布ID");
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("未获取到成长目标投资清单发布ID").build();
         }
-        service.downloadIplSatbMainDataPkgToExcel(id);
-        return success();
+        return service.downloadIplSatbMainDataPkgToExcel(id);
     }
 
     /**
