@@ -54,12 +54,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     @Resource
     private IplLogServiceImpl iplLogService;
 
-    private static final String START_DATE = "startDate";
-    private static final String END_DATE = "endDate";
-
-
     /**
-     * 企业成长目标投资需求行业分布及变化-工作动态的关键字统计
+     * 企业成长目标投资需求行业分布及变化-开发区重点工作关键字统计
      *
      * @param
      * @return
@@ -68,20 +64,11 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
      */
     @PostMapping("/dwsKewWordStatistics")
     public Mono<ResponseEntity<SystemResponse<Object>>> dwsKewWordStatistics(@RequestBody Map<String, String> map) {
-        String startDate = MapUtils.getString(map, START_DATE);
-        String endDate = MapUtils.getString(map, END_DATE);
-        Long start = null;
-        Long end = null;
-        if (StringUtils.isNotBlank(startDate)){
-            start = InnovationUtil.getFirstTimeInMonth(startDate, true);
-        }
-        if (StringUtils.isNotBlank(endDate)){
-            end = InnovationUtil.getFirstTimeInMonth(endDate, false);
-        }
+        Long start = getStart(map);
+        Long end = getEnd(map);
 
         List<PieVoByDoc.DataBean> dataBeans = ipaManageMainService.dwsKewWordStatistics(start, end, MapUtils.getLong(map, "idRbacDepartment"));
 
-        List<String> legend = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(dataBeans)){
             if (dataBeans.size() > 10){
                 List<PieVoByDoc.DataBean> otherDateBeans = dataBeans.subList(10, dataBeans.size());
@@ -89,15 +76,17 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                 dataBeans = dataBeans.subList(0, 10);
                 dataBeans.add(PieVoByDoc.DataBean.newInstance().name("其他").value(sum).build());
             }
-            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+            List<String> legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+
+            PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                    .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                    .data(dataBeans)
+                    .build();
+
+            return success(pieVoByDoc);
+        }else {
+            return success(null);
         }
-
-        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
-                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
-                .data(dataBeans)
-                .build();
-
-        return success(pieVoByDoc);
     }
 
     /**
@@ -110,20 +99,11 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
      */
     @PostMapping("/dwsTypeStatistics")
     public Mono<ResponseEntity<SystemResponse<Object>>> dwsTypeStatistics(@RequestBody Map<String, String> map) {
-        String startDate = MapUtils.getString(map, START_DATE);
-        String endDate = MapUtils.getString(map, END_DATE);
-        Long start = null;
-        Long end = null;
-        if (StringUtils.isNotBlank(startDate)){
-            start = InnovationUtil.getFirstTimeInMonth(startDate, true);
-        }
-        if (StringUtils.isNotBlank(endDate)){
-            end = InnovationUtil.getFirstTimeInMonth(endDate, false);
-        }
+        Long start = getStart(map);
+        Long end = getEnd(map);
 
         List<PieVoByDoc.DataBean> dataBeans = ipaManageMainService.dwsTypeStatistics(start, end, MapUtils.getLong(map, "idRbacDepartment"));
 
-        List<String> legend = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(dataBeans)){
             if (dataBeans.size() > 10){
                 List<PieVoByDoc.DataBean> otherDateBeans = dataBeans.subList(10, dataBeans.size());
@@ -131,15 +111,17 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                 dataBeans = dataBeans.subList(0, 10);
                 dataBeans.add(PieVoByDoc.DataBean.newInstance().name("其他").value(sum).build());
             }
-            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+            List<String> legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+
+            PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                    .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                    .data(dataBeans)
+                    .build();
+
+            return success(pieVoByDoc);
+        } else {
+            return success(null);
         }
-
-        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
-                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
-                .data(dataBeans)
-                .build();
-
-        return success(pieVoByDoc);
     }
 
     /**
@@ -156,47 +138,54 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        long start = InnovationUtil.getFirstTimeInMonth(date, true);
-        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        Long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<String> monthsList = DateUtil.getMonthsList(date);
 
-        List<Map<String, Object>> maps = iplSatbMainService.satbDemandTrend(start, end);
-        Map<String, Double> sfMap = new LinkedHashMap<>();
-        if (CollectionUtils.isNotEmpty(maps)) {
-            Map<String, Double> collect = maps.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "month"), e -> MapUtils.getDouble(e, "sum")));
+        List<Map<String, Object>> newAddMaps = iplSatbMainService.satbDemandTrend(start, end);
+        Map<String, Double> newAddMap = new LinkedHashMap<>();
+        if (CollectionUtils.isNotEmpty(newAddMaps)) {
+            Map<String, Double> collect = newAddMaps.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "month"), e -> MapUtils.getDouble(e, "sum")));
             monthsList.forEach(e -> {
                 Double o = collect.get(e);
-                sfMap.put(e, o == null ? 0 : o);
+                newAddMap.put(e, o == null ? 0 : o);
             });
         }
 
-        List<Map<String, Object>> maps1 = iplLogService.statisticsMonthlyDemandCompletionNum(start, end, BizTypeEnum.CITY.getType());
-        Map<String, Double> enMap = new LinkedHashMap<>();
-        if (CollectionUtils.isNotEmpty(maps1)) {
-            Map<String, Double> collect = maps1.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "month"), e -> MapUtils.getDouble(e, "num")));
+        List<Map<String, Object>> doneMaps = iplLogService.statisticsMonthlyDemandCompletionNum(start, end, BizTypeEnum.GROW.getType());
+        Map<String, Double> doneMap = new LinkedHashMap<>();
+        if (CollectionUtils.isNotEmpty(doneMaps)) {
+            Map<String, Double> collect = doneMaps.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "MONTH"), e -> MapUtils.getDouble(e, "num")));
             monthsList.forEach(e -> {
                 Double o = collect.get(e);
-                enMap.put(e, o == null ? 0 : o);
+                doneMap.put(e, o == null ? 0 : o);
             });
         }
 
-        MultiBarVO multiBarVO = MultiBarVO.newInstance()
-                .legend(MultiBarVO.LegendBean.newInstance().data(Arrays.asList("月度新增融资需求额", "月度融资完成额")).build())
-                .xAxis(Arrays.asList(MultiBarVO.XAxisBean.newInstance().type("category").data(monthsList).build()))
-                .series(
-                        Arrays.asList(
-                                MultiBarVO.SeriesBean.newInstance().name("月度新增融资需求额").type("line").data(new ArrayList<>(sfMap.values())).build(),
-                                MultiBarVO.SeriesBean.newInstance().name("月度融资完成额").type("line").data(new ArrayList<>(enMap.values())).build()
-                        )
-                )
-                .build();
+        Collection<Double> newAddValues = newAddMap.values();
+        Collection<Double> doneMapValues = doneMap.values();
+        Double newAddSum = newAddValues.stream().mapToDouble(Double::valueOf).sum();
+        Double doneSum = doneMapValues.stream().mapToDouble(Double::valueOf).sum();
+        if (newAddSum + doneSum>0){
+            MultiBarVO multiBarVO = MultiBarVO.newInstance()
+                    .legend(MultiBarVO.LegendBean.newInstance().data(Arrays.asList("月度新增融资需求额", "月度融资完成额")).build())
+                    .xAxis(Arrays.asList(MultiBarVO.XAxisBean.newInstance().type("category").data(monthsList).build()))
+                    .series(
+                            Arrays.asList(
+                                    MultiBarVO.SeriesBean.newInstance().name("月度新增融资需求额").type("line").data(new ArrayList<>(newAddValues)).build(),
+                                    MultiBarVO.SeriesBean.newInstance().name("月度融资完成额").type("line").data(new ArrayList<>(doneMapValues)).build()
+                            )
+                    )
+                    .build();
 
-        return success(multiBarVO);
+            return success(multiBarVO);
+        }else {
+            return success(null);
+        }
     }
 
-
     /**
-     * 企业成长目标投资需求行业分布及变化-完成额度统计
+     * 企业成长目标投资需求行业分布及变化-融资完成额度统计
      *
      * @param
      * @return
@@ -209,19 +198,19 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        long start = InnovationUtil.getFirstTimeInMonth(date, true);
-        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        Long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
 
-        List<String> legend = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(dataBeans)) {
-            legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+            List<String> legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+            PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
+                    .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
+                    .data(dataBeans).build();
+            return success(pieVoByDoc);
+        } else {
+            return success(null);
         }
-
-        PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
-                .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
-                .data(dataBeans).build();
-        return success(pieVoByDoc);
     }
 
     /**
@@ -238,8 +227,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        long start = 0L;
-        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        Long start = 0L;
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeansDone = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
         List<PieVoByDoc.DataBean> dataBeansNew = iplSatbMainService.demandNew(start, end);
@@ -273,8 +262,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        long start = 0L;
-        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        Long start = 0L;
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
 
         List<String> legend = new ArrayList<>();
@@ -289,7 +278,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     }
 
     /**
-     * 企业成长目标投资需求行业分布及变化-新增需求分类统计
+     * 企业成长目标投资需求行业分布及变化-新增融资需求融资类别统计
      *
      * @param
      * @return
@@ -302,9 +291,9 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        long start = InnovationUtil.getFirstTimeInMonth(date, true);
-        long end = InnovationUtil.getFirstTimeInMonth(date, false);
-        Map<String, Double> dataBeans = iplSatbMainService.demandNewCatagory(start, end);
+        Long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        Map<String, BigDecimal> dataBeans = iplSatbMainService.demandNewCatagory(start, end);
         List<String> legend = Arrays.asList("银行", "债券", "自筹");
         PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
@@ -319,7 +308,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     }
 
     /**
-     * 企业成长目标投资需求行业分布及变化-新增需求统计
+     * 企业成长目标投资需求行业分布及变化-新增融资需求统计
      *
      * @param
      * @return
@@ -332,8 +321,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        long start = InnovationUtil.getFirstTimeInMonth(date, true);
-        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        Long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
         List<String> legend = new ArrayList<>();
@@ -361,8 +350,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        long start = 0L;
-        long end = InnovationUtil.getFirstTimeInMonth(date, false);
+        Long start = 0L;
+        Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
         List<String> legend = new ArrayList<>();
@@ -377,7 +366,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     }
 
     /**
-     * 北京亦庄创新发布清单情况-需求趋势统计
+     * 北京亦庄创新发布清单情况-需求数量变化统计
      *
      * @param
      * @return
@@ -392,9 +381,9 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isNotBlank(date)) {
             Calendar c = Calendar.getInstance();
             c.setTime(new SimpleDateFormat("yyyy-MM").parse(date));
-            c.add(Calendar.MONTH, -6);
+            c.add(Calendar.MONTH, -5);
             startLong = c.getTimeInMillis();
-            c.add(Calendar.MONTH, 7);
+            c.add(Calendar.MONTH, 6);
             endLong = c.getTimeInMillis();
         }
 
@@ -415,23 +404,32 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
             getNum(startLong, endLong, enMap, sfMap, getTableName(bizType));
         }
 
-        MultiBarVO multiBarVO = MultiBarVO.newInstance()
-                .legend(
-                        MultiBarVO.LegendBean.newInstance().data(
-                                Arrays.asList("职能局代企业上报的需求", "企业自主上报的需求")
-                        ).build()
-                ).xAxis(
-                        Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
-                                .type("category")
-                                .data(monthsList).build())
-                ).series(
-                        Arrays.asList(
-                                MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
-                                        .data(new ArrayList<>(enMap.values())).build()
-                                , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
-                                        .data(new ArrayList<>(sfMap.values())).build())).build();
-
-        return success(multiBarVO);
+        Collection<Integer> enValues = enMap.values();
+        Collection<Integer> sfValues = sfMap.values();
+        int enSum = enValues.stream().mapToInt(Integer::intValue).sum();
+        int sfSum = sfValues.stream().mapToInt(Integer::intValue).sum();
+        MultiBarVO multiBarVO;
+        if (enSum + sfSum > 0){
+            multiBarVO = MultiBarVO.newInstance()
+                    .legend(
+                            MultiBarVO.LegendBean.newInstance().data(
+                                    Arrays.asList("职能局代企业上报的需求", "企业自主上报的需求")
+                            ).build()
+                    ).xAxis(
+                            Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
+                                    .type("category")
+                                    .data(monthsList).build())
+                    ).series(
+                            Arrays.asList(
+                                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
+                                            .data(new ArrayList<>(enValues)).build()
+                                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
+                                            .data(new ArrayList<>(sfValues)).build())
+                    ).build();
+            return success(multiBarVO);
+        }else {
+            return success(null);
+        }
     }
 
     /**
@@ -443,7 +441,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
      * @since 2019/10/30 9:53 上午
      */
     private String getTableName(Integer bizType) {
-        String tableName = "";
+        String tableName;
         switch (BizTypeEnum.of(bizType)) {
             case GROW: // 科技局
                 tableName = "ipl_satb_main";
@@ -472,20 +470,24 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
      * @since 2019/10/30 9:52 上午
      */
     private void getNum(Long startLong, Long endLong, Map<String, Integer> enMap, Map<String, Integer> sfMap, String tableName) {
-        List<Map<String, Object>> enNum = assistService.demandTrendStatistics(tableName, SourceEnum.ENTERPRISE.getId(), startLong, endLong);
-        List<Map<String, Object>> sfNum = assistService.demandTrendStatistics(tableName, SourceEnum.SELF.getId(), startLong, endLong);
-
-        enNum.forEach(e -> {
-            String month = MapUtils.getString(e, "month");
-            Integer sum = MapUtils.getInteger(e, "sum");
-            enMap.put(month, enMap.get(month) + sum);
-        });
-
-        sfNum.forEach(e -> {
-            String month = MapUtils.getString(e, "month");
-            Integer sum = MapUtils.getInteger(e, "sum");
-            sfMap.put(month, enMap.get(month) + sum);
-        });
+        List<Map<String, Object>> list = assistService.demandTrendStatistics(tableName, startLong, endLong);
+        Map<Object, List<Map<String, Object>>> source = list.stream().collect(Collectors.groupingBy(e -> e.get("source")));
+        List<Map<String, Object>> enNum = source.get(SourceEnum.ENTERPRISE.getId());
+        if (CollectionUtils.isNotEmpty(enNum)){
+            enNum.forEach(e -> {
+                String month = MapUtils.getString(e, "month");
+                Integer sum = MapUtils.getInteger(e, "sum");
+                enMap.put(month, enMap.get(month) + sum);
+            });
+        }
+        List<Map<String, Object>> sfNum = source.get(SourceEnum.SELF.getId());
+        if (CollectionUtils.isNotEmpty(sfNum)){
+            sfNum.forEach(e -> {
+                String month = MapUtils.getString(e, "month");
+                Integer sum = MapUtils.getInteger(e, "sum");
+                sfMap.put(month, sfMap.get(month) + sum);
+            });
+        }
     }
 
     /**
@@ -497,51 +499,92 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
      * @since 2019/10/29 10:11 上午
      */
     @PostMapping("/innovationPublishInfo/demandStatistics")
-    public Mono<ResponseEntity<SystemResponse<Object>>> demandStatistics(@RequestBody Map<String, Object> map) {
-        Long start = null;
-        String startDate = MapUtils.getString(map, "startDate");
-        if (StringUtils.isNotBlank(startDate)) {
-            start = InnovationUtil.getFirstTimeInMonth(startDate, true);
-        }
-        Long end = null;
-        String endDate = MapUtils.getString(map, "endDate");
-        if (StringUtils.isNotBlank(endDate)) {
-            end = InnovationUtil.getFirstTimeInMonth(endDate, false);
-        }
+    public Mono<ResponseEntity<SystemResponse<Object>>> demandStatistics(@RequestBody Map<String, String> map) {
+        Long start = getStart(map);
+        Long end = getEnd(map);
+
+        // 图例数据
+        List<String> data = new ArrayList<>();
+        // 职能局数据
+        List<Integer> selfData = new ArrayList<>();
+        // 企业数据
+        List<Integer> enterpriseData = new ArrayList<>();
 
         // 30成长目标投资（科技局）
         int satbSelfCount = iplSatbMainService.count(getIplSatbQw(SourceEnum.SELF.getId(), start, end));
         int satbEnterpriseCount = iplSatbMainService.count(getIplSatbQw(SourceEnum.ENTERPRISE.getId(), start, end));
+        if (satbSelfCount + satbEnterpriseCount > 0){
+            data.add(BizTypeEnum.GROW.getName());
+            selfData.add(satbSelfCount);
+            enterpriseData.add(satbEnterpriseCount);
+        }
 
         // 40高端才智需求（组织部）
         int odSelfCount = iplOdMainService.count(getIplOdQw(SourceEnum.SELF.getId(), start, end));
         int odEnterpriseCount = iplOdMainService.count(getIplOdQw(SourceEnum.ENTERPRISE.getId(), start, end));
+        if (odSelfCount + odEnterpriseCount > 0){
+            data.add(BizTypeEnum.INTELLIGENCE.getName());
+            selfData.add(odSelfCount);
+            enterpriseData.add(odEnterpriseCount);
+        }
 
         // 10城市创新合作(发改局)
         int darbSelfCount = iplDarbMainService.count(getIplDarbQw(SourceEnum.SELF.getId(), start, end));
         int darbEnterpriseCount = iplDarbMainService.count(getIplDarbQw(SourceEnum.ENTERPRISE.getId(), start, end));
+        if (darbSelfCount + darbEnterpriseCount > 0){
+            data.add(BizTypeEnum.CITY.getName());
+            selfData.add(darbSelfCount);
+            enterpriseData.add(darbEnterpriseCount);
+        }
 
         // 20企业创新发展（企服局）
         int esbSelfCount = iplEsbMainService.count(getIplEsbQw(SourceEnum.SELF.getId(), start, end));
         int esbEnterpriseCount = iplEsbMainService.count(getIplEsbQw(SourceEnum.ENTERPRISE.getId(), start, end));
+        if (esbSelfCount + esbEnterpriseCount > 0){
+            data.add(BizTypeEnum.ENTERPRISE.getName());
+            selfData.add(esbSelfCount);
+            enterpriseData.add(esbEnterpriseCount);
+        }
+        
+        int total = satbSelfCount + satbEnterpriseCount + odSelfCount + odEnterpriseCount + darbSelfCount + darbEnterpriseCount + esbSelfCount + esbEnterpriseCount;
+        if (total == 0){
+            return success(null);
+        }else {
+            MultiBarVO multiBarVO = MultiBarVO.newInstance()
+                    .legend(
+                            MultiBarVO.LegendBean.newInstance().data(
+                                    Arrays.asList("职能局代企业上报的需求", "企业自主上报的需求")
+                            ).build()
+                    ).xAxis(
+                            Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
+                                    .type("category")
+                                    .data(data).build())
+                    ).series(
+                            Arrays.asList(
+                                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
+                                            .data(selfData).build()
+                                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
+                                            .data(enterpriseData).build())
+                    ).build();
 
-        MultiBarVO multiBarVO = MultiBarVO.newInstance()
-                .legend(
-                        MultiBarVO.LegendBean.newInstance().data(
-                                Arrays.asList("职能局代企业上报的需求", "企业自主上报的需求")
-                        ).build()
-                ).xAxis(
-                        Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
-                                .type("category")
-                                .data(Arrays.asList("成长目标投资", "高端才智需求", "城市创新合作", "企业创新发展")).build())
-                ).series(
-                        Arrays.asList(
-                                MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
-                                        .data(Arrays.asList(satbSelfCount, odSelfCount, darbSelfCount, esbSelfCount)).build()
-                                , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
-                                        .data(Arrays.asList(satbEnterpriseCount, odEnterpriseCount, darbEnterpriseCount, esbEnterpriseCount)).build())).build();
+            return success(multiBarVO);
+        }
+    }
 
-        return success(multiBarVO);
+    private Long getStart(@RequestBody Map<String, String> map) {
+        String startDate = MapUtils.getString(map, "startDate");
+        if (StringUtils.isNotBlank(startDate)) {
+            return InnovationUtil.getFirstTimeInMonth(startDate, true);
+        }
+        return null;
+    }
+
+    private Long getEnd(@RequestBody Map<String, String> map) {
+        String endDate = MapUtils.getString(map, "endDate");
+        if (StringUtils.isNotBlank(endDate)) {
+            return InnovationUtil.getFirstTimeInMonth(endDate, false);
+        }
+        return null;
     }
 
     /**

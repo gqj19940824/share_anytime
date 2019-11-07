@@ -189,7 +189,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplDarbMain> pageEntity) {
-        InnovationUtil.check(BizTypeEnum.CITY.getType()); // TODO 登陆接口判断领导
+        InnovationUtil.checkExcludeLeaderAndAdmin(BizTypeEnum.CITY.getType());
         LambdaQueryWrapper<IplDarbMain> ew = wrapper(pageEntity);
         IPage<IplDarbMain> p = service.page(pageEntity.getPageable(), ew);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
@@ -206,7 +206,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @GetMapping("/detailById/{id}")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@PathVariable("id") Long id) {
-        //InnovationUtil.check(BizTypeEnum.CITY.getType());
+        InnovationUtil.checkExcludeLeaderAndAdmin(BizTypeEnum.CITY.getType());
         IplDarbMain entity = service.getById(id);
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
@@ -225,8 +225,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> save(@RequestBody IplDarbMain entity) {
-        // TODO 校验
-
+        InnovationUtil.checkAmont(entity.getTotalAmount(), entity.getBank(), entity.getBond(), entity.getSelfRaise());
         if (entity.getId() == null) { // 新增
             Integer source = entity.getSource();
             if (SourceEnum.SELF.getId().equals(source)) {
@@ -240,12 +239,11 @@ public class IplDarbMainController extends BaseWebController {
         } else { // 编辑
             // 没有登录会抛异常
             LoginContextHolder.getRequestAttributes();
-
             service.edit(entity);
         }
 
         Map<String, Object> result = new HashMap<>();
-        result.put("id", entity.getId());
+        result.put("id", entity.getId()); // 给前端使用
         return success(result);
     }
 
@@ -442,16 +440,13 @@ public class IplDarbMainController extends BaseWebController {
      */
     @GetMapping("/assists/{mainId}")
     public Mono<ResponseEntity<SystemResponse<Object>>> assists(@PathVariable("mainId") Long mainId) {
-        InnovationUtil.check(BizTypeEnum.CITY.getType());
+        InnovationUtil.checkExcludeLeaderAndAdmin(BizTypeEnum.CITY.getType());
         // 查询基本信息
         IplDarbMain entity = service.getById(mainId);
 
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-        // 主责单位id
-        Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
-
         // 查询协同单位列表
         LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
         qw.eq(IplAssist::getBizType, BizTypeEnum.CITY.getType()).eq(IplAssist::getIdIplMain, mainId).orderByDesc(IplAssist::getGmtCreate);
@@ -461,7 +456,6 @@ public class IplDarbMainController extends BaseWebController {
                 e.setNameRbacDepartmentAssist(InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist()));
             });
         }
-
         return success(assists);
     }
 
@@ -473,7 +467,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/totalProcess/{mainId}")
     public Mono<ResponseEntity<SystemResponse<Object>>> totalProcess(@PathVariable("mainId") Long mainId) {
-        InnovationUtil.check(BizTypeEnum.CITY.getType());
+        InnovationUtil.checkExcludeLeaderAndAdmin(BizTypeEnum.CITY.getType());
         // 查询基本信息
         IplDarbMain entity = service.getById(mainId);
 
@@ -494,7 +488,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/getAssistList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getAssistList(@RequestBody IplDarbMain entity) {
-        InnovationUtil.check(BizTypeEnum.CITY.getType());
+        InnovationUtil.checkExcludeLeaderAndAdmin(BizTypeEnum.CITY.getType());
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplDarbMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);

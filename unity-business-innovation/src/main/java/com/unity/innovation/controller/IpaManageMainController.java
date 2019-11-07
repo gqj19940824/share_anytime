@@ -324,7 +324,7 @@ public class IpaManageMainController extends BaseWebController {
         byte[] content = FileReaderUtil.getBytes(new File(basePath + "创新发布.zip"));
 
         //删除目录下所有的文件;
-        ZipUtil.delFile(new File(basePath));
+        // ZipUtil.delFile(new File(basePath)); TODO
 
         return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
     }
@@ -335,11 +335,11 @@ public class IpaManageMainController extends BaseWebController {
             String snapshot = e.getSnapshot();
             switch (BizTypeEnum.of(e.getBizType())) {
                 case INTELLIGENCE: // 组织部
-                    wb = ExcelExportByTemplate.getWorkBook("template/od.xls");
+                    wb = ExcelExportByTemplate.getWorkBook("template/od.xlsx");
                     ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getOdData(e.getSnapshot()), e.getNotes(), wb);
                     break;
                 case ENTERPRISE: // 企服局
-                    wb = ExcelExportByTemplate.getWorkBook("template/esb.xls");
+                    wb = ExcelExportByTemplate.getWorkBook("template/esb.xlsx");
                     ExcelExportByTemplate.setData(2, e.getTitle(), iplManageMainService.getEbsData(e.getSnapshot()), e.getNotes(), wb);
                     break;
                 case GROW: // 科技局
@@ -384,7 +384,7 @@ public class IpaManageMainController extends BaseWebController {
             XSSFWorkbook wb;
             // 入区
             PmInfoDept pmInfoDept = pmInfoDeptService.detailById(e.getId());
-            if (BizTypeEnum.RQDEPTINFO.equals(e.getBizType())) {
+            if (BizTypeEnum.RQDEPTINFO.getType().equals(e.getBizType())) {
                 List<InfoDeptYzgt> dataList = pmInfoDept.getDataList();
                 dataList.forEach(d -> d.setAttachmentCode(
                         d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
@@ -392,12 +392,12 @@ public class IpaManageMainController extends BaseWebController {
                 wb = ExcelExportByTemplate.getWorkBook("template/rq.xlsx");
                 ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
                 //  路演
-            } else if (BizTypeEnum.LYDEPTINFO.equals(e.getBizType())) {
+            } else if (BizTypeEnum.LYDEPTINFO.getType().equals(e.getBizType())) {
                 List<InfoDeptSatb> dataList = pmInfoDept.getDataList();
                 List<List<Object>> data = pmInfoDeptService.getSatbData(dataList);
                 wb = ExcelExportByTemplate.getWorkBook("template/ly.xlsx");
                 ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-            } else if (BizTypeEnum.INVESTMENT.equals(e.getBizType())) {
+            } else if (BizTypeEnum.INVESTMENT.getType().equals(e.getBizType())) {
                 List<List<Object>> data = pmInfoDeptService.getYzgtData(e.getSnapShot());
                 wb = ExcelExportByTemplate.getWorkBook("template/invest.xlsx");
                 ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);

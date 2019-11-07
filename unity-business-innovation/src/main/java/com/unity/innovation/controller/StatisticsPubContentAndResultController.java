@@ -17,6 +17,7 @@ import com.unity.innovation.service.IpaManageMainServiceImpl;
 import com.unity.innovation.service.IplOdMainServiceImpl;
 import com.unity.innovation.service.MediaManagerServiceImpl;
 import com.unity.innovation.util.InnovationUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
@@ -87,6 +88,9 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
         List<IpaManageMain> manageMainList = ipaManageMainService.list(new LambdaQueryWrapper<IpaManageMain>()
                 .eq(IpaManageMain::getStatus, WorkStatusAuditingStatusEnum.SIXTY.getId())
                 .between(IpaManageMain::getGmtCreate, startTime, endTime));
+        if(CollectionUtils.isEmpty(manageMainList)){
+            return success(null);
+        }
         List<Long> allMediaIdList = manageMainList.stream().map(main ->
                 Arrays.stream(main.getPublishMedia().split(ConstString.SPLIT_COMMA))
                         .map(Long::parseLong)
@@ -103,6 +107,9 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
                 Dic dic = dicUtils.getDicByCode(DicConstants.MEDIA_TYPE, entry.getKey().toString());
                 xData.add(dic.getDicValue());
             }
+        }
+        if(CollectionUtils.isEmpty(yData)){
+            return success(null);
         }
         MultiBarVO multiBarVO = MultiBarVO.newInstance()
                 .xAxis(Collections.singletonList(MultiBarVO.XAxisBean.newInstance()

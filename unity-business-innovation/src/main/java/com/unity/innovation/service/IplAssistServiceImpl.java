@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,8 +66,8 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
     @Resource
     private SysMessageHelpService sysMessageHelpService;
 
-    public List<Map<String, Object>> demandTrendStatistics(@Param("tableName") String tableName, @Param("source")Integer source, @Param("startLong") Long startLong, @Param("endLong") Long endLong){
-        return baseMapper.demandTrendStatistics(tableName, source, startLong, endLong);
+    public List<Map<String, Object>> demandTrendStatistics(String tableName, Long startLong, Long endLong){
+        return baseMapper.demandTrendStatistics(tableName, startLong, endLong);
     }
 
     public PageElementGrid listAssistByPage(PageEntity<Map<String, Object>> pageEntity){
@@ -153,7 +152,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             Long idIplMain = (Long) ReflectionUtils.getFieldValue(entity,"id");
 
             List<IplAssist> assists1 = getAssists(bizType, idIplMain);
-            List<Long> collect = assists1.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList()); // TODO
+            List<Long> collect = assists1.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
 
             // 遍历协同单位组装数据
             List<IplAssist> assistList = new ArrayList<>();
@@ -173,18 +172,15 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                         .inviteInfo(e.getInviteInfo())
                         .build();
                 assistList.add(assist);
+                // 拼接"处理进展"中的协同单位名称
                 deptName.append(InnovationUtil.getDeptNameById(idRbacDepartmentAssist) + "、");
             });
 
-            // 拼接"处理进展"中的协同单位名称
-            String nameStr = null;
-            if(deptName.indexOf("、") > -1){
-                nameStr = deptName.subSequence(0, deptName.lastIndexOf("、")).toString();
-            }
             // 计算日志的状态
             Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, bizType);
-            IplLog iplLog = IplLog.newInstance().idRbacDepartmentAssist(0L).processInfo("新增协同单位：" + nameStr)
-                    .bizType(bizType).idIplMain(idIplMain).idRbacDepartmentDuty(idRbacDepartmentDuty).dealStatus(lastDealStatus).build(); // other TODO
+            IplLog iplLog = IplLog.newInstance().idRbacDepartmentAssist(0L)
+                    .processInfo("新增协同单位：" + StringUtils.stripEnd(deptName.toString(), ",")).bizType(bizType)
+                    .idIplMain(idIplMain).idRbacDepartmentDuty(idRbacDepartmentDuty).dealStatus(lastDealStatus).build();
 
             // 新增协同单位、保存处理日志、主表重设超时、设置协同单位超时
             iplAssistService.addAssist(iplLog, assistList);
@@ -368,11 +364,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                 if ((0 == e.getIdRbacDepartmentAssist())){
                     nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentDuty());
                 }else {
-                    try {
-                        nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist());
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
+                    nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist());
                 }
 
                 e.setNameRbacDepartmentAssist(nameDeptAssist);

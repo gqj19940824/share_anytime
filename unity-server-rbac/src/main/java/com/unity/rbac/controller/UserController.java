@@ -293,9 +293,9 @@ public class UserController extends BaseWebController {
         }
         if(StringUtils.isBlank(user.getName())){
             return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请填写用户名称").build();
-        } else if(!RegExpValidatorUtil.checkName(user.getName().trim())){
+        } else if(user.getName().trim().length() > ParamConstants.PARAM_MAX_LENGTH_20){
             return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
-                    .message("用户名称为中文，限制为2到20个字符！").build();
+                    .message("用户名称限制在20个字符内！").build();
         }
         return null;
     }

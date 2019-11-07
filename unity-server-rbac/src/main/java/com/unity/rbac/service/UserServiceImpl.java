@@ -346,7 +346,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
             return;
         }
         //获取用户拥有的接口列表
-        List<String> authApiList = userAuthResourceList.stream().filter(resource -> resource.getResourceType().equals(ResourceTypeEnum.API.getType()))
+        List<String> authApiList = userAuthResourceList.stream().filter(resource -> !resource.getResourceType().equals(ResourceTypeEnum.MENU.getType()) && StringUtils.isNotBlank(resource.getResourceUrl()))
                 .map(Resource::getResourceUrl)
                 .collect(Collectors.toList());
         //获取用户拥有的按钮编码列表

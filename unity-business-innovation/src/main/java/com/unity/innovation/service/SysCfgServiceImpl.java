@@ -5,13 +5,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
-import com.unity.common.enums.YesOrNoEnum;
+import com.unity.common.enums.UserTypeEnum;
 import com.unity.common.pojos.Customer;
 import com.unity.common.util.JsonUtil;
 import com.unity.innovation.dao.SysCfgDao;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.SysCfgScope;
-import com.unity.innovation.enums.SysCfgEnum;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * ClassName: SysCfgService
@@ -89,16 +88,21 @@ public class SysCfgServiceImpl extends BaseServiceImpl<SysCfgDao, SysCfg> {
      * @date 2019/9/17 19:50
      */
     public List<Map<String, Object>> getSysList1(Integer type) {
-        List<Long> list = Lists.newArrayList();
-        list.add(0L);
         Customer customer = LoginContextHolder.getRequestAttributes();
-        if (customer.getIdRbacDepartment() != null) {
-            list.add(customer.getIdRbacDepartment());
+        LambdaQueryWrapper<SysCfg> lqw = new LambdaQueryWrapper<SysCfg>()
+                .eq(SysCfg::getCfgType, type).eq(SysCfg::getUseStatus, 1);
+        //用户信息
+        if (UserTypeEnum.ORDINARY.getId().equals(customer.getUserType())) {
+            List<Long> list = Lists.newArrayList();
+            list.add(0L);
+            if (customer.getIdRbacDepartment() != null) {
+                list.add(customer.getIdRbacDepartment());
+            }
+            List<SysCfgScope> mList = scopeService.list(new LambdaQueryWrapper<SysCfgScope>().in(SysCfgScope::getIdRbacDepartment, list));
+            List<Long> ids = mList.stream().map(SysCfgScope::getIdSysCfg).collect(Collectors.toList());
+            lqw.in(SysCfg::getId, ids);
         }
-        List<SysCfgScope> mList = scopeService.list(new LambdaQueryWrapper<SysCfgScope>().in(SysCfgScope::getIdRbacDepartment, list));
-        List<Long> ids = mList.stream().map(SysCfgScope::getIdSysCfg).collect(Collectors.toList());
-        List<SysCfg> typeList = list(new LambdaQueryWrapper<SysCfg>()
-                .eq(SysCfg::getCfgType, type).eq(SysCfg::getUseStatus, 1).in(SysCfg::getId, ids));
+        List<SysCfg> typeList = list(lqw);
         return JsonUtil.ObjectToList(typeList, null, SysCfg::getId, SysCfg::getCfgVal);
     }
 

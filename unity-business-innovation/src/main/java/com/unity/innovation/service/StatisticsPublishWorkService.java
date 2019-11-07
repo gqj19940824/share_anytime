@@ -82,6 +82,10 @@ public class StatisticsPublishWorkService {
         //组织部
         int odFirst = InnovationUtil.ceil(dao.odFirst(beginTime, endTime));
         int odFinish = InnovationUtil.ceil(dao.odFinish(beginTime, endTime));
+        if ((satbFirst + satbFinish + esbFirst + esbFinish +
+                darbFirst + darbFinish + sugFirst + sugFinish + odFirst + odFinish) == 0) {
+            return null;
+        }
         return MultiBarVO.newInstance().title(title)
                 .legend(
                         MultiBarVO.LegendBean.newInstance().data(
@@ -124,15 +128,14 @@ public class StatisticsPublishWorkService {
                 .deptName(InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.CITY.getType().toString()))))
                 .count(collect.get(BizTypeEnum.CITY.getType().toString()) == null ? 0 : collect.get(BizTypeEnum.CITY.getType().toString()).size())
                 .build());
-        //企服局
+        //企服局和科技局 合并成一个局负责
+        int a = collect.get(BizTypeEnum.ENTERPRISE.getType().toString()) == null ? 0 :
+                collect.get(BizTypeEnum.ENTERPRISE.getType().toString()).size();
+        int b = collect.get(BizTypeEnum.GROW.getType().toString()) == null ? 0 :
+                collect.get(BizTypeEnum.GROW.getType().toString()).size();
         statisticsList.add(Statistics.newInstance()
                 .deptName(InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.ENTERPRISE.getType().toString()))))
-                .count(collect.get(BizTypeEnum.ENTERPRISE.getType().toString()) == null ? 0 : collect.get(BizTypeEnum.ENTERPRISE.getType().toString()).size())
-                .build());
-        //科技局
-        statisticsList.add(Statistics.newInstance()
-                .deptName(InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.GROW.getType().toString()))))
-                .count(collect.get(BizTypeEnum.GROW.getType().toString()) == null ? 0 : collect.get(BizTypeEnum.GROW.getType().toString()).size())
+                .count(a + b)
                 .build());
         //纪检组
         statisticsList.add(Statistics.newInstance()
@@ -167,7 +170,13 @@ public class StatisticsPublishWorkService {
                                         .data(count).build())).build();
     }
 
-
+    /**
+     * 功能描述  固定月份（它前六个月的数据） 六个月内某单位工作基本情况变化
+     * @param search 查询条件
+     * @return 返回集合
+     * @author gengzhiqiang
+     * @date 2019/10/29 14:29
+     */
     public MultiBarVO changeStatistics(StatisticsSearch search) throws Exception {
         //2019-06
         String monthTime = search.getMonthTime();
@@ -196,23 +205,47 @@ public class StatisticsPublishWorkService {
         List<Integer> finishData = Lists.newArrayList();
         //某个局
         if (search.getBizType() != null) {
-            String tableName = getTableName(bizType);
-            //变化 平均首次响应时间
-            List<Map<String, Object>> changeFirst = dao.changeFirst(tableName, beginTime, endTime);
-            changeFirst.forEach(e -> {
-                String month = MapUtils.getString(e, "month");
-                int sum = InnovationUtil.ceil(MapUtils.getDouble(e, "sum"));
-                first.put(month, sum);
-            });
-            //变化 平均完成时间
-            List<Map<String, Object>> changeFinish = dao.changeFinish(tableName, beginTime, endTime);
-            changeFinish.forEach(e -> {
-                String month = MapUtils.getString(e, "month");
-                int sum = InnovationUtil.ceil(MapUtils.getDouble(e, "sum"));
-                finish.put(month, sum);
-            });
+            //20为创新科技局 原科技局和企服局两表合一
+            if (BizTypeEnum.ENTERPRISE.getType().equals(bizType)) {
+
+                List<StatisticsChange> changeFirstAll = dao.changeFirstTwo(beginTime, endTime);
+                List<StatisticsChange> changeFinishAll = dao.changeFinishTwo(beginTime, endTime);
+                //根据月份分组
+                Map<String, List<StatisticsChange>> changeMap = changeFirstAll.stream().collect(Collectors.groupingBy(StatisticsChange::getMonth));
+                Map<String, List<StatisticsChange>> finishMap = changeFinishAll.stream().collect(Collectors.groupingBy(StatisticsChange::getMonth));
+                //循环月份集合
+                monthsList.forEach(month -> {
+                    //平均首次响应时间
+                    List<StatisticsChange> list1 = changeMap.get(month);
+                    if (CollectionUtils.isNotEmpty(list1)) {
+                        dealFirstMonthData(list1,month,first);
+                    }
+                    //平均首次响应时间
+                    List<StatisticsChange> list2 = finishMap.get(month);
+                    if (CollectionUtils.isNotEmpty(list2)) {
+                        dealFinishMonthData(list2,month,finish);
+                    }
+                });
+
+            } else {
+                String tableName = getTableName(bizType);
+                //变化 平均首次响应时间
+                List<Map<String, Object>> changeFirst = dao.changeFirst(tableName, beginTime, endTime);
+                changeFirst.forEach(e -> {
+                    String month = MapUtils.getString(e, "month");
+                    int sum = InnovationUtil.ceil(MapUtils.getDouble(e, "sum"));
+                    first.put(month, sum);
+                });
+                //变化 平均完成时间
+                List<Map<String, Object>> changeFinish = dao.changeFinish(tableName, beginTime, endTime);
+                changeFinish.forEach(e -> {
+                    String month = MapUtils.getString(e, "month");
+                    int sum = InnovationUtil.ceil(MapUtils.getDouble(e, "sum"));
+                    finish.put(month, sum);
+                });
+            }
         } else {
-            //五大局全部数据
+            //全部数据
             List<StatisticsChange> changeFirstAll = dao.changeFirstAll(beginTime, endTime);
             List<StatisticsChange> changeFinishAll = dao.changeFinishAll(beginTime, endTime);
             //根据月份分组
@@ -221,31 +254,29 @@ public class StatisticsPublishWorkService {
             //循环月份集合
             monthsList.forEach(month -> {
                 //平均首次响应时间
-                List<StatisticsChange> list1 = changeMap.get(month);
-                if (CollectionUtils.isNotEmpty(list1)) {
-                    Long creates = list1.stream().map(StatisticsChange::getCreateSum).reduce(0L, (a, b) -> a + b);
-                    Long firsts = list1.stream().map(StatisticsChange::getFirstSum).reduce(0L, (a, b) -> a + b);
-                    Integer count = list1.stream().map(StatisticsChange::getCount).reduce(0, (a, b) -> a + b);
-                    int firstAvg = InnovationUtil.ceil((double) ((firsts - creates) / (count * InnovationConstant.HOUR)));
-                    first.put(month, firstAvg);
-                }
-                //平均首次响应时间
                 List<StatisticsChange> list2 = finishMap.get(month);
                 if (CollectionUtils.isNotEmpty(list2)) {
-                    Long creates2 = list2.stream().map(StatisticsChange::getCreateSum).reduce(0L, (a, b) -> a + b);
-                    Long modify = list2.stream().map(StatisticsChange::getModifiedSum).reduce(0L, (a, b) -> a + b);
-                    Integer count2 = list2.stream().map(StatisticsChange::getCount).reduce(0, (a, b) -> a + b);
-                    int finishAvg = InnovationUtil.ceil((double) ((modify - creates2) / (count2 * InnovationConstant.DAY)));
-                    finish.put(month, finishAvg);
+                    dealFinishMonthData(list2,month,finish);
+                }
+                //平均首次响应时间
+                List<StatisticsChange> list1 = changeMap.get(month);
+                if (CollectionUtils.isNotEmpty(list1)) {
+                    dealFirstMonthData(list1,month,first);
                 }
             });
         }
         //遍历集合 添加数据
-        monthsList.forEach(month -> {
+        int count = 0;
+        for (String month : monthsList) {
             titleData.add(month);
             firstData.add(first.get(month));
             finishData.add(finish.get(month));
-        });
+            count += first.get(month);
+            count += finish.get(month);
+        }
+        if (count == 0) {
+            return null;
+        }
         return MultiBarVO.newInstance().title(title)
                 .legend(
                         MultiBarVO.LegendBean.newInstance().data(
@@ -264,10 +295,40 @@ public class StatisticsPublishWorkService {
     }
 
     /**
+     * 功能描述 处理 首次的数据
+     * @param list1 统计集合
+     * @param month 月份
+     * @param first 返回集合
+     * @author gengzhiqiang
+     * @date 2019/11/7 10:21
+     */
+    private void dealFirstMonthData(List<StatisticsChange> list1, String month, Map<String,Integer> first) {
+        Long firsts = list1.stream().map(StatisticsChange::getFirstSum).reduce(0L, (a, b) -> a + b);
+        Long creates = list1.stream().map(StatisticsChange::getCreateSum).reduce(0L, (a, b) -> a + b);
+        Integer count = list1.stream().map(StatisticsChange::getCount).reduce(0, (a, b) -> a + b);
+        int firstAvg = InnovationUtil.ceil((double) ((firsts - creates) / (count * InnovationConstant.HOUR)));
+        first.put(month, firstAvg);
+    }
+
+    /**
+     * 功能描述 处理 首次的数据
+     * @param list 统计集合
+     * @param month 月份
+     * @param map 返回集合
+     * @author gengzhiqiang
+     * @date 2019/11/7 10:21
+     */
+    private void dealFinishMonthData(List<StatisticsChange> list, String month,Map<String, Integer> map ) {
+        Long modify = list.stream().map(StatisticsChange::getModifiedSum).reduce(0L, (a, b) -> a + b);
+        Long creates2 = list.stream().map(StatisticsChange::getCreateSum).reduce(0L, (a, b) -> a + b);
+        Integer count2 = list.stream().map(StatisticsChange::getCount).reduce(0, (a, b) -> a + b);
+        int finishAvg = InnovationUtil.ceil((double) ((modify - creates2) / (count2 * InnovationConstant.DAY)));
+        map.put(month, finishAvg);
+    }
+
+    /**
      * 获取查询表名
      *
-     * @param
-     * @return
      * @author qinhuan
      * @since 2019/10/30 9:53 上午
      */
@@ -277,14 +338,11 @@ public class StatisticsPublishWorkService {
             case INTELLIGENCE:
                 tableName = "ipl_od_main";
                 break;
-            case GROW:
-                tableName = "ipl_satb_main";
-                break;
             case CITY:
                 tableName = "ipl_darb_main";
                 break;
-            case ENTERPRISE:
-                tableName = "ipl_esb_main";
+            case SUGGESTION:
+                tableName = "ipl_suggestion";
                 break;
             default:
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("无效的清单类型").build();
@@ -316,7 +374,12 @@ public class StatisticsPublishWorkService {
         List<String> titleData = Lists.newArrayList();
         List<Integer> collectData = Lists.newArrayList();
         // 根据bizType时间期间内的数据 判断某个局或者全部
-        List<StatisticsChange> data = dao.overDealTimes(search.getBizType(),beginTime,endTime);
+        List<StatisticsChange> data;
+        if (search.getBizType() != null && BizTypeEnum.ENTERPRISE.getType().equals(search.getBizType())) {
+            data = dao.overDealTimesForTwo( beginTime, endTime);
+        } else {
+            data = dao.overDealTimes(search.getBizType(), beginTime, endTime);
+        }
         Map<String, Integer> collect = data.stream().collect(Collectors.toMap(StatisticsChange::getMonth, StatisticsChange::getCount));
         //六个月
         List<String> monthsList = DateUtil.getMonthsList(monthTime);
@@ -373,6 +436,16 @@ public class StatisticsPublishWorkService {
             workData.add(workMap.get(id) == null ? 0 : workMap.get(id));
             publicData.add(publicMap.get(id) == null ? 0 : publicMap.get(id));
         });
+        int count = 0;
+        for (Integer workDatum : workData) {
+            count += workDatum;
+        }
+        for (Integer pd : publicData) {
+            count += pd;
+        }
+        if (count == 0) {
+            return null;
+        }
         return MultiBarVO.newInstance().title(title)
                 .legend(
                         MultiBarVO.LegendBean.newInstance().data(

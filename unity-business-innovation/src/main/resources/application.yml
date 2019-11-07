@@ -22,13 +22,23 @@ spring:
   security:
     model: permit
     permit:
-      - /sys/login
-      - /sys/logout
-      - /identity/saveUserIdentiryList/*
-      - /api/user/pushUcsUserToSecurity
-      - /resource/saveRoleResource
-      - /redisSubscribe/pushRedisSubscribeInfo
-      - /sysCfg/listByPage
+      - /ipldarbmain/saveOrUpdate
+      - /iplEsbMain/saveOrUpdate
+      - /iplOdMain/saveOrUpdate
+      - /iplpdmain/saveOrUpdate
+      - /iplsatbmain/saveOrUpdate
+      - /iplSuggestion/saveOrUpdate
+      - /iplSuperVisionMain/saveOrUpdate
+      - /iplyzgtmain/saveOrUpdate
+      - /attachment/getAttachmentByCode
+      - /ipldarbmain/exportExcel
+      - /iplEsbMain/export/excel
+      - /iplManageMain/downloadIplSatbMainDataPkgToExcel/*
+      - /iplOdMain/export/excel
+      - /iplSuperVisionMain/download
+      - /sysCfg/list
+      - /sysCfg/pcList
+
 pagehelper:
   auto-dialect: mysql
   params: count=countSql

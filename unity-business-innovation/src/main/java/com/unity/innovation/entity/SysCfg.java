@@ -34,5 +34,12 @@ public class SysCfg extends mSysCfg{
     @TableField(exist = false)
     private List<SysCfgScope> scopeList ;
 
+    /**
+     * 页面填报使用的code
+     **/
+    @TableField(exist = false)
+    private String code;
+
+
 }
 

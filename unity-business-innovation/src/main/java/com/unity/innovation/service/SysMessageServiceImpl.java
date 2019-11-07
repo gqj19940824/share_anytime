@@ -27,6 +27,7 @@ import com.unity.innovation.constants.MessageConstants;
 import com.unity.innovation.dao.SysMessageDao;
 import com.unity.innovation.entity.SysMessage;
 import com.unity.innovation.entity.SysMessageReadLog;
+import com.unity.innovation.entity.SysNoticeUser;
 import com.unity.innovation.entity.SysSendSmsLog;
 import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
@@ -61,6 +62,8 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
 
     @Resource
     SysMessageReadLogServiceImpl sysMessageReadLogService;
+    @Resource
+    SysNoticeUserServiceImpl sysNoticeUserService;
     @Resource
     SysSendSmsLogServiceImpl sysSendSmsLogService;
     @Resource
@@ -404,25 +407,31 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             numMap.put("noticeNum", 0);
             return numMap;
         }
+        //查询数据库获取消息数量
+        int noReadSysMsgNum = sysMessageReadLogService.count(new LambdaQueryWrapper<SysMessageReadLog>()
+                .eq(SysMessageReadLog::getIsRead, YesOrNoEnum.NO.getType())
+                .eq(SysMessageReadLog::getTargetUserId, customer.getId()));
+        int noReadNoticeNum = sysNoticeUserService.count(new LambdaQueryWrapper<SysNoticeUser>()
+                .eq(SysNoticeUser::getIsRead, YesOrNoEnum.NO.getType())
+                .eq(SysNoticeUser::getIdRbacUser, customer.getId()));
+
+        //获取redis中的消息集
         Map<String, Object> sysMegNumMap = hashRedisUtils.getObj(MessageSaveFormEnum.SYS_MSG.getName());
         Map<String, Object> noticeMegNumMap = hashRedisUtils.getObj(MessageSaveFormEnum.NOTICE.getName());
-        //获取所有消息数量，判断是否有属于当前人的消息
-        int sysMessageNum = 0;
-        int noticeNum = 0;
-        if (MapUtils.isNotEmpty(sysMegNumMap)) {
-            Object numBySysObj = sysMegNumMap.get(customer.getId().toString());
-            int numBySys = numBySysObj != null ? Integer.parseInt(numBySysObj.toString()) : 0;
-            sysMessageNum += numBySys;
+        if (MapUtils.isEmpty(sysMegNumMap)) {
+            sysMegNumMap = Maps.newHashMap();
         }
+        sysMegNumMap.put(customer.getId().toString(),noReadSysMsgNum);
 
-        if (MapUtils.isNotEmpty(noticeMegNumMap)) {
-            Object numByNoticeObj = noticeMegNumMap.get(customer.getId().toString());
-            int numByNotice = numByNoticeObj == null ? 0 : Integer.parseInt(numByNoticeObj.toString());
-            noticeNum += numByNotice;
+        if (MapUtils.isEmpty(noticeMegNumMap)) {
+            noticeMegNumMap = Maps.newHashMap();
         }
-        numMap.put("isAdd", sysMessageNum == 0 && noticeNum == 0 ? YesOrNoEnum.NO.getType() : YesOrNoEnum.YES.getType());
-        numMap.put("sysMessageNum", sysMessageNum);
-        numMap.put("noticeNum", noticeNum);
+        noticeMegNumMap.put(customer.getId().toString(),noReadNoticeNum);
+        hashRedisUtils.putValueByKey(MessageSaveFormEnum.SYS_MSG.getName(),sysMegNumMap);
+        hashRedisUtils.putValueByKey(MessageSaveFormEnum.NOTICE.getName(),noticeMegNumMap);
+        numMap.put("isAdd", noReadSysMsgNum == 0 && noReadNoticeNum == 0 ? YesOrNoEnum.NO.getType() : YesOrNoEnum.YES.getType());
+        numMap.put("sysMessageNum", noReadSysMsgNum);
+        numMap.put("noticeNum", noReadNoticeNum);
         return numMap;
     }
 
