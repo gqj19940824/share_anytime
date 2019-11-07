@@ -63,10 +63,9 @@ public class InnovationUtil {
      * @since 2019/11/7 3:27 下午
      */
     public static void checkAmont(Double total, Double... complete){
-        total = total == null?0.0:total;
         List<BigDecimal> collect = Arrays.stream(complete).map(BigDecimal::valueOf).collect(Collectors.toList());
         BigDecimal reduce = collect.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        if (!(reduce.compareTo(BigDecimal.valueOf(total)) == 0)){
+        if (!(reduce.compareTo(BigDecimal.valueOf(total == null?0.0:total)) == 0)){
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_NO_REQUIRE).message("需求总额应为银行、债券、自筹三者之和，请核实无误后提交！").build();
         }
     }
