@@ -30,3 +30,4 @@ spring:
       - /api/user/pushUcsUserToSecurity
       - /resource/saveRoleResource
       - /department/listAllDepartmentList/*
+      - /user/updateUserPwd
