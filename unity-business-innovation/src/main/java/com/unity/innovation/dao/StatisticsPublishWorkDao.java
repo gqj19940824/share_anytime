@@ -419,6 +419,7 @@ public interface StatisticsPublishWorkDao {
             " GROUP BY month  " +
             "</script>")
     List<StatisticsChange> changeFinishAll(@Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
+
     /**
      * 功能描述 五大局六个月数据
      * @param bizType 类型
@@ -443,4 +444,86 @@ public interface StatisticsPublishWorkDao {
             " GROUP BY month " +
             "</script>")
     List<StatisticsChange> overDealTimes(@Param("bizType") Integer bizType, @Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
+
+    /**
+     * 功能描述 科技创新局六个月数据
+     * @param beginTime 开始时间
+     * @param endTime   截止时间
+     * @return java.util.List<java.util.Map<java.lang.String,java.lang.Object>> 数据集合
+     * @author gengzhiqiang
+     * @date 2019/10/30 14:13
+     */
+    @Select("<script>" +
+            "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(*) count " +
+            " FROM  ipl_time_out_log s WHERE s.is_deleted = 0  " +
+            "  and s.biz_Type in ( 20 , 30 ) " +
+            "  <if test=\"beginTime !=null\"> " +
+            "  and s.gmt_create &gt;= #{beginTime} " +
+            "  </if>" +
+            "  <if test=\"endTime !=null\"> " +
+            "  and s.gmt_create &lt;= #{endTime} " +
+            "  </if>" +
+            " GROUP BY month " +
+            "</script>")
+    List<StatisticsChange> overDealTimesForTwo( @Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
+
+    /**
+     * 功能描述 科技创新局六个月数据
+     * @param beginTime 开始时间
+     * @param endTime   截止时间
+     * @return java.util.List<java.util.Map<java.lang.String,java.lang.Object>> 数据集合
+     * @author gengzhiqiang
+     * @date 2019/10/30 14:13
+     */
+    @Select("<script>" +
+            "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(gmt_create) count, SUM(gmt_create) createSum, SUM(gmt_first_deal) firstSum," +
+            "\"satb\" NAME FROM  ipl_satb_main s WHERE s.is_deleted = 0  and  STATUS IN (2, 3)  " +
+            "  <if test=\"beginTime !=null\"> " +
+            "  and s.gmt_first_deal &gt;= #{beginTime} " +
+            "  </if>" +
+            "  <if test=\"endTime !=null\"> " +
+            "  and s.gmt_first_deal &lt;= #{endTime} " +
+            "  </if>" +
+            " GROUP BY month  union " +
+            "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(gmt_create) count, SUM(gmt_create) createSum, SUM(gmt_first_deal) firstSum," +
+            "\"esb\" NAME FROM  ipl_esb_main s WHERE s.is_deleted = 0  and  STATUS IN (2, 3)  " +
+            "  <if test=\"beginTime !=null\"> " +
+            "  and s.gmt_first_deal &gt;= #{beginTime} " +
+            "  </if>" +
+            "  <if test=\"endTime !=null\"> " +
+            "  and s.gmt_first_deal &lt;= #{endTime} " +
+            "  </if>" +
+            " GROUP BY month  " +
+            "</script>")
+    List<StatisticsChange> changeFirstTwo(@Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
+
+    /**
+     * 功能描述 科技创新局六个月数据
+     * @param beginTime 开始时间
+     * @param endTime   截止时间
+     * @return java.util.List<java.util.Map<java.lang.String,java.lang.Object>> 数据集合
+     * @author gengzhiqiang
+     * @date 2019/10/30 14:13
+     */
+    @Select("<script>" +
+            "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(gmt_create) count, SUM(gmt_create) createSum, SUM(gmt_modified) modifiedSum," +
+            "\"satb\" NAME FROM  ipl_satb_main s WHERE s.is_deleted = 0  and  STATUS = 3   " +
+            "  <if test=\"beginTime !=null\"> " +
+            "  and s.gmt_first_deal &gt;= #{beginTime} " +
+            "  </if>" +
+            "  <if test=\"endTime !=null\"> " +
+            "  and s.gmt_first_deal &lt;= #{endTime} " +
+            "  </if>" +
+            " GROUP BY month  union " +
+            "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(gmt_create) count, SUM(gmt_create) createSum, SUM(gmt_modified) modifiedSum," +
+            "\"esb\" NAME FROM  ipl_esb_main s WHERE s.is_deleted = 0  and  STATUS = 3  " +
+            "  <if test=\"beginTime !=null\"> " +
+            "  and s.gmt_first_deal &gt;= #{beginTime} " +
+            "  </if>" +
+            "  <if test=\"endTime !=null\"> " +
+            "  and s.gmt_first_deal &lt;= #{endTime} " +
+            "  </if>" +
+            " GROUP BY month  " +
+            "</script>")
+    List<StatisticsChange> changeFinishTwo(@Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
 }

@@ -223,7 +223,11 @@ public class DepartmentController extends BaseWebController {
         if(department != null && department.getDepType() != null){
             wrapper.eq(Department::getDepType,department.getDepType());
         }
-        //wrapper.eq(Department::getUseStatus,YesOrNoEnum.YES.getType());
+        if(department != null && department.getUseStatus() != null
+                && department.getUseStatus().equals(YesOrNoEnum.YES.getType())){
+            //说明是用户新增时调用 只返回启用状态的单位
+            wrapper.eq(Department::getUseStatus,YesOrNoEnum.YES.getType());
+        }
         wrapper.orderByDesc(Department::getSort);
         List<Map<String, Object>> maps = JsonUtil.ObjectToList(service.list(wrapper),
                 null
