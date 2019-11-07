@@ -39,7 +39,7 @@ public class DicUtils {
      * @author qinhuan
      * @since 2019年07月11日13:56:45
      */
-    public String getDicValueByCode(String groupCode, String dicCode) {
+    public String getDicValueByCode(Object groupCode, Object dicCode) {
         String value = "";
         Dic dicByCode = getDicByCode(groupCode, dicCode);
         if (dicByCode != null) {
@@ -56,8 +56,8 @@ public class DicUtils {
      * @author qinhuan
      * @since 2019年07月11日13:56:45
      */
-    public Dic getDicByCode(String groupCode, String dicCode) {
-        if (StringUtils.isEmpty(groupCode) || StringUtils.isEmpty(dicCode)) {
+    public Dic getDicByCode(Object groupCode, Object dicCode) {
+        if (groupCode ==null || dicCode == null) {
             return null;
         }
 

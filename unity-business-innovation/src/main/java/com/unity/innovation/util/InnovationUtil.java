@@ -24,12 +24,11 @@ import javax.annotation.Resource;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author zhqgeng
@@ -53,6 +52,22 @@ public class InnovationUtil {
         innovationUtil = this;
         innovationUtil.hashRedisUtils = this.hashRedisUtils;
         dicUtils = dicUtils2;
+    }
+
+    /**
+     * 校验第一个参数是否等于其余参数之和
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/11/7 3:27 下午
+     */
+    public static void checkAmont(Double total, Double... complete){
+        List<BigDecimal> collect = Arrays.stream(complete).filter(Objects::nonNull).map(BigDecimal::valueOf).collect(Collectors.toList());
+        BigDecimal reduce = collect.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (!(reduce.compareTo(BigDecimal.valueOf(total == null?0.0:total)) == 0)){
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_NO_REQUIRE).message("需求总额应为银行、债券、自筹三者之和，请核实无误后提交！").build();
+        }
     }
 
     /**

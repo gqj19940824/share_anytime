@@ -16,6 +16,7 @@ import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.service.IplAssistServiceImpl;
 import com.unity.innovation.service.IplSatbMainServiceImpl;
+import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -86,6 +87,15 @@ public class IplSatbMainController extends BaseWebController {
         }
         if(entity.getProjectIntroduce().length() > ParamConstants.PARAM_MAX_LENGTH_500){
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH,"项目介绍支持最长500个字");
+        }
+        if(entity.getTotalAmount() != null){
+            if(entity.getBank() == null && entity.getBond() == null && entity.getRaise() == null){
+                return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"银行、债券、自筹至少填写一项");
+            } else {
+                InnovationUtil.checkAmont(entity.getTotalAmount(),entity.getBank(),entity.getBond(),entity.getRaise());
+            }
+        } else if(entity.getBank() != null || entity.getBond() != null || entity.getRaise() != null){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"填写银行、债券、自筹任意一项后，还需填写需求总额");
         }
         service.saveOrUpdateIplSatbMain(entity);
         return success("更新成功");
@@ -271,12 +281,11 @@ public class IplSatbMainController extends BaseWebController {
      * @since 2019/10/11 11:27
      */
     @GetMapping("/downloadIplSatbMainDataPkgToExcel/{id}")
-    public Mono<ResponseEntity<SystemResponse<Object>>> downloadIplSatbMainDataPkgToExcel(@PathVariable("id") Long id) {
+    public Mono<ResponseEntity<byte[]>> downloadIplSatbMainDataPkgToExcel(@PathVariable("id") Long id) {
         if(id == null){
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到成长目标投资清单发布ID");
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("未获取到成长目标投资清单发布ID").build();
         }
-        service.downloadIplSatbMainDataPkgToExcel(id);
-        return success();
+        return service.downloadIplSatbMainDataPkgToExcel(id);
     }
 
     /**

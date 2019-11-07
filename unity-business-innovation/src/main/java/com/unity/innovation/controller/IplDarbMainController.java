@@ -225,6 +225,8 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/saveOrUpdate")
     public Mono<ResponseEntity<SystemResponse<Object>>> save(@RequestBody IplDarbMain entity) {
+        // 校验第一个参数是否等于其余参数之和
+        InnovationUtil.checkAmont(entity.getTotalAmount(), entity.getBank(), entity.getBond(), entity.getSelfRaise());
         if (entity.getId() == null) { // 新增
             Integer source = entity.getSource();
             if (SourceEnum.SELF.getId().equals(source)) {
@@ -238,7 +240,6 @@ public class IplDarbMainController extends BaseWebController {
         } else { // 编辑
             // 没有登录会抛异常
             LoginContextHolder.getRequestAttributes();
-
             service.edit(entity);
         }
 

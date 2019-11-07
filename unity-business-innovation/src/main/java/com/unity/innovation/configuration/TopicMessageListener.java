@@ -122,7 +122,7 @@ public class TopicMessageListener implements MessageListener {
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(main.getIdRbacDepartmentDuty());
             inventoryMessage.setDataSourceClass(SysMessageDataSourceClassEnum.DEVELOPING.getId());
-        } else if (BizTypeEnum.POLITICAL.getType().equals(bizType)) {
+        } else if (BizTypeEnum.SUGGESTION.getType().equals(bizType)) {
             IplSuggestion main = iplSuggestionService.getById(idIplMain);
             inventoryMessage.setTitle(main.getEnterpriseName());
             inventoryMessage.setIdRbacDepartment(idRbacDepartmentDuty);
