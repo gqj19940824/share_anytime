@@ -503,14 +503,14 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         //月度人才需求完成情况
         List<Map<String, Object>> completionMapList = iplLogService.statisticsMonthlyDemandCompletionNum(firstTime, lastTime, BizTypeEnum.INTELLIGENCE.getType());
         List<String> monthList = DateUtil.getMonthsList(yearMonth, "yyyy年MM月", 5);
-        List<Integer> addDataMapList = Lists.newArrayList();
+        List<Long> addDataMapList = Lists.newArrayList();
         List<BigDecimal> completionDataMapList = Lists.newArrayList();
         monthList.forEach(month ->{
             Optional<Map<String, Object>> addOptional = addMapList.stream().filter(map -> map.values().contains(month)).findFirst();
             if(!addOptional.isPresent()){
-                addDataMapList.add(0);
+                addDataMapList.add(0L);
             } else {
-                addDataMapList.add(Integer.parseInt(addOptional.get().get(NUM).toString()));
+                addDataMapList.add(Long.parseLong(addOptional.get().get(NUM).toString()));
             }
             Optional<Map<String, Object>> completionOptional = completionMapList.stream().filter(map -> map.values().contains(month))
                     .findFirst();
@@ -520,9 +520,9 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                 completionDataMapList.add(BigDecimal.ZERO);
             }
         });
-        Integer addTotalNum = addDataMapList.stream().reduce(0, (x, y) -> x + y);
+        Long addTotalNum = addDataMapList.stream().reduce(0L, (x, y) -> x + y);
         BigDecimal completionTotalNum = completionDataMapList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        if(addTotalNum.equals(0) && completionTotalNum.compareTo(BigDecimal.ZERO) == 0){
+        if(addTotalNum.equals(0L) && completionTotalNum.compareTo(BigDecimal.ZERO) == 0){
             return null;
         }
         return MultiBarVO.newInstance()
@@ -605,7 +605,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             String name = sysCfgMap.get(Long.parseLong(map.get(INDUSTRY).toString()));
             dataList.add(PieVoByDoc.DataBean.newInstance()
                     .name(name)
-                    .value(Integer.parseInt(map.get(NUM).toString()))
+                    .value(Long.parseLong(map.get(NUM).toString()))
                     .build());
             nameList.add(name);
         });
