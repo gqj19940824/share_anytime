@@ -3,7 +3,6 @@ package com.unity.innovation.service;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
-import com.unity.common.constant.InnovationConstant;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemResponse;
@@ -114,12 +113,12 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
 
     @Transactional(rollbackFor = Exception.class)
     public void edit(IplDarbMain entity) {
-        // 保存附件
         Long idIplMain = entity.getId();
         IplDarbMain byId = getById(idIplMain);
         if (byId == null) {
             throw new UnityRuntimeException(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
+        // 保存附件
         List<Attachment> attachments = entity.getAttachments();
         if (CollectionUtils.isNotEmpty(attachments)) {
             attachmentService.updateAttachments(byId.getAttachmentCode(), attachments);
@@ -141,7 +140,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
         } else if (IplStatusEnum.DEALING.getId().equals(status)) {
             redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, entity.getIdRbacDepartmentDuty(), entity.getBizType());
 
-            // 非"待处理"状态才记录日志
+            // 非"待处理"状态记录日志
             Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, BizTypeEnum.CITY.getType());
             IplLog iplLog = IplLog.newInstance().idIplMain(idIplMain).idRbacDepartmentAssist(0L).bizType(BizTypeEnum.CITY.getType())
                     .processInfo("更新基本信息").idRbacDepartmentDuty(entity.getIdRbacDepartmentDuty()).dealStatus(lastDealStatus).build();

@@ -234,13 +234,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         List<IplAssist> assists = iplAssistService.getAssists(bizType, idIplMain);
         if (CollectionUtils.isNotEmpty(assists)) {
             // 过滤掉已关闭的协同单位
-            Iterator<IplAssist> iterator = assists.iterator();
-            while (iterator.hasNext()) {
-                IplAssist next = iterator.next();
-                if (IplStatusEnum.DONE.getId().equals(next.getDealStatus())) {
-                    iterator.remove();
-                }
-            }
+            assists.removeIf(e -> IplStatusEnum.DONE.getId().equals(e.getDealStatus()));
 
             if (CollectionUtils.isNotEmpty(assists)){
                 // 更新协同单位状态、删除协同单位的redis超时设置
@@ -353,7 +347,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         qw.eq(IplLog::getIdIplMain, idIplMain).eq(IplLog::getBizType, bizType).orderByDesc(IplLog::getGmtCreate);
         IplLog last = getOne(qw, false);
         // 处理中
-        Integer dealStatus = 2;
+        Integer dealStatus = IplStatusEnum.DEALING.getId();
         if (last != null) {
             dealStatus = last.getDealStatus();
         }
