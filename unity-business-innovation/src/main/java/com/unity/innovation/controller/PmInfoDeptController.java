@@ -383,7 +383,7 @@ public class PmInfoDeptController extends BaseWebController {
      * @date 2019/10/25 16:55
      */
     @GetMapping("exportExcel")
-    public void exportExcel(@RequestParam("id") Long id) {
+    public Mono<ResponseEntity<byte[]>> exportExcel(@RequestParam("id") Long id) {
 
         PmInfoDept dept = service.getById(id);
         // 组装excel需要的数据
@@ -393,7 +393,7 @@ public class PmInfoDeptController extends BaseWebController {
         // 从excel的第5行开始插入数据，并给excel的sheet和标题命名
         ExcelExportByTemplate.setData(2, dept.getTitle(), data, dept.getNotes(), wb);
         // 将生成好的excel响应给用户
-        ExcelExportByTemplate.download(wb, dept.getTitle());
+        return ExcelExportByTemplate.download(wb, dept.getTitle());
     }
 
 }
