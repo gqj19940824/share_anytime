@@ -219,9 +219,7 @@ public class FileController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "未获取到要上传的文件");
         }
         try {
-            FastdfsFileDTO fastdfsFileDTO = fileService.fileUpload(file, flag);
-            fastdfsFileDTO.setLastModified(System.currentTimeMillis());
-            return success(fastdfsFileDTO);
+            return success(fileService.fileUpload(file, flag));
         } catch (UnityRuntimeException e) {
             return error(e.getCode(), e.getMessage());
         }
