@@ -99,133 +99,151 @@ public class StatisticsInfoServiceImpl {
             //按行业求出个数 key 行业类型id value 个数
             Map<Long, Long> rqIdCountByIndustryCategoryMap = yzgtList.stream().collect(Collectors.groupingBy(InfoDeptYzgt::getIndustryCategory, Collectors.counting()));
             Map<Long, Long> lyIdCountByIndustryCategoryMap = satbList.stream().collect(Collectors.groupingBy(InfoDeptSatb::getIndustryCategory, Collectors.counting()));
-            //所有的行业类别
-            List<SysCfg> industryCategoryList = cfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, 3).eq(SysCfg::getUseStatus,YesOrNoEnum.YES.getType()));
+            if(MapUtils.isEmpty(rqIdCountByIndustryCategoryMap) && MapUtils.isEmpty(lyIdCountByIndustryCategoryMap)) {
+                res.put("industryCategory", null);
+            } else {
+                //所有的行业类别
+                List<SysCfg> industryCategoryList = cfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, 3).eq(SysCfg::getUseStatus,YesOrNoEnum.YES.getType()));
 
-            //data
-            List<RadarVo.SeriesBean.DataBean> industryCategoryDataList = Lists.newArrayList();
-            for(String n : list) {
-                List<Long> countList = Lists.newArrayList();
-                if (n.equals("入区企业")) {
-                    if(MapUtils.isNotEmpty(rqIdCountByIndustryCategoryMap)){
-                        for(SysCfg v : industryCategoryList) {
-                            countList.add(rqIdCountByIndustryCategoryMap.getOrDefault(v.getId(),0L));
+                //data
+                List<RadarVo.SeriesBean.DataBean> industryCategoryDataList = Lists.newArrayList();
+                for(String n : list) {
+                    List<Long> countList = Lists.newArrayList();
+                    if (n.equals("入区企业")) {
+                        if(MapUtils.isNotEmpty(rqIdCountByIndustryCategoryMap)){
+                            for(SysCfg v : industryCategoryList) {
+                                countList.add(rqIdCountByIndustryCategoryMap.getOrDefault(v.getId(),0L));
+                            }
+                        }
+                    } else {
+                        if(MapUtils.isNotEmpty(lyIdCountByIndustryCategoryMap)) {
+                            for(SysCfg v : industryCategoryList) {
+                                countList.add(lyIdCountByIndustryCategoryMap.getOrDefault(v.getId(),0L));
+                            }
                         }
                     }
-                } else {
-                    if(MapUtils.isNotEmpty(lyIdCountByIndustryCategoryMap)) {
-                        for(SysCfg v : industryCategoryList) {
-                            countList.add(lyIdCountByIndustryCategoryMap.getOrDefault(v.getId(),0L));
-                        }
-                    }
+                    RadarVo.SeriesBean.DataBean dataBean = RadarVo.SeriesBean.DataBean
+                            .newInstance()
+                            .name(n)
+                            .value(countList).build();
+                    industryCategoryDataList.add(dataBean);
                 }
-                RadarVo.SeriesBean.DataBean dataBean = RadarVo.SeriesBean.DataBean
-                        .newInstance()
-                        .name(n)
-                        .value(countList).build();
-                industryCategoryDataList.add(dataBean);
-            }
 
-            List<RadarVo.RadarBean.IndicatorBean> industryCategoryIndicator = Lists.newArrayList();
-            for (SysCfg n : industryCategoryList) {
-                RadarVo.RadarBean.IndicatorBean indicatorBean = RadarVo.RadarBean.IndicatorBean.newInstance().name(n.getCfgVal())
-                        .max(Math.max(MapUtils.isEmpty(rqIdCountByIndustryCategoryMap) ? 0 :rqIdCountByIndustryCategoryMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByIndustryCategoryMap) ? 0 : lyIdCountByIndustryCategoryMap.getOrDefault(n.getId(),0L)) + 10)
+                List<RadarVo.RadarBean.IndicatorBean> industryCategoryIndicator = Lists.newArrayList();
+                for (SysCfg n : industryCategoryList) {
+                    RadarVo.RadarBean.IndicatorBean indicatorBean = RadarVo.RadarBean.IndicatorBean.newInstance().name(n.getCfgVal())
+                            .max(Math.max(MapUtils.isEmpty(rqIdCountByIndustryCategoryMap) ? 0 :rqIdCountByIndustryCategoryMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByIndustryCategoryMap) ? 0 : lyIdCountByIndustryCategoryMap.getOrDefault(n.getId(),0L)) + 10)
+                            .build();
+                    industryCategoryIndicator.add(indicatorBean);
+                }
+
+                RadarVo industryCategory = RadarVo.newInstance()
+                        .title(RadarVo.TitleBean.newInstance().text(title).build())
+                        .legend(RadarVo.LegendBean.newInstance().data(list).build())
+                        .radar(RadarVo.RadarBean.newInstance().indicator(industryCategoryIndicator).build())
+                        .series(Lists.newArrayList(RadarVo.SeriesBean.newInstance().data(industryCategoryDataList).build()))
                         .build();
-                industryCategoryIndicator.add(indicatorBean);
+                res.put("industryCategory", industryCategory);
             }
 
-            RadarVo industryCategory = RadarVo.newInstance()
-                    .title(RadarVo.TitleBean.newInstance().text(title).build())
-                    .legend(RadarVo.LegendBean.newInstance().data(list).build())
-                    .radar(RadarVo.RadarBean.newInstance().indicator(industryCategoryIndicator).build())
-                    .series(Lists.newArrayList(RadarVo.SeriesBean.newInstance().data(industryCategoryDataList).build()))
-                    .build();
-            res.put("industryCategory", industryCategory);
 
             //与会企业性质统计
             //按企业性质求出个数 key 行业类型id value 个数
             Map<Long, Long> rqIdCountByEnterpriseNatureMap = yzgtList.stream().collect(Collectors.groupingBy(InfoDeptYzgt::getEnterpriseNature, Collectors.counting()));
             Map<Long, Long> lyIdCountByEnterpriseNatureMap = satbList.stream().collect(Collectors.groupingBy(InfoDeptSatb::getEnterpriseNature, Collectors.counting()));
-            //所有的企业性质
-            List<SysCfg> enterpriseNatureList = cfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, 6).eq(SysCfg::getUseStatus,YesOrNoEnum.YES.getType()));
-            //data
-            List<RadarVo.SeriesBean.DataBean> enterpriseNatureDataList = Lists.newArrayList();
-            list.forEach(n -> {
-                List<Long> countList = Lists.newArrayList();
-                if (n.equals("入区企业")) {
-                    if(MapUtils.isNotEmpty(rqIdCountByEnterpriseNatureMap)) {
-                        enterpriseNatureList.forEach(v -> countList.add(rqIdCountByEnterpriseNatureMap.getOrDefault(v.getId(),0L)));
-                    }
-                } else {
-                    if(MapUtils.isNotEmpty(lyIdCountByEnterpriseNatureMap)) {
-                        enterpriseNatureList.forEach(v -> countList.add(lyIdCountByEnterpriseNatureMap.getOrDefault(v.getId(),0L)));
-                    }
-                }
-                RadarVo.SeriesBean.DataBean dataBean = RadarVo.SeriesBean.DataBean
-                        .newInstance()
-                        .name(n)
-                        .value(countList).build();
-                enterpriseNatureDataList.add(dataBean);
-            });
+           if(MapUtils.isEmpty(rqIdCountByEnterpriseNatureMap) && MapUtils.isEmpty(lyIdCountByEnterpriseNatureMap)) {
+               res.put("enterpriseNature", null);
+           }else {
+               //所有的企业性质
+               List<SysCfg> enterpriseNatureList = cfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, 6).eq(SysCfg::getUseStatus,YesOrNoEnum.YES.getType()));
+               //data
+               List<RadarVo.SeriesBean.DataBean> enterpriseNatureDataList = Lists.newArrayList();
+               list.forEach(n -> {
+                   List<Long> countList = Lists.newArrayList();
+                   if (n.equals("入区企业")) {
+                       if(MapUtils.isNotEmpty(rqIdCountByEnterpriseNatureMap)) {
+                           enterpriseNatureList.forEach(v -> countList.add(rqIdCountByEnterpriseNatureMap.getOrDefault(v.getId(),0L)));
+                       }
+                   } else {
+                       if(MapUtils.isNotEmpty(lyIdCountByEnterpriseNatureMap)) {
+                           enterpriseNatureList.forEach(v -> countList.add(lyIdCountByEnterpriseNatureMap.getOrDefault(v.getId(),0L)));
+                       }
+                   }
+                   RadarVo.SeriesBean.DataBean dataBean = RadarVo.SeriesBean.DataBean
+                           .newInstance()
+                           .name(n)
+                           .value(countList).build();
+                   enterpriseNatureDataList.add(dataBean);
+               });
 
-            List<RadarVo.RadarBean.IndicatorBean> enterpriseNatureIndicator = Lists.newArrayList();
-            enterpriseNatureList.forEach(n -> {
-                RadarVo.RadarBean.IndicatorBean indicatorBean = RadarVo.RadarBean.IndicatorBean.newInstance().name(n.getCfgVal())
-                        .max(Math.max(MapUtils.isEmpty(rqIdCountByEnterpriseNatureMap) ? 0 :rqIdCountByEnterpriseNatureMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByEnterpriseNatureMap) ? 0 : lyIdCountByEnterpriseNatureMap.getOrDefault(n.getId(),0L)) + 10)
-                        .build();
-                enterpriseNatureIndicator.add(indicatorBean);
-            });
-            RadarVo enterpriseNature = RadarVo.newInstance()
-                    .title(RadarVo.TitleBean.newInstance().text(title).build())
-                    .legend(RadarVo.LegendBean.newInstance().data(list).build())
-                    .radar(RadarVo.RadarBean.newInstance().indicator(enterpriseNatureIndicator).build())
-                    .series(Lists.newArrayList(RadarVo.SeriesBean.newInstance().data(enterpriseNatureDataList).build()))
-                    .build();
-            res.put("enterpriseNature", enterpriseNature);
+               List<RadarVo.RadarBean.IndicatorBean> enterpriseNatureIndicator = Lists.newArrayList();
+               enterpriseNatureList.forEach(n -> {
+                   RadarVo.RadarBean.IndicatorBean indicatorBean = RadarVo.RadarBean.IndicatorBean.newInstance().name(n.getCfgVal())
+                           .max(Math.max(MapUtils.isEmpty(rqIdCountByEnterpriseNatureMap) ? 0 :rqIdCountByEnterpriseNatureMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByEnterpriseNatureMap) ? 0 : lyIdCountByEnterpriseNatureMap.getOrDefault(n.getId(),0L)) + 10)
+                           .build();
+                   enterpriseNatureIndicator.add(indicatorBean);
+               });
+               RadarVo enterpriseNature = RadarVo.newInstance()
+                       .title(RadarVo.TitleBean.newInstance().text(title).build())
+                       .legend(RadarVo.LegendBean.newInstance().data(list).build())
+                       .radar(RadarVo.RadarBean.newInstance().indicator(enterpriseNatureIndicator).build())
+                       .series(Lists.newArrayList(RadarVo.SeriesBean.newInstance().data(enterpriseNatureDataList).build()))
+                       .build();
+               res.put("enterpriseNature", enterpriseNature);
+           }
+
 
 
 //            //与会企业规模统计
 //            //按企业规模求出个数 key 行业类型id value 个数
             Map<Long, Long> rqIdCountByEnterpriseScaleMap = yzgtList.stream().collect(Collectors.groupingBy(InfoDeptYzgt::getEnterpriseScale, Collectors.counting()));
             Map<Long, Long> lyIdCountByEnterpriseScaleMap = satbList.stream().collect(Collectors.groupingBy(InfoDeptSatb::getEnterpriseScale, Collectors.counting()));
-            //所有的企业规模
-            List<Dic> enterpriseScaleList = dicUtils.getDicsByGroupCode(DicConstants.ENTERPRISE_SCALE);
+            if(MapUtils.isEmpty(rqIdCountByEnterpriseScaleMap) && MapUtils.isEmpty(lyIdCountByEnterpriseScaleMap)) {
+                res.put("enterpriseScale", null);
+            }else {
+                //所有的企业规模
+                List<Dic> enterpriseScaleList = dicUtils.getDicsByGroupCode(DicConstants.ENTERPRISE_SCALE);
 
-            //data
-            List<RadarVo.SeriesBean.DataBean> enterpriseScaleDataList = Lists.newArrayList();
-            list.forEach(n -> {
-                List<Long> countList = Lists.newArrayList();
-                if (n.equals("入区企业")) {
-                    if(MapUtils.isNotEmpty(rqIdCountByEnterpriseScaleMap)) {
-                        enterpriseScaleList.forEach(dic -> countList.add(rqIdCountByEnterpriseScaleMap.getOrDefault(Long.parseLong(dic.getDicCode()),0L)));
+                //data
+                List<RadarVo.SeriesBean.DataBean> enterpriseScaleDataList = Lists.newArrayList();
+                list.forEach(n -> {
+                    List<Long> countList = Lists.newArrayList();
+                    if (n.equals("入区企业")) {
+                        if(MapUtils.isNotEmpty(rqIdCountByEnterpriseScaleMap)) {
+                            enterpriseScaleList.forEach(dic -> countList.add(rqIdCountByEnterpriseScaleMap.getOrDefault(Long.parseLong(dic.getDicCode()),0L)));
 
+                        }
+                    } else {
+                        if(MapUtils.isNotEmpty(lyIdCountByEnterpriseScaleMap)) {
+                            enterpriseScaleList.forEach(dic -> countList.add(lyIdCountByEnterpriseScaleMap.getOrDefault(Long.parseLong(dic.getDicCode()),0L)));
+                        }
                     }
-                } else {
-                    if(MapUtils.isNotEmpty(lyIdCountByEnterpriseScaleMap)) {
-                        enterpriseScaleList.forEach(dic -> countList.add(lyIdCountByEnterpriseScaleMap.getOrDefault(Long.parseLong(dic.getDicCode()),0L)));
-                    }
-                }
-                RadarVo.SeriesBean.DataBean dataBean = RadarVo.SeriesBean.DataBean
-                        .newInstance()
-                        .name(n)
-                        .value(countList).build();
-                enterpriseScaleDataList.add(dataBean);
-            });
-            List<RadarVo.RadarBean.IndicatorBean> enterpriseScaleIndicator = Lists.newArrayList();
-            enterpriseScaleList.forEach(n -> {
-                RadarVo.RadarBean.IndicatorBean indicatorBean = RadarVo.RadarBean.IndicatorBean.newInstance().name(n.getDicValue())
-                        .max(Math.max(MapUtils.isEmpty(rqIdCountByEnterpriseScaleMap) ? 0 :rqIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByEnterpriseScaleMap) ? 0 : lyIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L)) + 10)
+                    RadarVo.SeriesBean.DataBean dataBean = RadarVo.SeriesBean.DataBean
+                            .newInstance()
+                            .name(n)
+                            .value(countList).build();
+                    enterpriseScaleDataList.add(dataBean);
+                });
+                List<RadarVo.RadarBean.IndicatorBean> enterpriseScaleIndicator = Lists.newArrayList();
+                enterpriseScaleList.forEach(n -> {
+                    RadarVo.RadarBean.IndicatorBean indicatorBean = RadarVo.RadarBean.IndicatorBean.newInstance().name(n.getDicValue())
+                            .max(Math.max(MapUtils.isEmpty(rqIdCountByEnterpriseScaleMap) ? 0 :rqIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByEnterpriseScaleMap) ? 0 : lyIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L)) + 10)
+                            .build();
+                    enterpriseScaleIndicator.add(indicatorBean);
+                });
+                RadarVo enterpriseScale = RadarVo.newInstance()
+                        .title(RadarVo.TitleBean.newInstance().text(title).build())
+                        .legend(RadarVo.LegendBean.newInstance().data(list).build())
+                        .radar(RadarVo.RadarBean.newInstance().indicator(enterpriseScaleIndicator).build())
+                        .series(Lists.newArrayList(RadarVo.SeriesBean.newInstance().data(enterpriseScaleDataList).build()))
                         .build();
-                enterpriseScaleIndicator.add(indicatorBean);
-            });
-            RadarVo enterpriseScale = RadarVo.newInstance()
-                    .title(RadarVo.TitleBean.newInstance().text(title).build())
-                    .legend(RadarVo.LegendBean.newInstance().data(list).build())
-                    .radar(RadarVo.RadarBean.newInstance().indicator(enterpriseScaleIndicator).build())
-                    .series(Lists.newArrayList(RadarVo.SeriesBean.newInstance().data(enterpriseScaleDataList).build()))
-                    .build();
-            res.put("enterpriseScale", enterpriseScale);
+                res.put("enterpriseScale", enterpriseScale);
+            }
 
+        } else {
+            res.put("industryCategory", null);
+            res.put("enterpriseNature", null);
+            res.put("enterpriseScale", null);
         }
 
         return res;
@@ -264,32 +282,37 @@ public class StatisticsInfoServiceImpl {
 
             //与会投资机构企业规模统计
             Map<Long, Long> countByEnterpriseScaleMap = dataList.stream().collect(Collectors.groupingBy(IplYzgtMain::getEnterpriseScale, Collectors.counting()));
-            //所有的企业规模
-            List<Dic> enterpriseScaleList = dicUtils.getDicsByGroupCode(DicConstants.ENTERPRISE_SCALE);
-            List<String> enterpriseScaleLegendData = Lists.newArrayList();
-            //seriesData
-            List<PieVo.SeriesBean.DataBean> enterpriseScaleSeriesDataList = Lists.newArrayList();
-            for (Dic dic : enterpriseScaleList) {
-                Long count = countByEnterpriseScaleMap.getOrDefault(Long.parseLong(dic.getDicCode()), 0L);
-                if(count != 0L) {
-                    enterpriseScaleLegendData.add(dic.getDicValue());
-                    PieVo.SeriesBean.DataBean seriesData = PieVo.SeriesBean.DataBean
-                            .newInstance()
-                            .name(dic.getDicValue())
-                            .value(count)
-                            .build();
-                    enterpriseScaleSeriesDataList.add(seriesData);
+            if(MapUtils.isEmpty(countByEnterpriseScaleMap)) {
+                res.put("enterpriseScale", null);
+            }else {
+                //所有的企业规模
+                List<Dic> enterpriseScaleList = dicUtils.getDicsByGroupCode(DicConstants.ENTERPRISE_SCALE);
+                List<String> enterpriseScaleLegendData = Lists.newArrayList();
+                //seriesData
+                List<PieVo.SeriesBean.DataBean> enterpriseScaleSeriesDataList = Lists.newArrayList();
+                for (Dic dic : enterpriseScaleList) {
+                    Long count = countByEnterpriseScaleMap.getOrDefault(Long.parseLong(dic.getDicCode()), 0L);
+                    if(count != 0L) {
+                        enterpriseScaleLegendData.add(dic.getDicValue());
+                        PieVo.SeriesBean.DataBean seriesData = PieVo.SeriesBean.DataBean
+                                .newInstance()
+                                .name(dic.getDicValue())
+                                .value(count)
+                                .build();
+                        enterpriseScaleSeriesDataList.add(seriesData);
+                    }
+
                 }
 
-            }
+                PieVo enterpriseScale = PieVo.newInstance()
+                        .title(title)
+                        .legend(PieVo.LegendBean.newInstance().data(enterpriseScaleLegendData).build())
+                        .series(Lists.newArrayList(PieVo.SeriesBean.newInstance().data(enterpriseScaleSeriesDataList).build()))
+                        .total(enterpriseScaleSeriesDataList.stream().mapToLong(PieVo.SeriesBean.DataBean::getValue).sum())
+                        .build();
+                res.put("enterpriseScale", enterpriseScale);
 
-            PieVo enterpriseScale = PieVo.newInstance()
-                    .title(title)
-                    .legend(PieVo.LegendBean.newInstance().data(enterpriseScaleLegendData).build())
-                    .series(Lists.newArrayList(PieVo.SeriesBean.newInstance().data(enterpriseScaleSeriesDataList).build()))
-                    .total(enterpriseScaleSeriesDataList.stream().mapToLong(PieVo.SeriesBean.DataBean::getValue).sum())
-                    .build();
-            res.put("enterpriseScale", enterpriseScale);
+            }
 
 
             System.out.println("-------------我是一个分割线-----------------");
@@ -297,63 +320,77 @@ public class StatisticsInfoServiceImpl {
 
             //与会投资机构企业规模统计
             Map<Long, Long> countByEnterpriseLocationMap = dataList.stream().collect(Collectors.groupingBy(IplYzgtMain::getEnterpriseLocation, Collectors.counting()));
-            //所有的企业属地
-            List<Dic> enterpriseLocationList = dicUtils.getDicsByGroupCode(DicConstants.ENTERPRISE_LOCATION);
-            List<String> legendData = Lists.newArrayList();
-            //seriesData
-            List<PieVo.SeriesBean.DataBean> seriesDataList = Lists.newArrayList();
-            for (Dic dic : enterpriseLocationList) {
-                Long locationCount = countByEnterpriseLocationMap.getOrDefault(Long.parseLong(dic.getDicCode()), 0L);
-                if(locationCount != 0L) {
-                    legendData.add(dic.getDicValue());
-                    PieVo.SeriesBean.DataBean seriesData = PieVo.SeriesBean.DataBean
-                            .newInstance()
-                            .name(dic.getDicValue())
-                            .value(locationCount)
-                            .build();
-                    seriesDataList.add(seriesData);
+            if(MapUtils.isEmpty(countByEnterpriseLocationMap)) {
+                res.put("enterpriseLocation", null);
+            }else {
+                //所有的企业属地
+                List<Dic> enterpriseLocationList = dicUtils.getDicsByGroupCode(DicConstants.ENTERPRISE_LOCATION);
+                List<String> legendData = Lists.newArrayList();
+                //seriesData
+                List<PieVo.SeriesBean.DataBean> seriesDataList = Lists.newArrayList();
+                for (Dic dic : enterpriseLocationList) {
+                    Long locationCount = countByEnterpriseLocationMap.getOrDefault(Long.parseLong(dic.getDicCode()), 0L);
+                    if(locationCount != 0L) {
+                        legendData.add(dic.getDicValue());
+                        PieVo.SeriesBean.DataBean seriesData = PieVo.SeriesBean.DataBean
+                                .newInstance()
+                                .name(dic.getDicValue())
+                                .value(locationCount)
+                                .build();
+                        seriesDataList.add(seriesData);
+                    }
+
                 }
+                PieVo enterpriseLocation = PieVo.newInstance()
+                        .title(title)
+                        .legend(PieVo.LegendBean.newInstance().data(legendData).build())
+                        .series(Lists.newArrayList(PieVo.SeriesBean.newInstance().data(seriesDataList).build()))
+                        .total(seriesDataList.stream().mapToLong(PieVo.SeriesBean.DataBean::getValue).sum())
+                        .build();
+                res.put("enterpriseLocation", enterpriseLocation);
 
             }
-            PieVo enterpriseLocation = PieVo.newInstance()
-                    .title(title)
-                    .legend(PieVo.LegendBean.newInstance().data(legendData).build())
-                    .series(Lists.newArrayList(PieVo.SeriesBean.newInstance().data(seriesDataList).build()))
-                    .total(seriesDataList.stream().mapToLong(PieVo.SeriesBean.DataBean::getValue).sum())
-                    .build();
-            res.put("enterpriseLocation", enterpriseLocation);
 
             System.out.println("-------------我是一个分割线-----------------");
 
             //与会投资机构企业性质统计
             Map<Long, Long> countByEnterpriseNatureMap = dataList.stream().collect(Collectors.groupingBy(IplYzgtMain::getEnterpriseNature, Collectors.counting()));
-            //所有的企业性质
-            List<SysCfg> enterpriseNatureList = cfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, 6));
-            List<String> enterpriseNatureLegendData = Lists.newArrayList();
-            //seriesData
-            List<PieVo.SeriesBean.DataBean> enterpriseNatureSeriesDataList = Lists.newArrayList();
-            for (SysCfg cfg : enterpriseNatureList) {
-                Long natureCount = countByEnterpriseNatureMap.getOrDefault(cfg.getId(), 0L);
-                if(natureCount != 0L){
-                    enterpriseNatureLegendData.add(cfg.getCfgVal());
-                    PieVo.SeriesBean.DataBean seriesData = PieVo.SeriesBean.DataBean
-                            .newInstance()
-                            .name(cfg.getCfgVal())
-                            .value(natureCount)
-                            .build();
-                    enterpriseNatureSeriesDataList.add(seriesData);
+            if(MapUtils.isEmpty(countByEnterpriseNatureMap)) {
+                res.put("enterpriseNature", null);
+            }else {
+                //所有的企业性质
+                List<SysCfg> enterpriseNatureList = cfgService.list(new LambdaQueryWrapper<SysCfg>().eq(SysCfg::getCfgType, 6));
+                List<String> enterpriseNatureLegendData = Lists.newArrayList();
+                //seriesData
+                List<PieVo.SeriesBean.DataBean> enterpriseNatureSeriesDataList = Lists.newArrayList();
+                for (SysCfg cfg : enterpriseNatureList) {
+                    Long natureCount = countByEnterpriseNatureMap.getOrDefault(cfg.getId(), 0L);
+                    if(natureCount != 0L){
+                        enterpriseNatureLegendData.add(cfg.getCfgVal());
+                        PieVo.SeriesBean.DataBean seriesData = PieVo.SeriesBean.DataBean
+                                .newInstance()
+                                .name(cfg.getCfgVal())
+                                .value(natureCount)
+                                .build();
+                        enterpriseNatureSeriesDataList.add(seriesData);
+                    }
+
                 }
-
+                PieVo enterpriseNature = PieVo.newInstance()
+                        .title(title)
+                        .legend(PieVo.LegendBean.newInstance().data(enterpriseNatureLegendData).build())
+                        .series(Lists.newArrayList(PieVo.SeriesBean.newInstance().data(enterpriseNatureSeriesDataList).build()))
+                        .total(enterpriseNatureSeriesDataList.stream().mapToLong(PieVo.SeriesBean.DataBean::getValue).sum())
+                        .build();
+                res.put("enterpriseNature", enterpriseNature);
             }
-            PieVo enterpriseNature = PieVo.newInstance()
-                    .title(title)
-                    .legend(PieVo.LegendBean.newInstance().data(enterpriseNatureLegendData).build())
-                    .series(Lists.newArrayList(PieVo.SeriesBean.newInstance().data(enterpriseNatureSeriesDataList).build()))
-                    .total(enterpriseNatureSeriesDataList.stream().mapToLong(PieVo.SeriesBean.DataBean::getValue).sum())
-                    .build();
-            res.put("enterpriseNature", enterpriseNature);
 
 
+
+        } else {
+            res.put("enterpriseScale", null);
+            res.put("enterpriseLocation", null);
+            res.put("enterpriseNature", null);
         }
 
         return res;
@@ -393,29 +430,35 @@ public class StatisticsInfoServiceImpl {
             List<MediaManager> allMediaList = mediaManagerService.list(new LambdaQueryWrapper<MediaManager>().eq(MediaManager::getStatus, YesOrNoEnum.YES.getType()));
             //被使用过的媒体
             List<MediaManager> mediaList = allMediaList.stream().filter(n -> idCountMap.getOrDefault(n.getId(), 0) != 0).collect(Collectors.toList());
+            if(CollectionUtils.isEmpty(mediaList)) {
+                res.put("cylinderVo",null);
+            }else {
+                //key 媒体type ,value 出现的次数
+                Map<Long, Integer> typeCountMap = new HashMap<>();
+                for (MediaManager mediaManager : mediaList) {
+                    typeCountMap.put(mediaManager.getMediaType(), typeCountMap.getOrDefault(mediaManager.getMediaType(), 0) + 1);
+                }
+                //出现的媒体类型集合
+                Set<Long> typeSet = typeCountMap.keySet();
+                List<String> xAxisData = Lists.newArrayList();
+                List<Integer> seriesData = Lists.newArrayList();
 
-            //key 媒体type ,value 出现的次数
-            Map<Long, Integer> typeCountMap = new HashMap<>();
-            for (MediaManager mediaManager : mediaList) {
-                typeCountMap.put(mediaManager.getMediaType(), typeCountMap.getOrDefault(mediaManager.getMediaType(), 0) + 1);
+                for (Long typeId : typeSet) {
+                    Dic dic = dicUtils.getDicByCode(DicConstants.MEDIA_TYPE, typeId.toString());
+                    xAxisData.add(dic.getDicValue());
+                    seriesData.add(typeCountMap.get(typeId));
+                }
+
+                CylinderVo cylinderVo = CylinderVo.newInstance()
+                        .title(title)
+                        .seriesData(seriesData)
+                        .xAxisData(xAxisData)
+                        .build();
+                res.put("cylinderVo",cylinderVo);
             }
-            //出现的媒体类型集合
-            Set<Long> typeSet = typeCountMap.keySet();
-            List<String> xAxisData = Lists.newArrayList();
-            List<Integer> seriesData = Lists.newArrayList();
 
-            for (Long typeId : typeSet) {
-                Dic dic = dicUtils.getDicByCode(DicConstants.MEDIA_TYPE, typeId.toString());
-                xAxisData.add(dic.getDicValue());
-                seriesData.add(typeCountMap.get(typeId));
-            }
-
-            CylinderVo cylinderVo = CylinderVo.newInstance()
-                    .title(title)
-                    .seriesData(seriesData)
-                    .xAxisData(xAxisData)
-                    .build();
-            res.put("cylinderVo",cylinderVo);
+        }else {
+            res.put("cylinderVo",null);
         }
         return res;
     }
