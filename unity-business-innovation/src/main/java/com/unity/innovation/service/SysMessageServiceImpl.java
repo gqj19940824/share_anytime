@@ -306,7 +306,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
 
         }
         List<Long> userIdList = userList.stream()
-                .filter(u -> u.getReceiveSysMsg().equals(YesOrNoEnum.YES.getType()))
+                .filter(u -> u.getReceiveSysMsg() != null && u.getReceiveSysMsg().equals(YesOrNoEnum.YES.getType()))
                 .map(UserVO::getId)
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(userIdList)) {
@@ -334,7 +334,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
      */
     private void saveAndSendMessage(List<UserVO> userList, Long sourceId, Long depId, Integer dataClass, Integer status, String title) {
         List<Long> userIdList = userList.stream()
-                .filter(u -> u.getReceiveSysMsg().equals(YesOrNoEnum.YES.getType()))
+                .filter(u -> u.getReceiveSysMsg() != null && u.getReceiveSysMsg().equals(YesOrNoEnum.YES.getType()))
                 .map(UserVO::getId)
                 .collect(Collectors.toList());
         Long messageId = saveMessage(sourceId, title, depId, dataClass, status);
@@ -475,13 +475,16 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
                     .filter(u -> u.getReceiveSms().equals(YesOrNoEnum.YES.getType()))
                     .map(UserVO::getPhone)
                     .collect(Collectors.joining(","));
-            //发送短信  批量发送
-            SendSmsResponse response = aliSmsUtils.sendSms(phoneStr, smsParem, smsTemplateDic.getDicValue());
+            //发送短信  批量发送 TODO
+            /*SendSmsResponse response = aliSmsUtils.sendSms(phoneStr, smsParem, smsTemplateDic.getDicValue());
             int sendStatus = response.getCode() != null && "OK".equals(response.getCode())
-                    ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType();
+                    ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType();*/
+            SendSmsResponse response = new SendSmsResponse();
+            response.setMessage("短信暂不发送");
+            int sendStatus = YesOrNoEnum.NO.getType();
             //筛选可接收短信的用户并遍历用户列表
             List<SysSendSmsLog> smsLogList = userList.stream()
-                    .filter(u -> u.getReceiveSms().equals(YesOrNoEnum.YES.getType()))
+                    .filter(u -> u.getReceiveSms() != null && u.getReceiveSms().equals(YesOrNoEnum.YES.getType()))
                     .map(u -> {
                         SysSendSmsLog log = new SysSendSmsLog();
                         log.setUserId(u.getId());
