@@ -150,7 +150,9 @@ public class SysCfgController extends BaseWebController {
         ew.eq(SysCfg::getUseStatus, YesOrNoEnum.YES.getType());
         List<SysCfg> list = service.list(ew);
         if (SysCfgEnum.ONE.getId().equals(cfgType) || SysCfgEnum.TWO.getId().equals(cfgType) || SysCfgEnum.FOUR.getId().equals(cfgType)) {
-
+            if(StringUtils.isBlank(cfg.getCode())) {
+                return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "缺少业务类型");
+            }
             String value = dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, cfg.getCode());
             Long departmentId = Long.parseLong(value);
             List<Long> ids = list.stream().map(SysCfg::getId).collect(Collectors.toList());
