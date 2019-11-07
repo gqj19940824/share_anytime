@@ -37,6 +37,7 @@ spring:
       - /iplOdMain/export/excel
       - /iplSuperVisionMain/download
       - /sysCfg/list
+      - /sysCfg/pcList
 
 pagehelper:
   auto-dialect: mysql
