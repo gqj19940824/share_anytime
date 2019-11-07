@@ -603,7 +603,7 @@ public class IpaManageMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         entity.setIdRbacDepartmentName(InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
-
+        entity.setLevelName(dicUtils.getDicValueByCode(DicConstants.IPA_LEVEL, entity.getLevel()));
 
         // 清单一次包
         LambdaQueryWrapper<IplManageMain> iplQw = new LambdaQueryWrapper<>();

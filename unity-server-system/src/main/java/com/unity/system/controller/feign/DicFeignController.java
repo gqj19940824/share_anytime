@@ -2,7 +2,6 @@ package com.unity.system.controller.feign;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.enums.YesOrNoEnum;
 import com.unity.system.entity.Dic;
 import com.unity.system.entity.DicGroup;
 import com.unity.system.service.DicGroupServiceImpl;
@@ -42,8 +41,8 @@ public class DicFeignController extends BaseWebController {
      * @since 2019年07月11日13:56:45
      */
     @PostMapping("/getDicByCode")
-    public Dic getDicByCode(@RequestParam("groupCode") String groupCode, @RequestParam("dicCode") String dicCode){
-        if (StringUtils.isEmpty(groupCode) || StringUtils.isEmpty(dicCode)){
+    public Dic getDicByCode(@RequestParam("groupCode") Object groupCode, @RequestParam("dicCode") Object dicCode){
+        if (groupCode == null || dicCode == null){
             return null;
         }
         return dicService.getOne(new LambdaQueryWrapper<Dic>().eq(Dic::getGroupCode, groupCode).eq(Dic::getDicCode, dicCode));
