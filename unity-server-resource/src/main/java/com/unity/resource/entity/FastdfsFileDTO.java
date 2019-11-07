@@ -3,7 +3,6 @@ package com.unity.resource.entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -15,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 @Data
 @Builder(builderMethodName = "newInstance")
 @AllArgsConstructor
-@NoArgsConstructor
 public class FastdfsFileDTO {
 
     private String groupName;
@@ -23,7 +21,10 @@ public class FastdfsFileDTO {
     private String fileUrl;
     private String thumbUrl;//缩略图
     private String fileName;
-    private long lastModified;
+
+    public FastdfsFileDTO() {
+
+    }
 
     /**
      *校验文件内容
