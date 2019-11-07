@@ -245,7 +245,8 @@ public class DepartmentController extends BaseWebController {
      */
     @PostMapping("/getDeptList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getDeptList() {
-        return success(JsonUtil.ObjectToList(service.list(), null, Department::getId, Department::getName));
+        return success(JsonUtil.ObjectToList(service.list(new LambdaQueryWrapper<Department>().eq(Department::getUseStatus, YesOrNoEnum.YES.getType()))
+                , null, Department::getId, Department::getName));
     }
 
     /**
