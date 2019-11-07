@@ -63,6 +63,7 @@ public class InnovationUtil {
      * @since 2019/11/7 3:27 下午
      */
     public static void checkAmont(Double total, Double... complete){
+        total = total == null?0.0:total;
         List<BigDecimal> collect = Arrays.stream(complete).map(BigDecimal::valueOf).collect(Collectors.toList());
         BigDecimal reduce = collect.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         if (!(reduce.compareTo(BigDecimal.valueOf(total)) == 0)){
