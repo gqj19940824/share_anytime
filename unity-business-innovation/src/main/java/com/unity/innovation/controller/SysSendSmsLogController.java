@@ -6,10 +6,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.RedisConstants;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.utils.HashRedisUtils;
 import com.unity.innovation.entity.SysSendSmsLog;
 import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
 import com.unity.innovation.enums.SysMessageFlowStatusEnum;
@@ -40,6 +42,8 @@ import java.util.stream.Collectors;
 public class SysSendSmsLogController extends BaseWebController {
     @Autowired
     SysSendSmsLogServiceImpl service;
+    @Autowired
+    HashRedisUtils hashRedisUtils;
 
     /**
      * 获取一页数据
@@ -110,8 +114,10 @@ public class SysSendSmsLogController extends BaseWebController {
     private void adapterField(Map<String, Object> m, SysSendSmsLog entity) {
         if (entity.getFlowStatus() != null) {
             m.put("flowStatusTitle", SysMessageFlowStatusEnum.ofName(entity.getFlowStatus()));
-            m.put("dataSourceClassTitle", SysMessageDataSourceClassEnum.ofName(entity.getDataSourceClass()));
         }
+        m.put("dataSourceClassTitle", SysMessageDataSourceClassEnum.ofName(entity.getDataSourceClass()));
+        String name = hashRedisUtils.getFieldValueByFieldName(RedisConstants.DEPARTMENT.concat(entity.getIdRbacDepartment().toString()), RedisConstants.NAME);
+        m.put("nameRbacDepartment",name);
     }
 
     /**
