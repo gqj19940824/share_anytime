@@ -120,7 +120,6 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
                 pmInfoDeptLog.setIdPmInfoDept(e.getId());
                 pmInfoDeptLog.setContent(entity.getTitle());
                 pmInfoDeptLog.setIdRbacDepartment(idRbacDepartment);
-                pmInfoDeptLogService.save(pmInfoDeptLog);
                 ls.add(pmInfoDeptLog);
             });
             pmInfoDeptLogService.saveBatch(ls);
@@ -133,7 +132,6 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
                 dailyWorkStatusLog.setIdPackage(e.getId());
                 dailyWorkStatusLog.setState(status);
                 dailyWorkStatusLog.setIdRbacDepartment(idRbacDepartment);
-                dailyWorkStatusLogService.save(dailyWorkStatusLog);
                 ls.add(dailyWorkStatusLog);
             });
             dailyWorkStatusLogService.saveBatch(ls);
