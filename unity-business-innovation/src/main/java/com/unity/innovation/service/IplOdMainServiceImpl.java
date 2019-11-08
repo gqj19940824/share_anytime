@@ -52,10 +52,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -531,6 +528,9 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                 .legend(MultiBarVO.LegendBean.newInstance()
                         .data(Arrays.asList("月度新增人才需求","月度人才需求完成情况"))
                         .build())
+                .xAxis(Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
+                        .type("category")
+                        .data(monthList).build()))
                 .series(Arrays.asList(
                         MultiBarVO.SeriesBean.newInstance()
                         .name("月度新增人才需求")
