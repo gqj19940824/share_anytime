@@ -31,7 +31,7 @@ public class UeditorController extends BaseWebController {
     @RequestMapping("vueConfig")
     public void ueditorConfig(HttpServletRequest request, HttpServletResponse response, MultipartFile file) {
         try {
-            String exec = "";
+            String exec;
             request.setCharacterEncoding("utf-8");
             response.setContentType("text/plain");
             response.setHeader("Pragma", "No-cache");
@@ -39,7 +39,7 @@ public class UeditorController extends BaseWebController {
             response.setDateHeader("Expires", 0);
             String actionType = request.getParameter("action");
             String callback = request.getParameter("callback");
-            System.out.println(callback);
+            log.info(callback);
             // 获取配置
             if ("config".equals(actionType)) {
                 exec = StringUtils.isNotEmpty(callback) ? callback + "(" + getConfig() + ")" : getConfig();
