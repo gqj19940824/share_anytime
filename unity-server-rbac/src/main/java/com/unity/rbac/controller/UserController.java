@@ -277,11 +277,11 @@ public class UserController extends BaseWebController {
             user.setIdRbacDepartment(null);
         }
         if(!UserTypeEnum.ADMIN.getId().equals(user.getUserType())){
-            if(StringUtils.isBlank(user.getLoginName()) || !RegExpValidatorUtil.checkPhone(user.getLoginName().trim())){
+            if(!RegExpValidatorUtil.checkPhone(user.getLoginName().trim())){
                 return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("非管理员账号请使用手机号！").build();
             }
         } else {
-            if(StringUtils.isBlank(user.getLoginName()) || !RegExpValidatorUtil.checkLoginName(user.getLoginName().trim())){
+            if(!RegExpValidatorUtil.checkLoginName(user.getLoginName().trim())){
                 return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("管理员账号由字母或数字组成，限制20字符！").build();
             }
         }
