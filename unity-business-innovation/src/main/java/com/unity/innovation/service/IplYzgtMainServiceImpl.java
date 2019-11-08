@@ -132,7 +132,7 @@ public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplY
             save(entity);
             //====亦庄国投====企业新增填报实时清单需求========
             if(entity.getSource().equals(SourceEnum.ENTERPRISE.getId())) {
-                Long idRbacDepartmentDuty = InnovationUtil.getIdRbacDepartmentDuty(BizTypeEnum.GROW.getType());
+                Long idRbacDepartmentDuty = InnovationUtil.getIdRbacDepartmentDuty(BizTypeEnum.INVESTMENT.getType());
                 //企业需求填报才进行系统通知
                 sysMessageHelpService.addInventoryMessage(InventoryMessage.newInstance()
                         .sourceId(entity.getId())
