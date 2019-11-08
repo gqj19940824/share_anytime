@@ -132,7 +132,7 @@ public class StatisticsInfoServiceImpl {
                 List<RadarVo.RadarBean.IndicatorBean> industryCategoryIndicator = Lists.newArrayList();
                 for (SysCfg n : industryCategoryList) {
                     RadarVo.RadarBean.IndicatorBean indicatorBean = RadarVo.RadarBean.IndicatorBean.newInstance().name(n.getCfgVal())
-                            .max(Math.max(MapUtils.isEmpty(rqIdCountByIndustryCategoryMap) ? 0 :rqIdCountByIndustryCategoryMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByIndustryCategoryMap) ? 0 : lyIdCountByIndustryCategoryMap.getOrDefault(n.getId(),0L)) + 10)
+                            .max(Math.max(MapUtils.isEmpty(rqIdCountByIndustryCategoryMap) ? 0 :rqIdCountByIndustryCategoryMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByIndustryCategoryMap) ? 0 : lyIdCountByIndustryCategoryMap.getOrDefault(n.getId(),0L)) + 1)
                             .build();
                     industryCategoryIndicator.add(indicatorBean);
                 }
@@ -179,7 +179,7 @@ public class StatisticsInfoServiceImpl {
                List<RadarVo.RadarBean.IndicatorBean> enterpriseNatureIndicator = Lists.newArrayList();
                enterpriseNatureList.forEach(n -> {
                    RadarVo.RadarBean.IndicatorBean indicatorBean = RadarVo.RadarBean.IndicatorBean.newInstance().name(n.getCfgVal())
-                           .max(Math.max(MapUtils.isEmpty(rqIdCountByEnterpriseNatureMap) ? 0 :rqIdCountByEnterpriseNatureMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByEnterpriseNatureMap) ? 0 : lyIdCountByEnterpriseNatureMap.getOrDefault(n.getId(),0L)) + 10)
+                           .max(Math.max(MapUtils.isEmpty(rqIdCountByEnterpriseNatureMap) ? 0 :rqIdCountByEnterpriseNatureMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByEnterpriseNatureMap) ? 0 : lyIdCountByEnterpriseNatureMap.getOrDefault(n.getId(),0L)) + 1)
                            .build();
                    enterpriseNatureIndicator.add(indicatorBean);
                });
@@ -227,7 +227,7 @@ public class StatisticsInfoServiceImpl {
                 List<RadarVo.RadarBean.IndicatorBean> enterpriseScaleIndicator = Lists.newArrayList();
                 enterpriseScaleList.forEach(n -> {
                     RadarVo.RadarBean.IndicatorBean indicatorBean = RadarVo.RadarBean.IndicatorBean.newInstance().name(n.getDicValue())
-                            .max(Math.max(MapUtils.isEmpty(rqIdCountByEnterpriseScaleMap) ? 0 :rqIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByEnterpriseScaleMap) ? 0 : lyIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L)) + 10)
+                            .max(Math.max(MapUtils.isEmpty(rqIdCountByEnterpriseScaleMap) ? 0 :rqIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByEnterpriseScaleMap) ? 0 : lyIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L)) + 1)
                             .build();
                     enterpriseScaleIndicator.add(indicatorBean);
                 });

@@ -707,6 +707,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                 .flowStatus(SysMsgFlowStatusEnum.ONE.getId())
                 .idRbacDepartment(vo.getIdRbacDepartment())
                 .sourceId(vo.getId())
+                .title(vo.getTitle())
                 .build());
     }
 
