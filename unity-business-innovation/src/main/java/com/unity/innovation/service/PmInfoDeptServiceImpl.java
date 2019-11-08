@@ -445,7 +445,9 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             row = sheet.createRow(1);
             Integer bizType = entity.getBizType();
             String[] title = getTitle(bizType);
-            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, title.length - 1));
+            CellRangeAddress range = new CellRangeAddress(0,0, 0, title.length-1);
+            sheet.addMergedRegion(range);
+            RegionUtil.setBorderRight(1, range, sheet);
             for (int j = 0; j < title.length; j++) {
                 Cell cell = row.createCell(j);
                 cell.setCellValue(title[j]);
@@ -705,6 +707,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                 .flowStatus(SysMsgFlowStatusEnum.ONE.getId())
                 .idRbacDepartment(vo.getIdRbacDepartment())
                 .sourceId(vo.getId())
+                .title(vo.getTitle())
                 .build());
     }
 

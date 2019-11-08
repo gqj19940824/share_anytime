@@ -484,6 +484,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                 .flowStatus(SysMsgFlowStatusEnum.ONE.getId())
                 .idRbacDepartment(vo.getIdRbacDepartmentDuty())
                 .sourceId(vo.getId())
+                .title(vo.getTitle())
                 .build());
     }
 

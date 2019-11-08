@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.reflect.TypeToken;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.GsonUtils;
@@ -528,7 +529,7 @@ public class StatisticsPublishWorkService {
         Map<Integer, List<IplManageMain>> collect = iplManageMainList.stream().collect(Collectors.groupingBy(IplManageMain::getBizType));
         List<Statistics> statisticsList = new ArrayList<>();
         //发改局
-        List<IplManageMain> city = collect.get(BizTypeEnum.CITY.getType().toString());
+        List<IplManageMain> city = collect.get(BizTypeEnum.CITY.getType());
         int countCity = 0;
         if (CollectionUtils.isNotEmpty(city)) {
             countCity = city.stream().map(c -> GsonUtils.parse(c.getSnapshot(), new TypeToken<List<IplDarbMain>>() {
@@ -540,7 +541,7 @@ public class StatisticsPublishWorkService {
                 .count(countCity)
                 .build());
         //企服局
-        List<IplManageMain> enterprise = collect.get(BizTypeEnum.ENTERPRISE.getType().toString());
+        List<IplManageMain> enterprise = collect.get(BizTypeEnum.ENTERPRISE.getType());
         int countEnterprise = 0;
         if (CollectionUtils.isNotEmpty(enterprise)) {
             countEnterprise = enterprise.stream().map(c -> GsonUtils.parse(c.getSnapshot(), new TypeToken<List<IplEsbMain>>() {
@@ -548,7 +549,7 @@ public class StatisticsPublishWorkService {
         }
         //原来科技局与企服局合并 加在一起
         int countGrow = 0;
-        List<IplManageMain> grow = collect.get(BizTypeEnum.GROW.getType().toString());
+        List<IplManageMain> grow = collect.get(BizTypeEnum.GROW.getType());
         if (CollectionUtils.isNotEmpty(grow)) {
             countGrow = grow.stream().map(c -> GsonUtils.parse(c.getSnapshot(), new TypeToken<List<IplSatbMain>>() {
             })).mapToInt(List::size).sum();
@@ -560,7 +561,7 @@ public class StatisticsPublishWorkService {
                 .count(countEnterprise)
                 .build());
         //纪检组
-        List<IplManageMain> suggestion = collect.get(BizTypeEnum.SUGGESTION.getType().toString());
+        List<IplManageMain> suggestion = collect.get(BizTypeEnum.SUGGESTION.getType());
         int countSuggestion = 0;
         if (CollectionUtils.isNotEmpty(suggestion)) {
             countSuggestion = suggestion.stream().map(c -> GsonUtils.parse(c.getSnapshot(), new TypeToken<List<IplSuggestion>>() {
@@ -573,7 +574,7 @@ public class StatisticsPublishWorkService {
                 .count(countSuggestion)
                 .build());
         //组织部
-        List<IplManageMain> intelligence = collect.get(BizTypeEnum.INTELLIGENCE.getType().toString());
+        List<IplManageMain> intelligence = collect.get(BizTypeEnum.INTELLIGENCE.getType());
         int countIntelligence = 0;
         if (CollectionUtils.isNotEmpty(intelligence)) {
             countIntelligence = intelligence.stream().map(c -> GsonUtils.parse(c.getSnapshot(), new TypeToken<List<IplOdMain>>() {
@@ -584,6 +585,7 @@ public class StatisticsPublishWorkService {
                 .deptId(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.INTELLIGENCE.getType().toString())))
                 .count(countIntelligence)
                 .build());
+        statisticsList = statisticsList.stream().filter(s -> s.getCount() != YesOrNoEnum.NO.getType()).collect(Collectors.toList());
         return statisticsList;
     }
 
