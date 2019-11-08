@@ -122,9 +122,6 @@ public class IplSuggestionController extends BaseWebController {
         if (StringUtils.isNotBlank(entity.getEmail()) && entity.getEmail().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "联系邮箱限制50字");
         }
-        if ( StringUtils.isNotBlank(entity.getEmail()) && !isEmail(entity.getEmail())) {
-            return error(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION, "邮箱格式有误");
-        }
         return null;
     }
 
