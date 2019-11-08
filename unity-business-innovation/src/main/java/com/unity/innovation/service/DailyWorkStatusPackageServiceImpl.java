@@ -551,7 +551,9 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             titleCell.setCellValue(top);
             row = sheet.createRow(1);
             String[] title = { "标题", "工作类别", "关键字", "主题", "内容描述","备注","附件","创建时间"};
-            sheet.addMergedRegion(new CellRangeAddress(0,0, 0, title.length-1));
+            CellRangeAddress range = new CellRangeAddress(0,0, 0, title.length-1);
+            sheet.addMergedRegion(range);
+            RegionUtil.setBorderRight(1, range, sheet);
             for (int j = 0; j < title.length; j++) {
                 //创建每列
                 Cell cell = row.createCell(j);

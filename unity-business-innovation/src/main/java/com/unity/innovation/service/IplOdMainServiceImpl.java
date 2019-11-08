@@ -354,7 +354,9 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             row = sheet.createRow(1);
             String[] title = {"行业类别", "企业名称", "企业简介", "岗位需求名称", "岗位需求数量", "需求人员专业领域",
                     "工作职责", "任职资格", "支持条件和福利待遇", "联系人", "联系方式", "创建时间", "更新时间", "来源", "状态", "最新进展"};
-            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, title.length - 1));
+            CellRangeAddress range = new CellRangeAddress(0,0, 0, title.length-1);
+            sheet.addMergedRegion(range);
+            RegionUtil.setBorderRight(1, range, sheet);
             for (int j = 0; j < title.length; j++) {
                 Cell cell = row.createCell(j);
                 cell.setCellValue(title[j]);
