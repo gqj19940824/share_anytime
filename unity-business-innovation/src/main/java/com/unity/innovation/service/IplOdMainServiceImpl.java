@@ -598,7 +598,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         long sum = mapList.stream().filter(map -> map.get(NUM) != null)
                 .mapToLong(map -> Long.parseLong(map.get(NUM).toString()))
                 .sum();
-        if(sum < 0){
+        if(Long.valueOf(sum).equals(0L)){
             return null;
         }
         Map<Long, String> sysCfgMap = sysCfgService.getSysCfgMap(SysCfgEnum.THREE.getId());
