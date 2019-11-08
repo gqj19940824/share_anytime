@@ -124,7 +124,7 @@ public class IplManageMainController extends BaseWebController {
                 this::adapterField, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus,IplManageMain::getStatusName
                 ,IplManageMain::getBizType
         );
-                this::adapterField, IplManageMain::getId, IplManageMain::getTitle, IplManageMain::getGmtSubmit, IplManageMain::getStatus,IplManageMain::getStatusName,IplManageMain::getBizType);
+
     }
 
     /**
