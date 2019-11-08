@@ -472,7 +472,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             }
             //获取所有目标用户手机号批量发送
             String phoneStr = userList.stream()
-                    .filter(u -> u.getReceiveSms().equals(YesOrNoEnum.YES.getType()))
+                    .filter(u -> u.getReceiveSms().equals(YesOrNoEnum.YES.getType()) && StringUtils.isNotBlank(u.getPhone()))
                     .map(UserVO::getPhone)
                     .collect(Collectors.joining(","));
             //发送短信  批量发送 TODO
@@ -484,7 +484,8 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             int sendStatus = YesOrNoEnum.NO.getType();
             //筛选可接收短信的用户并遍历用户列表
             List<SysSendSmsLog> smsLogList = userList.stream()
-                    .filter(u -> u.getReceiveSms() != null && u.getReceiveSms().equals(YesOrNoEnum.YES.getType()))
+                    .filter(u -> u.getReceiveSms() != null && u.getReceiveSms().equals(YesOrNoEnum.YES.getType())
+                                && StringUtils.isNotBlank(u.getPhone()))
                     .map(u -> {
                         SysSendSmsLog log = new SysSendSmsLog();
                         log.setUserId(u.getId());
