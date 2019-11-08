@@ -240,7 +240,7 @@ public class SysCfgController extends BaseWebController {
         }
         //类别名称去空格
         entity.setCfgVal(entity.getCfgVal().trim());
-        ValidFieldUtil.checkReg(entity, ValidFieldFactory.lengthReg(1, 20, "类别名称不能超过20字符!", SysCfg::getCfgVal));
+        ValidFieldUtil.checkReg(entity, ValidFieldFactory.lengthReg(1, 20, "字符长度不能超过20!", SysCfg::getCfgVal));
         List<SysCfg> list;
         //新增
         if (entity.getId() == null) {

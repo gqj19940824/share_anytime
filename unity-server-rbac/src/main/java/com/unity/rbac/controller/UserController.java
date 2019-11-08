@@ -264,6 +264,9 @@ public class UserController extends BaseWebController {
                 return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择是否接收短信").build();
             } else if(user.getReceiveSysMsg() == null){
                 return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择是否接收系统消息").build();
+            } else if(user.getReceiveSms().equals(YesOrNoEnum.YES.getType())
+                    && !RegExpValidatorUtil.checkPhone(user.getPhone())){
+                return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请以手机号格式填写电话").build();
             }
         }
         //普通账号需选择单位

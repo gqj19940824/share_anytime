@@ -77,10 +77,12 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                 dataBeans.add(PieVoByDoc.DataBean.newInstance().name("其他").value(sum).build());
             }
             List<String> legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
-
+            BigDecimal reduce = dataBeans.stream().map(e -> BigDecimal.valueOf((Long) e.getValue())).collect(Collectors.toList())
+                    .stream().reduce(BigDecimal.ZERO, BigDecimal::add);
             PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
                     .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
                     .data(dataBeans)
+                    .total(reduce)
                     .build();
 
             return success(pieVoByDoc);
@@ -112,12 +114,13 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                 dataBeans.add(PieVoByDoc.DataBean.newInstance().name("其他").value(sum).build());
             }
             List<String> legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
-
+            BigDecimal reduce = dataBeans.stream().map(e->BigDecimal.valueOf((Long) e.getValue())).collect(Collectors.toList())
+                    .stream().reduce(BigDecimal.ZERO, BigDecimal::add);
             PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
                     .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
                     .data(dataBeans)
+                    .total(reduce)
                     .build();
-
             return success(pieVoByDoc);
         } else {
             return success(null);
@@ -204,9 +207,12 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
 
         if (CollectionUtils.isNotEmpty(dataBeans)) {
             List<String> legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+            BigDecimal reduce = dataBeans.stream().map(e -> (BigDecimal) e.getValue()).collect(Collectors.toList())
+                    .stream().reduce(BigDecimal.ZERO, BigDecimal::add);
             PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
                     .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
-                    .data(dataBeans).build();
+                    .data(dataBeans)
+                    .total(reduce).build();
             return success(pieVoByDoc);
         } else {
             return success(null);
@@ -235,6 +241,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Map<String, BigDecimal> collectDone = dataBeansDone.stream().collect(Collectors.toMap(PieVoByDoc.DataBean::getName, e->(BigDecimal)e.getValue()));
         List<String> legend = new ArrayList<>();
         List<PieVoByDoc.DataBean> dataBeans = new ArrayList<>();
+        BigDecimal reduce = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(dataBeansNew)){
             dataBeansNew.stream().forEach(e->{
                 BigDecimal done = collectDone.get(e.getName());
@@ -242,9 +249,12 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                 legend.add(e.getName());
                 dataBeans.add(PieVoByDoc.DataBean.newInstance().name(e.getName()).value(done == null? newAdd : newAdd.subtract(done)).build());
             });
+
+            reduce = dataBeans.stream().map(e -> (BigDecimal) e.getValue()).collect(Collectors.toList())
+                    .stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
-        PieVoByDoc build = PieVoByDoc.newInstance().legend(PieVoByDoc.LegendBean.newInstance().data(legend).build()).data(dataBeans).build();
+        PieVoByDoc build = PieVoByDoc.newInstance().legend(PieVoByDoc.LegendBean.newInstance().data(legend).build()).data(dataBeans).total(reduce).build();
         return success(build);
     }
 
@@ -267,13 +277,17 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
 
         List<String> legend = new ArrayList<>();
+        BigDecimal reduce = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(dataBeans)) {
             legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+            reduce = dataBeans.stream().map(e -> (BigDecimal) e.getValue()).collect(Collectors.toList())
+                    .stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
         PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
-                .data(dataBeans).build();
+                .data(dataBeans)
+                .total(reduce).build();
         return success(pieVoByDoc);
     }
 

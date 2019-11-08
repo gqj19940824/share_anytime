@@ -447,6 +447,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                 .flowStatus(SysMsgFlowStatusEnum.ONE.getId())
                 .idRbacDepartment(vo.getIdRbacDepartment())
                 .sourceId(vo.getId())
+                .title(vo.getTitle())
                 .build());
     }
 
