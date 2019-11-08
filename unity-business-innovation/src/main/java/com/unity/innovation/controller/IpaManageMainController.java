@@ -386,8 +386,12 @@ public class IpaManageMainController extends BaseWebController {
             PmInfoDept pmInfoDept = pmInfoDeptService.detailById(e.getId());
             if (BizTypeEnum.RQDEPTINFO.getType().equals(e.getBizType())) {
                 List<InfoDeptYzgt> dataList = pmInfoDept.getDataList();
-                dataList.forEach(d -> d.setAttachmentCode(
-                        d.getAttachmentList().stream().map(Attachment::getUrl).collect(joining("\n"))));
+                dataList.forEach(d -> {
+                    List<Attachment> attachmentList = d.getAttachmentList();
+                    if (CollectionUtils.isNotEmpty(attachmentList)){
+                        d.setAttachmentCode(attachmentList.stream().map(Attachment::getUrl).collect(joining("\n")));
+                    }
+                });
                 List<List<Object>> data = pmInfoDeptService.getYzgtData(dataList);
                 wb = ExcelExportByTemplate.getWorkBook("template/rq.xlsx");
                 ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
