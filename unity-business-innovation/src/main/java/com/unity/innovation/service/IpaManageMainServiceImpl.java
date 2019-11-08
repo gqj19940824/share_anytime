@@ -104,10 +104,11 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
         Long idRbacDepartment = customer.getIdRbacDepartment();
         Long idIpaMain = entity.getId();
         List<IplManageMain> iplManageMains = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
+        String title = entity.getTitle();
         if (CollectionUtils.isNotEmpty(iplManageMains)){
             List<IplmManageLog> ls = new ArrayList<>();
             iplManageMains.forEach(e->{
-                ls.add(IplmManageLog.newInstance().idRbacDepartment(idRbacDepartment).status(status).idIplManageMain(e.getId()).build());
+                ls.add(IplmManageLog.newInstance().idRbacDepartment(idRbacDepartment).status(status).content(title).idIplManageMain(e.getId()).build());
             });
             iplmManageLogService.saveBatch(ls);
         }
@@ -118,7 +119,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
                 PmInfoDeptLog pmInfoDeptLog = new PmInfoDeptLog();
                 pmInfoDeptLog.setStatus(status);
                 pmInfoDeptLog.setIdPmInfoDept(e.getId());
-                pmInfoDeptLog.setContent(entity.getTitle());
+                pmInfoDeptLog.setContent(title);
                 pmInfoDeptLog.setIdRbacDepartment(idRbacDepartment);
                 ls.add(pmInfoDeptLog);
             });
@@ -131,6 +132,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
                 DailyWorkStatusLog dailyWorkStatusLog = new DailyWorkStatusLog();
                 dailyWorkStatusLog.setIdPackage(e.getId());
                 dailyWorkStatusLog.setState(status);
+                dailyWorkStatusLog.setComment(title);
                 dailyWorkStatusLog.setIdRbacDepartment(idRbacDepartment);
                 ls.add(dailyWorkStatusLog);
             });
