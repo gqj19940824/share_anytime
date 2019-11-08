@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -23,6 +24,7 @@ public class PieVoByDoc {
 
     private LegendBean legend;
     private List<DataBean> data;
+    private BigDecimal total;
 
     @Builder(builderMethodName = "newInstance")
     @AllArgsConstructor

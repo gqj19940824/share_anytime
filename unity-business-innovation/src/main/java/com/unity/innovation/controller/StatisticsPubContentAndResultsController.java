@@ -294,16 +294,18 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long start = InnovationUtil.getFirstTimeInMonth(date, true);
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         Map<String, BigDecimal> dataBeans = iplSatbMainService.demandNewCatagory(start, end);
+        BigDecimal reduce = dataBeans.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         List<String> legend = Arrays.asList("银行", "债券", "自筹");
         PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
                 .data(
                         Arrays.asList(
-                                PieVoByDoc.DataBean.newInstance().name("银行").value(dataBeans == null?0:dataBeans.get("bank")).build(),
-                                PieVoByDoc.DataBean.newInstance().name("债券").value(dataBeans == null?0:dataBeans.get("bond")).build(),
-                                PieVoByDoc.DataBean.newInstance().name("自筹").value(dataBeans == null?0:dataBeans.get("raise")).build()
+                                PieVoByDoc.DataBean.newInstance().name("银行").value(dataBeans.get("bank")).build(),
+                                PieVoByDoc.DataBean.newInstance().name("债券").value(dataBeans.get("bond")).build(),
+                                PieVoByDoc.DataBean.newInstance().name("自筹").value(dataBeans.get("raise")).build()
                         )
-                ).build();
+                )
+                .total(reduce).build();
         return success(pieVoByDoc);
     }
 
@@ -326,13 +328,17 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
         List<String> legend = new ArrayList<>();
+        BigDecimal reduce = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(dataBeans)) {
             legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+            List<BigDecimal> collect = dataBeans.stream().map(e -> (BigDecimal)e.getValue()).collect(Collectors.toList());
+            reduce = collect.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
         PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
-                .data(dataBeans).build();
+                .data(dataBeans)
+                .total(reduce).build();
         return success(pieVoByDoc);
     }
 
@@ -355,13 +361,17 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
         List<String> legend = new ArrayList<>();
+        BigDecimal reduce = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(dataBeans)) {
             legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
+            List<BigDecimal> collect = dataBeans.stream().map(e -> (BigDecimal)e.getValue()).collect(Collectors.toList());
+            reduce = collect.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
         PieVoByDoc pieVoByDoc = PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance().data(legend).build())
-                .data(dataBeans).build();
+                .data(dataBeans)
+                .total(reduce).build();
         return success(pieVoByDoc);
     }
 
