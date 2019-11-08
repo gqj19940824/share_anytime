@@ -423,9 +423,18 @@ public class IpaManageMainController extends BaseWebController {
         if (StringUtils.isBlank(entity.getPublishResult())) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
-        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null) {
+        if (entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
+        IpaManageMain byId = ipaManageMainService.getById(entity.getId());
+        if (byId == null) {
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        if (!IpaStatusEnum.UNUPDATE.getId().equals(byId.getStatus())){
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "数据状态错误");
+        }
+        logger.info("二次包更新发布效果：" + entity.getId());
+        entity.setTitle(byId.getTitle());
         ipaManageMainService.updatePublishResult(entity);
         return success();
     }
@@ -498,7 +507,8 @@ public class IpaManageMainController extends BaseWebController {
         if (!IpaStatusEnum.UNPUBLISH.getId().equals(byId.getStatus())){
             return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "数据状态错误");
         }
-        logger.info("二次包发布：" + entity.getId() + "-" + entity.getTitle());
+        logger.info("二次包发布：" + entity.getId());
+        entity.setTitle(byId.getTitle());
         ipaManageMainService.publish(entity);
         return success();
     }
