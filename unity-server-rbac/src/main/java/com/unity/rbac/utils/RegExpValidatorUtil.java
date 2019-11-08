@@ -47,9 +47,10 @@ public class RegExpValidatorUtil {
     private static final String PHONE_REG = "^1([38][0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|9[89])\\d{8}$";
 
     /**
-     * 手机号 11位数字 以1开头 校验规则
+     * 手机号 11位数字 以1开头 校验规则 "^1\\d{10}$"
+     * 手机号 11位数字 以1开头 第二位不能是 0、1、2 "^1[3456789]\\d{9}$"
      */
-    private static final String PHONE_NUM_REG = "^1\\d{10}$";
+    private static final String PHONE_NUM_REG = "^1[3456789]\\d{9}$";
 
     /**
      * 电话正则校验规则
@@ -138,6 +139,9 @@ public class RegExpValidatorUtil {
      * @since 2019/05/16 19:58
      */
     public static boolean checkPhone(String phone){
+        if(StringUtils.isBlank(phone)){
+            return false;
+        }
         return match(PHONE_NUM_REG,phone);
     }
 
@@ -206,6 +210,6 @@ public class RegExpValidatorUtil {
     }
 
     public static void main(String[] args) {
-        System.out.println(checkPhone("123ss456789"));
+        System.out.println(checkPhone(null));
     }
 }

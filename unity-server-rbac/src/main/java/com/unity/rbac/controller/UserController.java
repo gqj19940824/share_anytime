@@ -264,6 +264,9 @@ public class UserController extends BaseWebController {
                 return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择是否接收短信").build();
             } else if(user.getReceiveSysMsg() == null){
                 return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请选择是否接收系统消息").build();
+            } else if(user.getReceiveSms().equals(YesOrNoEnum.YES.getType())
+                    && !RegExpValidatorUtil.checkPhone(user.getPhone())){
+                return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("请以手机号格式填写电话").build();
             }
         }
         //普通账号需选择单位
@@ -274,11 +277,11 @@ public class UserController extends BaseWebController {
             user.setIdRbacDepartment(null);
         }
         if(!UserTypeEnum.ADMIN.getId().equals(user.getUserType())){
-            if(StringUtils.isBlank(user.getLoginName()) || !RegExpValidatorUtil.checkPhone(user.getLoginName().trim())){
+            if(!RegExpValidatorUtil.checkPhone(user.getLoginName().trim())){
                 return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("非管理员账号请使用手机号！").build();
             }
         } else {
-            if(StringUtils.isBlank(user.getLoginName()) || !RegExpValidatorUtil.checkLoginName(user.getLoginName().trim())){
+            if(!RegExpValidatorUtil.checkLoginName(user.getLoginName().trim())){
                 return UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM).message("管理员账号由字母或数字组成，限制20字符！").build();
             }
         }

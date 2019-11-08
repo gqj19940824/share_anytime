@@ -377,7 +377,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         //查询 创新成功水平类型对应的数量信息 [{"achievementLevel":"1","num":"2"}]
         List<Map<String, Long>> mapList = baseMapper.roadshowEnterpriseInnovationLevel(startTime, endTime);
         long sum = mapList.stream().mapToLong(map -> map.get(NUM)).sum();
-        if(sum < 1){
+        if(Long.valueOf(sum).equals(0L)){
             //说明没数据
             return null;
         }
@@ -417,7 +417,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         //查询 创新成功水平类型对应的数量信息 [{"yesOrNo":"1","num":"2"}]
         List<Map<String, Object>> mapList = baseMapper.firstExternalRelease(startTime, endTime);
         long sum = mapList.stream().mapToLong(map -> Long.parseLong(map.get(NUM).toString())).sum();
-        if(sum < 0){
+        if(Long.valueOf(sum).equals(0L)){
             return null;
         }
         mapList.forEach(map -> {
