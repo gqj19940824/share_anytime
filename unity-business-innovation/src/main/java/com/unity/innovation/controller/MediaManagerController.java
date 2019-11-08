@@ -3,11 +3,13 @@ package com.unity.innovation.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.enums.YesOrNoEnum;
+import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Dic;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.ui.tree.TNode;
@@ -88,14 +90,26 @@ public class MediaManagerController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
         }
 
-        if (entity.getMediaName().length() > ParamConstants.PARAM_MAX_LENGTH_50) {
-            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "媒体名称限制50字");
+        if (entity.getMediaName().length() > ParamConstants.PARAM_MAX_LENGTH_20) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "媒体名称限制20字");
         }
         if (entity.getContactPerson().length() > ParamConstants.PARAM_MAX_LENGTH_20) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "联系人限制20字");
         }
         if (entity.getContactWay().length() > ParamConstants.PARAM_MAX_LENGTH_20) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "联系方式限制20字");
+        }
+        List<MediaManager> list;
+        //新增
+        if (entity.getId() == null) {
+            list = service.list(new LambdaUpdateWrapper<MediaManager>().eq(MediaManager::getMediaName, entity.getMediaName()));
+
+        } else {
+            list = service.list(new LambdaUpdateWrapper<MediaManager>().eq(MediaManager::getMediaName, entity.getMediaName()).ne(MediaManager::getId, entity.getId()));
+        }
+        if (CollectionUtils.isNotEmpty(list)) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
+                    .message("名称已存在!").build();
         }
         service.saveOrUpdate(entity);
         return success(null);
@@ -140,7 +154,8 @@ public class MediaManagerController extends BaseWebController {
                 ew.like(MediaManager::getMediaName, entity.getMediaName());
             }
         }
-        ew.orderBy(true, false, MediaManager::getGmtCreate);
+        ew.orderByDesc(MediaManager::getStatus);
+        ew.last(", CONVERT(media_name USING gbk)");
 
         return ew;
     }
