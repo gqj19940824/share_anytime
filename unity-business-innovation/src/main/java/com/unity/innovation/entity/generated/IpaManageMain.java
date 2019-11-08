@@ -109,6 +109,12 @@ public class IpaManageMain extends BaseEntity{
         @TableField("level")
         private Integer level ;
 
+        /**
+        * 级别
+        **/
+        @CommentTarget("级别")
+        @TableField(exist = false)
+        private String levelName ;
 
         /**
         * 工作动态一次包id

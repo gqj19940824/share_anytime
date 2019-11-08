@@ -4,13 +4,14 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.google.common.collect.Maps;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constants.ConstString;
+import com.unity.common.constant.RedisConstants;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
-import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.JsonUtil;
+import com.unity.common.utils.HashRedisUtils;
 import com.unity.innovation.entity.SysSendSmsLog;
 import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
 import com.unity.innovation.enums.SysMessageFlowStatusEnum;
@@ -18,12 +19,16 @@ import com.unity.innovation.service.SysSendSmsLogServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -32,11 +37,13 @@ import java.util.Map;
  * @author G
  * 生成时间 2019-10-17 21:24:33
  */
-@Controller
+@RestController
 @RequestMapping("/syssendsmslog")
 public class SysSendSmsLogController extends BaseWebController {
     @Autowired
     SysSendSmsLogServiceImpl service;
+    @Autowired
+    HashRedisUtils hashRedisUtils;
 
     /**
      * 获取一页数据
@@ -47,7 +54,6 @@ public class SysSendSmsLogController extends BaseWebController {
      * @since 2019/10/18 11:33
      */
     @PostMapping("/listByPage")
-    @ResponseBody
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<SysSendSmsLog> pageEntity) {
         LambdaQueryWrapper<SysSendSmsLog> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByDesc(SysSendSmsLog::getSort);
@@ -108,20 +114,45 @@ public class SysSendSmsLogController extends BaseWebController {
     private void adapterField(Map<String, Object> m, SysSendSmsLog entity) {
         if (entity.getFlowStatus() != null) {
             m.put("flowStatusTitle", SysMessageFlowStatusEnum.ofName(entity.getFlowStatus()));
-            m.put("dataSourceClassTitle", SysMessageDataSourceClassEnum.ofName(entity.getDataSourceClass()));
         }
+        m.put("dataSourceClassTitle", SysMessageDataSourceClassEnum.ofName(entity.getDataSourceClass()));
+        String name = hashRedisUtils.getFieldValueByFieldName(RedisConstants.DEPARTMENT.concat(entity.getIdRbacDepartment().toString()), RedisConstants.NAME);
+        m.put("nameRbacDepartment",name);
     }
 
     /**
-     * 批量删除
+     * 删除
      *
-     * @param ids id列表用英文逗号分隔
-     * @return
+     * @param  log 包含短信id
+     * @return  code -> 0 表示成功
+     * @author gengjiajia
+     * @since 2019/11/07 19:31
      */
-    @DeleteMapping("/del/{ids}")
-    public Mono<ResponseEntity<SystemResponse<Object>>> del(@PathVariable("ids") String ids) {
-        service.removeByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
-        return success(null);
+    @PostMapping("/deleteById")
+    public Mono<ResponseEntity<SystemResponse<Object>>> deleteById(@RequestBody SysSendSmsLog log) {
+        if(log == null || log.getId() == null){
+            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到短信id");
+        }
+        service.removeById(log.getId());
+        return success("删除成功");
+    }
+
+    /**
+     * 获取短信管理类型下拉列表
+     *
+     * @return code 0 获取成功
+     * @author gengjiajia
+     * @since 2019/11/07 19:35
+     */
+    @PostMapping("/getDataSourceClassList")
+    public Mono<ResponseEntity<SystemResponse<Object>>> getDataSourceClassList() {
+        return success(Arrays.stream(SysMessageDataSourceClassEnum.values()).filter(e -> e.getId() <= SysMessageDataSourceClassEnum.HELP.getId())
+                .map(e -> {
+                    Map<String, Object> map = Maps.newHashMap();
+                    map.put("id", e.getId());
+                    map.put("name", e.getName());
+                    return map;
+                }).collect(Collectors.toList()));
     }
 }
 

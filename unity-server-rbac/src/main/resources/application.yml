@@ -31,3 +31,4 @@ spring:
       - /resource/saveRoleResource
       - /department/listAllDepartmentList/*
       - /user/updateUserPwd
+      - /department/getDeptList

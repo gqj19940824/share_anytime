@@ -28,10 +28,6 @@ public class UeditorController extends BaseWebController {
         this.fileService = fileService;
     }
 
-
-
-
-
     @RequestMapping("vueConfig")
     public void ueditorConfig(HttpServletRequest request, HttpServletResponse response, MultipartFile file) {
         try {

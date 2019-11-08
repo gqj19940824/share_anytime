@@ -13,7 +13,7 @@ import java.util.List;
 public interface SystemClient {
 
     @PostMapping("/feign/dic/getDicByCode")
-    Dic getDicByCode(@RequestParam("groupCode") String groupCode, @RequestParam("dicCode") String dicCode);
+    Dic getDicByCode(@RequestParam("groupCode") Object groupCode, @RequestParam("dicCode") Object dicCode);
 
     @PostMapping("/feign/dic/getDicGroupByGroupCode")
     DicGroup getDicGroupByGroupCode(@RequestParam("groupCode") String groupCode);
@@ -28,7 +28,7 @@ public interface SystemClient {
     @Component
     class HystrixClientFallback implements SystemClient {
         @Override
-        public Dic getDicByCode(String groupCode, String dicCode) {
+        public Dic getDicByCode(Object groupCode, Object dicCode) {
             return null;
         }
 

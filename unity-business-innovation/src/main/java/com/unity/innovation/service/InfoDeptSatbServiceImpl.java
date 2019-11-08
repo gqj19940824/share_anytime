@@ -385,7 +385,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
             Dic dic = dicUtils.getDicByCode(DicConstants.ACHIEVEMENT_INNOVATI, map.get(ACHIEVEMENT_LEVEL).toString());
             dataList.add(PieVoByDoc.DataBean.newInstance()
                     .name(dic.getDicValue())
-                    .value(map.get(NUM).intValue())
+                    .value(map.get(NUM))
                     .build());
             nameList.add(dic.getDicValue());
         });

@@ -36,6 +36,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -539,7 +540,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @author gengjiajia
      * @since 2019/10/11 11:27
      */
-    public void downloadIplSatbMainDataPkgToExcel(Long id) {
+    public Mono<ResponseEntity<byte[]>> downloadIplSatbMainDataPkgToExcel(Long id) {
         IplManageMain main = iplManageMainService.getById(id);
         if (main == null || StringUtils.isEmpty(main.getSnapshot())) {
             throw UnityRuntimeException.newInstance()
@@ -551,7 +552,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         //判断状态，是否可以下载
         XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/satb.xlsx");
         ExcelExportByTemplate.setData(4,main.getTitle(), satbData, main.getNotes(), wb);
-        ExcelExportByTemplate.download(wb, main.getTitle());
+        return ExcelExportByTemplate.download(wb, main.getTitle());
     }
 
     /**

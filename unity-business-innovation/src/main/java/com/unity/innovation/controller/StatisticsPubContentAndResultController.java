@@ -100,10 +100,10 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
         Map<Long, Long> data = mediaManagerList.stream()
                 .collect(Collectors.groupingBy(MediaManager::getMediaType, Collectors.counting()));
         List<String> xData = Lists.newArrayList();
-        List<Integer> yData = Lists.newArrayList();
+        List<Long> yData = Lists.newArrayList();
         for (Map.Entry<Long, Long> entry : data.entrySet()) {
             if (!entry.getValue().equals(0L)) {
-                yData.add(entry.getValue().intValue());
+                yData.add(entry.getValue());
                 Dic dic = dicUtils.getDicByCode(DicConstants.MEDIA_TYPE, entry.getKey().toString());
                 xData.add(dic.getDicValue());
             }
