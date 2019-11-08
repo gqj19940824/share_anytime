@@ -73,10 +73,10 @@ public class mIplOdMain extends BaseEntity{
         **/
         @CommentTarget("岗位需求数量")
         @TableField("job_demand_num")
-        private Integer jobDemandNum ;
-        
-        
-        
+        private Long jobDemandNum ;
+
+
+
         /**
         * 工作职责
         **/
