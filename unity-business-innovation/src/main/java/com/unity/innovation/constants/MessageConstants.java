@@ -42,7 +42,7 @@ public class MessageConstants {
         addInventoryMsgTitleMap.put("401","【TITLE】正在寻求高端人才，请尽快处理！");
         addInventoryMsgTitleMap.put("901","【TITLE】已反应意见和建议，请尽快处理！");
         addInventoryMsgTitleMap.put("1001","【TITLE】报名参与发布会，请尽快处理！");
-        addInventoryMsgTitleMap.put("801","【TITLE】正在寻求合作伙伴，请尽快处理！");
+        addInventoryMsgTitleMap.put("801","【TITLE】正在寻找投资项目，请尽快处理！");
 
         addInventoryMsgTitleMap.put("102","【TITLE】寻求参与开发区建设的事项超过TIME未处理，请及时处理！");
         addInventoryMsgTitleMap.put("202","【TITLE】寻求创新发展的事项超过TIME未处理，请及时处理！");
