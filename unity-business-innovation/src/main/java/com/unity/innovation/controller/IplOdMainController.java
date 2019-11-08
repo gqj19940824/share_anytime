@@ -160,8 +160,8 @@ public class IplOdMainController extends BaseWebController {
         if (entity.getMajorDemand().length() > ParamConstants.PARAM_MAX_LENGTH_20) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "需求人员专业领域字数限制20字");
         }
-        if (entity.getJobDemandNum().toString().length() > ParamConstants.PARAM_MAX_LENGTH_20) {
-            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "岗位需求数量限制20字");
+        if (entity.getJobDemandNum().toString().length() > ParamConstants.PARAM_MAX_LENGTH_15) {
+            return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "岗位需求数量限制15字");
         }
         if (entity.getDuty().length() > ParamConstants.PARAM_MAX_LENGTH_500) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "工作职责字数限制500字");
