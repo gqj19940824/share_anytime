@@ -102,7 +102,8 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     private void saveFirstPackageLog(IpaManageMain entity, Integer status) {
         Customer customer = LoginContextHolder.getRequestAttributes();
         Long idRbacDepartment = customer.getIdRbacDepartment();
-        List<IplManageMain> iplManageMains = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, entity.getId()));
+        Long idIpaMain = entity.getId();
+        List<IplManageMain> iplManageMains = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(iplManageMains)){
             List<IplmManageLog> ls = new ArrayList<>();
             iplManageMains.forEach(e->{
@@ -110,7 +111,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
             });
             iplmManageLogService.saveBatch(ls);
         }
-        List<PmInfoDept> pmInfoDepts = pmInfoDeptService.list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, entity.getId()));
+        List<PmInfoDept> pmInfoDepts = pmInfoDeptService.list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(pmInfoDepts)){
             List<PmInfoDeptLog> ls = new ArrayList<>();
             pmInfoDepts.forEach(e->{
@@ -124,7 +125,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
             });
             pmInfoDeptLogService.saveBatch(ls);
         }
-        List<DailyWorkStatusPackage> dailyWorkStatusPackages = dailyWorkStatusPackageService.list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, entity.getId()));
+        List<DailyWorkStatusPackage> dailyWorkStatusPackages = dailyWorkStatusPackageService.list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain));
         if (CollectionUtils.isNotEmpty(dailyWorkStatusPackages)){
             List<DailyWorkStatusLog> ls = new ArrayList<>();
             dailyWorkStatusPackages.forEach(e->{

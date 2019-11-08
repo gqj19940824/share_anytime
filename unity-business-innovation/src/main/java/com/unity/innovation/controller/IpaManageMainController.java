@@ -488,10 +488,17 @@ public class IpaManageMainController extends BaseWebController {
      */
     @PostMapping("/publish")
     public Mono<ResponseEntity<SystemResponse<Object>>> publish(@RequestBody IpaManageMain entity) {
-        if (entity.getId() == null || ipaManageMainService.getById(entity.getId()) == null) {
+        if (entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
-
+        IpaManageMain byId = ipaManageMainService.getById(entity.getId());
+        if (byId == null) {
+            return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+        if (!IpaStatusEnum.UNPUBLISH.getId().equals(byId.getStatus())){
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "数据状态错误");
+        }
+        logger.info("二次包发布：" + entity.getId() + "-" + entity.getTitle());
         ipaManageMainService.publish(entity);
         return success();
     }
