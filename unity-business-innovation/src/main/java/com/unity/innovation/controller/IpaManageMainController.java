@@ -350,6 +350,10 @@ public class IpaManageMainController extends BaseWebController {
                     wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
                     ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getDarbData(snapshot), e.getNotes(), wb);
                     break;
+                case POLITICAL:
+                    // TODO 缺清新政商接口
+                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                    break;
                 default:
                     logger.error("bizType错误:" + e.getBizType(), e);
                     throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
