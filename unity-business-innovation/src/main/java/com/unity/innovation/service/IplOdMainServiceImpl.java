@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.google.gson.reflect.TypeToken;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.DicConstants;
+import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.InventoryMessage;
@@ -95,6 +96,9 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
     public IPage<IplOdMain> listByPage(PageEntity<IplOdMain> search) {
         LambdaQueryWrapper<IplOdMain> lqw = new LambdaQueryWrapper<>();
         if (search != null && search.getEntity() != null) {
+            if (search.getEntity().getIsForPackage() != null && YesOrNoEnum.YES.getType() == search.getEntity().getIsForPackage()) {
+                lqw.in(IplOdMain::getStatus, Arrays.asList(IplStatusEnum.DEALING.getId(), IplStatusEnum.DONE.getId()));
+            }
             //行业类型
             if (search.getEntity().getIndustryCategory() != null) {
                 lqw.eq(IplOdMain::getIndustryCategory, search.getEntity().getIndustryCategory());

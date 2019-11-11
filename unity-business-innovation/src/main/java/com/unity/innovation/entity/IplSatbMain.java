@@ -70,5 +70,12 @@ public class IplSatbMain extends mIplSatbMain {
 
     @TableField(exist = false)
     private Integer bizType = BizTypeEnum.GROW.getType();
+
+    /**
+     * 是否打包页面  0否 1 是
+     */
+    @TableField(exist = false)
+    private Integer isForPackage;
+
 }
 

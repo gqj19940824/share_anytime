@@ -93,5 +93,11 @@ public class IplEsbMain extends mIplEsbMain{
      */
     @TableField(exist = false)
     private String idRbacDepartmentName;
+
+    /**
+     * 是否打包页面  0否 1 是
+     */
+    @TableField(exist = false)
+    private Integer isForPackage;
 }
 
