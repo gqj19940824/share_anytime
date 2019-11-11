@@ -324,6 +324,17 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
         if (CollectionUtils.isNotEmpty(attachmentList)){
             vo.setAttachmentList(attachmentList);
         }
+        StringBuilder stringBuilder = new StringBuilder();
+        if (StringUtils.isNotBlank(vo.getNewProduct())) {
+            stringBuilder.append("新产品：").append(InnovationConstant.ENT).append(vo.getNewProduct());
+        }
+        if (StringUtils.isNotBlank(vo.getNewProduct()) && StringUtils.isNotBlank(vo.getNewTech())) {
+            stringBuilder.append(InnovationConstant.ENT);
+        }
+        if (StringUtils.isNotBlank(vo.getNewTech())) {
+            stringBuilder.append("新技术：").append(InnovationConstant.ENT).append(vo.getNewTech());
+        }
+        vo.setNewProductAndTech(stringBuilder.toString());
         return vo;
     }
 

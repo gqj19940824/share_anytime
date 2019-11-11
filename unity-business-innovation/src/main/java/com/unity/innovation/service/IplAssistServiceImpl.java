@@ -175,7 +175,9 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                 // 拼接"处理进展"中的协同单位名称
                 deptName.append(InnovationUtil.getDeptNameById(idRbacDepartmentAssist) + "、");
             });
-
+            if (deptName.length() > 0){
+                deptName.deleteCharAt(deptName.length() - 1);
+            }
             // 计算日志的状态
             Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, bizType);
             IplLog iplLog = IplLog.newInstance().idRbacDepartmentAssist(0L)
