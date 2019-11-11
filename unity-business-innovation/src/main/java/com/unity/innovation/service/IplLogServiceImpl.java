@@ -252,7 +252,9 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                 iplAssistService.updateBatchById(assists);
             }
         }
-
+        if (builder.length() > 0){
+            builder.deleteCharAt(builder.length() - 1);
+        }
         // 主责记录日志
         String processInfo = String.format("关闭%s协同邀请", StringUtils.stripEnd(builder.toString(), ","));
         IplLog iplLogDuty = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty).bizType(bizType)
