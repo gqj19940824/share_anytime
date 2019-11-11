@@ -271,7 +271,7 @@ public class PmInfoDeptController extends BaseWebController {
         //待审核才能审核
         if (!WorkStatusAuditingStatusEnum.TWENTY.getId().equals(old.getStatus())) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
-                    .message("此状态不能不能审核").build();
+                    .message("此状态不能审核").build();
         }
         service.passOrReject(entity, old);
         return success();

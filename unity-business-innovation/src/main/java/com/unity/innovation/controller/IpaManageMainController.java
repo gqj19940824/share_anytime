@@ -1,5 +1,6 @@
 package com.unity.innovation.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseEntity;
@@ -13,6 +14,7 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ConvertUtil;
+import com.unity.common.util.DateUtils;
 import com.unity.common.util.FileReaderUtil;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.utils.DicUtils;
@@ -21,16 +23,16 @@ import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.entity.*;
 import com.unity.innovation.entity.generated.IpaManageMain;
 import com.unity.innovation.entity.generated.IplManageMain;
-import com.unity.innovation.enums.BizTypeEnum;
-import com.unity.innovation.enums.InfoTypeEnum;
-import com.unity.innovation.enums.IpaStatusEnum;
-import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.service.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.innovation.util.ZipUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -352,7 +354,34 @@ public class IpaManageMainController extends BaseWebController {
                     break;
                 case POLITICAL:
                     // TODO 缺清新政商接口
-                    wb = ExcelExportByTemplate.getWorkBook("template/darb.xlsx");
+                    wb = ExcelExportByTemplate.getWorkBook("template/suggestion.xlsx");
+                    List<List<Object>> dataList = new ArrayList<>();
+                    List<Integer> merge = new ArrayList<>();
+                    if (StringUtils.isNotBlank(snapshot)) {
+                        List<Map> parse = JSON.parseObject(snapshot, List.class);
+                        parse.forEach(m -> {
+                            dataList.add(
+                                    Arrays.asList(
+                                            IplCategoryEnum.ofName(MapUtils.getInteger(m, "category")),
+                                            m.get("description"),
+                                            DateUtils.timeStamp2Date(MapUtils.getLong(m, "gmtCreate")))
+                            );
+                        });
+
+                        parse.stream().collect(Collectors.groupingBy(m -> m.get("category"), LinkedHashMap::new, Collectors.toList()))
+                        .values().forEach(m->merge.add(m.size()));
+                    }
+                    ExcelExportByTemplate.setData(2, e.getTitle(), dataList, e.getNotes(), wb);
+                    // 处理首列单元格合并
+                    XSSFSheet sheet = wb.getSheetAt(0);
+                    int mergeStartIndex = 2;
+                    for (Integer integer : merge) {
+                        if (integer > 1){
+                            CellRangeAddress cellRangeAddress = new CellRangeAddress(mergeStartIndex, mergeStartIndex + integer, 0, 0);
+                            sheet.addMergedRegion(cellRangeAddress);
+                        }
+                        mergeStartIndex += integer;
+                    }
                     break;
                 default:
                     logger.error("bizType错误:" + e.getBizType(), e);

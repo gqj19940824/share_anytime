@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * ClassName: IplLogService
@@ -203,6 +204,25 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
 
         // 主责单位把主表完结
         if (IplStatusEnum.DONE.getId().equals(dealStatus)) {
+            //主责单位修改清单状态为已完成，要提醒未完成处理的协同单位
+            List<IplAssist> iplAssistList = iplAssistService.list(new LambdaQueryWrapper<IplAssist>().eq(IplAssist::getIdIplMain, idIplMain)
+                    .eq(IplAssist::getBizType, bizType)
+                    .ne(IplAssist::getDealStatus, IplStatusEnum.DONE.getId()));
+            if(CollectionUtils.isNotEmpty(iplAssistList)){
+                List<Long> idRbacDepartmentAssistList = iplAssistList.stream().map(IplAssist::getIdRbacDepartmentAssist)
+                        .distinct()
+                        .collect(Collectors.toList());
+                String enterpriseName = (String) ReflectionUtils.getFieldValue(entity, "enterpriseName");
+                sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
+                        .sourceId(idIplMain)
+                        .idRbacDepartment(idRbacDepartmentDuty)
+                        .dataSourceClass(SysMessageDataSourceClassEnum.HELP.getId())
+                        .flowStatus(SysMessageFlowStatusEnum.SIX.getId())
+                        .title(enterpriseName)
+                        .helpDepartmentIdList(idRbacDepartmentAssistList)
+                        .bizType(bizType)
+                        .build());
+            }
             // 休改主表状态 并休改协同表状态，各插入一个日志、各清除redis超时
             dutyDone(entity, idRbacDepartmentDuty, idIplMain, dealStatus, bizType);
         } else {
