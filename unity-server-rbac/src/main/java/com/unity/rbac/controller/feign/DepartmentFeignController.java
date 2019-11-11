@@ -1,5 +1,7 @@
 package com.unity.rbac.controller.feign;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.unity.common.enums.YesOrNoEnum;
 import com.unity.rbac.entity.Department;
 import com.unity.rbac.service.DepartmentServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +35,7 @@ public class DepartmentFeignController {
      */
     @PostMapping("/getAllDepartment")
     public List<Department> getAllDepartment() {
-        return departmentService.list();
+        return departmentService.list(new LambdaQueryWrapper<Department>().eq(Department::getUseStatus, YesOrNoEnum.YES.getType()));
     }
 
 }
