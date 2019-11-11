@@ -8,15 +8,18 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.DicConstants;
 import com.unity.common.constants.ConstString;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
+import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.XyDates;
+import com.unity.common.utils.DicUtils;
 import com.unity.rbac.dao.RoleDao;
 import com.unity.rbac.entity.Role;
 import com.unity.rbac.entity.RoleResource;
@@ -30,10 +33,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -52,6 +57,8 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
     private final UserRoleServiceImpl userRoleService;
     private final RoleResourceServiceImpl roleResourceService;
     private final UserHelpServiceImpl userHelpService;
+    @Resource
+    private DicUtils dicUtils;
 
     public RoleServiceImpl(UserRoleServiceImpl userRoleService, RoleResourceServiceImpl roleResourceService,
                            UserHelpServiceImpl userHelpService) {
@@ -218,17 +225,37 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
      */
     @Transactional(rollbackFor = Exception.class)
     public void bindUserAndRole(Relation relation) {
-        //先删后增
-        userRoleService.remove(new LambdaQueryWrapper<UserRole>().eq(UserRole::getIdRbacUser, relation.getId()));
         Customer customer = LoginContextHolder.getRequestAttributes();
-        String creator = customer.getId().toString().concat(ConstString.SEPARATOR_POINT).concat(customer.getName());
-        long time = XyDates.getTime(new Date());
-        Long[] bindRoleIds = relation.getBindRoleIds();
         if (!customer.getIsAdmin().equals(YesOrNoEnum.YES.getType())) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.OPERATION_NO_AUTHORITY)
                     .message("非管理员不能分配角色")
                     .build();
+        }
+        String creator = customer.getId().toString().concat(ConstString.SEPARATOR_POINT).concat(customer.getName());
+        long time = XyDates.getTime(new Date());
+        Long[] bindRoleIds = relation.getBindRoleIds();
+        //先删后增
+        //获取宣传部审核角色 此处要保证审核角色在字典中，否则会抛异常
+        Dic dic = dicUtils.getDicByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE);
+        List<UserRole> userRoles = userRoleService.list(new LambdaQueryWrapper<UserRole>().eq(UserRole::getIdRbacUser, relation.getId()));
+        if(CollectionUtils.isNotEmpty(userRoles)){
+            List<Long> roleIds = userRoles.stream().map(UserRole::getIdRbacRole).collect(toList());
+            userRoleService.removeByIds(roleIds);
+            //判断当前分配的角色中是否包含宣传部审核角色，此处要保证审核角色只有一个，否则会抛异常
+            if(userRoles.stream().anyMatch(ur -> ur.getIdRbacRole().equals(Long.parseLong(dic.getDicValue())))){
+                //说明用户之前是拥有宣传部审核角色的，要在黑名单中移除 获取系统消息清单协同处理目标用户黑名单
+                Dic blackListDic = dicUtils.getDicByCode(DicConstants.SYSMESSAGE_BLACKLIST, DicConstants.ASSIST_BLACKLIST);
+                if(blackListDic != null && StringUtils.isNotEmpty(blackListDic.getDicValue())){
+                    List<String> blackListUserIds = Arrays.asList(blackListDic.getDicValue().split(ConstString.SPLIT_COMMA));
+                    if(blackListUserIds.contains(relation.getId().toString())){
+                        String blackList = blackListUserIds.stream().filter(id -> !id.equals(relation.getId().toString()))
+                                .collect(Collectors.joining(ConstString.SPLIT_COMMA));
+                        //重新设置系统消息清单协同处理目标用户黑名单
+                        dicUtils.asyncPutDicByCode(DicConstants.SYSMESSAGE_BLACKLIST, DicConstants.ASSIST_BLACKLIST,blackList);
+                    }
+                }
+            }
         }
         if (ArrayUtils.isNotEmpty(bindRoleIds)) {
             List<UserRole> userRoleList = Arrays.stream(bindRoleIds)
@@ -245,6 +272,18 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
                         return userRole;
                     }).collect(toList());
             userRoleService.saveBatch(userRoleList);
+            //涉及到分配宣传部审核角色的用户维护到系统消息目标用户排除名单中
+            //判断当前分配的角色中是否包含宣传部审核角色，此处要保证审核角色只有一个，否则会抛异常
+            if(Arrays.asList(bindRoleIds).contains(Long.parseLong(dic.getDicValue()))){
+                //获取系统消息清单协同处理目标用户黑名单
+                Dic blackListDic = dicUtils.getDicByCode(DicConstants.SYSMESSAGE_BLACKLIST, DicConstants.ASSIST_BLACKLIST);
+                if(blackListDic != null && StringUtils.isNotEmpty(blackListDic.getDicValue())){
+                    String blackList = StringUtils.isEmpty(blackListDic.getDicValue()) ? relation.getId().toString()
+                            : blackListDic.getDicValue().concat(ConstString.SPLIT_COMMA).concat(relation.getId().toString());
+                    //重新设置系统消息清单协同处理目标用户黑名单
+                    dicUtils.asyncPutDicByCode(DicConstants.SYSMESSAGE_BLACKLIST, DicConstants.ASSIST_BLACKLIST,blackList);
+                }
+            }
         }
     }
 
