@@ -5,12 +5,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
-import com.unity.common.constants.ConstString;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
-import com.unity.common.util.ConvertUtil;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.ExcelExportByTemplate;
@@ -249,17 +247,16 @@ public class IplDarbMainController extends BaseWebController {
     /**
      * 批量删除
      *
-     * @param idsMap id列表用英文逗号分隔
+     * @param ids id列表用英文逗号分隔
      * @return
      */
     @PostMapping("/removeByIds")
-    public Mono<ResponseEntity<SystemResponse<Object>>> removeByIds(@RequestBody Map<String, String> idsMap) {
+    public Mono<ResponseEntity<SystemResponse<Object>>> removeByIds(@RequestBody List<Long> ids) {
         InnovationUtil.check(BizTypeEnum.CITY.getType());
-        String ids = idsMap.get("ids");
-        if (StringUtils.isBlank(ids)) {
+        if (CollectionUtils.isEmpty(ids)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
-        service.delByIds(ConvertUtil.arrString2Long(ids.split(ConstString.SPLIT_COMMA)));
+        service.delByIds(ids);
         return success();
     }
 
