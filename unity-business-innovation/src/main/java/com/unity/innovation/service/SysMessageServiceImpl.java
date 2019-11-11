@@ -11,6 +11,7 @@ import com.unity.common.client.vo.UserVO;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.constant.SmsConstants;
+import com.unity.common.constants.ConstString;
 import com.unity.common.enums.MessageSaveFormEnum;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
@@ -262,6 +263,12 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         //获取主责单位下用户进行系统消息及短信的发送
         List<UserVO> userList = rbacClient.getUserListByDepIdList(msg.getHelpDepartmentIdList());
         if (CollectionUtils.isNotEmpty(userList)) {
+            //移除协同处理目标用户黑名单中的用户id
+            Dic dic = dicUtils.getDicByCode(DicConstants.SYSMESSAGE_BLACKLIST, DicConstants.ASSIST_BLACKLIST);
+            if(dic != null && StringUtils.isNotEmpty(dic.getDicValue())){
+                List<Long> blackListUserIds = Arrays.stream(dic.getDicValue().split(ConstString.SPLIT_COMMA)).map(Long::parseLong).collect(Collectors.toList());
+                userList = userList.stream().filter(vo -> blackListUserIds.contains(vo.getId())).collect(Collectors.toList());
+            }
             //保存系统通知并推送
             saveAndSendMessage(userList, msg.getSourceId(), msg.getIdRbacDepartment(),
                     msg.getDataSourceClass(), msg.getFlowStatus(), title);
@@ -397,11 +404,9 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
     public Map<String, Object> getMessageNumByCustomer() {
         Map<String, Object> numMap = Maps.newHashMap();
         Customer customer = LoginContextHolder.getRequestAttributes();
-        //判断当前用户是否拥有宣传部a的角色
-        Dic pdA = dicUtils.getDicByCode(DicConstants.ROLE_GROUP, DicConstants.PD_A_ROLE);
+        //判断当前用户是否拥有宣传部审核角色
         Dic pdB = dicUtils.getDicByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE);
-        if(customer.getRoleList().contains(Long.parseLong(pdA.getDicValue()))
-                || customer.getRoleList().contains(Long.parseLong(pdB.getDicValue()))){
+        if(customer.getRoleList().contains(Long.parseLong(pdB.getDicValue()))){
             numMap.put("isAdd", 0);
             numMap.put("sysMessageNum", 0);
             numMap.put("noticeNum", 0);
@@ -422,7 +427,6 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             sysMegNumMap = Maps.newHashMap();
         }
         sysMegNumMap.put(customer.getId().toString(),noReadSysMsgNum);
-
         if (MapUtils.isEmpty(noticeMegNumMap)) {
             noticeMegNumMap = Maps.newHashMap();
         }
