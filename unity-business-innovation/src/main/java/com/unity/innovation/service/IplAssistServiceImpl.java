@@ -6,7 +6,6 @@ import com.github.pagehelper.PageHelper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
-import com.unity.common.enums.UserTypeEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.InventoryMessage;
@@ -175,7 +174,9 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                 // 拼接"处理进展"中的协同单位名称
                 deptName.append(InnovationUtil.getDeptNameById(idRbacDepartmentAssist) + "、");
             });
-
+            if (deptName.length() > 0){
+                deptName.deleteCharAt(deptName.length() - 1);
+            }
             // 计算日志的状态
             Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, bizType);
             IplLog iplLog = IplLog.newInstance().idRbacDepartmentAssist(0L)
@@ -305,7 +306,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         // 日志定义返回值
         List<Map<String, Object>> processList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(logs)) {
-            // 按照协同单位的id分成子logs  TODO  bizType
+            // 按照协同单位的id分成子logs
             LinkedHashMap<Long, List<IplLog>> collect = logs.stream()
                     .collect(Collectors.groupingBy(IplLog::getIdRbacDepartmentAssist, LinkedHashMap::new, Collectors.toList()));
 
@@ -322,6 +323,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                     Map<String, Object> map = new HashMap<>();
                     map.put("department", e.getNameRbacDepartmentAssist());
                     map.put("processStatus", e.getProcessStatus());
+                    map.put("dealStatus", e.getDealStatus());
                     map.put("logs", collect.get(e.getIdRbacDepartmentAssist()));
                     processList.add(map);
                 });
@@ -333,9 +335,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
         Customer customer = LoginContextHolder.getRequestAttributes();
         // 非主责单位协同列表只查自己
-        Integer userType = customer.getUserType();
-        if (!UserTypeEnum.LEADER.getId().equals(userType) &&
-                !UserTypeEnum.ADMIN.getId().equals(userType) &&
+        if (!InnovationUtil.isUserAdminOrLeader() &&
                 !customer.getIdRbacDepartment().equals(idRbacDepartmentDuty)){ // TODO
             Iterator<IplAssist> iterator = assists.iterator();
             while (iterator.hasNext()){

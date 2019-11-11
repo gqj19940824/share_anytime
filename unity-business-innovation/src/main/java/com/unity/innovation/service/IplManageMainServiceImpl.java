@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.gson.reflect.TypeToken;
 import com.unity.common.base.BaseServiceImpl;
+import com.unity.common.constant.ParamConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
@@ -15,7 +16,6 @@ import com.unity.common.util.DateUtils;
 import com.unity.common.util.GsonUtils;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
-import com.unity.common.constant.ParamConstants;
 import com.unity.innovation.dao.IplManageMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.DailyWorkStatus;
@@ -67,7 +67,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     public List<List<Object>> getDarbData(String snapshot){
         List<List<Object>> dataList = new ArrayList<>();
 
-        if (StringUtils.isNoneBlank(snapshot)) {
+        if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
             parse.forEach(e -> {
                 List<Object> list = Arrays.asList(
@@ -111,7 +111,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      */
     public List<List<Object>> getEbsData(String snapshot){
         List<List<Object>> dataList = new ArrayList<>();
-        if (StringUtils.isNoneBlank(snapshot)) {
+        if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
             parse.forEach(e -> {
                 List<Object> list = Arrays.asList(
@@ -142,7 +142,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      */
     public List<List<Object>> getOdData(String snapshot){
         List<List<Object>> dataList = new ArrayList<>();
-        if (StringUtils.isNoneBlank(snapshot)) {
+        if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
             parse.forEach(e -> {
                 List<Object> list = Arrays.asList(
@@ -179,7 +179,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      */
     public List<List<Object>> getSatbData(String snapshot){
         List<List<Object>> dataList = new ArrayList<>();
-        if (StringUtils.isNoneBlank(snapshot)) {
+        if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
             parse.forEach(e -> {
                 List<Object> list = Arrays.asList(

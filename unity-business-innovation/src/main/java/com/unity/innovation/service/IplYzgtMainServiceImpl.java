@@ -1,7 +1,6 @@
 
 package com.unity.innovation.service;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseServiceImpl;
@@ -30,7 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
@@ -146,6 +147,7 @@ public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplY
         } else {
             IplYzgtMain iym = getById(entity.getId());
             attachmentService.updateAttachments(iym.getAttachmentCode(), entity.getAttachmentList());
+            entity.setSource(null);
             updateById(entity);
         }
     }

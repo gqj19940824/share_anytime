@@ -283,6 +283,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 // 非"待处理"状态才记录日志，该字段与日志处理相同
                 entity.setLatestProcess("更新基本信息");
             }
+            entity.setSource(null);
             this.updateById(entity);
 
             // 更新超时时间
