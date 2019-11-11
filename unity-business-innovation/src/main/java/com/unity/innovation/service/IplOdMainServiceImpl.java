@@ -237,6 +237,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                         .bizType(BizTypeEnum.INTELLIGENCE.getType())
                         .build());
             }
+            entity.setSource(null);
             updateById(entity);
         }
     }

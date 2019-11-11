@@ -243,6 +243,7 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
                         .bizType(BizTypeEnum.ENTERPRISE.getType())
                         .build());
             }
+            entity.setSource(null);
             updateById(entity);
         }
     }

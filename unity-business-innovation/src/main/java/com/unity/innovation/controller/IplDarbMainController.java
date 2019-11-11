@@ -11,7 +11,6 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ConvertUtil;
-import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
 import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.ExcelExportByTemplate;
@@ -189,7 +188,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplDarbMain> pageEntity) {
-        InnovationUtil.checkExcludeLeaderAndAdmin(BizTypeEnum.CITY.getType());
+
         LambdaQueryWrapper<IplDarbMain> ew = wrapper(pageEntity);
         IPage<IplDarbMain> p = service.page(pageEntity.getPageable(), ew);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
@@ -206,7 +205,6 @@ public class IplDarbMainController extends BaseWebController {
      */
     @GetMapping("/detailById/{id}")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@PathVariable("id") Long id) {
-        InnovationUtil.checkExcludeLeaderAndAdmin(BizTypeEnum.CITY.getType());
         IplDarbMain entity = service.getById(id);
         if (entity == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
@@ -443,7 +441,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @GetMapping("/assists/{mainId}")
     public Mono<ResponseEntity<SystemResponse<Object>>> assists(@PathVariable("mainId") Long mainId) {
-        InnovationUtil.checkExcludeLeaderAndAdmin(BizTypeEnum.CITY.getType());
+
         // 查询基本信息
         IplDarbMain entity = service.getById(mainId);
 
@@ -470,7 +468,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/totalProcess/{mainId}")
     public Mono<ResponseEntity<SystemResponse<Object>>> totalProcess(@PathVariable("mainId") Long mainId) {
-        InnovationUtil.checkExcludeLeaderAndAdmin(BizTypeEnum.CITY.getType());
+
         // 查询基本信息
         IplDarbMain entity = service.getById(mainId);
 
@@ -491,7 +489,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @PostMapping("/getAssistList")
     public Mono<ResponseEntity<SystemResponse<Object>>> getAssistList(@RequestBody IplDarbMain entity) {
-        InnovationUtil.checkExcludeLeaderAndAdmin(BizTypeEnum.CITY.getType());
+
         String msg = ValidFieldUtil.checkEmptyStr(entity, IplDarbMain::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
