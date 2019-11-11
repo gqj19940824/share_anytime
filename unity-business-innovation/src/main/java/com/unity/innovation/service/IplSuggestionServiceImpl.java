@@ -191,6 +191,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
                 //处理中的状态下 每次更新都记录日志
                 iplLogService.save(iplLog);
             }
+            entity.setSource(null);
             updateById(entity);
             return entity.getId();
         }

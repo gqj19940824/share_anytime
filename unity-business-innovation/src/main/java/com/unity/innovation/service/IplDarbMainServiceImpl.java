@@ -126,6 +126,7 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
 
         // 保存修改
         entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
+        entity.setSource(null);
         Integer status = byId.getStatus();
         if (IplStatusEnum.DEALING.getId().equals(status)) {
             // 非"待处理"状态才记录日志，该字段与日志处理相同
