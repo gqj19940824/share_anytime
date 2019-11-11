@@ -92,10 +92,15 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         }
         Integer dealStatusNew = iplLog.getDealStatus();
         Integer dealStatusOld = iplAssist.getDealStatus();
+        dealStatusOld = dealStatusOld == null ? IplStatusEnum.UNDEAL.getId() : dealStatusOld;
         //确认当前状态变更方向
         Integer flowStatus = null;
 
-        if (dealStatusOld.equals(IplStatusEnum.DEALING.getId())
+        if(dealStatusOld.equals(IplStatusEnum.UNDEAL.getId())
+                && IplStatusEnum.DONE.getId().equals(dealStatusNew)){
+            //待处理→处理完毕--清单协同处理--增加系统消息
+            flowStatus = SysMessageFlowStatusEnum.SIX.getId();
+        } else if (dealStatusOld.equals(IplStatusEnum.DEALING.getId())
                 && IplStatusEnum.DONE.getId().equals(dealStatusNew)) {
             //处理中→处理完毕--清单协同处理--增加系统消息
             flowStatus = SysMessageFlowStatusEnum.SIX.getId();
