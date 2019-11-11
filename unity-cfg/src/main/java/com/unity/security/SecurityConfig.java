@@ -91,8 +91,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         requestMappingHandlerMapping
                 .getHandlerMethods()
                 .entrySet()
-                .stream()
-                .filter((entry) -> AnnotationUtils.findAnnotation(entry.getValue().getBeanType(), FeignClient.class) == null)
+                //.stream()
+                //.filter((entry) -> AnnotationUtils.findAnnotation(entry.getValue().getBeanType(), FeignClient.class) == null)
                 .forEach(entry -> {
                     Set<String> patterns = entry.getKey()
                             .getPatternsCondition()

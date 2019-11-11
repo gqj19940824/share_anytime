@@ -561,17 +561,16 @@ public class StatisticsPublishWorkService {
                 .count(countEnterprise)
                 .build());
         //纪检组
-        List<IplManageMain> suggestion = collect.get(BizTypeEnum.SUGGESTION.getType());
-        int countSuggestion = 0;
-        if (CollectionUtils.isNotEmpty(suggestion)) {
-            countSuggestion = suggestion.stream().map(c -> GsonUtils.parse(c.getSnapshot(), new TypeToken<List<IplSuggestion>>() {
+        List<IplManageMain> political = collect.get(BizTypeEnum.POLITICAL.getType());
+        int countPolitical = 0;
+        if (CollectionUtils.isNotEmpty(political)) {
+            countPolitical = political.stream().map(c -> GsonUtils.parse(c.getSnapshot(), new TypeToken<List<IplSuggestion>>() {
             })).mapToInt(List::size).sum();
         }
         statisticsList.add(Statistics.newInstance()
-                .deptName(InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType().toString()))))
-                .deptId(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType().toString())))
-
-                .count(countSuggestion)
+                .deptName(InnovationUtil.getDeptNameById(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.POLITICAL.getType().toString()))))
+                .deptId(Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.POLITICAL.getType().toString())))
+                .count(countPolitical)
                 .build());
         //组织部
         List<IplManageMain> intelligence = collect.get(BizTypeEnum.INTELLIGENCE.getType());

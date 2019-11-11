@@ -449,12 +449,12 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     @Transactional(rollbackFor = Exception.class)
     public void submit(IplManageMain entity) {
         IplManageMain vo = getById(entity.getId());
-        check(vo.getBizType());
         if (vo == null) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                     .message("未获取到对象").build();
         }
+        check(vo.getBizType());
         List<Attachment> attachment = attachmentService.list(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, vo.getAttachmentCode()));
         if (CollectionUtils.isEmpty(attachment)) {
             throw UnityRuntimeException.newInstance()

@@ -291,7 +291,7 @@ public class IplDarbMainController extends BaseWebController {
                 (m, entity) -> {
                     adapterField(m, entity, collect_);
                 }
-                , IplDarbMain::getId, IplDarbMain::getEnterpriseName, IplDarbMain::getProjectName, IplDarbMain::getContent, IplDarbMain::getTotalInvestment, IplDarbMain::getProjectProgress, IplDarbMain::getTotalAmount, IplDarbMain::getBank, IplDarbMain::getBond, IplDarbMain::getSelfRaise, IplDarbMain::getIncreaseTrustType, IplDarbMain::getWhetherIntroduceSocialCapital, IplDarbMain::getConstructionCategory, IplDarbMain::getConstructionStage, IplDarbMain::getConstructionModel, IplDarbMain::getContactPerson, IplDarbMain::getContactWay, IplDarbMain::getAttachmentCode
+                , IplDarbMain::getId, IplDarbMain::getEnterpriseName, IplDarbMain::getProjectName, IplDarbMain::getContent, IplDarbMain::getTotalInvestment, IplDarbMain::getProjectProgress, IplDarbMain::getTotalAmount, IplDarbMain::getBank, IplDarbMain::getBond, IplDarbMain::getSelfRaise, IplDarbMain::getIncreaseTrustType, IplDarbMain::getWhetherIntroduceSocialCapital, IplDarbMain::getConstructionCategory, IplDarbMain::getConstructionStage, IplDarbMain::getConstructionModel, IplDarbMain::getContactPerson, IplDarbMain::getContactWay, IplDarbMain::getAttachmentCode, IplDarbMain::getLatestProcess
         );
     }
 
@@ -336,12 +336,14 @@ public class IplDarbMainController extends BaseWebController {
         m.put("demandItemName", collect.get(entity.getDemandItem()));
         m.put("demandCategory", entity.getDemandCategory());
         m.put("demandCategoryName", collect.get(entity.getDemandCategory()));
-        m.put("source", SourceEnum.ENTERPRISE.getId().equals(entity.getSource()) ? "企业" : "发改局");
+        m.put("source", entity.getSource());
+        m.put("sourceName", SourceEnum.ENTERPRISE.getId().equals(entity.getSource()) ? "企业" : "发改局");
         m.put("status", entity.getStatus());
         m.put("statusName", IplStatusEnum.ofName(entity.getStatus()));
-        m.put("processStatus", ProcessStatusEnum.ofName(entity.getProcessStatus()));
-        m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
-        m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
+        m.put("processStatus", entity.getProcessStatus());
+        m.put("processStatusName", ProcessStatusEnum.ofName(entity.getProcessStatus()));
+        m.put("gmtCreate", entity.getGmtCreate());
+        m.put("gmtModified",entity.getGmtModified());
 
         LambdaQueryWrapper<Attachment> qw = new LambdaQueryWrapper<>();
         qw.eq(Attachment::getAttachmentCode, entity.getAttachmentCode());
