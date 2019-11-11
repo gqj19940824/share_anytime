@@ -332,7 +332,7 @@ public class IplDarbMainController extends BaseWebController {
         m.put("demandCategory", entity.getDemandCategory());
         m.put("demandCategoryName", collect.get(entity.getDemandCategory()));
         m.put("source", entity.getSource());
-        m.put("sourceName", SourceEnum.ENTERPRISE.getId().equals(entity.getSource()) ? "企业" : "发改局");
+        m.put("sourceName", SourceEnum.ENTERPRISE.getId().equals(entity.getSource()) ? "企业" : "发展局");
         m.put("status", entity.getStatus());
         m.put("statusName", IplStatusEnum.ofName(entity.getStatus()));
         m.put("processStatus", entity.getProcessStatus());
