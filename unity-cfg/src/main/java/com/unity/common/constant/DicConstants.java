@@ -66,4 +66,14 @@ public class DicConstants {
      * 二次打包发包人信息级别的字典组
      */
     public static final String IPA_LEVEL = "IPA_LEVEL";
+
+    /**
+     * 系统消息目标用户黑名单
+     */
+    public static final String SYSMESSAGE_BLACKLIST = "SYSMESSAGE_BLACKLIST";
+
+    /**
+     * 系统消息协同处理目标用户黑名单
+     */
+    public static final String ASSIST_BLACKLIST = "ASSIST_BLACKLIST";
 }

@@ -264,6 +264,12 @@ public class IplDarbMain extends BaseEntity{
         @CommentTarget("首次更新时间")
         @TableField("gmt_first_deal")
         private Long gmtFirstDeal ;
+
+        /**
+         * 是否打包页面  0否 1 是
+         */
+        @TableField(exist = false)
+        private Integer isForPackage;
 }
 
 

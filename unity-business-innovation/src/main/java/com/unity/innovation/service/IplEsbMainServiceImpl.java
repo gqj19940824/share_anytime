@@ -7,6 +7,7 @@ import com.google.gson.reflect.TypeToken;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.InventoryMessage;
@@ -47,6 +48,7 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -94,6 +96,9 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
      */
     public IPage<IplEsbMain> listByPage(PageEntity<IplEsbMain> search) {
         LambdaQueryWrapper<IplEsbMain> lqw = new LambdaQueryWrapper<>();
+        if (search.getEntity().getIsForPackage() != null && YesOrNoEnum.YES.getType() == search.getEntity().getIsForPackage()) {
+            lqw.in(IplEsbMain::getStatus, Arrays.asList(IplStatusEnum.DEALING.getId(), IplStatusEnum.DONE.getId()));
+        }
         //行业类型
         if (search.getEntity().getIndustryCategory() != null) {
             lqw.like(IplEsbMain::getIndustryCategory, search.getEntity().getIndustryCategory());

@@ -9,6 +9,7 @@ import com.unity.common.pojos.DicGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -154,6 +155,20 @@ public class DicUtils {
      * @since 2019/10/23 14:43
      */
     public void putDicByCode(String groupCode, String dicCode, String dicValue) {
+        systemClient.putDicByCode(groupCode, dicCode, dicValue);
+    }
+
+    /**
+     * 通过字典组code设置字典项
+     *
+     * @param groupCode 字典组code
+     * @param dicCode   字典项code
+     * @param dicValue  字典项值
+     * @author gengjiajia
+     * @since 2019/10/23 14:43
+     */
+    @Async
+    public void asyncPutDicByCode(String groupCode, String dicCode, String dicValue) {
         systemClient.putDicByCode(groupCode, dicCode, dicValue);
     }
 }

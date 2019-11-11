@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Maps;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
@@ -355,7 +356,9 @@ public class IplDarbMainController extends BaseWebController {
         LambdaQueryWrapper<IplDarbMain> ew = new LambdaQueryWrapper<>();
         if (pageEntity != null && pageEntity.getEntity() != null) {
             IplDarbMain entity = pageEntity.getEntity();
-
+            if (entity.getIsForPackage() != null && YesOrNoEnum.YES.getType() == entity.getIsForPackage()) {
+                ew.in(IplDarbMain::getStatus, Arrays.asList(IplStatusEnum.DEALING.getId(), IplStatusEnum.DONE.getId()));
+            }
             // 行业类别
             Long industryCategory = entity.getIndustryCategory();
             if (industryCategory != null) {

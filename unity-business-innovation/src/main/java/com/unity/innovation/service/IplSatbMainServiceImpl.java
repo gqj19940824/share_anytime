@@ -8,6 +8,7 @@ import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.client.RbacClient;
 import com.unity.common.client.vo.DepartmentVO;
 import com.unity.common.constant.RedisConstants;
+import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.FileDownload;
@@ -40,6 +41,7 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -124,6 +126,9 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         ew.orderByDesc(IplSatbMain::getSort);
         if (entity.getIndustryCategory() != null) {
             ew.eq(IplSatbMain::getIndustryCategory, entity.getIndustryCategory());
+        }
+        if (entity.getIsForPackage() != null && YesOrNoEnum.YES.getType() == entity.getIsForPackage()) {
+            ew.in(IplSatbMain::getStatus, Arrays.asList(IplStatusEnum.DEALING.getId(), IplStatusEnum.DONE.getId()));
         }
         if (entity.getDemandCategory() != null) {
             ew.eq(IplSatbMain::getDemandCategory, entity.getDemandCategory());
