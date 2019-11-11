@@ -38,6 +38,13 @@ public class IpaManageMain extends BaseEntity{
         /**
         * 标题
         **/
+        @CommentTarget("姓名")
+        @TableField("name")
+        private String name ;
+
+        /**
+        * 标题
+        **/
         @CommentTarget("标题")
         @TableField("title")
         private String title ;

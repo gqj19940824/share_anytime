@@ -32,6 +32,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpHeaders;
@@ -316,6 +317,8 @@ public class IpaManageMainController extends BaseWebController {
             pmExcel(pmpList, filePaht);
         }
 
+        glanceExcel(entity, filePaht, iplList, dwspList, pmpList);
+
         // 生成.zip文件;
         ZipUtil.zip(basePath + "创新发布.zip", filePaht);
 
@@ -329,6 +332,54 @@ public class IpaManageMainController extends BaseWebController {
         // ZipUtil.delFile(new File(basePath)); TODO
 
         return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
+    }
+
+    private void glanceExcel(IpaManageMain entity, String filePaht, List<IplManageMain> iplList, List<DailyWorkStatusPackage> dwspList, List<PmInfoDept> pmpList) {
+        int dwsStartRowIndex = 6;
+        int iplStartRowIndex = 8;
+        XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/ipa.xlsx");
+        XSSFSheet sheet = wb.getSheetAt(0);
+
+        // 标题
+        sheet.getRow(0).getCell(0).setCellValue(entity.getTitle());
+
+        // 发布人信息
+        XSSFRow createrInfoRow = sheet.createRow(3);
+        createrInfoRow.createCell(0).setCellValue(entity.getName());
+        createrInfoRow.createCell(1).setCellValue(dicUtils.getDicValueByCode(DicConstants.IPA_LEVEL, entity.getLevel()));
+        createrInfoRow.createCell(2).setCellValue(InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
+        if (CollectionUtils.isNotEmpty(dwspList)){
+            sheet.shiftRows(dwsStartRowIndex, sheet.getLastRowNum(), dwspList.size(),true,false);
+            for (DailyWorkStatusPackage dws : dwspList) {
+                XSSFRow row = sheet.createRow(dwsStartRowIndex++);
+                row.createCell(0).setCellValue(dws.getTitle());
+                row.createCell(1).setCellValue(InnovationUtil.getDeptNameById(dws.getIdRbacDepartment()));
+                row.createCell(2).setCellValue(DateUtils.timeStamp2Date(dws.getGmtSubmit()));
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(iplList)){
+            iplStartRowIndex = dwsStartRowIndex == 6?iplStartRowIndex:dwsStartRowIndex + 2;
+            sheet.shiftRows(iplStartRowIndex, sheet.getLastRowNum(), iplList.size(),true, false);
+            for (IplManageMain iplManageMain : iplList) {
+                XSSFRow row = sheet.createRow(iplStartRowIndex++);
+                row.createCell(0).setCellValue(iplManageMain.getTitle());
+                row.createCell(1).setCellValue(BizTypeEnum.ofName(iplManageMain.getBizType()));
+                row.createCell(2).setCellValue(InnovationUtil.getDeptNameById(iplManageMain.getIdRbacDepartmentDuty()));
+                row.createCell(3).setCellValue(DateUtils.timeStamp2Date(iplManageMain.getGmtSubmit()));
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(pmpList)){
+            for (PmInfoDept pmInfoDept : pmpList) {
+                XSSFRow row = sheet.createRow(iplStartRowIndex++ + 2);
+                row.createCell(0).setCellValue(pmInfoDept.getTitle());
+                row.createCell(1).setCellValue(InfoTypeEnum.of(pmInfoDept.getIdRbacDepartment()).getName());
+                row.createCell(2).setCellValue(InnovationUtil.getDeptNameById(pmInfoDept.getIdRbacDepartment()));
+                row.createCell(3).setCellValue(DateUtils.timeStamp2Date(pmInfoDept.getGmtSubmit()));
+            }
+        }
+        ExcelExportByTemplate.downloadToPath(filePaht  + entity.getTitle() + ".xlsx", wb);
     }
 
     private void iplExcel(List<IplManageMain> list, String filePaht) {
