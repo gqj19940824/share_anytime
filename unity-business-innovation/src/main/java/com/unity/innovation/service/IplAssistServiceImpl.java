@@ -294,7 +294,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      * @param mainId :主表id，idRbacDepartmentDuty:主表主责单位id，processStatus:主表状态
      * @return
      */
-    public Map<String, Object> totalProcessAndAssists(Long mainId, Long idRbacDepartmentDuty, Integer processStatus, Integer bizType) {
+    public Map<String, Object> totalProcessAndAssists(Long mainId, Long idRbacDepartmentDuty, Integer processStatus, Integer dealStatus, Integer bizType) {
 
         List<IplAssist> assists = getAssists(bizType, mainId);
 
@@ -314,6 +314,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
             Map<String, Object> mapDuty = new HashMap<>();
             mapDuty.put("department", InnovationUtil.getDeptNameById(idRbacDepartmentDuty));
             mapDuty.put("processStatus", processStatus);
+            mapDuty.put("dealStatus", dealStatus);
             mapDuty.put("logs", collect.get(0L)); // 在日志表的协同单位字段中，主责单位的日志记录在该字段中存为0
             processList.add(mapDuty);
 
@@ -337,13 +338,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         // 非主责单位协同列表只查自己
         if (!InnovationUtil.isUserAdminOrLeader() &&
                 !customer.getIdRbacDepartment().equals(idRbacDepartmentDuty)){ // TODO
-            Iterator<IplAssist> iterator = assists.iterator();
-            while (iterator.hasNext()){
-                IplAssist next = iterator.next();
-                if (!next.getIdRbacDepartmentAssist().equals(customer.getIdRbacDepartment())){
-                    iterator.remove();
-                }
-            }
+            assists.removeIf(next -> !next.getIdRbacDepartmentAssist().equals(customer.getIdRbacDepartment()));
         }
         resultMap.put("assists", assists);
 

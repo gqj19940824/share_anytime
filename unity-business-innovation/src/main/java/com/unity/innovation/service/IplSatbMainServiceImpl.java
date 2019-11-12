@@ -393,7 +393,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         //需求类别
         SysCfg demandCategory = sysCfgService.getById(ent.getDemandCategory());
         //获取总体进展
-        Map<String, Object> assists = iplAssistService.totalProcessAndAssists(ent.getId(), ent.getIdRbacDepartmentDuty(), ent.getStatus(), BizTypeEnum.GROW.getType());
+        Map<String, Object> assists = iplAssistService.totalProcessAndAssists(ent.getId(), ent.getIdRbacDepartmentDuty(), ent.getProcessStatus(), ent.getStatus(), BizTypeEnum.GROW.getType());
         String depName = hashRedisUtils.getFieldValueByFieldName(RedisConstants.DEPARTMENT
                 .concat(ent.getIdRbacDepartmentDuty().toString()), RedisConstants.NAME);
         Map<String, Object> detail = JsonUtil.ObjectToMap(ent,

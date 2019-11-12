@@ -209,7 +209,7 @@ public class IplDarbMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         entity.setIdRbacDepartmentName(InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
-        Map<String, Object> resultMap = iplAssistService.totalProcessAndAssists(id, entity.getIdRbacDepartmentDuty(), entity.getProcessStatus(), BizTypeEnum.CITY.getType());
+        Map<String, Object> resultMap = iplAssistService.totalProcessAndAssists(id, entity.getIdRbacDepartmentDuty(), entity.getProcessStatus(), entity.getStatus(), BizTypeEnum.CITY.getType());
         resultMap.put("baseInfo", convert2Map(entity));
         return success(resultMap);
     }
@@ -477,7 +477,7 @@ public class IplDarbMainController extends BaseWebController {
         }
         // 主责单位id
         Long idRbacDepartmentDuty = entity.getIdRbacDepartmentDuty();
-        return success(iplAssistService.totalProcessAndAssists(mainId, idRbacDepartmentDuty, entity.getProcessStatus(), BizTypeEnum.CITY.getType()).get("totalProcess"));
+        return success(iplAssistService.totalProcessAndAssists(mainId, idRbacDepartmentDuty, entity.getProcessStatus(), entity.getStatus(), BizTypeEnum.CITY.getType()).get("totalProcess"));
     }
 
     /**
