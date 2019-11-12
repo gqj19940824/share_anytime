@@ -225,12 +225,12 @@ public class StatisticsInfoServiceImpl {
                     enterpriseScaleDataList.add(dataBean);
                 });
                 List<RadarVo.RadarBean.IndicatorBean> enterpriseScaleIndicator = Lists.newArrayList();
-                enterpriseScaleList.forEach(n -> {
+                for(Dic n :enterpriseScaleList) {
                     RadarVo.RadarBean.IndicatorBean indicatorBean = RadarVo.RadarBean.IndicatorBean.newInstance().name(n.getDicValue())
-                            .max(Math.max(MapUtils.isEmpty(rqIdCountByEnterpriseScaleMap) ? 0 :rqIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L), MapUtils.isEmpty(lyIdCountByEnterpriseScaleMap) ? 0 : lyIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L)) + 1)
+                            .max(Math.max(MapUtils.isEmpty(rqIdCountByEnterpriseScaleMap) ? 0 :rqIdCountByEnterpriseScaleMap.getOrDefault(Long.parseLong(n.getDicCode()),0L), MapUtils.isEmpty(lyIdCountByEnterpriseScaleMap) ? 0 : lyIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L)) + 1)
                             .build();
                     enterpriseScaleIndicator.add(indicatorBean);
-                });
+                }
                 RadarVo enterpriseScale = RadarVo.newInstance()
                         .title(RadarVo.TitleBean.newInstance().text(title).build())
                         .legend(RadarVo.LegendBean.newInstance().data(list).build())
