@@ -7,7 +7,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.ParamConstants;
+import com.unity.common.enums.UserTypeEnum;
 import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.Customer;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
@@ -25,6 +27,7 @@ import com.unity.innovation.service.InfoDeptYzgtServiceImpl;
 import com.unity.innovation.service.IplYzgtMainServiceImpl;
 import com.unity.innovation.service.PmInfoDeptServiceImpl;
 import com.unity.innovation.util.InnovationUtil;
+import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -153,6 +156,10 @@ public class PmInfoDeptController extends BaseWebController {
      * @date 2019/9/18 18:36
      */
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(PmInfoDept entity) {
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        if (!UserTypeEnum.ORDINARY.getId().equals(customer.getUserType())) {
+            return error(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION, "只有普通账号可以操作！");
+        }
         String msg = ValidFieldUtil.checkEmptyStr(entity, PmInfoDept::getTitle, PmInfoDept::getBizType);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
