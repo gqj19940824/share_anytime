@@ -545,6 +545,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                         MultiBarVO.SeriesBean.newInstance()
                                 .name("月度人才需求完成情况")
                                 .data(completionDataMapList)
+                                .type("line")
                                 .build()
                         ))
                 .build();
