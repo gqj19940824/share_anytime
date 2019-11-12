@@ -15,8 +15,8 @@ public enum IpaStatusEnum {
     UNAUDIT(20,"待审核"),
     UNPUBLISH(30,"待发布"),
     REJECTED(40,"已驳回"),
-    UNUPDATE(50, "待更新发布结果"),
-    UPDATED(60, "已更新发布结果");
+    UNUPDATE(50, "待更新发布效果"),
+    UPDATED(60, "已更新发布效果");
 
     public static String getNameById(Integer id){
         String name = null;

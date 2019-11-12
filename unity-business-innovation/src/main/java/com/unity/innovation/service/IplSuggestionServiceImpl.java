@@ -207,6 +207,11 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
     @Transactional(rollbackFor = Exception.class)
     public void removeById(List<Long> ids) {
         List<IplSuggestion> list = list(new LambdaQueryWrapper<IplSuggestion>().in(IplSuggestion::getId, ids));
+        if (CollectionUtils.isEmpty(list)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("存在已删除数据,请刷新页面后重新操作").build();
+        }
         //状态为处理完毕 不可删除
         List<IplSuggestion> doneList = list.stream()
                 .filter(i -> IplStatusEnum.DONE.getId().equals(i.getStatus()))

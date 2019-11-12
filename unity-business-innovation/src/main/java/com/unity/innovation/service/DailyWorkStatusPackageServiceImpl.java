@@ -388,6 +388,11 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
                     .message("该状态下数据不可删除").build();
         }
         Collection<DailyWorkStatusPackage> list = listByIds(ids);
+        if (CollectionUtils.isEmpty(list)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("存在已删除数据,请刷新页面后重新操作").build();
+        }
         List<String> codes = list.stream().map(DailyWorkStatusPackage::getAttachmentCode).collect(Collectors.toList());
         //附件表
         attachmentService.remove(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, codes));

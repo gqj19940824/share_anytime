@@ -353,7 +353,7 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
         if (CollectionUtils.isEmpty(list)) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                    .message("数据已删除").build();
+                    .message("存在已删除数据,请刷新页面后重新操作").build();
         }
         List<InfoDeptSatb> list1 = list.stream().filter(i -> i.getStatus() == YesOrNoEnum.YES.getType()).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(list1)) {

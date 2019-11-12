@@ -111,6 +111,11 @@ public class InfoDeptYzgtServiceImpl extends BaseServiceImpl<InfoDeptYzgtDao, In
     @Transactional(rollbackFor = Exception.class)
     public void deleteByIds(@RequestBody List<Long> ids) {
         List<InfoDeptYzgt> list = super.list(new LambdaQueryWrapper<InfoDeptYzgt>().in(InfoDeptYzgt::getId, ids));
+        if (CollectionUtils.isEmpty(list)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("存在已删除数据,请刷新页面后重新操作").build();
+        }
         //状态为已提请发布的数据
         List<InfoDeptYzgt> collect = list.stream().filter(n -> n.getStatus().equals(YesOrNoEnum.YES.getType())).collect(Collectors.toList());
         if(CollectionUtils.isNotEmpty(collect)) {
