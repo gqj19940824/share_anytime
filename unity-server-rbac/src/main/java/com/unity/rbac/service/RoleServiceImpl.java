@@ -258,7 +258,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
             }
         }
         if (ArrayUtils.isNotEmpty(bindRoleIds)) {
-            List<UserRole> userRoleList = Arrays.stream(bindRoleIds)
+            List<UserRole> userRoleList = Arrays.stream(bindRoleIds).distinct()
                     .map(roleId -> {
                         UserRole userRole = new UserRole();
                         userRole.setIdRbacUser(relation.getId());
