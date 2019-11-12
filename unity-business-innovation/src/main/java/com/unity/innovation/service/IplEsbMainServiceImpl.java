@@ -262,6 +262,11 @@ public class IplEsbMainServiceImpl extends BaseServiceImpl<IplEsbMainDao, IplEsb
     @Transactional(rollbackFor = Exception.class)
     public void removeById(List<Long> ids) {
         List<IplEsbMain> list = list(new LambdaQueryWrapper<IplEsbMain>().in(IplEsbMain::getId, ids));
+        if (CollectionUtils.isEmpty(list)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("存在已删除数据,请刷新页面后重新操作").build();
+        }
         //状态为处理完毕 不可删除
         List<IplEsbMain> doneList = list.stream()
                 .filter(i -> IplStatusEnum.DONE.getId().equals(i.getStatus()))
