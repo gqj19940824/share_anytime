@@ -267,7 +267,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             Dic dic = dicUtils.getDicByCode(DicConstants.SYSMESSAGE_BLACKLIST, DicConstants.ASSIST_BLACKLIST);
             if(dic != null && StringUtils.isNotEmpty(dic.getDicValue())){
                 List<Long> blackListUserIds = Arrays.stream(dic.getDicValue().split(ConstString.SPLIT_COMMA)).map(Long::parseLong).collect(Collectors.toList());
-                userList = userList.stream().filter(vo -> blackListUserIds.contains(vo.getId())).collect(Collectors.toList());
+                userList = userList.stream().filter(vo -> !blackListUserIds.contains(vo.getId())).collect(Collectors.toList());
             }
             //保存系统通知并推送
             saveAndSendMessage(userList, msg.getSourceId(), msg.getIdRbacDepartment(),
