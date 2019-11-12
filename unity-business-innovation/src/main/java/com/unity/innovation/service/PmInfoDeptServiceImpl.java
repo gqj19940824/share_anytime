@@ -486,9 +486,9 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
     }
 
     private String[] getTitle(Integer bizType) {
-        String[] ly = {"企业名称", "行业类别", "企业规模", "企业性质", "企业简介", "创新成果",
+        String[] ly = { "行业类别", "企业规模", "企业性质","企业名称", "企业简介", "创新成果",
                 "成果创新水平", "是否首次对外发布", "备注", "联系人", "联系方式", "附件", "创建时间"};
-        String[] rq = {"企业名称", "行业类别", "企业规模", "企业性质", "企业简介",
+        String[] rq = { "行业类别", "企业规模", "企业性质","企业名称", "企业简介",
                 "备注", "联系人", "联系方式", "附件", "创建时间"};
         if (BizTypeEnum.LYDEPTINFO.getType().equals(bizType)) {
             return ly;
@@ -529,13 +529,13 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             HSSFCell cell11 = row.createCell(11);
             HSSFCell cell12 = row.createCell(12);
             cell0.setCellStyle(sty);
-            sheet.setColumnWidth(0, 30 * 256);
+            sheet.setColumnWidth(0, 10 * 256);
             cell1.setCellStyle(sty);
             sheet.setColumnWidth(1, 10 * 256);
             cell2.setCellStyle(sty);
             sheet.setColumnWidth(2, 10 * 256);
             cell3.setCellStyle(sty);
-            sheet.setColumnWidth(3, 10 * 256);
+            sheet.setColumnWidth(3, 30 * 256);
             cell4.setCellStyle(sty);
             sheet.setColumnWidth(4, 30 * 256);
             cell5.setCellStyle(sty);
@@ -554,10 +554,10 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             sheet.setColumnWidth(11, 90 * 256);
             cell12.setCellStyle(sty);
             sheet.setColumnWidth(12, 18 * 256);
-            cell0.setCellValue(list.get(j).getEnterpriseName());
-            cell1.setCellValue(list.get(j).getIndustryCategoryName());
-            cell2.setCellValue(list.get(j).getEnterpriseScaleName());
-            cell3.setCellValue(list.get(j).getEnterpriseNatureName());
+            cell0.setCellValue(list.get(j).getIndustryCategoryName());
+            cell1.setCellValue(list.get(j).getEnterpriseScaleName());
+            cell2.setCellValue(list.get(j).getEnterpriseNatureName());
+            cell3.setCellValue(list.get(j).getEnterpriseName());
             cell4.setCellValue(list.get(j).getEnterpriseIntroduction());
             if (StringUtils.isNotBlank(list.get(j).getInDetail())) {
                 cell5.setCellValue(list.get(j).getInDetail());
@@ -611,13 +611,13 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             HSSFCell cell8 = row.createCell(8);
             HSSFCell cell9 = row.createCell(9);
             cell0.setCellStyle(sty);
-            sheet.setColumnWidth(0, 30 * 256);
+            sheet.setColumnWidth(0, 10 * 256);
             cell1.setCellStyle(sty);
             sheet.setColumnWidth(1, 10 * 256);
             cell2.setCellStyle(sty);
             sheet.setColumnWidth(2, 10 * 256);
             cell3.setCellStyle(sty);
-            sheet.setColumnWidth(3, 10 * 256);
+            sheet.setColumnWidth(3, 30 * 256);
             cell4.setCellStyle(sty);
             sheet.setColumnWidth(4, 30 * 256);
             cell5.setCellStyle(sty);
@@ -630,10 +630,10 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             sheet.setColumnWidth(8, 90 * 256);
             cell9.setCellStyle(sty);
             sheet.setColumnWidth(9, 18 * 256);
-            cell0.setCellValue(list.get(j).getEnterpriseName());
-            cell1.setCellValue(list.get(j).getIndustryCategoryName());
-            cell2.setCellValue(list.get(j).getEnterpriseScaleName());
-            cell3.setCellValue(list.get(j).getEnterpriseNatureName());
+            cell0.setCellValue(list.get(j).getIndustryCategoryName());
+            cell1.setCellValue(list.get(j).getEnterpriseScaleName());
+            cell2.setCellValue(list.get(j).getEnterpriseNatureName());
+            cell3.setCellValue(list.get(j).getEnterpriseName());
             cell4.setCellValue(list.get(j).getEnterpriseIntroduction());
             if (StringUtils.isNotBlank(list.get(j).getNotes())) {
                 cell5.setCellValue(list.get(j).getNotes());

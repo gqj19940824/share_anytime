@@ -228,7 +228,7 @@ public class IpaManageMainController extends BaseWebController {
     private List<Map<String, Object>> convert2ListForPmp(List<PmInfoDept> list) {
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
-                    m.put("infoTypeName", InfoTypeEnum.of(entity.getIdRbacDepartment()).getName());
+                    m.put("infoTypeName", BizTypeEnum.ofName(entity.getBizType()));
                     m.put("departmentName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
                 }
                 , PmInfoDept::getId, PmInfoDept::getTitle, PmInfoDept::getGmtSubmit

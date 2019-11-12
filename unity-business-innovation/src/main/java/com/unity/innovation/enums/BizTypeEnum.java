@@ -44,6 +44,16 @@ public enum BizTypeEnum {
             case POLITICAL:
                 name = BizTypeEnum.POLITICAL.name;
                 break;
+            case INVESTMENT:
+                name = BizTypeEnum.INVESTMENT.name;
+                break;
+            case LYDEPTINFO:
+                name = BizTypeEnum.LYDEPTINFO.name;
+                break;
+            case RQDEPTINFO:
+                name = BizTypeEnum.RQDEPTINFO.name;
+                break;
+
         }
         return name;
     }
