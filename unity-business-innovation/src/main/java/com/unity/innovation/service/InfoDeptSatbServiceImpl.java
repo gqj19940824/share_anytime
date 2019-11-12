@@ -350,6 +350,11 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
     @Transactional(rollbackFor = Exception.class)
     public void removeById(List<Long> ids) {
         List<InfoDeptSatb> list = list(new LambdaQueryWrapper<InfoDeptSatb>().in(InfoDeptSatb::getId, ids));
+        if (CollectionUtils.isEmpty(list)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("数据已删除").build();
+        }
         List<InfoDeptSatb> list1 = list.stream().filter(i -> i.getStatus() == YesOrNoEnum.YES.getType()).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(list1)) {
             throw UnityRuntimeException.newInstance()
