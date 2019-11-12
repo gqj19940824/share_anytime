@@ -1,7 +1,11 @@
 package com.unity.innovation.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -93,8 +97,15 @@ public enum BizTypeEnum {
         return null;
     }
 
-    @Getter
+    @Getter @JsonValue
     private Integer type;
-    @Getter
+    @Getter @JsonValue
     private String name;
+
+    public Map<String, Object> toMap(){
+        Map map = new HashMap<Integer, String>();
+        map.put("type", type);
+        map.put("name", name);
+        return map;
+    }
 }

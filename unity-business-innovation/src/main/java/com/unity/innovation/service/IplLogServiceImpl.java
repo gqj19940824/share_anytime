@@ -224,7 +224,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                         .build());
             }
             // 休改主表状态 并休改协同表状态，各插入一个日志、各清除redis超时
-            dutyDone(entity, idRbacDepartmentDuty, idIplMain, dealStatus, bizType);
+            dutyDone(entity, idRbacDepartmentDuty, idIplMain, dealStatus, bizType, iplLog.getProcessInfo());
         } else {
             // 保存日志
             iplLog.setIdRbacDepartmentDuty(idRbacDepartmentDuty);
@@ -251,7 +251,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      * @author qinhuan
      * @since 2019-10-10 17:10
      */
-    private <T> void dutyDone(T entity, Long idRbacDepartmentDuty, Long idIplMain, Integer dealStatus, Integer bizType) {
+    private <T> void dutyDone(T entity, Long idRbacDepartmentDuty, Long idIplMain, Integer dealStatus, Integer bizType, String processInfo) {
 
         List<IplLog> iplLogs = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
@@ -281,9 +281,14 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             builder.deleteCharAt(builder.length() - 1);
         }
         // 主责记录日志
-        String processInfo = String.format("关闭%s协同邀请", StringUtils.stripEnd(builder.toString(), ","));
+        String deptName = StringUtils.stripEnd(builder.toString(), ",");
+        String logInfo = "";
+        if (StringUtils.isNotBlank(deptName)){
+            logInfo = processInfo + "\n" + deptName;
+        }
+
         IplLog iplLogDuty = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty).bizType(bizType)
-                .idRbacDepartmentAssist(0L).idIplMain(idIplMain).processInfo(processInfo).build();
+                .idRbacDepartmentAssist(0L).idIplMain(idIplMain).processInfo(logInfo).build();
         iplLogs.add(iplLogDuty);
         iplLogService.saveBatch(iplLogs);
 

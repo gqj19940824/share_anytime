@@ -219,7 +219,7 @@ public class IplOdMainController extends BaseWebController {
         entity = service.detailById(entity);
         //日志公共方法
         Map<String, Object> resultMap;
-        resultMap = iplAssistService.totalProcessAndAssists(entity.getId(), entity.getIdRbacDepartmentDuty(), entity.getProcessStatus(), BizTypeEnum.INTELLIGENCE.getType());
+        resultMap = iplAssistService.totalProcessAndAssists(entity.getId(), entity.getIdRbacDepartmentDuty(), entity.getProcessStatus(), entity.getStatus(), BizTypeEnum.INTELLIGENCE.getType());
         resultMap.put("baseInfo", entity);
         return success(resultMap);
     }
