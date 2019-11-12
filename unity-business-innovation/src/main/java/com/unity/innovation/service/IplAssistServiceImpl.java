@@ -73,7 +73,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         Customer customer = LoginContextHolder.getRequestAttributes();
         com.baomidou.mybatisplus.extension.plugins.pagination.Page<Map<String, Object>> pageable = pageEntity.getPageable();
         Map<String, Object> entity = pageEntity.getEntity();
-        String gmtCreate = MapUtils.getString(entity, "gmtCreate");
+        String gmtCreate = MapUtils.getString(entity, "createDate");
         if (StringUtils.isNotBlank(gmtCreate)){
             entity.put("gmtCreateStart", InnovationUtil.getFirstTimeInMonth(gmtCreate, true));
             entity.put("gmtCreateEnd", InnovationUtil.getFirstTimeInMonth(gmtCreate, false));
