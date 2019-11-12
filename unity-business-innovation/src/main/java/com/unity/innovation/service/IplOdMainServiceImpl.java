@@ -538,9 +538,10 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                         .data(monthList).build()))
                 .series(Arrays.asList(
                         MultiBarVO.SeriesBean.newInstance()
-                        .name("月度新增人才需求")
-                        .data(addDataMapList)
-                        .build(),
+                                .name("月度新增人才需求")
+                                .data(addDataMapList)
+                                .type("line")
+                                .build(),
                         MultiBarVO.SeriesBean.newInstance()
                                 .name("月度人才需求完成情况")
                                 .data(completionDataMapList)
