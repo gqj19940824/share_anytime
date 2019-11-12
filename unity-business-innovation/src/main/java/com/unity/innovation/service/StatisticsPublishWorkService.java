@@ -11,6 +11,7 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.util.GsonUtils;
 import com.unity.common.utils.DateUtil;
 import com.unity.common.utils.DicUtils;
+import com.unity.innovation.controller.vo.CylinderVo;
 import com.unity.innovation.controller.vo.MultiBarVO;
 import com.unity.innovation.controller.vo.PieVo;
 import com.unity.innovation.dao.StatisticsPublishWorkDao;
@@ -359,7 +360,7 @@ public class StatisticsPublishWorkService {
      * @author gengzhiqiang
      * @date 2019/10/29 15:10
      */
-    public MultiBarVO overDealChangeTimes(StatisticsSearch search) throws Exception {
+    public CylinderVo overDealChangeTimes(StatisticsSearch search) throws Exception {
         String monthTime = search.getMonthTime();
         Long beginTime = null;
         Long endTime = null;
@@ -390,17 +391,11 @@ public class StatisticsPublishWorkService {
             titleData.add(month);
             collectData.add(collect.get(month)==null?0:collect.get(month));
         });
-        return MultiBarVO.newInstance().title(title)
-                .xAxis(
-                        Arrays.asList(MultiBarVO.XAxisBean.newInstance()
-                                .type("category").data(titleData).build())
-                ).yAxis(
-                        Arrays.asList(MultiBarVO.YAxisBean.newInstance()
-                                .type("value").build())
-                ).series(
-                        Arrays.asList(
-                                MultiBarVO.SeriesBean.newInstance().type("bar")
-                                        .data(collectData).build())).build();
+        return CylinderVo.newInstance()
+                .title(title)
+                .seriesData(collectData)
+                .xAxisData(titleData)
+                .build();
     }
 
     /**
