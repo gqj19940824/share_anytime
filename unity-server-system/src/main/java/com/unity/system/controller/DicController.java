@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.client.ReClient;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.constant.InnovationConstant;
 import com.unity.common.constants.ConstString;
@@ -12,19 +13,25 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.ConvertUtil;
+import com.unity.common.util.MultipartFileUtil;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.system.entity.Dic;
 import com.unity.system.entity.DicGroup;
 import com.unity.system.service.DicGroupServiceImpl;
 import com.unity.system.service.DicServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -32,11 +39,13 @@ import java.util.Map;
 
 /**
  * 字典组和字典项管理
+ *
  * @author zhang
  * 生成时间 2019-07-23 16:34:47
  */
 @RestController
 @RequestMapping("/dic")
+@Slf4j
 public class DicController extends BaseWebController {
 
     @Resource
@@ -47,6 +56,8 @@ public class DicController extends BaseWebController {
 
     @Resource
     private RedisTemplate redisTemplate;
+    @Resource
+    ReClient resourceClient;
 
     /**
      * 添加或修改字典组
@@ -109,13 +120,13 @@ public class DicController extends BaseWebController {
      */
     @PostMapping("dicGroup/list")
     public Mono<ResponseEntity<SystemResponse<Object>>> dicGroupLlist(@RequestBody PageEntity<DicGroup> pageEntity) {
-        if (pageEntity == null || pageEntity.getPageable() == null){
+        if (pageEntity == null || pageEntity.getPageable() == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
         DicGroup entity = pageEntity.getEntity();
 
         LambdaQueryWrapper<DicGroup> qw = new LambdaQueryWrapper<DicGroup>().orderByDesc(DicGroup::getSort);
-        if (entity != null && StringUtils.isNotBlank(entity.getGroupName())){
+        if (entity != null && StringUtils.isNotBlank(entity.getGroupName())) {
             qw.like(DicGroup::getGroupName, entity.getGroupName());
         }
         IPage<DicGroup> p = dicGroupService.page(pageEntity.getPageable(), qw);
@@ -167,7 +178,7 @@ public class DicController extends BaseWebController {
         if (StringUtils.isEmpty(groupStr)) {
             synchronized (this) {
                 groupStr = (String) redisTemplate.opsForHash().get(key, groupCode);
-                if (StringUtils.isEmpty(groupStr)){
+                if (StringUtils.isEmpty(groupStr)) {
                     DicGroup dicGroupByGroupCode = dicGroupService.getDicGroupByGroupCode(groupCode);
                     redisTemplate.opsForHash().put(key, groupCode, JSON.toJSONString(dicGroupByGroupCode));
                     return success(dicGroupByGroupCode);
@@ -197,7 +208,7 @@ public class DicController extends BaseWebController {
         if (StringUtils.isNotEmpty(notes) && notes.length() > 255) {
             return error(SystemResponse.FormalErrorCode.MODIFY_DATA_OVER_LENTTH, "备注长度过长");
         }
-        if(StringUtils.isEmpty(entity.getDicName())) {
+        if (StringUtils.isEmpty(entity.getDicName())) {
             entity.setDicName(entity.getNotes());
         }
         // 新增
@@ -223,7 +234,6 @@ public class DicController extends BaseWebController {
             }
             dicService.save(entity);
         } else {
-
             Dic dic = dicService.getById(entity.getId());
             if (dic == null) {
                 return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, "数据不存在");
@@ -231,16 +241,50 @@ public class DicController extends BaseWebController {
             dic.setDicValue(entity.getDicValue());
             dic.setNotes(entity.getNotes());
             dic.setGmtModified(System.currentTimeMillis());
-            if (StringUtils.isNotBlank(entity.getStatus())){
+            if (StringUtils.isNotBlank(entity.getStatus())) {
                 dic.setStatus(entity.getStatus());
             }
+            if(StringUtils.isNotEmpty(dic.getDicName()) && StringUtils.isNotEmpty(entity.getGroupCode()) && "PROMPT".equals(entity.getGroupCode())){
+                String html = createHtml(entity.getDicValue(), dic.getDicCode());
+                if(StringUtils.isNotEmpty(dic.getDicName()) && dic.getDicName().startsWith("http")) {
+                    resourceClient.deleteFile(dic.getDicName());
+                }
+                dic.setDicName(html);
+            }
             dicService.saveOrUpdate(dic);
-
             String key = RedisConstants.DIC_PREFIX + dic.getGroupCode();
             redisTemplate.opsForHash().put(key, dic.getDicCode(), JSON.toJSONString(dic));
+
         }
         return success(InnovationConstant.SUCCESS);
     }
+
+    /**
+     * 更新html文件
+     *
+     * @param text 富文本内容
+     * @param type 填报类型
+     * @return html文件地址
+     * @author zhangxiaogang
+     * @since 2019/11/13 11:31
+     */
+    private String createHtml(String text, String type) {
+        String path = null;
+        try {
+            String fileName = "editor_" + type + ".html";
+            String content = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">" +
+                    "<meta content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;\"  name=\"viewport\"  >"
+                    + text;
+            InputStream stream = new ByteArrayInputStream(content.getBytes("UTF-8"));
+            MultipartFile multipartFile = MultipartFileUtil.createFileItemByInputStream(stream, fileName);
+            path = resourceClient.fileUpload(multipartFile);
+        } catch (Exception e) {
+            log.error("生成html数据异常" + e.getMessage());
+        }
+        return path;
+
+    }
+
 
     /**
      * 获取数据
@@ -255,8 +299,8 @@ public class DicController extends BaseWebController {
         }
         LambdaQueryWrapper<Dic> ew = new LambdaQueryWrapper<>();
         ew.eq(Dic::getGroupCode, MapUtils.getString(map, "groupCode")).orderByAsc(Dic::getSort);
-        if(StringUtils.isNotBlank(MapUtils.getString(map, "dicName"))) {
-            ew.like(Dic::getDicName,MapUtils.getString(map, "dicName"));
+        if (StringUtils.isNotBlank(MapUtils.getString(map, "dicName"))) {
+            ew.like(Dic::getDicName, MapUtils.getString(map, "dicName"));
         }
         return success(dicService.list(ew));
     }
@@ -276,9 +320,9 @@ public class DicController extends BaseWebController {
         List<Long> ids1 = ConvertUtil.arrString2Long(MapUtils.getString(ids, "ids").split(ConstString.SPLIT_COMMA));
 
         // 删除redis
-        ids1.forEach(e->{
+        ids1.forEach(e -> {
             Dic byId = dicService.getById(e);
-            if (byId == null){
+            if (byId == null) {
                 return;
             }
             dicService.removeById(e);
@@ -376,14 +420,14 @@ public class DicController extends BaseWebController {
      */
     @PostMapping("/dic/getDicsByGroupCodes")
     public Mono<ResponseEntity<SystemResponse<Object>>> getDicsByGroupCodes(@RequestBody Map<String, Object> map) {
-        if (MapUtils.isEmpty(map) || StringUtils.isBlank(MapUtils.getString(map, "groupCodes"))){
+        if (MapUtils.isEmpty(map) || StringUtils.isBlank(MapUtils.getString(map, "groupCodes"))) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "缺少必要请求参数");
         }
         String groupCodes = MapUtils.getString(map, "groupCodes");
         String[] split = groupCodes.split(",");
 
         Map<String, Object> resultMap = new HashMap<>(split.length);
-        Arrays.asList(split).forEach(e->{
+        Arrays.asList(split).forEach(e -> {
             // TODO 缓存优化
             List<Dic> list = dicService.list(new LambdaQueryWrapper<Dic>().eq(Dic::getGroupCode, e).orderByAsc(Dic::getSort));
             resultMap.put(e, list);
@@ -400,17 +444,17 @@ public class DicController extends BaseWebController {
      * @since 2019-09-24 09:36
      */
     @PostMapping("/category/listByPage")
-    public Mono<ResponseEntity<SystemResponse<Object>>> getIndustryCategorys(@RequestBody PageEntity<Dic> pageEntity){
+    public Mono<ResponseEntity<SystemResponse<Object>>> getIndustryCategorys(@RequestBody PageEntity<Dic> pageEntity) {
 
         LambdaQueryWrapper<Dic> qw = new LambdaQueryWrapper<>();
 
-        if (pageEntity != null && pageEntity.getEntity() != null){
+        if (pageEntity != null && pageEntity.getEntity() != null) {
 
             Dic entity = pageEntity.getEntity();
 
             // 组名
             String groupCode = entity.getGroupCode();
-            if (StringUtils.isBlank(groupCode)){
+            if (StringUtils.isBlank(groupCode)) {
                 return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "缺少必要请求参数");
             }
 
@@ -418,12 +462,12 @@ public class DicController extends BaseWebController {
 
             // 类别
             String dicValue = entity.getDicValue();
-            if (StringUtils.isNotBlank(dicValue)){
+            if (StringUtils.isNotBlank(dicValue)) {
                 qw.like(Dic::getDicValue, dicValue);
             }
             // 状态
             String status = entity.getStatus();
-            if (StringUtils.isNotBlank(status)){
+            if (StringUtils.isNotBlank(status)) {
                 qw.eq(Dic::getStatus, status);
             }
         }
@@ -451,7 +495,7 @@ public class DicController extends BaseWebController {
         // 新增
         if (entity.getId() == null) {
             String groupCode = entity.getGroupCode();
-            if (StringUtils.isBlank(groupCode)){
+            if (StringUtils.isBlank(groupCode)) {
                 return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
             }
             entity.setDicCode(UUIDUtil.getUUID());
@@ -465,7 +509,7 @@ public class DicController extends BaseWebController {
             }
             dic.setDicValue(entity.getDicValue());
             dic.setGmtModified(System.currentTimeMillis());
-            if (StringUtils.isNotBlank(entity.getStatus())){
+            if (StringUtils.isNotBlank(entity.getStatus())) {
                 dic.setStatus(entity.getStatus());
             }
             dicService.saveOrUpdate(dic);
