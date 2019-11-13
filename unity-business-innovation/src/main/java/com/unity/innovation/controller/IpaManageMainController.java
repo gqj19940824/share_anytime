@@ -3,6 +3,7 @@ package com.unity.innovation.controller;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.sun.xml.internal.bind.v2.TODO;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.DicConstants;
@@ -329,7 +330,7 @@ public class IpaManageMainController extends BaseWebController {
         byte[] content = FileReaderUtil.getBytes(new File(basePath + "创新发布.zip"));
 
         //删除目录下所有的文件;
-        // ZipUtil.delFile(new File(basePath)); TODO
+        ZipUtil.delFile(new File(basePath));
 
         return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
     }
