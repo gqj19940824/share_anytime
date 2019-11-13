@@ -28,6 +28,7 @@ public interface IplAssistDao  extends BaseDao<IplAssist>{
     List<Map<String, Object>> assistEsbList(Map<String, Object> paramMap);
     List<Map<String, Object>> assistSatbList(Map<String, Object> paramMap);
     List<Map<String, Object>> assistOdList(Map<String, Object> paramMap);
+    List<Map<String, Object>> total(Map<String, Object> paramMap);
 
     List<Map<String, Object>> demandTrendStatistics(@Param("tableName") String tableName, @Param("startLong") Long startLong, @Param("endLong") Long endLong);
 }

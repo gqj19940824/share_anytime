@@ -82,38 +82,27 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         Integer bizType = MapUtils.getInteger(entity, "bizType");
         Page<Map<String, Object>> page = PageHelper.startPage((int)pageable.getCurrent(), (int)pageable.getSize(), true);
         List<Map<String, Object>> maps;
-        switch (BizTypeEnum.of(bizType)){
-            case CITY:
-                maps = baseMapper.assistDarbList(entity);
-                maps.forEach(e->{
-                    e.put("bizType", BizTypeEnum.CITY.getType());
-                    e.put("bizTypeName", BizTypeEnum.CITY.getName());
-                });
-                break;
-            case GROW:
-                maps = baseMapper.assistSatbList(entity);
-                maps.forEach(e->{
-                    e.put("bizType", BizTypeEnum.GROW.getType());
-                    e.put("bizTypeName", BizTypeEnum.GROW.getName());
-                });
-                break;
-            case ENTERPRISE:
-                maps = baseMapper.assistEsbList(entity);
-                maps.forEach(e->{
-                    e.put("bizType", BizTypeEnum.ENTERPRISE.getType());
-                    e.put("bizTypeName", BizTypeEnum.ENTERPRISE.getName());
-                });
-                break;
-            case INTELLIGENCE:
-                maps = baseMapper.assistOdList(entity);
-                maps.forEach(e->{
-                    e.put("bizType", BizTypeEnum.INTELLIGENCE.getType());
-                    e.put("bizTypeName", BizTypeEnum.INTELLIGENCE.getName());
-                });
-                break;
-            default:
-                throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("业务类型错误").build();
+        if (bizType == null){
+            maps = baseMapper.total(entity);
+        }else {
+            switch (BizTypeEnum.of(bizType)){
+                case CITY:
+                    maps = baseMapper.assistDarbList(entity);
+                    break;
+                case GROW:
+                    maps = baseMapper.assistSatbList(entity);
+                    break;
+                case ENTERPRISE:
+                    maps = baseMapper.assistEsbList(entity);
+                    break;
+                case INTELLIGENCE:
+                    maps = baseMapper.assistOdList(entity);
+                    break;
+                default:
+                    throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("业务类型错误").build();
+            }
         }
+
         PageElementGrid result = PageElementGrid.<Map<String,Object>>newInstance()
                 .total(page.getTotal())
                 .items(convert(maps)).build();

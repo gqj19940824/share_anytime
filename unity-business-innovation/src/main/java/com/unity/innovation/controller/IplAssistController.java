@@ -38,12 +38,6 @@ public class IplAssistController extends BaseWebController {
      */
     @PostMapping("/listAssistByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<Map<String, Object>> pageEntity) {
-        Map<String, Object> entity = pageEntity.getEntity();
-        Integer bizType = MapUtils.getInteger(entity, "bizType");
-        if (bizType == null){
-            return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
-        }
-
         return success(iplAssistService.listAssistByPage(pageEntity));
     }
 

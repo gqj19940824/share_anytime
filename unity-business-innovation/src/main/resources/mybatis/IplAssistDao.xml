@@ -22,60 +22,76 @@
 
     <!--协同发改局列表-->
     <select id="assistDarbList" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT m.project_name situation,
+        <include refid="darb"></include>
+        ORDER BY a.gmt_create DESC
+    </select>
+    <sql id="darb">
+        SELECT m.project_name situation, '城市合作' bizTypeName,
         <include refid="publicFile">
             <property name="table" value="ipl_darb_main"/>
+            <property name="bizTypeNum" value="10"/>
         </include>
         <if test="situation != null and situation != ''">
             AND m.project_name LIKE CONCAT('%',#{situation},'%')
         </if>
-        ORDER BY a.gmt_create DESC
-    </select>
+    </sql>
 
     <!--协同企服局列表-->
     <select id="assistEsbList" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT m.summary situation,
+        <include refid="esb"></include>
+        ORDER BY a.gmt_create DESC
+    </select>
+    <sql id="esb">
+        SELECT m.summary situation, '企业创新发布' bizTypeName,
         <include refid="publicFile">
             <property name="table" value="ipl_esb_main"/>
+            <property name="bizTypeNum" value="20"/>
         </include>
         <if test="situation != null and situation != ''">
             AND m.summary LIKE CONCAT('%',#{situation},'%')
         </if>
-        ORDER BY a.gmt_create DESC
-    </select>
+    </sql>
 
     <!--协同科技局列表-->
     <select id="assistSatbList" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT m.project_name situation,
+        <include refid="satb"></include>
+        ORDER BY a.gmt_create DESC
+    </select>
+    <sql id="satb">
+        SELECT m.project_name situation, '成长目标投资' bizTypeName,
         <include refid="publicFile">
             <property name="table" value="ipl_satb_main"/>
+            <property name="bizTypeNum" value="30"/>
         </include>
         <if test="situation != null and situation != ''">
             AND m.project_name LIKE CONCAT('%',#{situation},'%')
         </if>
-        ORDER BY a.gmt_create DESC
-    </select>
+    </sql>
 
     <!--协同组织部列表-->
     <select id="assistOdList" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT m.jd_name situation,
+        <include refid="od"></include>
+        ORDER BY a.gmt_create DESC
+    </select>
+
+    <sql id="od">
+        SELECT m.jd_name situation, '高端才智需求' bizTypeName,
         <include refid="publicFile">
             <property name="table" value="ipl_od_main"/>
+            <property name="bizTypeNum" value="40"/>
         </include>
         <if test="situation != null and situation != ''">
             AND m.jd_name LIKE CONCAT('%',#{situation},'%')
         </if>
-        ORDER BY a.gmt_create DESC
-    </select>
+    </sql>
 
     <sql id="publicFile">
         m.id idIplMain, m.enterprise_name enterpriseName, m.contact_person contactPerson, m.contact_way contactWay,
         m.gmt_create gmtCreate, m.gmt_modified gmtModified, m.source, m.id_rbac_department_duty idRbacDepartmentDuty, a.deal_status status,
-        a.process_status processStatus, s.cfg_val industryCategoryName
+        a.process_status processStatus, s.cfg_val industryCategoryName, a.biz_type
 
-        FROM ${table} m INNER JOIN ipl_assist a ON m.id = a.id_ipl_main AND a.id_rbac_department_duty = m.id_rbac_department_duty
+        FROM ${table} m INNER JOIN ipl_assist a ON m.id = a.id_ipl_main AND a.biz_type = ${bizTypeNum}
         INNER JOIN sys_cfg s ON s.id = m.industry_category
-        AND a.biz_type = #{bizType}
         <if test="idRbacDepartmentAssist != null and idRbacDepartmentAssist != ''">
             AND a.id_rbac_department_assist = #{idRbacDepartmentAssist}
         </if>
@@ -102,4 +118,15 @@
             AND a.process_status = #{processStatus}
         </if>
     </sql>
+
+    <select id="total" parameterType="java.util.Map" resultType="java.util.Map">
+        <include refid="darb"></include>
+        union all
+        <include refid="esb"></include>
+        union all
+        <include refid="od"></include>
+        union all
+        <include refid="satb"></include>
+        ORDER BY gmtCreate DESC
+    </select>
 </mapper>
