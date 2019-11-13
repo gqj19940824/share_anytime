@@ -3,6 +3,7 @@ package com.unity.innovation.controller;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.sun.xml.internal.bind.v2.TODO;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.DicConstants;
@@ -329,7 +330,7 @@ public class IpaManageMainController extends BaseWebController {
         byte[] content = FileReaderUtil.getBytes(new File(basePath + "创新发布.zip"));
 
         //删除目录下所有的文件;
-        // ZipUtil.delFile(new File(basePath)); TODO
+        ZipUtil.delFile(new File(basePath));
 
         return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
     }
@@ -404,7 +405,7 @@ public class IpaManageMainController extends BaseWebController {
                     ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getDarbData(snapshot), e.getNotes(), wb);
                     break;
                 case POLITICAL:
-                    // TODO 缺清新政商接口
+                    // 清新政商
                     wb = ExcelExportByTemplate.getWorkBook("template/suggestion.xlsx");
                     List<List<Object>> dataList = new ArrayList<>();
                     List<Integer> merge = new ArrayList<>();
@@ -428,7 +429,7 @@ public class IpaManageMainController extends BaseWebController {
                     int mergeStartIndex = 2;
                     for (Integer integer : merge) {
                         if (integer > 1){
-                            CellRangeAddress cellRangeAddress = new CellRangeAddress(mergeStartIndex, mergeStartIndex + integer, 0, 0);
+                            CellRangeAddress cellRangeAddress = new CellRangeAddress(mergeStartIndex, mergeStartIndex + integer-1, 0, 0);
                             sheet.addMergedRegion(cellRangeAddress);
                         }
                         mergeStartIndex += integer;
