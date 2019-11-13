@@ -404,7 +404,7 @@ public class IpaManageMainController extends BaseWebController {
                     ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getDarbData(snapshot), e.getNotes(), wb);
                     break;
                 case POLITICAL:
-                    // TODO 缺清新政商接口
+                    // 清新政商
                     wb = ExcelExportByTemplate.getWorkBook("template/suggestion.xlsx");
                     List<List<Object>> dataList = new ArrayList<>();
                     List<Integer> merge = new ArrayList<>();
@@ -428,7 +428,7 @@ public class IpaManageMainController extends BaseWebController {
                     int mergeStartIndex = 2;
                     for (Integer integer : merge) {
                         if (integer > 1){
-                            CellRangeAddress cellRangeAddress = new CellRangeAddress(mergeStartIndex, mergeStartIndex + integer, 0, 0);
+                            CellRangeAddress cellRangeAddress = new CellRangeAddress(mergeStartIndex, mergeStartIndex + integer-1, 0, 0);
                             sheet.addMergedRegion(cellRangeAddress);
                         }
                         mergeStartIndex += integer;
