@@ -480,12 +480,12 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
                     .map(UserVO::getPhone)
                     .collect(Collectors.joining(","));
             //发送短信  批量发送 TODO
-            /*SendSmsResponse response = aliSmsUtils.sendSms(phoneStr, smsParem, smsTemplateDic.getDicValue());
+            SendSmsResponse response = aliSmsUtils.sendSms(phoneStr, smsParem, smsTemplateDic.getDicValue());
             int sendStatus = response.getCode() != null && "OK".equals(response.getCode())
-                    ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType();*/
-            SendSmsResponse response = new SendSmsResponse();
-            response.setMessage("短信暂不发送");
-            int sendStatus = YesOrNoEnum.NO.getType();
+                    ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType();
+            //SendSmsResponse response = new SendSmsResponse();
+            //response.setMessage("短信暂不发送");
+            //int sendStatus = YesOrNoEnum.NO.getType();
             //筛选可接收短信的用户并遍历用户列表
             List<SysSendSmsLog> smsLogList = userList.stream()
                     .filter(u -> u.getReceiveSms() != null && u.getReceiveSms().equals(YesOrNoEnum.YES.getType())

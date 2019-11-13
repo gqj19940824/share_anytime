@@ -282,9 +282,9 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         }
         // 主责记录日志
         String deptName = StringUtils.stripEnd(builder.toString(), ",");
-        String logInfo = "";
+        String logInfo = processInfo;
         if (StringUtils.isNotBlank(deptName)){
-            logInfo = processInfo + "\n" + deptName;
+            logInfo = logInfo + "\n" + "关闭了" + deptName + "的协同邀请";
         }
 
         IplLog iplLogDuty = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty).bizType(bizType)

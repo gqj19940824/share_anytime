@@ -240,8 +240,8 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
         Dic dic = dicUtils.getDicByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE);
         List<UserRole> userRoles = userRoleService.list(new LambdaQueryWrapper<UserRole>().eq(UserRole::getIdRbacUser, relation.getId()));
         if(CollectionUtils.isNotEmpty(userRoles)){
-            List<Long> roleIds = userRoles.stream().map(UserRole::getIdRbacRole).collect(toList());
-            userRoleService.removeByIds(roleIds);
+            List<Long> ids = userRoles.stream().map(UserRole::getId).collect(toList());
+            userRoleService.removeByIds(ids);
             //判断当前分配的角色中是否包含宣传部审核角色，此处要保证审核角色只有一个，否则会抛异常
             if(userRoles.stream().anyMatch(ur -> ur.getIdRbacRole().equals(Long.parseLong(dic.getDicValue())))){
                 //说明用户之前是拥有宣传部审核角色的，要在黑名单中移除 获取系统消息清单协同处理目标用户黑名单
@@ -258,7 +258,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
             }
         }
         if (ArrayUtils.isNotEmpty(bindRoleIds)) {
-            List<UserRole> userRoleList = Arrays.stream(bindRoleIds)
+            List<UserRole> userRoleList = Arrays.stream(bindRoleIds).distinct()
                     .map(roleId -> {
                         UserRole userRole = new UserRole();
                         userRole.setIdRbacUser(relation.getId());
@@ -315,15 +315,6 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
             return data;
         }
         //管理员分配全部角色
-        List<Long> roleList;
-        List<Role> list = super.list();
-        if (CollectionUtils.isNotEmpty(list)) {
-            roleList = list.stream().map(Role::getId).collect(toList());
-        } else {
-            roleList = Lists.newArrayList();
-        }
-
-        wrapper.in(Role::getId, roleList.toArray());
         List<Map<String, Object>> allRoleList = JsonUtil.ObjectToList(super.list(wrapper), new String[]{"id", "name"},
                 (m, entity) -> m.put("disabled", false));
         List<UserRole> userRoleList = userRoleService.list(new LambdaQueryWrapper<UserRole>().eq(UserRole::getIdRbacUser, userId));
