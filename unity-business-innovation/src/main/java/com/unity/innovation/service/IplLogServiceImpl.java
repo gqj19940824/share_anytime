@@ -266,6 +266,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                 assists.forEach(e -> {
                     builder.append(e.getNameRbacDepartmentAssist()).append("、");
                     e.setDealStatus(dealStatus);
+                    e.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
                     IplLog iplLogAssit = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty).bizType(bizType).idRbacDepartmentAssist(e.getIdRbacDepartmentAssist()).idIplMain(idIplMain).processInfo("主责单位关闭协同邀请").build();
                     iplLogs.add(iplLogAssit);
 
