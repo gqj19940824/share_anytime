@@ -343,7 +343,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         info.put(UserConstants.BUTTON_CODE_LIST, Lists.newArrayList());
         info.put(UserConstants.MENU_CODE_LIST, Lists.newArrayList());
         if (CollectionUtils.isEmpty(userAuthResourceList)) {
-            return;
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LOGIN_DATA_ERR)
+                    .message("暂未分配权限，请联系管理员")
+                    .build();
         }
         //获取用户拥有的接口列表
         List<String> authApiList = userAuthResourceList.stream().filter(resource -> !resource.getResourceType().equals(ResourceTypeEnum.MENU.getType()) && StringUtils.isNotBlank(resource.getResourceUrl()))
