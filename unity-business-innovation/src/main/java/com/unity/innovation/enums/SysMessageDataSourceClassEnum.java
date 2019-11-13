@@ -16,7 +16,7 @@ public enum SysMessageDataSourceClassEnum {
     TARGET(3, "成长目标投资实时清单"),
     DEMAND(4, "高端才智需求实时清单"),
     SUGGEST(5, "意见和建议"),
-    PROPAGANDA(6, "报名参与发布会"),
+    PROPAGANDA(6, "发布会报名信息管理"),
     INVESTMENT(7, "寻找投资项目"),
     HELP(10, "清单协同处理"),
     COOPERATION_RELEASE(20, "城市创新合作实时清单发布管理"),
