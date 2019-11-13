@@ -295,41 +295,44 @@ public class IpaManageMainController extends BaseWebController {
         ZipUtil.createFile(filePaht + "与会企业信息/");
 
         Long idIpaMain = entity.getId();
+
         // 创新发布清单的excel
-        logger.info("下载创新发布清单excel");
+        logger.info("生成创新发布清单excel");
         List<IplManageMain> iplList = iplManageMainService
-                .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
+                .list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain).orderByDesc(IplManageMain::getGmtSubmit, IplManageMain::getGmtModified));
         if (CollectionUtils.isNotEmpty(iplList)) {
             iplExcel(iplList, filePaht);
         }
         // 工作动态的excel
-        logger.info("下载工作动态excel");
+        logger.info("生成工作动态excel");
         List<DailyWorkStatusPackage> dwspList = dailyWorkStatusPackageService
-                .list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain));
+                .list(new LambdaQueryWrapper<DailyWorkStatusPackage>().eq(DailyWorkStatusPackage::getIdIpaMain, idIpaMain).orderByDesc(DailyWorkStatusPackage::getGmtSubmit, DailyWorkStatusPackage::getGmtModified));
         if (CollectionUtils.isNotEmpty(dwspList)) {
             dwsExcel(dwspList, filePaht);
         }
         // 与会信息的excel
-        logger.info("下载与会信息excel");
+        logger.info("生成与会信息excel");
         List<PmInfoDept> pmpList = pmInfoDeptService
-                .list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, idIpaMain));
+                .list(new LambdaQueryWrapper<PmInfoDept>().eq(PmInfoDept::getIdIpaMain, idIpaMain).orderByDesc(PmInfoDept::getGmtSubmit, PmInfoDept::getGmtModified));
         if (CollectionUtils.isNotEmpty(pmpList)) {
             pmExcel(pmpList, filePaht);
         }
 
+        // 发布活动详情页的excel
+        logger.info("生成发布活动详情页的excel");
         glanceExcel(entity, filePaht, iplList, dwspList, pmpList);
 
-        // 生成.zip文件;
+        // 压缩
         ZipUtil.zip(basePath + "创新发布.zip", filePaht);
 
-        // 下载
+        // 给用户响应
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("", new String("创新发布".getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1) + ".zip");
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         byte[] content = FileReaderUtil.getBytes(new File(basePath + "创新发布.zip"));
 
         //删除目录下所有的文件;
-        // ZipUtil.delFile(new File(basePath)); TODO
+        ZipUtil.delFile(new File(basePath));
 
         return Mono.just(new ResponseEntity<>(content, headers, HttpStatus.CREATED));
     }
@@ -348,6 +351,8 @@ public class IpaManageMainController extends BaseWebController {
         createrInfoRow.createCell(0).setCellValue(entity.getName());
         createrInfoRow.createCell(1).setCellValue(dicUtils.getDicValueByCode(DicConstants.IPA_LEVEL, entity.getLevel()));
         createrInfoRow.createCell(2).setCellValue(InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
+
+        // 日常工作动态
         if (CollectionUtils.isNotEmpty(dwspList)){
             sheet.shiftRows(dwsStartRowIndex, sheet.getLastRowNum(), dwspList.size(),true,false);
             for (DailyWorkStatusPackage dws : dwspList) {
@@ -357,7 +362,7 @@ public class IpaManageMainController extends BaseWebController {
                 row.createCell(2).setCellValue(DateUtils.timeStamp2Date(dws.getGmtSubmit()));
             }
         }
-
+        // 清单
         if (CollectionUtils.isNotEmpty(iplList)){
             iplStartRowIndex = dwsStartRowIndex == 6?iplStartRowIndex:dwsStartRowIndex + 2;
             sheet.shiftRows(iplStartRowIndex, sheet.getLastRowNum(), iplList.size(),true, false);
@@ -369,12 +374,12 @@ public class IpaManageMainController extends BaseWebController {
                 row.createCell(3).setCellValue(DateUtils.timeStamp2Date(iplManageMain.getGmtSubmit()));
             }
         }
-
+        // 与会信息
         if (CollectionUtils.isNotEmpty(pmpList)){
             for (PmInfoDept pmInfoDept : pmpList) {
                 XSSFRow row = sheet.createRow(iplStartRowIndex++ + 2);
                 row.createCell(0).setCellValue(pmInfoDept.getTitle());
-                row.createCell(1).setCellValue(InfoTypeEnum.of(pmInfoDept.getIdRbacDepartment()).getName());
+                row.createCell(1).setCellValue(BizTypeEnum.ofName(pmInfoDept.getBizType()));
                 row.createCell(2).setCellValue(InnovationUtil.getDeptNameById(pmInfoDept.getIdRbacDepartment()));
                 row.createCell(3).setCellValue(DateUtils.timeStamp2Date(pmInfoDept.getGmtSubmit()));
             }
@@ -404,7 +409,7 @@ public class IpaManageMainController extends BaseWebController {
                     ExcelExportByTemplate.setData(4, e.getTitle(), iplManageMainService.getDarbData(snapshot), e.getNotes(), wb);
                     break;
                 case POLITICAL:
-                    // TODO 缺清新政商接口
+                    // 清新政商
                     wb = ExcelExportByTemplate.getWorkBook("template/suggestion.xlsx");
                     List<List<Object>> dataList = new ArrayList<>();
                     List<Integer> merge = new ArrayList<>();
@@ -428,7 +433,7 @@ public class IpaManageMainController extends BaseWebController {
                     int mergeStartIndex = 2;
                     for (Integer integer : merge) {
                         if (integer > 1){
-                            CellRangeAddress cellRangeAddress = new CellRangeAddress(mergeStartIndex, mergeStartIndex + integer, 0, 0);
+                            CellRangeAddress cellRangeAddress = new CellRangeAddress(mergeStartIndex, mergeStartIndex + integer-1, 0, 0);
                             sheet.addMergedRegion(cellRangeAddress);
                         }
                         mergeStartIndex += integer;

@@ -112,6 +112,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         }
         // 修改状态、插入日志
         iplAssist.setDealStatus(dealStatusNew);
+        iplAssist.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
         iplAssistService.updateById(iplAssist);
 
         // 主责单位改变协同单位的状态需要向协同单位和主责单位的操作日志中同时插入一条记录
@@ -123,8 +124,13 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         iplLogService.save(assistDeptLog);
         iplLogService.save(dutyDeptLog);
 
-        // 重置协同单位redis超时
-        redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + iplAssist.getIdRbacDepartmentAssist(), ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty, bizType);
+        if (IplStatusEnum.DEALING.getId().equals(dealStatusNew)){ // 开启
+            // 设置协同单位redis超时
+            redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + iplAssist.getIdRbacDepartmentAssist(), ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty, bizType);
+        }else { // 关闭
+            // 删除redis超时
+            redisSubscribeService.removeRecordInfo(idIplMain + "-" + iplAssist.getIdRbacDepartmentAssist(), idRbacDepartmentDuty, bizType);
+        }
 
         // 修改主责单位超时状态，重置redis超时
         ReflectionUtils.setFieldValue(entity, "processStatus", ProcessStatusEnum.NORMAL.getId());
