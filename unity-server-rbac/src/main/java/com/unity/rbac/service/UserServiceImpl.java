@@ -344,7 +344,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         info.put(UserConstants.MENU_CODE_LIST, Lists.newArrayList());
         if (CollectionUtils.isEmpty(userAuthResourceList)) {
             throw UnityRuntimeException.newInstance()
-                    .code(SystemResponse.FormalErrorCode.LOGIN_DATA_ERR)
+                    .code(SystemResponse.FormalErrorCode.OPERATION_NO_AUTHORITY)
                     .message("暂未分配权限，请联系管理员")
                     .build();
         }
