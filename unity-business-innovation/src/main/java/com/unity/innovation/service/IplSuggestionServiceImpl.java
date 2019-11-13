@@ -279,6 +279,7 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         Map<String, Object> iplLogMap1 = new HashMap<>(16);
         iplLogMap1.put("department", vo.getLogEnterpriseName());
         iplLogMap1.put("processStatus", 3);
+        iplLogMap1.put("dealStatus", 3);
         IplLog l1 = IplLog.newInstance().build();
         l1.setGmtCreate(vo.getGmtCreate());
         List<IplLog> l1List = Lists.newArrayList();
@@ -286,7 +287,8 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         iplLogMap1.put("logs", l1List);
         Map<String, Object> iplLogMap2 = new HashMap<>(16);
         iplLogMap2.put("department", InnovationUtil.getDeptNameById(vo.getIdRbacDepartmentDuty()));
-        iplLogMap2.put("processStatus", vo.getStatus());
+        iplLogMap2.put("processStatus", vo.getProcessStatus());
+        iplLogMap2.put("dealStatus", vo.getStatus());
         l1.setGmtCreate(vo.getGmtCreate());
         iplLogMap2.put("logs", logList);
         List<Map<String, Object>> logListAll = Lists.newArrayList();
