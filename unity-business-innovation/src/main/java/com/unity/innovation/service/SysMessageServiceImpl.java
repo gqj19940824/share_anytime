@@ -267,7 +267,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             Dic dic = dicUtils.getDicByCode(DicConstants.SYSMESSAGE_BLACKLIST, DicConstants.ASSIST_BLACKLIST);
             if(dic != null && StringUtils.isNotEmpty(dic.getDicValue())){
                 List<Long> blackListUserIds = Arrays.stream(dic.getDicValue().split(ConstString.SPLIT_COMMA)).map(Long::parseLong).collect(Collectors.toList());
-                userList = userList.stream().filter(vo -> blackListUserIds.contains(vo.getId())).collect(Collectors.toList());
+                userList = userList.stream().filter(vo -> !blackListUserIds.contains(vo.getId())).collect(Collectors.toList());
             }
             //保存系统通知并推送
             saveAndSendMessage(userList, msg.getSourceId(), msg.getIdRbacDepartment(),
@@ -453,17 +453,18 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
                 || SysMessageFlowStatusEnum.SIX.getId().equals(msg.getFlowStatus())
                 || SysMessageFlowStatusEnum.SEVEN.getId().equals(msg.getFlowStatus())) {
             // 组装短信模板参数体（json格式）及短信内容  示例： {\"code\":\""+ code +"\"}
+            String enterpriseName = StringUtils.isEmpty(msg.getTitle()) ? "未知企业" : msg.getTitle();
             String smsParem;
             if (SysMessageFlowStatusEnum.ONE.getId().equals(msg.getFlowStatus())
                     && !SysMessageDataSourceClassEnum.HELP.getId().equals(msg.getDataSourceClass())) {
                 //说明是企业填报需求，短信模板需要企业名称和模块名称两个参数
-                smsParem = "{\"enterpriseName\":\"【"+msg.getTitle()+"】\",\"menuName\":\"【"+SysMessageDataSourceClassEnum.ofName(msg.getDataSourceClass())+"】\"}";
+                smsParem = "{\"enterpriseName\":\"【"+enterpriseName+"】\",\"menuName\":\"【"+SysMessageDataSourceClassEnum.ofName(msg.getDataSourceClass())+"】\"}";
             } else if (SysMessageFlowStatusEnum.SIX.getId().equals(msg.getFlowStatus())) {
-                smsParem = "{\"mainCompanyName\":\"【"+depName+"】\",\"enterpriseName\":\"【"+msg.getTitle()+"】\"}";
+                smsParem = "{\"mainCompanyName\":\"【"+depName+"】\",\"enterpriseName\":\"【"+enterpriseName+"】\"}";
             } else {
                 BizTypeEnum typeEnum = BizTypeEnum.of(msg.getBizType());
                 String menuName = typeEnum == null ? "" : typeEnum.getName();
-                smsParem = "{\"mainCompanyName\":\"【"+depName+"】\",\"enterpriseName\":\"【"+msg.getTitle()+"】\",\"menuName\":\"【"+menuName+"】\"}";
+                smsParem = "{\"mainCompanyName\":\"【"+depName+"】\",\"enterpriseName\":\"【"+enterpriseName+"】\",\"menuName\":\"【"+menuName+"】\"}";
             }
 
             //获取对应模板 清单类型+数据来源+流程状态组成dic_code
@@ -480,12 +481,12 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
                     .map(UserVO::getPhone)
                     .collect(Collectors.joining(","));
             //发送短信  批量发送 TODO
-            /*SendSmsResponse response = aliSmsUtils.sendSms(phoneStr, smsParem, smsTemplateDic.getDicValue());
+            SendSmsResponse response = aliSmsUtils.sendSms(phoneStr, smsParem, smsTemplateDic.getDicValue());
             int sendStatus = response.getCode() != null && "OK".equals(response.getCode())
-                    ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType();*/
-            SendSmsResponse response = new SendSmsResponse();
+                    ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType();
+            /*SendSmsResponse response = new SendSmsResponse();
             response.setMessage("短信暂不发送");
-            int sendStatus = YesOrNoEnum.NO.getType();
+            int sendStatus = YesOrNoEnum.NO.getType();*/
             //筛选可接收短信的用户并遍历用户列表
             List<SysSendSmsLog> smsLogList = userList.stream()
                     .filter(u -> u.getReceiveSms() != null && u.getReceiveSms().equals(YesOrNoEnum.YES.getType())

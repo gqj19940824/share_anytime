@@ -256,6 +256,11 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
     @Transactional(rollbackFor = Exception.class)
     public void removeById(List<Long> ids) {
         List<IplOdMain> list = list(new LambdaQueryWrapper<IplOdMain>().in(IplOdMain::getId, ids));
+        if (CollectionUtils.isEmpty(list)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("存在已删除数据,请刷新页面后重新操作").build();
+        }
         //状态为处理完毕 不可删除
         List<IplOdMain> doneList = list.stream()
                 .filter(i -> IplStatusEnum.DONE.getId().equals(i.getStatus()))
@@ -538,12 +543,14 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                         .data(monthList).build()))
                 .series(Arrays.asList(
                         MultiBarVO.SeriesBean.newInstance()
-                        .name("月度新增人才需求")
-                        .data(addDataMapList)
-                        .build(),
+                                .name("月度新增人才需求")
+                                .data(addDataMapList)
+                                .type("line")
+                                .build(),
                         MultiBarVO.SeriesBean.newInstance()
                                 .name("月度人才需求完成情况")
                                 .data(completionDataMapList)
+                                .type("line")
                                 .build()
                         ))
                 .build();

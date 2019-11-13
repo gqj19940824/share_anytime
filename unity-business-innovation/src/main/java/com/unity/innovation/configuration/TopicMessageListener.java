@@ -4,19 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.InventoryMessage;
-import com.unity.common.util.DateUtils;
-import com.unity.common.utils.DateUtil;
 import com.unity.common.utils.DicUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.*;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplDarbMain;
-import com.unity.innovation.enums.BizTypeEnum;
-import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
-import com.unity.innovation.enums.SysMessageFlowStatusEnum;
-import com.unity.innovation.enums.UnitCategoryEnum;
+import com.unity.innovation.enums.*;
 import com.unity.innovation.service.*;
-import com.unity.innovation.util.InnovationUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -168,29 +162,29 @@ public class TopicMessageListener implements MessageListener {
         if ("0".equals(itemValueArrays[3].split("-")[1])) {
             // 发改局
             if (BizTypeEnum.CITY.getType().equals(bizType)) {
-                iplDarbMainService.update(IplDarbMain.newInstance().processStatus(processStatus).build(), new LambdaQueryWrapper<IplDarbMain>().eq(IplDarbMain::getId, idIplMain));
+                iplDarbMainService.update(IplDarbMain.newInstance().processStatus(processStatus).build(), new LambdaQueryWrapper<IplDarbMain>().eq(IplDarbMain::getId, idIplMain).ne(IplDarbMain::getStatus, IplStatusEnum.DONE.getId()));
             } else if (BizTypeEnum.ENTERPRISE.getType().equals(bizType)) {
                 IplEsbMain iplEsbMain = IplEsbMain.newInstance().build();
                 iplEsbMain.setProcessStatus(processStatus);
-                iplEsbMainService.update(iplEsbMain, new LambdaQueryWrapper<IplEsbMain>().eq(IplEsbMain::getId, idIplMain));
+                iplEsbMainService.update(iplEsbMain, new LambdaQueryWrapper<IplEsbMain>().eq(IplEsbMain::getId, idIplMain).ne(IplEsbMain::getStatus, IplStatusEnum.DONE.getId()));
             } else if (BizTypeEnum.INTELLIGENCE.getType().equals(bizType)) {
                 IplOdMain iplOdMain = new IplOdMain();
                 iplOdMain.setProcessStatus(processStatus);
-                iplOdMainService.update(iplOdMain, new LambdaQueryWrapper<IplOdMain>().eq(IplOdMain::getId, idIplMain));
+                iplOdMainService.update(iplOdMain, new LambdaQueryWrapper<IplOdMain>().eq(IplOdMain::getId, idIplMain).ne(IplOdMain::getStatus, IplStatusEnum.DONE.getId()));
             } else if (BizTypeEnum.GROW.getType().equals(bizType)) {
                 IplSatbMain iplSatbMain = new IplSatbMain();
                 iplSatbMain.setProcessStatus(processStatus);
-                iplSatbMainService.update(iplSatbMain, new LambdaQueryWrapper<IplSatbMain>().eq(IplSatbMain::getId, idIplMain));
+                iplSatbMainService.update(iplSatbMain, new LambdaQueryWrapper<IplSatbMain>().eq(IplSatbMain::getId, idIplMain).ne(IplSatbMain::getStatus, IplStatusEnum.DONE.getId()));
             } else if (BizTypeEnum.SUGGESTION.getType().equals(bizType)) {
                 IplSuggestion iplSuggestion = new IplSuggestion();
                 iplSuggestion.setProcessStatus(processStatus);
-                iplSuggestionService.update(iplSuggestion, new LambdaQueryWrapper<IplSuggestion>().eq(IplSuggestion::getId, idIplMain));
+                iplSuggestionService.update(iplSuggestion, new LambdaQueryWrapper<IplSuggestion>().eq(IplSuggestion::getId, idIplMain).ne(IplSuggestion::getStatus, IplStatusEnum.DONE.getId()));
             }
             // 更新协同表
         } else {
             Long idRbacDepartmentAssit = Long.parseLong(itemValueArrays[3].split("-")[1]);
             LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-            qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, idRbacDepartmentAssit);
+            qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, idRbacDepartmentAssit).ne(IplAssist::getDealStatus, IplStatusEnum.UNDEAL.getId());
             iplAssistService.update(IplAssist.newInstance().processStatus(processStatus).build(), qw);
         }
     }

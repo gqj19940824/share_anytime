@@ -228,7 +228,7 @@ public class IpaManageMainController extends BaseWebController {
     private List<Map<String, Object>> convert2ListForPmp(List<PmInfoDept> list) {
         return JsonUtil.ObjectToList(list,
                 (m, entity) -> {
-                    m.put("infoTypeName", InfoTypeEnum.of(entity.getIdRbacDepartment()).getName());
+                    m.put("infoTypeName", BizTypeEnum.ofName(entity.getBizType()));
                     m.put("departmentName", InnovationUtil.getDeptNameById(entity.getIdRbacDepartment()));
                 }
                 , PmInfoDept::getId, PmInfoDept::getTitle, PmInfoDept::getGmtSubmit
@@ -615,7 +615,7 @@ public class IpaManageMainController extends BaseWebController {
         if (StringUtils.isBlank(ids)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
-        int count = ipaManageMainService.count(new LambdaQueryWrapper<IpaManageMain>().in(IpaManageMain::getId, ids).ne(IpaManageMain::getStatus, IpaStatusEnum.UNPUBLISH));
+        int count = ipaManageMainService.count(new LambdaQueryWrapper<IpaManageMain>().in(IpaManageMain::getId, ids).ne(IpaManageMain::getStatus, IpaStatusEnum.UNPUBLISH.getId()));
         if (count > 0) {
             return error(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION, "非待发布状态数据不允许删除");
         }

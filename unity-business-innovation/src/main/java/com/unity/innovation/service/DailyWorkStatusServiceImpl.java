@@ -348,6 +348,11 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
     public void removeById(List<Long> ids) {
         List<DailyWorkStatus> list1 = list(new LambdaQueryWrapper<DailyWorkStatus>()
                 .eq(DailyWorkStatus::getState, YesOrNoEnum.YES.getType()).in(DailyWorkStatus::getId, ids));
+        if (CollectionUtils.isEmpty(list1)) {
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                    .message("存在已删除数据,请刷新页面后重新操作").build();
+        }
         if (CollectionUtils.isNotEmpty(list1)) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
