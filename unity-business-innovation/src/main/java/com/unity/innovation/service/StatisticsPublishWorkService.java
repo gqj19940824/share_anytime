@@ -612,7 +612,7 @@ public class StatisticsPublishWorkService {
             names.add(dicUtils.getDicValueByCode(DicConstants.IPA_LEVEL, k.toString()));
             dataBeanList.add(s);
         });
-        return PieVo.newInstance().title(title).count(count)
+        return PieVo.newInstance().title(title).total(count.longValue())
                 .legend(
                         PieVo.LegendBean.newInstance().data(names).build()
                 )
