@@ -12,6 +12,7 @@ import com.unity.innovation.dao.SysCfgDao;
 import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.SysCfgScope;
 import com.unity.springboot.support.holder.LoginContextHolder;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,7 +101,9 @@ public class SysCfgServiceImpl extends BaseServiceImpl<SysCfgDao, SysCfg> {
             }
             List<SysCfgScope> mList = scopeService.list(new LambdaQueryWrapper<SysCfgScope>().in(SysCfgScope::getIdRbacDepartment, list));
             List<Long> ids = mList.stream().map(SysCfgScope::getIdSysCfg).collect(Collectors.toList());
-            lqw.in(SysCfg::getId, ids);
+            if(CollectionUtils.isNotEmpty(ids)){
+                lqw.in(SysCfg::getId, ids);
+            }
         }
         List<SysCfg> typeList = list(lqw);
         return JsonUtil.ObjectToList(typeList, null, SysCfg::getId, SysCfg::getCfgVal);
