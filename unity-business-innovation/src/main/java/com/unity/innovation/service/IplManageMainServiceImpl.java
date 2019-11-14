@@ -26,6 +26,7 @@ import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
 import org.springframework.stereotype.Service;
@@ -90,10 +91,10 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                         e.get("constructionModel"),
                         e.get("contactPerson"),
                         e.get("contactWay"),
-                        e.get("gmtCreate"),
-                        e.get("gmtModified"),
-                        e.get("source"),
-                        e.get("status"),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtCreate")),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtModified")),
+                        SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e,"source")) ? "企业" : "发展局",
+                        IplStatusEnum.ofName(MapUtils.getInteger(e,"status")),
                         e.get("latestProcess"));
                 dataList.add(list);
             });
@@ -157,8 +158,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                         e.get("specificCause"),
                         e.get("contactPerson"),
                         e.get("contactWay"),
-                        e.get("gmtCreate"),
-                        e.get("gmtModified"),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtCreate")),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtModified")),
                         e.get("source"),
                         e.get("status"),
                         e.get("latestProcess"));
@@ -196,8 +197,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                         e.get("techDemondInfo"),
                         e.get("contactPerson"),
                         e.get("contactWay"),
-                        e.get("gmtCreate"),
-                        e.get("gmtModified"),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtCreate")),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtModified")),
                         e.get("sourceTitle"),
                         e.get("statusTitle"),
                         e.get("latestProcess"));
