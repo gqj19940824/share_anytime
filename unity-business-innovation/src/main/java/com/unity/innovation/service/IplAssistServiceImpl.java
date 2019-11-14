@@ -342,8 +342,8 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         // 协同单位名称
         if (CollectionUtils.isNotEmpty(assists)) {
             assists.forEach(e -> {
-                String nameDeptAssist = null;
-                if ((0 == e.getIdRbacDepartmentAssist())){
+                String nameDeptAssist;
+                if (e.getIdRbacDepartmentAssist() != null && 0 == e.getIdRbacDepartmentAssist()){
                     nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentDuty());
                 }else {
                     nameDeptAssist = InnovationUtil.getDeptNameById(e.getIdRbacDepartmentAssist());
