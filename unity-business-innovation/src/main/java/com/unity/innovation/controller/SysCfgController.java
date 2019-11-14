@@ -78,7 +78,7 @@ public class SysCfgController extends BaseWebController {
             List<SysCfgScope> scopeList = scopeService.list(new LambdaQueryWrapper<SysCfgScope>().in(SysCfgScope::getIdSysCfg, cfgIds));
             scopeList.forEach(n -> {
                 if (n.getIdRbacDepartment() == 0) {
-                    n.setDepartmentName("共用");
+                    n.setDepartmentName("全部");
                 } else {
                     n.setDepartmentName(InnovationUtil.getDeptNameById(n.getIdRbacDepartment()));
                 }

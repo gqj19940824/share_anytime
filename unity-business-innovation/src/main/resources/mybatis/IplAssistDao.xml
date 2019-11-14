@@ -106,7 +106,7 @@
             AND m.gmt_create &gt;= #{gmtCreateStart}
         </if>
         <if test="gmtCreateEnd != null and gmtCreateEnd != ''">
-            AND m.gmt_create $lt; #{gmtCreateEnd}
+            AND m.gmt_create &lt; #{gmtCreateEnd}
         </if>
         <if test="source != null and source != ''">
             AND m.source = #{source}

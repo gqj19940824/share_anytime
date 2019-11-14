@@ -127,6 +127,7 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      */
     @Transactional(rollbackFor = Exception.class)
     public <T>void addAssistant(List<IplAssist> assists, T entity){
+
         if (CollectionUtils.isEmpty(assists)){
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM)
                     .message(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName()).build();
@@ -163,13 +164,10 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
                 // 拼接"处理进展"中的协同单位名称
                 deptName.append(InnovationUtil.getDeptNameById(idRbacDepartmentAssist) + "、");
             });
-            if (deptName.length() > 0){
-                deptName.deleteCharAt(deptName.length() - 1);
-            }
             // 计算日志的状态
             Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, bizType);
             IplLog iplLog = IplLog.newInstance().idRbacDepartmentAssist(0L)
-                    .processInfo("新增协同单位：" + StringUtils.stripEnd(deptName.toString(), ",")).bizType(bizType)
+                    .processInfo("新增协同单位：" + StringUtils.stripEnd(deptName.toString(), "、")).bizType(bizType)
                     .idIplMain(idIplMain).idRbacDepartmentDuty(idRbacDepartmentDuty).dealStatus(lastDealStatus).build();
 
             // 新增协同单位、保存处理日志、主表重设超时、设置协同单位超时
