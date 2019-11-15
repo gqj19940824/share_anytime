@@ -2,6 +2,7 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constants.ConstString;
@@ -11,7 +12,6 @@ import com.unity.common.utils.DicUtils;
 import com.unity.innovation.controller.vo.MultiBarVO;
 import com.unity.innovation.entity.MediaManager;
 import com.unity.innovation.entity.generated.IpaManageMain;
-import com.unity.innovation.enums.WorkStatusAuditingStatusEnum;
 import com.unity.innovation.service.InfoDeptSatbServiceImpl;
 import com.unity.innovation.service.IpaManageMainServiceImpl;
 import com.unity.innovation.service.IplOdMainServiceImpl;
@@ -33,6 +33,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
 
 /**
  * <p>
@@ -83,14 +86,29 @@ public class StatisticsPubContentAndResultController extends BaseWebController {
                         .map(Long::parseLong)
                         .collect(Collectors.toList())
         ).flatMap(List::stream).collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(allMediaIdList)){
+            return success(null);
+        }
+        //记录每个id出现的次数
+        Map<Long, Long> idToNumMap = Maps.newHashMap();
+        allMediaIdList.forEach(m ->
+                idToNumMap.put(m,MapUtils.isEmpty(idToNumMap) || idToNumMap.get(m) == null ? 1L : idToNumMap.get(m)+1L)
+        );
         List<MediaManager> mediaManagerList = mediaManagerService.list(new LambdaQueryWrapper<MediaManager>().in(MediaManager::getId, allMediaIdList));
-        Map<Long, Long> data = mediaManagerList.stream()
-                .collect(Collectors.groupingBy(MediaManager::getMediaType, Collectors.counting()));
+        //类型 对应的id列表
+        Map<Long, List<Long>> typeToIdListMap = mediaManagerList.stream()
+                .collect(Collectors.groupingBy(MediaManager::getMediaType, mapping(MediaManager::getId, toList())));
         List<String> xData = Lists.newArrayList();
         List<Long> yData = Lists.newArrayList();
-        for (Map.Entry<Long, Long> entry : data.entrySet()) {
-            if (!entry.getValue().equals(0L)) {
-                yData.add(entry.getValue());
+        //遍历类型，通过类型对应的id集合统计该id各自出现的数量 最后进行汇总
+        for (Map.Entry<Long, List<Long>> entry : typeToIdListMap.entrySet()) {
+            List<Long> value = entry.getValue();
+            if (CollectionUtils.isNotEmpty(value)) {
+                long sum = value.stream().mapToLong(idToNumMap::get).sum();
+                if(Long.valueOf(sum).equals(0L)){
+                   continue;
+                }
+                yData.add(sum);
                 Dic dic = dicUtils.getDicByCode(DicConstants.MEDIA_TYPE, entry.getKey().toString());
                 xData.add(dic.getDicValue());
             }
