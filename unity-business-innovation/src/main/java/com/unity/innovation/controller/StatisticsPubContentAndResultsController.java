@@ -27,7 +27,6 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -141,7 +140,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        Long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        Long start = InnovationUtil.getStartTimeByMonth(date, -5);
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<String> monthsList = DateUtil.getMonthsList(date);
 
@@ -400,17 +399,9 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     @PostMapping("/innovationPublishInfo/demandTrendStatistics")
     public Mono<ResponseEntity<SystemResponse<Object>>> demandTrendStatistics(@RequestBody Map<String, String> map) throws Exception {
         String date = MapUtils.getString(map, "date");
-        Long startLong = null;
-        Long endLong = null;
-        if (StringUtils.isNotBlank(date)) {
-            Calendar c = Calendar.getInstance();
-            c.setTime(new SimpleDateFormat("yyyy-MM").parse(date));
-            c.add(Calendar.MONTH, -5);
-            startLong = c.getTimeInMillis();
-            c.add(Calendar.MONTH, 6);
-            endLong = c.getTimeInMillis();
-        }
 
+        Long startLong = InnovationUtil.getStartTimeByMonth(date, -5);
+        Long endLong = InnovationUtil.getFirstTimeInMonth(date, false);
         Integer bizType = MapUtils.getInteger(map, "bizType");
         List<String> monthsList = DateUtil.getMonthsList(date);
         Map<String, Integer> enMap = new LinkedHashMap<>();
