@@ -204,6 +204,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
 
+        dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(dataBeans)) {
             List<String> legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
             BigDecimal reduce = dataBeans.stream().map(e -> (BigDecimal) e.getValue()).collect(Collectors.toList())
@@ -341,6 +342,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
+        dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         List<String> legend = new ArrayList<>();
         BigDecimal reduce = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(dataBeans)) {
@@ -374,6 +376,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
+        dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         List<String> legend = new ArrayList<>();
         BigDecimal reduce = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(dataBeans)) {
