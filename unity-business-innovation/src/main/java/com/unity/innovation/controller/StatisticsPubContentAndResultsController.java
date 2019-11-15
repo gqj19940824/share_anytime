@@ -436,9 +436,9 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                                     .data(monthsList).build())
                     ).series(
                             Arrays.asList(
-                                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
+                                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
                                             .data(new ArrayList<>(enValues)).build()
-                                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
+                                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
                                             .data(new ArrayList<>(sfValues)).build())
                     ).build();
             return success(multiBarVO);
