@@ -454,9 +454,9 @@ public class StatisticsPublishWorkService {
                                 .data(names).build())
                 ).series(
                         Arrays.asList(
-                                MultiBarVO.SeriesBean.newInstance().type("bar").name("工作动态")
+                                MultiBarVO.SeriesBean.newInstance().type("bar").name("工作动态").stack("name")
                                         .data(workData).build()
-                                , MultiBarVO.SeriesBean.newInstance().type("bar").name("创新发布清单")
+                                , MultiBarVO.SeriesBean.newInstance().type("bar").name("创新发布清单").stack("name")
                                         .data(publicData).build()))
                 .build();
     }

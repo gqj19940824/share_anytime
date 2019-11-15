@@ -226,8 +226,11 @@ public class StatisticsInfoServiceImpl {
                 });
                 List<RadarVo.RadarBean.IndicatorBean> enterpriseScaleIndicator = Lists.newArrayList();
                 for(Dic n :enterpriseScaleList) {
+                    long rq = MapUtils.isEmpty(rqIdCountByEnterpriseScaleMap) ? 0 : rqIdCountByEnterpriseScaleMap.getOrDefault(Long.parseLong(n.getDicCode()), 0L);
+                    long ly = MapUtils.isEmpty(lyIdCountByEnterpriseScaleMap) ? 0 : lyIdCountByEnterpriseScaleMap.getOrDefault(Long.parseLong(n.getDicCode()), 0L);
+
                     RadarVo.RadarBean.IndicatorBean indicatorBean = RadarVo.RadarBean.IndicatorBean.newInstance().name(n.getDicValue())
-                            .max(Math.max(MapUtils.isEmpty(rqIdCountByEnterpriseScaleMap) ? 0 :rqIdCountByEnterpriseScaleMap.getOrDefault(Long.parseLong(n.getDicCode()),0L), MapUtils.isEmpty(lyIdCountByEnterpriseScaleMap) ? 0 : lyIdCountByEnterpriseScaleMap.getOrDefault(n.getId(),0L)) + 1)
+                            .max(Math.max(rq, ly )+ 1)
                             .build();
                     enterpriseScaleIndicator.add(indicatorBean);
                 }
@@ -436,7 +439,9 @@ public class StatisticsInfoServiceImpl {
                 //key 媒体type ,value 出现的次数
                 Map<Long, Integer> typeCountMap = new HashMap<>();
                 for (MediaManager mediaManager : mediaList) {
-                    typeCountMap.put(mediaManager.getMediaType(), typeCountMap.getOrDefault(mediaManager.getMediaType(), 0) + 1);
+                    //这个媒体被使用了几次
+                    Integer count = idCountMap.get(mediaManager.getId());
+                    typeCountMap.put(mediaManager.getMediaType(), typeCountMap.getOrDefault(mediaManager.getMediaType(), 0) +count);
                 }
                 //出现的媒体类型集合
                 Set<Long> typeSet = typeCountMap.keySet();
