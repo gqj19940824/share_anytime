@@ -489,7 +489,6 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         IplSatbMain main = this.getById(entity.getIdIplMain());
         // 校验完成额度是否超标 超出过直接抛异常
         iplLogService.isTotalGeSum(main.getId(),BizTypeEnum.GROW.getType(),new BigDecimal(main.getTotalAmount()),1);
-//        iplLogService.checkTotal()
         iplLogService.dutyUpdateStatus(main, entity);
     }
 
