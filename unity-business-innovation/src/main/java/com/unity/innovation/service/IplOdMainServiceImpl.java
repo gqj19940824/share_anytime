@@ -524,7 +524,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             Optional<Map<String, Object>> completionOptional = completionMapList.stream().filter(map -> map.values().contains(month))
                     .findFirst();
             if(completionOptional.isPresent()){
-                completionDataMapList.add(new BigDecimal(addOptional.get().get(NUM).toString()));
+                completionDataMapList.add(new BigDecimal(completionOptional.get().get(NUM).toString()));
             } else {
                 completionDataMapList.add(BigDecimal.ZERO);
             }
