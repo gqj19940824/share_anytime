@@ -203,7 +203,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long start = InnovationUtil.getFirstTimeInMonth(date, true);
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
-
+        // 过滤掉为0的数据
+        dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(dataBeans)) {
             List<String> legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
             BigDecimal reduce = dataBeans.stream().map(e -> (BigDecimal) e.getValue()).collect(Collectors.toList())
@@ -277,6 +278,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
 
         List<String> legend = new ArrayList<>();
         BigDecimal reduce = BigDecimal.ZERO;
+        // 过滤掉为0的数据
+        dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(dataBeans)) {
             legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
             reduce = dataBeans.stream().map(e -> (BigDecimal) e.getValue()).collect(Collectors.toList())
@@ -340,6 +343,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
+        // 过滤掉为0的数据
+        dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         List<String> legend = new ArrayList<>();
         BigDecimal reduce = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(dataBeans)) {
@@ -373,6 +378,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
+        // 过滤掉为0的数据
+        dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         List<String> legend = new ArrayList<>();
         BigDecimal reduce = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(dataBeans)) {
@@ -436,9 +443,9 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                                     .data(monthsList).build())
                     ).series(
                             Arrays.asList(
-                                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
+                                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
                                             .data(new ArrayList<>(enValues)).build()
-                                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
+                                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
                                             .data(new ArrayList<>(sfValues)).build())
                     ).build();
             return success(multiBarVO);

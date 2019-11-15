@@ -394,8 +394,9 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         }
         super.updateById(old);
         //记录日志
+        Customer customer = LoginContextHolder.getRequestAttributes();
         entity.setStatus(old.getStatus());
-        entity.setIdRbacDepartment(old.getIdRbacDepartment());
+        entity.setIdRbacDepartment(customer.getIdRbacDepartment());
         entity.setIdPmInfoDept(old.getId());
         entity.setId(null);
         logService.save(entity);
