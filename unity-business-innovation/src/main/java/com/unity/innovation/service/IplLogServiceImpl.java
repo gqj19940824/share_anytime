@@ -173,6 +173,13 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         Customer customer = LoginContextHolder.getRequestAttributes();
         Long customerIdRbacDepartment = customer.getIdRbacDepartment();
 
+        LambdaUpdateWrapper<IplAssist> qw = new LambdaUpdateWrapper<>();
+        qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, iplLog.getIdIplMain()).eq(IplAssist::getIdRbacDepartmentAssist, customerIdRbacDepartment);
+        IplAssist one = iplAssistService.getOne(qw);
+        if (IplStatusEnum.DONE.getId().equals(one.getDealStatus())){
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION).message("数据状态错误").build();
+        }
+
         if (IplStatusEnum.DONE.getId().equals(dealStatus)) {
             // 删除redis超时
             redisSubscribeService.removeRecordInfo(idIplMain + "-" + customerIdRbacDepartment, idRbacDepartmentDuty, bizType);
@@ -181,8 +188,6 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + customerIdRbacDepartment, ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty, bizType);
         }
 
-        LambdaUpdateWrapper<IplAssist> qw = new LambdaUpdateWrapper<>();
-        qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, iplLog.getIdIplMain()).eq(IplAssist::getIdRbacDepartmentAssist, customerIdRbacDepartment);
         iplAssistService.update(IplAssist.newInstance().dealStatus(dealStatus).processStatus(ProcessStatusEnum.NORMAL.getId()).build(), qw);
 
         // 记录日志
@@ -202,11 +207,17 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      */
     @Transactional(rollbackFor = Exception.class)
     public <T> void dutyUpdateStatus(T entity, IplLog iplLog) {
+
+        Integer status = (Integer) ReflectionUtils.getFieldValue(entity, "status");
+        if (IplStatusEnum.DONE.getId().equals(status)){
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION).message("数据状态错误").build();
+        }
         // 主责单位id
         Long idRbacDepartmentDuty = (Long) ReflectionUtils.getFieldValue(entity, "idRbacDepartmentDuty");
         Integer bizType = (Integer) ReflectionUtils.getFieldValue(entity, "bizType");
         Long idIplMain = (Long) ReflectionUtils.getFieldValue(entity, "id");
         Integer dealStatus = iplLog.getDealStatus();
+
 
         // 主责单位把主表完结
         if (IplStatusEnum.DONE.getId().equals(dealStatus)) {
