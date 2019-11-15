@@ -4,7 +4,6 @@ import com.unity.common.constant.RedisConstants;
 import com.unity.common.pojos.Dic;
 import com.unity.common.utils.DicUtils;
 import com.unity.innovation.constants.ListTypeConstants;
-import com.unity.innovation.enums.ListCategoryEnum;
 import com.unity.innovation.util.RedisPoolUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

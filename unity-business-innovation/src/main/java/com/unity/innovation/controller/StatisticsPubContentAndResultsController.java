@@ -128,7 +128,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     }
 
     /**
-     * 企业成长目标投资需求行业分布及变化-投资需求变化统计
+     * 企业成长目标投资需求行业分布及变化-企业成长目标投资需求变化
      *
      * @param
      * @return
