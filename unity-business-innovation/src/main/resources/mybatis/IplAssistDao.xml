@@ -26,7 +26,7 @@
         ORDER BY a.gmt_create DESC
     </select>
     <sql id="darb">
-        SELECT m.project_name situation, '城市合作' bizTypeName,
+        SELECT m.project_name situation, '城市创新合作' bizTypeName,
         <include refid="publicFile">
             <property name="table" value="ipl_darb_main"/>
             <property name="bizTypeNum" value="10"/>
@@ -42,7 +42,7 @@
         ORDER BY a.gmt_create DESC
     </select>
     <sql id="esb">
-        SELECT m.summary situation, '企业创新发布' bizTypeName,
+        SELECT m.summary situation, '企业创新发展' bizTypeName,
         <include refid="publicFile">
             <property name="table" value="ipl_esb_main"/>
             <property name="bizTypeNum" value="20"/>
