@@ -203,7 +203,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long start = InnovationUtil.getFirstTimeInMonth(date, true);
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
-
+        // 过滤掉为0的数据
         dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(dataBeans)) {
             List<String> legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
@@ -278,6 +278,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
 
         List<String> legend = new ArrayList<>();
         BigDecimal reduce = BigDecimal.ZERO;
+        // 过滤掉为0的数据
         dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(dataBeans)) {
             legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
@@ -342,6 +343,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
+        // 过滤掉为0的数据
         dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         List<String> legend = new ArrayList<>();
         BigDecimal reduce = BigDecimal.ZERO;
@@ -376,6 +378,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
+        // 过滤掉为0的数据
         dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         List<String> legend = new ArrayList<>();
         BigDecimal reduce = BigDecimal.ZERO;
