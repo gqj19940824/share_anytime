@@ -485,7 +485,10 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     public void realTimeUpdateStatus(IplLog entity) {
         //校验当前用户是否可操作
         InnovationUtil.check(BizTypeEnum.GROW.getType());
+
         IplSatbMain main = this.getById(entity.getIdIplMain());
+        // 校验完成额度是否超标
+//        iplLogService.checkTotal()
         iplLogService.dutyUpdateStatus(main, entity);
     }
 
@@ -501,6 +504,12 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         //校验当前用户是否可操作
         InnovationUtil.check(BizTypeEnum.GROW.getType());
         IplSatbMain main = this.getById(entity.getIdIplMain());
+        if (main == null) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName()).build();
+        }
+
+        // 校验完成额度是否超标
+
         iplLogService.updateStatusByDuty(main, entity);
     }
 

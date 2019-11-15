@@ -19,7 +19,10 @@ import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
-import com.unity.innovation.enums.*;
+import com.unity.innovation.enums.IplStatusEnum;
+import com.unity.innovation.enums.ProcessStatusEnum;
+import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
+import com.unity.innovation.enums.SysMessageFlowStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,7 +31,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -150,6 +157,41 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                     .helpDepartmentIdList(Arrays.asList(iplAssist.getIdRbacDepartmentAssist()))
                     .bizType(bizType)
                     .build());
+        }
+    }
+
+    /**
+     * 校验完成情况是否超过融资/人才需求
+     *
+     * @param  idIplMain 主表id
+     * @param  bizType 业务类型
+     * @param  total 融资/人才需求
+     * @param  type 1-成长目标投资的主责、TODO
+     * @author qinhuan
+     * @since 2019/11/15 5:38 下午
+     */
+    public void isTotalGeSum(Long idIplMain, Integer bizType, BigDecimal total, Integer type){
+        List<IplLog> list = list(new LambdaQueryWrapper<IplLog>().eq(IplLog::getIdIplMain, idIplMain).eq(IplLog::getBizType, bizType));
+        BigDecimal reduce = list.stream().map(e -> BigDecimal.valueOf(e.getCompleteNum())).collect(Collectors.toList()).stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (total.compareTo(reduce) < 0){
+            String errorMessage;
+            switch (type){
+                case 1:
+                    errorMessage = "";
+                    break;
+                case 2:
+                    errorMessage = "";
+                    break;
+                case 3:
+                    errorMessage = "";
+                    break;
+                case 4:
+                    errorMessage = "";
+                    break;
+                default:
+                    errorMessage = "";
+            }
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message(errorMessage).build();
         }
     }
 
