@@ -172,7 +172,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      */
     public void isTotalGeSum(Long idIplMain, Integer bizType, BigDecimal total, Integer type){
         List<IplLog> list = list(new LambdaQueryWrapper<IplLog>().eq(IplLog::getIdIplMain, idIplMain).eq(IplLog::getBizType, bizType));
-        BigDecimal reduce = list.stream().map(e -> BigDecimal.valueOf(e.getCompleteNum())).collect(Collectors.toList()).stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal reduce = list.stream().filter(e -> e.getCompleteNum() != null).map(e -> BigDecimal.valueOf(e.getCompleteNum())).collect(Collectors.toList()).stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         if (total.compareTo(reduce) < 0){
             String errorMessage;
             switch (type){
