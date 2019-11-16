@@ -65,13 +65,23 @@ public interface StatisticsPublishWorkDao {
      * @date 2019/10/28 20:55
      */
     @Select("<script>" +
-            "  select AVG((gmt_first_deal-gmt_create)/ (1000*60*60)) from ipl_esb_main  where  STATUS IN (2, 3) and is_deleted = 0  " +
+            " SELECT AVG( num ) from ( " +
+            "  select AVG((gmt_first_deal-gmt_create)/ (1000*60*60)) num from ipl_esb_main  where  STATUS IN (2, 3) and is_deleted = 0  " +
             "  <if test=\"beginTime !=null\"> " +
             "  and gmt_first_deal &gt;= #{beginTime} " +
             "  </if>" +
             "  <if test=\"endTime !=null\"> " +
             "  and gmt_first_deal &lt;= #{endTime} " +
             "  </if>" +
+            " union " +
+            "  select AVG((gmt_first_deal-gmt_create)/ (1000*60*60)) num  from ipl_satb_main  where  STATUS IN (2, 3) and is_deleted = 0  " +
+            "  <if test=\"beginTime !=null\"> " +
+            "  and gmt_first_deal &gt;= #{beginTime} " +
+            "  </if>" +
+            "  <if test=\"endTime !=null\"> " +
+            "  and gmt_first_deal &lt;= #{endTime} " +
+            "  </if>" +
+            " ) t " +
             "</script>")
     Double esbFirst(@Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
 
@@ -85,13 +95,23 @@ public interface StatisticsPublishWorkDao {
      * @date 2019/10/28 20:55
      */
     @Select("<script>" +
-            "  select AVG((gmt_modified-gmt_create)/ (1000*60*60*24)) from ipl_esb_main  where   STATUS = 3  and is_deleted = 0 " +
+            " SELECT AVG( num ) from ( " +
+            "  select AVG((gmt_modified-gmt_create)/ (1000*60*60*24)) num from ipl_esb_main  where   STATUS = 3  and is_deleted = 0 " +
             "  <if test=\"beginTime !=null\"> " +
             "  and gmt_modified &gt;= #{beginTime} " +
             "  </if>" +
             "  <if test=\"endTime !=null\"> " +
             "  and gmt_modified &lt;= #{endTime} " +
             "  </if>" +
+            " union " +
+            "  select AVG((gmt_modified-gmt_create)/ (1000*60*60*24)) num from ipl_satb_main  where   STATUS = 3  and is_deleted = 0 " +
+            "  <if test=\"beginTime !=null\"> " +
+            "  and gmt_modified &gt;= #{beginTime} " +
+            "  </if>" +
+            "  <if test=\"endTime !=null\"> " +
+            "  and gmt_modified &lt;= #{endTime} " +
+            "  </if>" +
+            " ) t " +
             "</script>")
     Double esbFinish(@Param("beginTime") Long beginTime, @Param("endTime") Long endTime);
 

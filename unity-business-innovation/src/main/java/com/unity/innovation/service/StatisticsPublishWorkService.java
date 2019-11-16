@@ -69,9 +69,6 @@ public class StatisticsPublishWorkService {
         String title=beginStr+"-"+endStr;
         Long beginTime = InnovationUtil.getFirstTimeInDay(search.getBeginTime());
         Long endTime = InnovationUtil.getLastTimeInDay(search.getEndTime());
-        //科技局
-        int satbFirst = InnovationUtil.ceil(dao.satbFirst(beginTime, endTime));
-        int satbFinish = InnovationUtil.ceil(dao.satbFinish(beginTime, endTime));
         //企服局
         int esbFirst = InnovationUtil.ceil(dao.esbFirst(beginTime, endTime));
         int esbFinish = InnovationUtil.ceil(dao.esbFinish(beginTime, endTime));
@@ -84,7 +81,7 @@ public class StatisticsPublishWorkService {
         //组织部
         int odFirst = InnovationUtil.ceil(dao.odFirst(beginTime, endTime));
         int odFinish = InnovationUtil.ceil(dao.odFinish(beginTime, endTime));
-        if ((satbFirst + satbFinish + esbFirst + esbFinish +
+        if (( esbFirst + esbFinish +
                 darbFirst + darbFinish + sugFirst + sugFinish + odFirst + odFinish) == 0) {
             return null;
         }
@@ -101,9 +98,9 @@ public class StatisticsPublishWorkService {
                 ).series(
                         Arrays.asList(
                                 MultiBarVO.SeriesBean.newInstance().type("bar").name("平均首次响应时间(h)")
-                                        .data(Arrays.asList(darbFirst, esbFirst+satbFirst, odFirst, sugFirst)).build()
+                                        .data(Arrays.asList(darbFirst, esbFirst, odFirst, sugFirst)).build()
                                 , MultiBarVO.SeriesBean.newInstance().type("bar").name("平均完成时间(d)")
-                                        .data(Arrays.asList(darbFinish, esbFinish+satbFinish, odFinish, sugFinish)).build())).build();
+                                        .data(Arrays.asList(darbFinish, esbFinish, odFinish, sugFinish)).build())).build();
     }
 
     /**
