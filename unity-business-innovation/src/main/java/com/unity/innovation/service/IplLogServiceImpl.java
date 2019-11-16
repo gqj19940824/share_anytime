@@ -166,13 +166,13 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      * @param  idIplMain 主表id
      * @param  bizType 业务类型
      * @param  total 融资/人才需求
-     * @param  type 1-成长目标投资的主责、TODO
+     * @param  type 1-成长目标投资的主责
      * @author qinhuan
      * @since 2019/11/15 5:38 下午
      */
-    public void isTotalGeSum(Long idIplMain, Integer bizType, BigDecimal total, Integer type){
+    public void isTotalGeSum(Long idIplMain, Integer bizType, BigDecimal total,BigDecimal completeNum, Integer type){
         List<IplLog> list = list(new LambdaQueryWrapper<IplLog>().eq(IplLog::getIdIplMain, idIplMain).eq(IplLog::getBizType, bizType));
-        BigDecimal reduce = list.stream().filter(e -> e.getCompleteNum() != null).map(e -> BigDecimal.valueOf(e.getCompleteNum())).collect(Collectors.toList()).stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal reduce = list.stream().filter(e -> e.getCompleteNum() != null).map(e -> BigDecimal.valueOf(e.getCompleteNum())).collect(Collectors.toList()).stream().reduce(completeNum, BigDecimal::add);
         if (total.compareTo(reduce) < 0){
             String errorMessage;
             switch (type){
