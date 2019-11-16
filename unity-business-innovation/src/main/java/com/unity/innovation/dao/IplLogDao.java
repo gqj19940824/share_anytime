@@ -67,7 +67,7 @@ public interface IplLogDao  extends BaseDao<IplLog>{
             " SUM(il.complete_num) IS NULL, " +
             " 0, " +
             " CAST( " +
-            "  SUM(il.complete_num) AS DECIMAL (15, 2) " +
+            "  SUM(il.complete_num) AS DECIMAL (17, 2) " +
             " ) " +
             ") AS num " +
             "FROM " +
