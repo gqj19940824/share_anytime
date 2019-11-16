@@ -172,7 +172,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      */
     public void isTotalGeSum(Long idIplMain, Integer bizType, BigDecimal total, Integer type){
         List<IplLog> list = list(new LambdaQueryWrapper<IplLog>().eq(IplLog::getIdIplMain, idIplMain).eq(IplLog::getBizType, bizType));
-        BigDecimal reduce = list.stream().map(e -> BigDecimal.valueOf(e.getCompleteNum())).collect(Collectors.toList()).stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal reduce = list.stream().filter(e -> e.getCompleteNum() != null).map(e -> BigDecimal.valueOf(e.getCompleteNum())).collect(Collectors.toList()).stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         if (total.compareTo(reduce) < 0){
             String errorMessage;
             switch (type){
@@ -283,7 +283,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                         .build());
             }
             // 休改主表状态 并休改协同表状态，各插入一个日志、各清除redis超时
-            dutyDone(entity, idRbacDepartmentDuty, idIplMain, dealStatus, bizType, iplLog.getProcessInfo());
+            dutyDone(entity, idRbacDepartmentDuty, idIplMain, dealStatus, bizType, iplLog.getProcessInfo(),iplLog.getCompleteNum());
         } else {
             // 保存日志
             iplLog.setIdRbacDepartmentDuty(idRbacDepartmentDuty);
@@ -310,7 +310,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      * @author qinhuan
      * @since 2019-10-10 17:10
      */
-    private <T> void dutyDone(T entity, Long idRbacDepartmentDuty, Long idIplMain, Integer dealStatus, Integer bizType, String processInfo) {
+    private <T> void dutyDone(T entity, Long idRbacDepartmentDuty, Long idIplMain, Integer dealStatus, Integer bizType, String processInfo,Double completeNum) {
 
         List<IplLog> iplLogs = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
@@ -343,9 +343,15 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         if (StringUtils.isNotBlank(deptName)){
             logInfo = logInfo + "\n" + "关闭了" + deptName + "的协同邀请";
         }
-
-        IplLog iplLogDuty = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty).bizType(bizType)
-                .idRbacDepartmentAssist(0L).idIplMain(idIplMain).processInfo(logInfo).build();
+        IplLog iplLogDuty = IplLog.newInstance()
+                .dealStatus(dealStatus)
+                .idRbacDepartmentDuty(idRbacDepartmentDuty)
+                .bizType(bizType)
+                .idRbacDepartmentAssist(0L)
+                .idIplMain(idIplMain)
+                .processInfo(logInfo)
+                .completeNum(completeNum)
+                .build();
         iplLogs.add(iplLogDuty);
         iplLogService.saveBatch(iplLogs);
 
