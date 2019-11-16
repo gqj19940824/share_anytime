@@ -20,7 +20,6 @@ import com.unity.innovation.entity.POJO.Statistics;
 import com.unity.innovation.entity.POJO.StatisticsChange;
 import com.unity.innovation.entity.POJO.StatisticsSearch;
 import com.unity.innovation.entity.generated.IpaManageMain;
-import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.util.InnovationUtil;
@@ -308,9 +307,10 @@ public class StatisticsPublishWorkService {
         Long firsts = list1.stream().map(StatisticsChange::getFirstSum).reduce(0L, (a, b) -> a + b);
         Long creates = list1.stream().map(StatisticsChange::getCreateSum).reduce(0L, (a, b) -> a + b);
         Integer count = list1.stream().map(StatisticsChange::getCount).reduce(0, (a, b) -> a + b);
-        int firstAvg = InnovationUtil.ceil((double) ((firsts - creates) / (count * InnovationConstant.HOUR)));
+        int firstAvg = InnovationUtil.ceil(InnovationUtil.div((firsts - creates),(count * InnovationConstant.HOUR),15));
         first.put(month, firstAvg);
     }
+
 
     /**
      * 功能描述 处理 首次的数据
@@ -324,7 +324,7 @@ public class StatisticsPublishWorkService {
         Long modify = list.stream().map(StatisticsChange::getModifiedSum).reduce(0L, (a, b) -> a + b);
         Long creates2 = list.stream().map(StatisticsChange::getCreateSum).reduce(0L, (a, b) -> a + b);
         Integer count2 = list.stream().map(StatisticsChange::getCount).reduce(0, (a, b) -> a + b);
-        int finishAvg = InnovationUtil.ceil((double) ((modify - creates2) / (count2 * InnovationConstant.DAY)));
+        int finishAvg = InnovationUtil.ceil(InnovationUtil.div((modify - creates2),(count2 * InnovationConstant.DAY),15));
         map.put(month, finishAvg);
     }
 
