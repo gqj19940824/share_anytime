@@ -189,7 +189,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                     errorMessage = "累计完成情况超出人才需求，请修改本次完成情况或修改企业人才需求！";
                     break;
                 case 4:
-                    errorMessage = "累计完成额度超出融资需求，请修改本次完成额度！";
+                    errorMessage = "累计完成情况超出人才需求，请修改本次完成情况！";
                     break;
                 default:
                     errorMessage = "";
