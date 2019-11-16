@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.constant.RedisConstants;
 import com.unity.common.pojos.Dic;
 import com.unity.common.pojos.InventoryMessage;
+import com.unity.common.pojos.SystemConfiguration;
 import com.unity.common.utils.DicUtils;
 import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.entity.*;
@@ -47,6 +48,10 @@ public class TopicMessageListener implements MessageListener {
     @Resource
     private DicUtils dicUtils;
     private static final String ZERO = "0";
+    @Resource
+    private SystemConfiguration systemConfiguration;
+
+
     /**
      * 5分钟
      */
@@ -61,7 +66,7 @@ public class TopicMessageListener implements MessageListener {
         log.info("itemValue====:" + itemValue);
         //itemValue:listControl:DEPARTMENT_DARB_CONTROL:DEAL_OVER_TIME:12-0:10
         String[] itemValueArrays = itemValue.split(RedisConstants.KEY_JOINER);
-        if (itemValueArrays.length == 5) {
+        if (itemValueArrays.length == 5 && !"localhost".equals(systemConfiguration.getDomainName())) {
             String[] idArr = itemValueArrays[3].split("-");
             //日志记录
             boolean b = recordTimeOutLog(itemValueArrays[4], itemValueArrays[1], itemValueArrays[2], idArr);
