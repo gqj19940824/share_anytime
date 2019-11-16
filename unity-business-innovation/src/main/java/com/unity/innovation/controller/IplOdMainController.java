@@ -321,7 +321,10 @@ public class IplOdMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         // 校验完成额度是否超标 超出过直接抛异常
-        iplLogService.isTotalGeSum(entity.getId(),BizTypeEnum.INTELLIGENCE.getType(),new BigDecimal(entity.getJobDemandNum()),3);
+        iplLogService.isTotalGeSum(entity.getId(),BizTypeEnum.INTELLIGENCE.getType(),
+                new BigDecimal(entity.getJobDemandNum()),
+                iplLog.getCompleteNum() == null ? BigDecimal.ZERO : new BigDecimal(iplLog.getCompleteNum()),
+                3);
         iplLogService.dutyUpdateStatus(entity, iplLog);
 
         return success();
@@ -344,7 +347,10 @@ public class IplOdMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         // 校验完成额度是否超标 超出过直接抛异常
-        iplLogService.isTotalGeSum(entity.getId(),BizTypeEnum.INTELLIGENCE.getType(),new BigDecimal(entity.getJobDemandNum()),4);
+        iplLogService.isTotalGeSum(entity.getId(),BizTypeEnum.INTELLIGENCE.getType(),
+                new BigDecimal(entity.getJobDemandNum()),
+                iplLog.getCompleteNum() == null ? BigDecimal.ZERO : new BigDecimal(iplLog.getCompleteNum()),
+                4);
         iplLogService.assistUpdateStatus(entity, iplLog);
 
         return success();

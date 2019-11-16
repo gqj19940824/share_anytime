@@ -488,7 +488,10 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
 
         IplSatbMain main = this.getById(entity.getIdIplMain());
         // 校验完成额度是否超标 超出过直接抛异常
-        iplLogService.isTotalGeSum(main.getId(),BizTypeEnum.GROW.getType(),new BigDecimal(main.getTotalAmount()),1);
+        iplLogService.isTotalGeSum(main.getId(),BizTypeEnum.GROW.getType(),
+                new BigDecimal(main.getTotalAmount()),
+                entity.getCompleteNum() == null ? BigDecimal.ZERO : new BigDecimal(entity.getCompleteNum()),
+                1);
         iplLogService.dutyUpdateStatus(main, entity);
     }
 
@@ -583,7 +586,10 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                     .build();
         }
         // 校验完成额度是否超标 超出过直接抛异常
-        iplLogService.isTotalGeSum(main.getId(),BizTypeEnum.GROW.getType(),new BigDecimal(main.getTotalAmount()),2);
+        iplLogService.isTotalGeSum(main.getId(),BizTypeEnum.GROW.getType(),
+                new BigDecimal(main.getTotalAmount()),
+                iplLog.getCompleteNum() == null ? BigDecimal.ZERO : new BigDecimal(iplLog.getCompleteNum()),
+                2);
         iplLogService.assistUpdateStatus(main,iplLog);
     }
 }
