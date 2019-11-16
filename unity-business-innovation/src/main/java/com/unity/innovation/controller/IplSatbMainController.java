@@ -20,7 +20,6 @@ import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -37,10 +36,11 @@ import javax.annotation.Resource;
 @RestController
 @RequestMapping("/iplsatbmain")
 public class IplSatbMainController extends BaseWebController {
-    @Autowired
+    @Resource
     IplSatbMainServiceImpl service;
     @Resource
     private IplAssistServiceImpl iplAssistService;
+
     /**
      * 成长目标投资实时清单-科技局
      *

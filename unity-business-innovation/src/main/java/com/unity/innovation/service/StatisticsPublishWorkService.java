@@ -454,9 +454,9 @@ public class StatisticsPublishWorkService {
                                 .data(names).build())
                 ).series(
                         Arrays.asList(
-                                MultiBarVO.SeriesBean.newInstance().type("bar").name("工作动态")
+                                MultiBarVO.SeriesBean.newInstance().type("bar").name("工作动态").stack("name")
                                         .data(workData).build()
-                                , MultiBarVO.SeriesBean.newInstance().type("bar").name("创新发布清单")
+                                , MultiBarVO.SeriesBean.newInstance().type("bar").name("创新发布清单").stack("name")
                                         .data(publicData).build()))
                 .build();
     }
@@ -612,7 +612,7 @@ public class StatisticsPublishWorkService {
             names.add(dicUtils.getDicValueByCode(DicConstants.IPA_LEVEL, k.toString()));
             dataBeanList.add(s);
         });
-        return PieVo.newInstance().title(title).count(count)
+        return PieVo.newInstance().title(title).total(count.longValue())
                 .legend(
                         PieVo.LegendBean.newInstance().data(names).build()
                 )

@@ -123,7 +123,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
      * @since 2019/10/08 17:52
      */
     private void wrapper(IplSatbMain entity, LambdaQueryWrapper<IplSatbMain> ew) {
-        ew.orderByDesc(IplSatbMain::getSort);
+        ew.orderByDesc(IplSatbMain::getGmtCreate);
         if (entity.getIndustryCategory() != null) {
             ew.eq(IplSatbMain::getIndustryCategory, entity.getIndustryCategory());
         }
@@ -485,7 +485,10 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     public void realTimeUpdateStatus(IplLog entity) {
         //校验当前用户是否可操作
         InnovationUtil.check(BizTypeEnum.GROW.getType());
+
         IplSatbMain main = this.getById(entity.getIdIplMain());
+        // 校验完成额度是否超标 超出过直接抛异常
+        iplLogService.isTotalGeSum(main.getId(),BizTypeEnum.GROW.getType(),new BigDecimal(main.getTotalAmount()),1);
         iplLogService.dutyUpdateStatus(main, entity);
     }
 
@@ -501,6 +504,9 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         //校验当前用户是否可操作
         InnovationUtil.check(BizTypeEnum.GROW.getType());
         IplSatbMain main = this.getById(entity.getIdIplMain());
+        if (main == null) {
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName()).build();
+        }
         iplLogService.updateStatusByDuty(main, entity);
     }
 
@@ -576,6 +582,8 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                     .message("未获取到成长目标投资清单信息")
                     .build();
         }
+        // 校验完成额度是否超标 超出过直接抛异常
+        iplLogService.isTotalGeSum(main.getId(),BizTypeEnum.GROW.getType(),new BigDecimal(main.getTotalAmount()),2);
         iplLogService.assistUpdateStatus(main,iplLog);
     }
 }

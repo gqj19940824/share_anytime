@@ -70,6 +70,25 @@ public class InnovationUtil {
         }
     }
 
+    public static Long getStartTimeByMonth(String month){
+        return getStartTimeByMonth(month, 0);
+    }
+
+    public static Long getStartTimeByMonth(String time, Integer moveMonth){
+        String[] sp = time.split("-");
+        int year = Integer.parseInt(sp[0]);
+        int month = Integer.parseInt(sp[1]);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR,year);
+        calendar.set(Calendar.MONTH,month-1 + moveMonth);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTimeInMillis();
+    }
+
     /**
      * 功能描述
      * @param time 月份查询条件  2019-6

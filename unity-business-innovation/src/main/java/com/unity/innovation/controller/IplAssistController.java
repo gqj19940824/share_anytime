@@ -7,7 +7,6 @@ import com.unity.common.ui.PageEntity;
 import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.service.IplAssistServiceImpl;
 import com.unity.springboot.support.holder.LoginContextHolder;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,10 +50,6 @@ public class IplAssistController extends BaseWebController {
     public Mono<ResponseEntity<SystemResponse<Object>>> listBizType() {
         List<BizTypeEnum> bizTypeEnums = Arrays.asList(BizTypeEnum.CITY, BizTypeEnum.ENTERPRISE, BizTypeEnum.GROW, BizTypeEnum.INTELLIGENCE);
         List<Map<String, Object>> collect = bizTypeEnums.stream().map(BizTypeEnum::toMap).collect(Collectors.toList());
-        Map<String, Object> map = new HashedMap();
-        map.put("type", null);
-        map.put("name", "全部");
-        collect.add(0, map);
         Customer customer = LoginContextHolder.getRequestAttributes();
         if (customer.getIdRbacDepartment() != null){
             List<Integer> typeRangeList = customer.getTypeRangeList();

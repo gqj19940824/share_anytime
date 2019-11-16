@@ -476,17 +476,17 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
                 return;
             }
             //获取所有目标用户手机号批量发送
-            /*String phoneStr = userList.stream()
+            String phoneStr = userList.stream()
                     .filter(u -> u.getReceiveSms().equals(YesOrNoEnum.YES.getType()) && StringUtils.isNotBlank(u.getPhone()))
                     .map(UserVO::getPhone)
                     .collect(Collectors.joining(","));
             //发送短信  批量发送 TODO
             SendSmsResponse response = aliSmsUtils.sendSms(phoneStr, smsParem, smsTemplateDic.getDicValue());
             int sendStatus = response.getCode() != null && "OK".equals(response.getCode())
-                    ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType();*/
-            SendSmsResponse response = new SendSmsResponse();
+                    ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType();
+            /*SendSmsResponse response = new SendSmsResponse();
             response.setMessage("短信暂不发送");
-            int sendStatus = YesOrNoEnum.NO.getType();
+            int sendStatus = YesOrNoEnum.NO.getType();*/
             //筛选可接收短信的用户并遍历用户列表
             List<SysSendSmsLog> smsLogList = userList.stream()
                     .filter(u -> u.getReceiveSms() != null && u.getReceiveSms().equals(YesOrNoEnum.YES.getType())
@@ -506,5 +506,38 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
                     }).collect(Collectors.toList());
             sysSendSmsLogService.saveBatch(smsLogList);
         }
+    }
+
+    /**
+     * 获取系统消息下拉类别列表
+     *
+     * @return 类别列表
+     * @author gengjiajia
+     * @since 2019/09/23 11:00
+     */
+    public List<Map<String, Object>> getSysMessageClassList() {
+        List<Integer> pdBArr = Lists.newArrayList(SysMessageDataSourceClassEnum.LIST_RELEASE_REVIEW.getId(),
+                SysMessageDataSourceClassEnum.WORK_RELEASE_REVIEW.getId(),
+                SysMessageDataSourceClassEnum.ENTERPRISE_RELEASE_REVIEW.getId());
+        List<Map<String,Object>> list = Lists.newArrayList();
+        Customer customer = LoginContextHolder.getRequestAttributes();
+        Dic dic = dicUtils.getDicByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE);
+        SysMessageDataSourceClassEnum[] enums = SysMessageDataSourceClassEnum.values();
+        for (SysMessageDataSourceClassEnum e : enums){
+            Map<String,Object> map = Maps.newHashMap();
+            if(dic != null && StringUtils.isNotEmpty(dic.getDicValue())
+                    && customer.getRoleList().contains(Long.parseLong(dic.getDicValue()))){
+                if(pdBArr.contains(e.getId())){
+                    map.put("id",e.getId());
+                    map.put("name",e.getName());
+                    list.add(map);
+                }
+                continue;
+            }
+            map.put("id",e.getId());
+            map.put("name",e.getName());
+            list.add(map);
+        }
+        return list;
     }
 }

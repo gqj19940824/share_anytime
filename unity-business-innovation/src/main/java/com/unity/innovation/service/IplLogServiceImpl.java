@@ -19,7 +19,10 @@ import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplDarbMain;
 import com.unity.innovation.entity.generated.IplLog;
-import com.unity.innovation.enums.*;
+import com.unity.innovation.enums.IplStatusEnum;
+import com.unity.innovation.enums.ProcessStatusEnum;
+import com.unity.innovation.enums.SysMessageDataSourceClassEnum;
+import com.unity.innovation.enums.SysMessageFlowStatusEnum;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,7 +31,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -153,6 +160,41 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         }
     }
 
+    /**
+     * 校验完成情况是否超过融资/人才需求
+     *
+     * @param  idIplMain 主表id
+     * @param  bizType 业务类型
+     * @param  total 融资/人才需求
+     * @param  type 1-成长目标投资的主责、TODO
+     * @author qinhuan
+     * @since 2019/11/15 5:38 下午
+     */
+    public void isTotalGeSum(Long idIplMain, Integer bizType, BigDecimal total, Integer type){
+        List<IplLog> list = list(new LambdaQueryWrapper<IplLog>().eq(IplLog::getIdIplMain, idIplMain).eq(IplLog::getBizType, bizType));
+        BigDecimal reduce = list.stream().filter(e -> e.getCompleteNum() != null).map(e -> BigDecimal.valueOf(e.getCompleteNum())).collect(Collectors.toList()).stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (total.compareTo(reduce) < 0){
+            String errorMessage;
+            switch (type){
+                case 1:
+                    errorMessage = "累计完成额度超出融资需求，请修改本次完成额度或修改企业融资需求！";
+                    break;
+                case 2:
+                    errorMessage = "累计完成额度超出融资需求，请修改本次完成额度！";
+                    break;
+                case 3:
+                    errorMessage = "累计完成情况超出人才需求，请修改本次完成情况或修改企业人才需求！";
+                    break;
+                case 4:
+                    errorMessage = "累计完成额度超出融资需求，请修改本次完成额度！";
+                    break;
+                default:
+                    errorMessage = "";
+            }
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message(errorMessage).build();
+        }
+    }
+
 
     /**
      * 协同单位实时更新接口
@@ -173,6 +215,13 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         Customer customer = LoginContextHolder.getRequestAttributes();
         Long customerIdRbacDepartment = customer.getIdRbacDepartment();
 
+        LambdaUpdateWrapper<IplAssist> qw = new LambdaUpdateWrapper<>();
+        qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, iplLog.getIdIplMain()).eq(IplAssist::getIdRbacDepartmentAssist, customerIdRbacDepartment);
+        IplAssist one = iplAssistService.getOne(qw);
+        if (IplStatusEnum.DONE.getId().equals(one.getDealStatus())){
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION).message("数据状态错误").build();
+        }
+
         if (IplStatusEnum.DONE.getId().equals(dealStatus)) {
             // 删除redis超时
             redisSubscribeService.removeRecordInfo(idIplMain + "-" + customerIdRbacDepartment, idRbacDepartmentDuty, bizType);
@@ -181,8 +230,6 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             redisSubscribeService.saveSubscribeInfo(idIplMain + "-" + customerIdRbacDepartment, ListTypeConstants.UPDATE_OVER_TIME, idRbacDepartmentDuty, bizType);
         }
 
-        LambdaUpdateWrapper<IplAssist> qw = new LambdaUpdateWrapper<>();
-        qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, iplLog.getIdIplMain()).eq(IplAssist::getIdRbacDepartmentAssist, customerIdRbacDepartment);
         iplAssistService.update(IplAssist.newInstance().dealStatus(dealStatus).processStatus(ProcessStatusEnum.NORMAL.getId()).build(), qw);
 
         // 记录日志
@@ -202,11 +249,17 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      */
     @Transactional(rollbackFor = Exception.class)
     public <T> void dutyUpdateStatus(T entity, IplLog iplLog) {
+
+        Integer status = (Integer) ReflectionUtils.getFieldValue(entity, "status");
+        if (IplStatusEnum.DONE.getId().equals(status)){
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION).message("数据状态错误").build();
+        }
         // 主责单位id
         Long idRbacDepartmentDuty = (Long) ReflectionUtils.getFieldValue(entity, "idRbacDepartmentDuty");
         Integer bizType = (Integer) ReflectionUtils.getFieldValue(entity, "bizType");
         Long idIplMain = (Long) ReflectionUtils.getFieldValue(entity, "id");
         Integer dealStatus = iplLog.getDealStatus();
+
 
         // 主责单位把主表完结
         if (IplStatusEnum.DONE.getId().equals(dealStatus)) {
@@ -230,7 +283,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                         .build());
             }
             // 休改主表状态 并休改协同表状态，各插入一个日志、各清除redis超时
-            dutyDone(entity, idRbacDepartmentDuty, idIplMain, dealStatus, bizType, iplLog.getProcessInfo());
+            dutyDone(entity, idRbacDepartmentDuty, idIplMain, dealStatus, bizType, iplLog.getProcessInfo(),iplLog.getCompleteNum());
         } else {
             // 保存日志
             iplLog.setIdRbacDepartmentDuty(idRbacDepartmentDuty);
@@ -257,7 +310,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      * @author qinhuan
      * @since 2019-10-10 17:10
      */
-    private <T> void dutyDone(T entity, Long idRbacDepartmentDuty, Long idIplMain, Integer dealStatus, Integer bizType, String processInfo) {
+    private <T> void dutyDone(T entity, Long idRbacDepartmentDuty, Long idIplMain, Integer dealStatus, Integer bizType, String processInfo,Double completeNum) {
 
         List<IplLog> iplLogs = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
@@ -290,9 +343,15 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         if (StringUtils.isNotBlank(deptName)){
             logInfo = logInfo + "\n" + "关闭了" + deptName + "的协同邀请";
         }
-
-        IplLog iplLogDuty = IplLog.newInstance().dealStatus(dealStatus).idRbacDepartmentDuty(idRbacDepartmentDuty).bizType(bizType)
-                .idRbacDepartmentAssist(0L).idIplMain(idIplMain).processInfo(logInfo).build();
+        IplLog iplLogDuty = IplLog.newInstance()
+                .dealStatus(dealStatus)
+                .idRbacDepartmentDuty(idRbacDepartmentDuty)
+                .bizType(bizType)
+                .idRbacDepartmentAssist(0L)
+                .idIplMain(idIplMain)
+                .processInfo(logInfo)
+                .completeNum(completeNum)
+                .build();
         iplLogs.add(iplLogDuty);
         iplLogService.saveBatch(iplLogs);
 

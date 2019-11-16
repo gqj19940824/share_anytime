@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -319,6 +320,8 @@ public class IplOdMainController extends BaseWebController {
         if (dealStatus == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
+        // 校验完成额度是否超标 超出过直接抛异常
+        iplLogService.isTotalGeSum(entity.getId(),BizTypeEnum.INTELLIGENCE.getType(),new BigDecimal(entity.getJobDemandNum()),3);
         iplLogService.dutyUpdateStatus(entity, iplLog);
 
         return success();
@@ -340,6 +343,8 @@ public class IplOdMainController extends BaseWebController {
         if (dealStatus == null){
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
+        // 校验完成额度是否超标 超出过直接抛异常
+        iplLogService.isTotalGeSum(entity.getId(),BizTypeEnum.INTELLIGENCE.getType(),new BigDecimal(entity.getJobDemandNum()),4);
         iplLogService.assistUpdateStatus(entity, iplLog);
 
         return success();

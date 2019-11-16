@@ -375,46 +375,46 @@ public interface StatisticsPublishWorkDao {
             "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(gmt_create) count, SUM(gmt_create) createSum, SUM(gmt_modified) modifiedSum," +
             "\"satb\" NAME FROM  ipl_satb_main s WHERE s.is_deleted = 0  and  STATUS = 3   " +
             "  <if test=\"beginTime !=null\"> " +
-            "  and s.gmt_first_deal &gt;= #{beginTime} " +
+            "  and s.gmt_modified &gt;= #{beginTime} " +
             "  </if>" +
             "  <if test=\"endTime !=null\"> " +
-            "  and s.gmt_first_deal &lt;= #{endTime} " +
+            "  and s.gmt_modified &lt;= #{endTime} " +
             "  </if>" +
             " GROUP BY month  union " +
             "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(gmt_create) count, SUM(gmt_create) createSum, SUM(gmt_modified) modifiedSum," +
             "\"od\" NAME FROM  ipl_od_main s WHERE s.is_deleted = 0  and  STATUS = 3   " +
             "  <if test=\"beginTime !=null\"> " +
-            "  and s.gmt_first_deal &gt;= #{beginTime} " +
+            "  and s.gmt_modified &gt;= #{beginTime} " +
             "  </if>" +
             "  <if test=\"endTime !=null\"> " +
-            "  and s.gmt_first_deal &lt;= #{endTime} " +
+            "  and s.gmt_modified &lt;= #{endTime} " +
             "  </if>" +
             " GROUP BY month  union " +
             "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(gmt_create) count, SUM(gmt_create) createSum, SUM(gmt_modified) modifiedSum," +
             "\"darb\" NAME FROM  ipl_darb_main s WHERE s.is_deleted = 0  and STATUS = 3   " +
             "  <if test=\"beginTime !=null\"> " +
-            "  and s.gmt_first_deal &gt;= #{beginTime} " +
+            "  and s.gmt_modified &gt;= #{beginTime} " +
             "  </if>" +
             "  <if test=\"endTime !=null\"> " +
-            "  and s.gmt_first_deal &lt;= #{endTime} " +
+            "  and s.gmt_modified &lt;= #{endTime} " +
             "  </if>" +
             " GROUP BY month  union " +
             "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(gmt_create) count, SUM(gmt_create) createSum, SUM(gmt_modified) modifiedSum," +
             "\"esb\" NAME FROM  ipl_esb_main s WHERE s.is_deleted = 0  and  STATUS = 3  " +
             "  <if test=\"beginTime !=null\"> " +
-            "  and s.gmt_first_deal &gt;= #{beginTime} " +
+            "  and s.gmt_modified &gt;= #{beginTime} " +
             "  </if>" +
             "  <if test=\"endTime !=null\"> " +
-            "  and s.gmt_first_deal &lt;= #{endTime} " +
+            "  and s.gmt_modified &lt;= #{endTime} " +
             "  </if>" +
             " GROUP BY month  union " +
             "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(gmt_create) count, SUM(gmt_create) createSum, SUM(gmt_modified) modifiedSum," +
             "\"sug\" NAME FROM  ipl_suggestion s WHERE s.is_deleted = 0  and  STATUS = 3  " +
             "  <if test=\"beginTime !=null\"> " +
-            "  and s.gmt_first_deal &gt;= #{beginTime} " +
+            "  and s.gmt_modified &gt;= #{beginTime} " +
             "  </if>" +
             "  <if test=\"endTime !=null\"> " +
-            "  and s.gmt_first_deal &lt;= #{endTime} " +
+            "  and s.gmt_modified &lt;= #{endTime} " +
             "  </if>" +
             " GROUP BY month  " +
             "</script>")
@@ -509,19 +509,19 @@ public interface StatisticsPublishWorkDao {
             "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(gmt_create) count, SUM(gmt_create) createSum, SUM(gmt_modified) modifiedSum," +
             "\"satb\" NAME FROM  ipl_satb_main s WHERE s.is_deleted = 0  and  STATUS = 3   " +
             "  <if test=\"beginTime !=null\"> " +
-            "  and s.gmt_first_deal &gt;= #{beginTime} " +
+            "  and s.gmt_modified &gt;= #{beginTime} " +
             "  </if>" +
             "  <if test=\"endTime !=null\"> " +
-            "  and s.gmt_first_deal &lt;= #{endTime} " +
+            "  and s.gmt_modified &lt;= #{endTime} " +
             "  </if>" +
             " GROUP BY month  union " +
             "SELECT FROM_UNIXTIME(s.gmt_create / 1000,'%Y年%m月') AS month,count(gmt_create) count, SUM(gmt_create) createSum, SUM(gmt_modified) modifiedSum," +
             "\"esb\" NAME FROM  ipl_esb_main s WHERE s.is_deleted = 0  and  STATUS = 3  " +
             "  <if test=\"beginTime !=null\"> " +
-            "  and s.gmt_first_deal &gt;= #{beginTime} " +
+            "  and s.gmt_modified &gt;= #{beginTime} " +
             "  </if>" +
             "  <if test=\"endTime !=null\"> " +
-            "  and s.gmt_first_deal &lt;= #{endTime} " +
+            "  and s.gmt_modified &lt;= #{endTime} " +
             "  </if>" +
             " GROUP BY month  " +
             "</script>")

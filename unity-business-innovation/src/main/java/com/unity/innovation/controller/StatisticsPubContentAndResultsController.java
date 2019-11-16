@@ -27,7 +27,6 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -128,7 +127,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     }
 
     /**
-     * 企业成长目标投资需求行业分布及变化-投资需求变化统计
+     * 企业成长目标投资需求行业分布及变化-企业成长目标投资需求变化
      *
      * @param
      * @return
@@ -141,7 +140,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (StringUtils.isBlank(date) || !date.matches("\\d{4}-\\d{2}")) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, "请求参数缺失或者错误");
         }
-        Long start = InnovationUtil.getFirstTimeInMonth(date, true);
+        Long start = InnovationUtil.getStartTimeByMonth(date, -5);
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<String> monthsList = DateUtil.getMonthsList(date);
 
@@ -204,7 +203,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long start = InnovationUtil.getFirstTimeInMonth(date, true);
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
         List<PieVoByDoc.DataBean> dataBeans = iplLogService.satbDemandDone(start, end, BizTypeEnum.GROW.getType());
-
+        // 过滤掉为0的数据
+        dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(dataBeans)) {
             List<String> legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
             BigDecimal reduce = dataBeans.stream().map(e -> (BigDecimal) e.getValue()).collect(Collectors.toList())
@@ -278,6 +278,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
 
         List<String> legend = new ArrayList<>();
         BigDecimal reduce = BigDecimal.ZERO;
+        // 过滤掉为0的数据
+        dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(dataBeans)) {
             legend = dataBeans.stream().map(PieVoByDoc.DataBean::getName).collect(Collectors.toList());
             reduce = dataBeans.stream().map(e -> (BigDecimal) e.getValue()).collect(Collectors.toList())
@@ -341,6 +343,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
+        // 过滤掉为0的数据
+        dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         List<String> legend = new ArrayList<>();
         BigDecimal reduce = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(dataBeans)) {
@@ -374,6 +378,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long end = InnovationUtil.getFirstTimeInMonth(date, false);
 
         List<PieVoByDoc.DataBean> dataBeans = iplSatbMainService.demandNew(start, end);
+        // 过滤掉为0的数据
+        dataBeans = dataBeans.stream().filter(e -> ((BigDecimal) e.getValue()).compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         List<String> legend = new ArrayList<>();
         BigDecimal reduce = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(dataBeans)) {
@@ -400,17 +406,9 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     @PostMapping("/innovationPublishInfo/demandTrendStatistics")
     public Mono<ResponseEntity<SystemResponse<Object>>> demandTrendStatistics(@RequestBody Map<String, String> map) throws Exception {
         String date = MapUtils.getString(map, "date");
-        Long startLong = null;
-        Long endLong = null;
-        if (StringUtils.isNotBlank(date)) {
-            Calendar c = Calendar.getInstance();
-            c.setTime(new SimpleDateFormat("yyyy-MM").parse(date));
-            c.add(Calendar.MONTH, -5);
-            startLong = c.getTimeInMillis();
-            c.add(Calendar.MONTH, 6);
-            endLong = c.getTimeInMillis();
-        }
 
+        Long startLong = InnovationUtil.getStartTimeByMonth(date, -5);
+        Long endLong = InnovationUtil.getFirstTimeInMonth(date, false);
         Integer bizType = MapUtils.getInteger(map, "bizType");
         List<String> monthsList = DateUtil.getMonthsList(date);
         Map<String, Integer> enMap = new LinkedHashMap<>();
@@ -445,9 +443,9 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                                     .data(monthsList).build())
                     ).series(
                             Arrays.asList(
-                                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
+                                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
                                             .data(new ArrayList<>(enValues)).build()
-                                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
+                                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
                                             .data(new ArrayList<>(sfValues)).build())
                     ).build();
             return success(multiBarVO);

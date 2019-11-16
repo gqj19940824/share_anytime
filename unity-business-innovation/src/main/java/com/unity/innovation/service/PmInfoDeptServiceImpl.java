@@ -316,7 +316,7 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             }
             //删除  数据库里有 但是前台没传的
             List<Long> delete = dbList.stream().filter(i -> !ids.contains(i)).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(add)) {
+            if (CollectionUtils.isNotEmpty(delete)) {
                 InfoDeptYzgt deleteInfoDeptYzgt = InfoDeptYzgt.newInstance().build();
                 deleteInfoDeptYzgt.setIdPmInfoDept(0L);
                 deleteInfoDeptYzgt.setStatus(YesOrNoEnum.NO.getType());
@@ -394,8 +394,9 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
         }
         super.updateById(old);
         //记录日志
+        Customer customer = LoginContextHolder.getRequestAttributes();
         entity.setStatus(old.getStatus());
-        entity.setIdRbacDepartment(old.getIdRbacDepartment());
+        entity.setIdRbacDepartment(customer.getIdRbacDepartment());
         entity.setIdPmInfoDept(old.getId());
         entity.setId(null);
         logService.save(entity);

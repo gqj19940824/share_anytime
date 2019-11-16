@@ -189,7 +189,7 @@ public class TopicMessageListener implements MessageListener {
         } else {
             Long idRbacDepartmentAssit = Long.parseLong(itemValueArrays[3].split("-")[1]);
             LambdaQueryWrapper<IplAssist> qw = new LambdaQueryWrapper<>();
-            qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, idRbacDepartmentAssit).ne(IplAssist::getDealStatus, IplStatusEnum.UNDEAL.getId());
+            qw.eq(IplAssist::getBizType, bizType).eq(IplAssist::getIdIplMain, idIplMain).eq(IplAssist::getIdRbacDepartmentAssist, idRbacDepartmentAssit).ne(IplAssist::getDealStatus, IplStatusEnum.DONE.getId());
             iplAssistService.update(IplAssist.newInstance().processStatus(processStatus).build(), qw);
         }
     }
