@@ -34,7 +34,8 @@ public class DailyWorkPackageServiceImpl extends BaseServiceImpl<DailyWorkPackag
 
     @Resource
     private DailyWorkStatusServiceImpl workStatusService;
-
+    @Resource
+    private DailyWorkStatusServiceImpl  dailyWorkStatus;
     /**
      * 功能描述
      *
@@ -53,8 +54,8 @@ public class DailyWorkPackageServiceImpl extends BaseServiceImpl<DailyWorkPackag
                 .eq(DailyWorkPackage::getIdPackage, id));
         //数据库里没有数据 全部新增
         if (CollectionUtils.isEmpty(dbList)) {
-            List<DailyWorkPackage> exist = this.list(new LambdaQueryWrapper<DailyWorkPackage>()
-                    .in(DailyWorkPackage::getId, works));
+            List<DailyWorkStatus> exist = dailyWorkStatus.list(new LambdaQueryWrapper<DailyWorkStatus>()
+                    .in(DailyWorkStatus::getId, works));
             if (works.size() > exist.size()) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
@@ -81,8 +82,8 @@ public class DailyWorkPackageServiceImpl extends BaseServiceImpl<DailyWorkPackag
         //新增   前台传来的  数据库里没有
         List<Long> add = works.stream().filter(i -> !dbkeys.contains(i)).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(add)) {
-            List<DailyWorkPackage> existAdd = this.list(new LambdaQueryWrapper<DailyWorkPackage>()
-                    .in(DailyWorkPackage::getId, add));
+            List<DailyWorkStatus> existAdd = dailyWorkStatus.list(new LambdaQueryWrapper<DailyWorkStatus>()
+                    .in(DailyWorkStatus::getId, works));
             if (add.size() > existAdd.size()) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
