@@ -102,6 +102,9 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     private void saveFirstPackageLog(IpaManageMain entity, Integer status) {
         Customer customer = LoginContextHolder.getRequestAttributes();
         Long idRbacDepartment = customer.getIdRbacDepartment();
+        if (idRbacDepartment == null){
+            throw UnityRuntimeException.newInstance().message("账号类型错误").code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).build();
+        }
         Long idIpaMain = entity.getId();
         List<IplManageMain> iplManageMains = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
         String title = entity.getTitle();

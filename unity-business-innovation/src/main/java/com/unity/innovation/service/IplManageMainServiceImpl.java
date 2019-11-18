@@ -3,7 +3,9 @@ package com.unity.innovation.service;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.google.common.collect.Maps;
 import com.google.gson.reflect.TypeToken;
+import com.unity.common.base.BaseEntity;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.ParamConstants;
 import com.unity.common.enums.YesOrNoEnum;
@@ -14,14 +16,15 @@ import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.GsonUtils;
-import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.IplManageMainDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.DailyWorkStatus;
 import com.unity.innovation.entity.IplSupervisionMain;
+import com.unity.innovation.entity.SysCfg;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.entity.generated.IplmManageLog;
+import com.unity.innovation.entity.generated.mSysCfg;
 import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
 import com.unity.springboot.support.holder.LoginContextHolder;
@@ -47,15 +50,14 @@ import static java.util.Comparator.comparing;
 @Service
 public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, IplManageMain> {
 
-
     @Resource
     private AttachmentServiceImpl attachmentService;
     @Resource
     private IplmManageLogServiceImpl logService;
     @Resource
-    private DicUtils dicUtils;
-    @Resource
     private SysMessageHelpService sysMessageHelpService;
+    @Resource
+    private SysCfgServiceImpl sysCfgService;
 
     /**
      * 组装发改局excel数据
@@ -67,18 +69,32 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      */
     public List<List<Object>> getDarbData(String snapshot){
         List<List<Object>> dataList = new ArrayList<>();
-
         if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
+            Set<Long> ids = new HashSet<>();
+            Map<Long, String> collect_;
+            if (CollectionUtils.isNotEmpty(parse)) {
+                parse.forEach(e -> {
+                    ids.add(MapUtils.getLong(e, "industryCategory"));
+                    ids.add(MapUtils.getLong(e, "demandCategory"));
+                    ids.add(MapUtils.getLong(e, "demandItem"));
+                });
+
+                List<SysCfg> values = sysCfgService.getValues(ids);
+                collect_ = values.stream().collect(Collectors.toMap(BaseEntity::getId, mSysCfg::getCfgVal, (k1, k2) -> k2));
+            } else {
+                collect_ = Maps.newHashMap();
+            }
+
             parse.forEach(e -> {
                 List<Object> list = Arrays.asList(
-                        e.get("industryCategory"),
+                        collect_.get(MapUtils.getLong(e, "industryCategory")),
                         e.get("enterpriseName"),
-                        e.get("demandItem"),
-                        e.get("demandCategory"),
+                        collect_.get(MapUtils.getLong(e, "demandItem")),
+                        collect_.get(MapUtils.getLong(e, "demandCategory")),
                         e.get("projectName"),
                         e.get("content"),
-                        e.get("totalAmount"),
+                        e.get("totalInvestment"),
                         e.get("projectProgress"),
                         e.get("totalAmount"),
                         e.get("bank"),
