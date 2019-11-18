@@ -517,7 +517,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
      */
     public List<Map<String, Object>> getSysMessageClassList() {
         Customer customer = LoginContextHolder.getRequestAttributes();
-        List<Integer> classList = baseMapper.findDataSourceClassByIdRbacDepartment(customer.getIdRbacDepartment());
+        List<Integer> classList = baseMapper.findDataSourceClassByTargetUserId(customer.isAdmin.equals(YesOrNoEnum.YES.getType()) ? null : customer.getId());
         if(CollectionUtils.isEmpty(classList)){
             return Lists.newArrayList();
         }

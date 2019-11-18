@@ -38,13 +38,13 @@ public interface SysMessageDao extends BaseDao<SysMessage> {
     List<SysMessage> findPageListByParam(Map<String, Object> paramMap);
 
     /**
-     * 通过单位id获取已有的数据类型
+     * 通过目标用户id获取已有的数据类型
      *
-     * @param  idRbacDepartment 单位id
+     * @param  targetUserId 目标用户id
      * @return 数据类型列表
      * @author G
      * @since 2019/11/18 10:46
      */
-    List<Integer> findDataSourceClassByIdRbacDepartment(@Param("idRbacDepartment") Long idRbacDepartment);
+    List<Integer> findDataSourceClassByTargetUserId(@Param("targetUserId") Long targetUserId);
 }
 

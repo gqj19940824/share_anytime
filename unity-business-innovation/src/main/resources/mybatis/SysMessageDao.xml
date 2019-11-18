@@ -54,15 +54,19 @@
         limit #{offset},#{limit}
     </select>
 
-    <select id="findDataSourceClassByIdRbacDepartment" parameterType="java.lang.Long" resultType="java.lang.Integer">
-        SELECT
-          DISTINCT data_source_class
+    <select id="findDataSourceClassByTargetUserId" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        SELECT DISTINCT
+            m.data_source_class
         FROM
-          sys_message
-        WHERE is_deleted = 0
-          <if test="idRbacDepartment != null">
-              AND id_rbac_department = #{idRbacDepartment}
+            sys_message m
+                INNER JOIN sys_message_read_log mr ON m.id = mr.message_id
+        WHERE
+            m.is_deleted = 0
+          AND mr.is_deleted = 0
+          <if test="targetUserId != null">
+              AND mr.target_user_id = #{targetUserId}
           </if>
-        ORDER BY data_source_class ASC
+        ORDER BY
+            m.data_source_class ASC
     </select>
 </mapper>
