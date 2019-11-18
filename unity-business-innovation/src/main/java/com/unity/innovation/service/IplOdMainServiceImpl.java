@@ -84,6 +84,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
     private static final String NUM = "num";
     private static final String INDUSTRY = "industry";
     private static final String MONTH = "MONTH";
+    private static final String NUM_SUFFIX = ".00";
 
     /**
      * 功能描述 分页接口
@@ -593,7 +594,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                             map -> Long.parseLong(map.get(NUM).toString())));
             Map<Integer, Long> completionDataMap = completionMapList.stream()
                     .collect(Collectors.toMap(map -> Integer.parseInt(map.get(INDUSTRY).toString()),
-                            map -> Long.parseLong(map.get(NUM).toString().replace(".00",""))));
+                            map -> Long.parseLong(map.get(NUM).toString().replace(NUM_SUFFIX,""))));
             for (Map.Entry<Integer, Long> entry : addDataMap.entrySet()) {
                 Map<String,Object> dataMap = Maps.newHashMap();
                 dataMap.put(INDUSTRY,entry.getKey());
@@ -608,20 +609,24 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             }
         }
         long sum = mapList.stream().filter(map -> map.get(NUM) != null)
-                .mapToLong(map -> Long.parseLong(map.get(NUM).toString().replace(".00","")))
+                .mapToLong(map -> Long.parseLong(map.get(NUM).toString().replace(NUM_SUFFIX,"")))
                 .sum();
         if(Long.valueOf(sum).equals(0L)){
             return null;
         }
         Map<Long, String> sysCfgMap = sysCfgService.getSysCfgMap(SysCfgEnum.THREE.getId());
         List<PieVoByDoc.DataBean> dataList = Lists.newArrayList();
-        mapList.stream().filter(map -> map.get(NUM) != null).forEach(map ->{
-            String name = sysCfgMap.get(Long.parseLong(map.get(INDUSTRY).toString()));
-            dataList.add(PieVoByDoc.DataBean.newInstance()
-                    .name(name)
-                    .value(Long.parseLong(map.get(NUM).toString().replace(".00","")))
-                    .build());
-            nameList.add(name);
+        mapList.stream()
+                .filter(map -> map.get(NUM) != null)
+                .forEach(map ->{
+                    if(!"0".equals(map.get(NUM).toString().replace(NUM_SUFFIX,""))){
+                        String name = sysCfgMap.get(Long.parseLong(map.get(INDUSTRY).toString()));
+                        dataList.add(PieVoByDoc.DataBean.newInstance()
+                                .name(name)
+                                .value(Long.parseLong(map.get(NUM).toString().replace(NUM_SUFFIX,"")))
+                                .build());
+                        nameList.add(name);
+                    }
         });
         data.put("pieData",PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance()
