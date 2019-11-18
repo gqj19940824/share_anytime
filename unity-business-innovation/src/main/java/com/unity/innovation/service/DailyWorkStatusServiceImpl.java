@@ -347,7 +347,7 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
     @Transactional(rollbackFor = Exception.class)
     public void removeById(List<Long> ids) {
         List<DailyWorkStatus> list1 = list(new LambdaQueryWrapper<DailyWorkStatus>()
-                .eq(DailyWorkStatus::getState, YesOrNoEnum.YES.getType()).in(DailyWorkStatus::getId, ids));
+                .in(DailyWorkStatus::getId, ids));
         if (CollectionUtils.isEmpty(list1)) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
