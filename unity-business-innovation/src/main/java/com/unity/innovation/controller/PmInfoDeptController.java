@@ -158,7 +158,7 @@ public class PmInfoDeptController extends BaseWebController {
     private Mono<ResponseEntity<SystemResponse<Object>>> verifyParam(PmInfoDept entity) {
         Customer customer = LoginContextHolder.getRequestAttributes();
         if (!UserTypeEnum.ORDINARY.getId().equals(customer.getUserType())) {
-            return error(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION, "只有普通账号可以操作！");
+            return error(SystemResponse.FormalErrorCode.DATA_NO_REQUIRE, "只有普通账号可以操作！");
         }
         String msg = ValidFieldUtil.checkEmptyStr(entity, PmInfoDept::getTitle, PmInfoDept::getBizType);
         if (StringUtils.isNotBlank(msg)) {

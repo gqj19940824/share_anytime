@@ -18,6 +18,7 @@ import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.dao.IplAssistDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplSatbMain;
+import com.unity.innovation.entity.IplTimeOutLog;
 import com.unity.innovation.entity.generated.IplAssist;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.*;
@@ -64,6 +65,9 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
 
     @Resource
     private SysMessageHelpService sysMessageHelpService;
+
+    @Resource
+    private IplTimeOutLogServiceImpl iplTimeOutLogService;
 
     public List<Map<String, Object>> demandTrendStatistics(String tableName, Long startLong, Long endLong){
         return baseMapper.demandTrendStatistics(tableName, startLong, endLong);
@@ -246,7 +250,12 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.MANDATORY)
     public <T> void batchDel(List<Long> mainIds, List<T> list, List<String> attachmentCodes, Integer bizType){
-
+        //删除超时日志
+        if (CollectionUtils.isNotEmpty(mainIds)) {
+            iplTimeOutLogService.remove(new LambdaQueryWrapper<IplTimeOutLog>()
+                    .in(IplTimeOutLog::getMainId, mainIds)
+                    .eq(IplTimeOutLog::getBizType, bizType));
+        }
         // 删除日志
         LambdaQueryWrapper<IplLog> logQw = new LambdaQueryWrapper<>();
         logQw.eq(IplLog::getBizType, bizType).in(IplLog::getIdIplMain, mainIds);
