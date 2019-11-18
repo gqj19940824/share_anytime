@@ -217,7 +217,16 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
      * @date 2019/10/17 11:17
      */
     private void updateIds(Long id, List<Long> ids, Integer bizType) {
+
         if (BizTypeEnum.LYDEPTINFO.getType().equals(bizType)) {
+
+            List<InfoDeptSatb> list = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>()
+                    .in(InfoDeptSatb::getId, ids));
+            if(list.size() < ids.size()) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("所添加数据中存在已删除的数据，请重新添加！").build();
+            }
             //科技局
             //数据库里存的数据
             List<InfoDeptSatb> infoDeptSatbList = satbService.list(new LambdaQueryWrapper<InfoDeptSatb>()
@@ -271,6 +280,14 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                         .in(InfoDeptSatb::getId, delete));
             }
         } else if (BizTypeEnum.RQDEPTINFO.getType().equals(bizType)) {
+
+            List<InfoDeptYzgt> list =  yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>()
+                            .in(InfoDeptYzgt::getId, ids));
+            if(list.size() < ids.size()) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("所添加数据中存在已删除的数据，请重新添加！").build();
+            }
             //亦庄国投
             //数据库里存的数据
             List<InfoDeptYzgt> infoDeptYzgtList = yzgtService.list(new LambdaQueryWrapper<InfoDeptYzgt>()
