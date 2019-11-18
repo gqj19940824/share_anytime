@@ -208,6 +208,8 @@ public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplY
             codeList.add("0");
         }
         List<Attachment> allAttachmentList = attachmentService.list(new LambdaQueryWrapper<Attachment>().in(Attachment::getAttachmentCode, codeList.toArray()));
+        Map<String, List<Attachment>> collect = allAttachmentList.stream().collect(groupingBy(Attachment::getAttachmentCode));
+
         Map<String, String> codeMap = allAttachmentList.stream()
                 .collect(groupingBy(Attachment::getAttachmentCode,
                         mapping(Attachment::getUrl, joining(","))));
@@ -219,6 +221,7 @@ public class IplYzgtMainServiceImpl extends BaseServiceImpl<IplYzgtMainDao, IplY
             } else if (SourceEnum.ENTERPRISE.getId().equals(n.getSource())) {
                 n.setSourceTitle(SourceEnum.ENTERPRISE.getName());
             }
+            n.setAttachmentList(collect.get(n.getAttachmentCode()));
             n.setAttachmentCode(codeMap.get(n.getAttachmentCode()) == null ? "" :codeMap.get(n.getAttachmentCode()));
             //行业类别
             n.setIndustryCategoryTitle(industryCategoryTitleMap.get(n.getIndustryCategory()));
