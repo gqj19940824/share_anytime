@@ -59,7 +59,7 @@ public class DailyWorkPackageServiceImpl extends BaseServiceImpl<DailyWorkPackag
             if (works.size() > exist.size()) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("添加数据存在已删除的数据").build();
+                        .message("所添加数据中存在已删除或已提请数据，请重新添加！").build();
             }
             List<DailyWorkPackage> list = Lists.newArrayList();
             works.forEach(i -> {
@@ -83,11 +83,11 @@ public class DailyWorkPackageServiceImpl extends BaseServiceImpl<DailyWorkPackag
         List<Long> add = works.stream().filter(i -> !dbkeys.contains(i)).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(add)) {
             List<DailyWorkStatus> existAdd = dailyWorkStatus.list(new LambdaQueryWrapper<DailyWorkStatus>()
-                    .in(DailyWorkStatus::getId, works));
+                    .in(DailyWorkStatus::getId, add));
             if (add.size() > existAdd.size()) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("添加数据存在已删除的数据").build();
+                        .message("所添加数据中存在已删除或已提请数据，请重新添加！").build();
             }
             List<DailyWorkPackage> list = Lists.newArrayList();
             add.forEach(i -> {

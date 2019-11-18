@@ -53,4 +53,20 @@
         order by m.i_sort desc
         limit #{offset},#{limit}
     </select>
+
+    <select id="findDataSourceClassByTargetUserId" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        SELECT DISTINCT
+            m.data_source_class
+        FROM
+            sys_message m
+                INNER JOIN sys_message_read_log mr ON m.id = mr.message_id
+        WHERE
+            m.is_deleted = 0
+          AND mr.is_deleted = 0
+          <if test="targetUserId != null">
+              AND mr.target_user_id = #{targetUserId}
+          </if>
+        ORDER BY
+            m.data_source_class ASC
+    </select>
 </mapper>

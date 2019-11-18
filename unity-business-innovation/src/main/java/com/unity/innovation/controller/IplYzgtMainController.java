@@ -69,7 +69,7 @@ public class IplYzgtMainController extends BaseWebController {
                 .items(JsonUtil.ObjectToList(records,null, IplYzgtMain::getId, IplYzgtMain::getContactPerson, IplYzgtMain::getContactWay, IplYzgtMain::getEnterpriseName,IplYzgtMain::getIndustryCategory,
                         IplYzgtMain::getEnterpriseIntroduction, IplYzgtMain::getPost, IplYzgtMain::getSpecificCause, IplYzgtMain::getGmtCreate, IplYzgtMain::getAttachmentCode,
                         IplYzgtMain::getGmtModified, IplYzgtMain::getNotes, IplYzgtMain::getIdCard, IplYzgtMain::getSource, IplYzgtMain::getEnterpriseIntroduction,
-                        IplYzgtMain::getIndustryCategory,IplYzgtMain::getEnterpriseScale,IplYzgtMain::getEnterpriseNature,IplYzgtMain::getEnterpriseLocation,
+                        IplYzgtMain::getIndustryCategory,IplYzgtMain::getEnterpriseScale,IplYzgtMain::getEnterpriseNature,IplYzgtMain::getEnterpriseLocation,IplYzgtMain::getAttachmentList,
                         IplYzgtMain::getIndustryCategoryTitle,IplYzgtMain::getEnterpriseScaleTitle,IplYzgtMain::getEnterpriseNatureTitle,IplYzgtMain::getEnterpriseLocationTitle,IplYzgtMain::getSourceTitle)).build();
         return success(result);
     }

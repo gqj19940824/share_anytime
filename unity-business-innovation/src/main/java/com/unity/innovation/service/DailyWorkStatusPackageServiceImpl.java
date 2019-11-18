@@ -236,7 +236,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             if (count > 0) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("所添加数据中存在已提请发布的数据，请重新添加！").build();
+                        .message("所添加数据中存在已删除或已提请数据，请重新添加！").build();
             }
             entity.setAttachmentCode(UUIDUtil.getUUID().replace("-", ""));
             attachmentService.updateAttachments(entity.getAttachmentCode(), entity.getAttachmentList());
@@ -268,7 +268,7 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             if (count > 0) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
-                        .message("所添加数据中存在已提请发布的数据，请重新添加！").build();
+                        .message("所添加数据中存在已删除或已提请数据，请重新添加！").build();
             }
             workMPackageService.updateWorkPackage(entity.getId(), works);
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
