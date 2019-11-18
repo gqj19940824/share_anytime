@@ -173,6 +173,9 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
     public void isTotalGeSum(Long idIplMain, Integer bizType, BigDecimal total,BigDecimal completeNum, Integer type){
         List<IplLog> list = list(new LambdaQueryWrapper<IplLog>().eq(IplLog::getIdIplMain, idIplMain).eq(IplLog::getBizType, bizType));
         BigDecimal reduce = list.stream().filter(e -> e.getCompleteNum() != null).map(e -> BigDecimal.valueOf(e.getCompleteNum())).collect(Collectors.toList()).stream().reduce(completeNum, BigDecimal::add);
+        //保留两位小数，四舍五入
+        total = total.setScale(2,BigDecimal.ROUND_HALF_UP);
+        reduce = reduce.setScale(2,BigDecimal.ROUND_HALF_UP);
         if (total.compareTo(reduce) < 0){
             String errorMessage;
             switch (type){
@@ -186,7 +189,7 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
                     errorMessage = "累计完成情况超出人才需求，请修改本次完成情况或修改企业人才需求！";
                     break;
                 case 4:
-                    errorMessage = "累计完成额度超出融资需求，请修改本次完成额度！";
+                    errorMessage = "累计完成情况超出人才需求，请修改本次完成情况！";
                     break;
                 default:
                     errorMessage = "";
