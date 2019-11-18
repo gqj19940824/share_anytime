@@ -83,7 +83,7 @@ public class DailyWorkPackageServiceImpl extends BaseServiceImpl<DailyWorkPackag
         List<Long> add = works.stream().filter(i -> !dbkeys.contains(i)).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(add)) {
             List<DailyWorkStatus> existAdd = dailyWorkStatus.list(new LambdaQueryWrapper<DailyWorkStatus>()
-                    .in(DailyWorkStatus::getId, works));
+                    .in(DailyWorkStatus::getId, add));
             if (add.size() > existAdd.size()) {
                 throw UnityRuntimeException.newInstance()
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
