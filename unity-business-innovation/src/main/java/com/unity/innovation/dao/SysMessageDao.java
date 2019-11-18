@@ -4,7 +4,7 @@ package com.unity.innovation.dao;
 
 import com.unity.common.base.BaseDao;
 import com.unity.innovation.entity.SysMessage;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -45,8 +45,6 @@ public interface SysMessageDao extends BaseDao<SysMessage> {
      * @author G
      * @since 2019/11/18 10:46
      */
-    @Select("SELECT data_source_class FROM sys_message " +
-            "WHERE is_deleted = 0 AND id_rbac_department = #{idRbacDepartment}")
-    List<Integer> findDataSourceClassByIdRbacDepartment(Long idRbacDepartment);
+    List<Integer> findDataSourceClassByIdRbacDepartment(@Param("idRbacDepartment") Long idRbacDepartment);
 }
 

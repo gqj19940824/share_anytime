@@ -53,4 +53,16 @@
         order by m.i_sort desc
         limit #{offset},#{limit}
     </select>
+
+    <select id="findDataSourceClassByIdRbacDepartment" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        SELECT
+          DISTINCT data_source_class
+        FROM
+          sys_message
+        WHERE is_deleted = 0
+          <if test="idRbacDepartment != null">
+              AND id_rbac_department = #{idRbacDepartment}
+          </if>
+        ORDER BY data_source_class ASC
+    </select>
 </mapper>
