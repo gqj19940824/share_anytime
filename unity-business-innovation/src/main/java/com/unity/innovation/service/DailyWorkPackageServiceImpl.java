@@ -4,6 +4,8 @@ package com.unity.innovation.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.enums.YesOrNoEnum;
+import com.unity.common.exception.UnityRuntimeException;
+import com.unity.common.pojos.SystemResponse;
 import com.unity.innovation.dao.DailyWorkPackageDao;
 import com.unity.innovation.entity.DailyWorkPackage;
 import com.unity.innovation.entity.DailyWorkStatus;
@@ -51,6 +53,13 @@ public class DailyWorkPackageServiceImpl extends BaseServiceImpl<DailyWorkPackag
                 .eq(DailyWorkPackage::getIdPackage, id));
         //数据库里没有数据 全部新增
         if (CollectionUtils.isEmpty(dbList)) {
+            List<DailyWorkPackage> exist = this.list(new LambdaQueryWrapper<DailyWorkPackage>()
+                    .in(DailyWorkPackage::getId, works));
+            if (works.size() > exist.size()) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("添加数据存在已删除的数据").build();
+            }
             List<DailyWorkPackage> list = Lists.newArrayList();
             works.forEach(i -> {
                 DailyWorkPackage dwp = DailyWorkPackage.newInstance().build();
@@ -72,6 +81,13 @@ public class DailyWorkPackageServiceImpl extends BaseServiceImpl<DailyWorkPackag
         //新增   前台传来的  数据库里没有
         List<Long> add = works.stream().filter(i -> !dbkeys.contains(i)).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(add)) {
+            List<DailyWorkPackage> existAdd = this.list(new LambdaQueryWrapper<DailyWorkPackage>()
+                    .in(DailyWorkPackage::getId, add));
+            if (add.size() > existAdd.size()) {
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
+                        .message("添加数据存在已删除的数据").build();
+            }
             List<DailyWorkPackage> list = Lists.newArrayList();
             add.forEach(i -> {
                 DailyWorkPackage dwp = DailyWorkPackage.newInstance().build();
