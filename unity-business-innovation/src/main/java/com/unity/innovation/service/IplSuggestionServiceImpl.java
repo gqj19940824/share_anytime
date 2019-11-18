@@ -17,6 +17,7 @@ import com.unity.innovation.constants.ListTypeConstants;
 import com.unity.innovation.dao.IplSuggestionDao;
 import com.unity.innovation.entity.Attachment;
 import com.unity.innovation.entity.IplSuggestion;
+import com.unity.innovation.entity.IplTimeOutLog;
 import com.unity.innovation.entity.generated.IplLog;
 import com.unity.innovation.enums.*;
 import com.unity.innovation.util.InnovationUtil;
@@ -54,6 +55,8 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
     private RedisSubscribeServiceImpl redisSubscribeService;
     @Resource
     private DicUtils dicUtils;
+    @Resource
+    private IplTimeOutLogServiceImpl iplTimeOutLogService;
     /**
      * 功能描述 分页接口
      *
@@ -229,6 +232,12 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         iplLogService.remove(new LambdaQueryWrapper<IplLog>()
                 .in(IplLog::getIdIplMain,ids)
                 .eq(IplLog::getIdRbacDepartmentDuty,customer.getIdRbacDepartment()));
+        //删除超时日志
+        if (CollectionUtils.isNotEmpty(ids)) {
+            iplTimeOutLogService.remove(new LambdaQueryWrapper<IplTimeOutLog>()
+                    .in(IplTimeOutLog::getMainId, ids)
+                    .eq(IplTimeOutLog::getBizType, BizTypeEnum.SUGGESTION.getType()));
+        }
         //主表
         removeByIds(ids);
         Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType().toString()));
