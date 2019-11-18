@@ -353,7 +353,8 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
                     .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
                     .message("存在已删除数据,请刷新页面后重新操作").build();
         }
-        if (CollectionUtils.isNotEmpty(list1)) {
+        List<DailyWorkStatus> collect = list1.stream().filter(d -> YesOrNoEnum.YES.getType() == d.getState()).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(collect)) {
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
                     .message("已提请发布状态下数据不可删除").build();
