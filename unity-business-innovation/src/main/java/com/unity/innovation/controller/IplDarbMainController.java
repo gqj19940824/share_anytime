@@ -32,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -101,6 +102,10 @@ public class IplDarbMainController extends BaseWebController {
         if (dealStatus == null) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM.getName());
         }
+        if (iplLog.getCompleteNum() != null){
+            iplLogService.isTotalGeSum(entity.getId(), BizTypeEnum.CITY.getType(), new BigDecimal(entity.getTotalAmount()==null?0:entity.getTotalAmount()), new BigDecimal(iplLog.getCompleteNum()), 1);
+        }
+
         iplLogService.dutyUpdateStatus(entity, iplLog);
 
         return success();
@@ -122,6 +127,10 @@ public class IplDarbMainController extends BaseWebController {
         Integer dealStatus = iplLog.getDealStatus();
         if (dealStatus == null) {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
+        }
+
+        if (iplLog.getCompleteNum() != null){
+            iplLogService.isTotalGeSum(entity.getId(), BizTypeEnum.CITY.getType(), new BigDecimal(entity.getTotalAmount()==null?0:entity.getTotalAmount()), new BigDecimal(iplLog.getCompleteNum()), 2);
         }
         iplLogService.assistUpdateStatus(entity, iplLog);
 

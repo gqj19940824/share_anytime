@@ -516,28 +516,17 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
      * @since 2019/09/23 11:00
      */
     public List<Map<String, Object>> getSysMessageClassList() {
-        List<Integer> pdBArr = Lists.newArrayList(SysMessageDataSourceClassEnum.LIST_RELEASE_REVIEW.getId(),
-                SysMessageDataSourceClassEnum.WORK_RELEASE_REVIEW.getId(),
-                SysMessageDataSourceClassEnum.ENTERPRISE_RELEASE_REVIEW.getId());
-        List<Map<String,Object>> list = Lists.newArrayList();
         Customer customer = LoginContextHolder.getRequestAttributes();
-        Dic dic = dicUtils.getDicByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE);
-        SysMessageDataSourceClassEnum[] enums = SysMessageDataSourceClassEnum.values();
-        for (SysMessageDataSourceClassEnum e : enums){
-            Map<String,Object> map = Maps.newHashMap();
-            if(dic != null && StringUtils.isNotEmpty(dic.getDicValue())
-                    && customer.getRoleList().contains(Long.parseLong(dic.getDicValue()))){
-                if(pdBArr.contains(e.getId())){
-                    map.put("id",e.getId());
-                    map.put("name",e.getName());
-                    list.add(map);
-                }
-                continue;
-            }
-            map.put("id",e.getId());
-            map.put("name",e.getName());
-            list.add(map);
+        List<Integer> classList = baseMapper.findDataSourceClassByIdRbacDepartment(customer.getIdRbacDepartment());
+        if(CollectionUtils.isEmpty(classList)){
+            return Lists.newArrayList();
         }
-        return list;
+        Map<Integer, String> map = Arrays.stream(SysMessageDataSourceClassEnum.values()).collect(Collectors.toMap(SysMessageDataSourceClassEnum::getId, SysMessageDataSourceClassEnum::getName));
+        return classList.stream().map(id ->{
+            Map<String, Object> item = Maps.newHashMap();
+            item.put("id",id);
+            item.put("name",map.get(id));
+            return item;
+        }).collect(Collectors.toList());
     }
 }
