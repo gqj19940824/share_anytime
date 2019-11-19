@@ -4,10 +4,7 @@ package com.unity.innovation.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
-import com.unity.common.constant.InnovationConstant;
-import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.InventoryMessage;
 import com.unity.common.pojos.SystemResponse;
@@ -15,7 +12,6 @@ import com.unity.common.ui.PageElementGrid;
 import com.unity.common.ui.PageEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JsonUtil;
-import com.unity.common.util.ValidFieldUtil;
 import com.unity.common.utils.UUIDUtil;
 import com.unity.innovation.dao.IplPdMainDao;
 import com.unity.innovation.entity.Attachment;
@@ -132,7 +128,7 @@ public class IplPdMainServiceImpl extends BaseServiceImpl<IplPdMainDao, IplPdMai
     private void adapterField(Map<String, Object> m, IplPdMain entity) {
         m.put("gmtCreate", DateUtils.timeStamp2Date(entity.getGmtCreate()));
         m.put("gmtModified", DateUtils.timeStamp2Date(entity.getGmtModified()));
-        m.put("sourceTitle", SourceEnum.ENTERPRISE.getId().equals(entity.getSource()) ? "企业" : "宣传部");
+        m.put("sourceTitle", SourceEnum.ENTERPRISE.getId().equals(entity.getSource()) ? "企业" : InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
         String statusTitle = IplStatusEnum.ofName(entity.getStatus());
         m.put("statusTitle", statusTitle == null ? "" : statusTitle);
     }
