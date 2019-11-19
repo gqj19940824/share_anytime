@@ -67,7 +67,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @author qinhuan
      * @since 2019/10/19 4:38 下午
      */
-    public List<List<Object>> getDarbData(String snapshot){
+    public List<List<Object>> getDarbData(String snapshot) {
         List<List<Object>> dataList = new ArrayList<>();
         if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
@@ -107,10 +107,10 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                         e.get("constructionModel"),
                         e.get("contactPerson"),
                         e.get("contactWay"),
-                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtCreate")),
-                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtModified")),
-                        SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e,"source")) ? "企业" : "发展局",
-                        IplStatusEnum.ofName(MapUtils.getInteger(e,"status")),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtCreate")),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtModified")),
+                        SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e, "source")) ? "企业" : "发展局",
+                        IplStatusEnum.ofName(MapUtils.getInteger(e, "status")),
                         e.get("latestProcess"));
                 dataList.add(list);
             });
@@ -126,7 +126,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @author qinhuan
      * @since 2019/10/19 4:38 下午
      */
-    public List<List<Object>> getEbsData(String snapshot){
+    public List<List<Object>> getEbsData(String snapshot) {
         List<List<Object>> dataList = new ArrayList<>();
         if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
@@ -157,7 +157,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @author qinhuan
      * @since 2019/10/19 4:38 下午
      */
-    public List<List<Object>> getOdData(String snapshot){
+    public List<List<Object>> getOdData(String snapshot) {
         List<List<Object>> dataList = new ArrayList<>();
         if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
@@ -174,8 +174,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                         e.get("specificCause"),
                         e.get("contactPerson"),
                         e.get("contactWay"),
-                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtCreate")),
-                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtModified")),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtCreate")),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtModified")),
                         e.get("source"),
                         e.get("status"),
                         e.get("latestProcess"));
@@ -194,7 +194,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @author gengjiajia
      * @since 2019/10/19 4:38 下午
      */
-    public List<List<Object>> getSatbData(String snapshot){
+    public List<List<Object>> getSatbData(String snapshot) {
         List<List<Object>> dataList = new ArrayList<>();
         if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
@@ -213,8 +213,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                         e.get("techDemondInfo"),
                         e.get("contactPerson"),
                         e.get("contactWay"),
-                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtCreate")),
-                        DateUtils.timeStamp2Date(MapUtils.getLong(e,"gmtModified")),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtCreate")),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtModified")),
                         e.get("sourceTitle"),
                         e.get("statusTitle"),
                         e.get("latestProcess"));
@@ -252,7 +252,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @author qinhuan
      * @since 2019/10/17 8:43 下午
      */
-    public void updateIdIpaMain(List<Long> ids, List<Long> idIpaMains){
+    public void updateIdIpaMain(List<Long> ids, List<Long> idIpaMains) {
         baseMapper.updateIdIpaMain(ids, idIpaMains);
     }
 
@@ -279,13 +279,13 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     }
 
     /**
-    * 查询条件封装
-    *
-    * @param entity 实体
-    * @return com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.unity.innovation.entity.generated.IplManageMain>
-    * @author JH
-    * @date 2019/10/14 10:10
-    */
+     * 查询条件封装
+     *
+     * @param entity 实体
+     * @return com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.unity.innovation.entity.generated.IplManageMain>
+     * @author JH
+     * @date 2019/10/14 10:10
+     */
     public LambdaQueryWrapper<IplManageMain> wrapper(IplManageMain entity) {
 
         LambdaQueryWrapper<IplManageMain> ew = new LambdaQueryWrapper<>();
@@ -300,10 +300,10 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                 ew.lt(IplManageMain::getGmtSubmit, end);
             }
             //清单类型
-            if(entity.getBizType() != null) {
+            if (entity.getBizType() != null) {
                 check(entity.getBizType());
-                ew.eq(IplManageMain::getBizType,entity.getBizType());
-            }else {
+                ew.eq(IplManageMain::getBizType, entity.getBizType());
+            } else {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                         .message("清单类型不能为空").build();
             }
@@ -321,14 +321,10 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     }
 
 
-
-
-
-
     /**
      * 功能描述 新增编辑
      *
-     * @param entity     对象
+     * @param entity 对象
      * @author gengzhiqiang
      * @date 2019/10/9 16:48
      */
@@ -527,7 +523,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         }
         String attachmentCode = iplManageMain.getAttachmentCode();
         iplManageMain.setAttachments(attachmentService.list(new LambdaQueryWrapper<Attachment>().eq(Attachment::getAttachmentCode, attachmentCode)));
-        iplManageMain.setSnapShotList(GsonUtils.parse(iplManageMain.getSnapshot(), new TypeToken<List>() {}));
+        iplManageMain.setSnapShotList(GsonUtils.parse(iplManageMain.getSnapshot(), new TypeToken<List>() {
+        }));
         iplManageMain.setSnapshot("");
         //操作记录
         List<IplmManageLog> logList = logService.list(new LambdaQueryWrapper<IplmManageLog>()
@@ -587,24 +584,30 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
     }
 
     private Integer getDataSourceClassByBizType(Integer bizType) {
-        switch (bizType){
-            case 10 : return SysMessageDataSourceClassEnum.COOPERATION_RELEASE.getId();
-            case 20 : return SysMessageDataSourceClassEnum.DEVELOPING_RELEASE.getId();
-            case 30 : return SysMessageDataSourceClassEnum.TARGET_RELEASE.getId();
-            case 40 : return SysMessageDataSourceClassEnum.DEMAND_RELEASE.getId();
-            case 50 : return SysMessageDataSourceClassEnum.RELATION_RELEASE.getId();
-            default: return null;
+        switch (bizType) {
+            case 10:
+                return SysMessageDataSourceClassEnum.COOPERATION_RELEASE.getId();
+            case 20:
+                return SysMessageDataSourceClassEnum.DEVELOPING_RELEASE.getId();
+            case 30:
+                return SysMessageDataSourceClassEnum.TARGET_RELEASE.getId();
+            case 40:
+                return SysMessageDataSourceClassEnum.DEMAND_RELEASE.getId();
+            case 50:
+                return SysMessageDataSourceClassEnum.RELATION_RELEASE.getId();
+            default:
+                return null;
         }
     }
 
     /**
-    * 将枚举转为list 提交单位下拉框
-    *
-    * @return java.util.List
-    * @author JH
-    * @date 2019/10/14 14:14
-    */
-    public  List<Map<String, String>> submitDepartmentList() {
+     * 将枚举转为list 提交单位下拉框
+     *
+     * @return java.util.List
+     * @author JH
+     * @date 2019/10/14 14:14
+     */
+    public List<Map<String, String>> submitDepartmentList() {
         List<Map<String, String>> list = Lists.newArrayList();
         for (ListCategoryEnum listCategoryEnum : ListCategoryEnum.values()) {
             Map<String, String> map = new HashMap<>(16);
@@ -614,6 +617,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         }
         return list;
     }
+
     /**
      * 根据提交单位字符串返回单位id
      *
@@ -622,20 +626,21 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
      * @author JH
      * @date 2019/10/14 10:13
      */
-    public  Long getDepartmentId(IplManageMain entity) {
-        if(entity == null || StringUtils.isBlank(entity.getCategory())) {
+    public Long getDepartmentId(IplManageMain entity) {
+        if (entity == null || StringUtils.isBlank(entity.getCategory())) {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("提交单位不能为空").build();
         }
         ListCategoryEnum listCategoryEnum = ListCategoryEnum.valueOfName(entity.getCategory());
-        if(listCategoryEnum != null) {
+        if (listCategoryEnum != null) {
             return listCategoryEnum.getId();
-        }else {
+        } else {
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR)
                     .message("提交单位错误").build();
 
         }
     }
+
     public void check(Integer bizType) {
         Customer customer = LoginContextHolder.getRequestAttributes();
         if (!customer.getTypeRangeList().contains(bizType)) {

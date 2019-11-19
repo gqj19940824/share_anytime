@@ -524,7 +524,7 @@ public class IpaManageMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         if (!IpaStatusEnum.UNUPDATE.getId().equals(byId.getStatus())){
-            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "数据状态错误");
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "数据状态已发生改变，请刷新页面");
         }
         logger.info("二次包更新发布效果：" + entity.getId());
         entity.setTitle(byId.getTitle());
@@ -598,7 +598,7 @@ public class IpaManageMainController extends BaseWebController {
             return error(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST, SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST.getName());
         }
         if (!IpaStatusEnum.UNPUBLISH.getId().equals(byId.getStatus())){
-            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "数据状态错误");
+            return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "数据状态已发生改变，请刷新页面");
         }
         logger.info("二次包发布：" + entity.getId());
         entity.setTitle(byId.getTitle());
