@@ -153,6 +153,9 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         if (StringUtils.isNotBlank(entity.getNotes())) {
             ew.like(IplSatbMain::getNotes, entity.getNotes());
         }
+        if (entity.getProcessStatus() != null){
+            ew.eq(IplSatbMain::getProcessStatus,entity.getProcessStatus());
+        }
     }
 
     /**
