@@ -110,7 +110,7 @@ public class IplPdMainController extends BaseWebController {
                     .addColumn(IplPdMain::getIndustryCategory, "行业类别")
                     .addColumn(IplPdMain::getEnterpriseName, "企业名称")
                     .addColumn(IplPdMain::getEnterpriseIntroduction, "企业简介")
-                    .addColumn(IplPdMain::getSpecificCause, "具体意向和事由")
+                    .addColumn(IplPdMain::getSpecificCause, "具体意向或事由")
                     .addColumn(IplPdMain::getContactPerson, "联系人")
                     .addColumn(IplPdMain::getContactWay, "联系方式")
                     .addColumn(IplPdMain::getIdCard, "身份证")

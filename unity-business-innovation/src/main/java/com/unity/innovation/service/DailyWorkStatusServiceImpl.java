@@ -99,7 +99,11 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
             List<DailyWorkKeyword> keyList = keywordService.list(new LambdaQueryWrapper<DailyWorkKeyword>()
                     .eq(DailyWorkKeyword::getIdKeyword, search.getEntity().getKeyWord()));
             List<Long> ids = keyList.stream().map(DailyWorkKeyword::getIdDailyWorkStatus).collect(Collectors.toList());
-            lqw.in(DailyWorkStatus::getId, ids);
+            if(CollectionUtils.isNotEmpty(ids)){
+                lqw.in(DailyWorkStatus::getId, ids);
+            }else{
+                lqw.eq(DailyWorkStatus::getId, YesOrNoEnum.NO.getType());
+            }
         }
         //状态
         if (search.getEntity().getState() != null) {
@@ -190,7 +194,11 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
             List<DailyWorkKeyword> keyList = keywordService.list(new LambdaQueryWrapper<DailyWorkKeyword>()
                     .eq(DailyWorkKeyword::getIdKeyword, search.getEntity().getKeyWord()));
             List<Long> ids = keyList.stream().map(DailyWorkKeyword::getIdDailyWorkStatus).collect(Collectors.toList());
-            lqw.in(DailyWorkStatus::getId, ids);
+            if(CollectionUtils.isNotEmpty(ids)){
+                lqw.in(DailyWorkStatus::getId, ids);
+            }else{
+                lqw.eq(DailyWorkStatus::getId, YesOrNoEnum.NO.getType());
+            }
         }
          //状态
          if (search.getEntity().getIdPackage() != null) {

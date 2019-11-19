@@ -302,6 +302,9 @@ public class DicController extends BaseWebController {
         if (StringUtils.isNotBlank(MapUtils.getString(map, "dicName"))) {
             ew.like(Dic::getDicName, MapUtils.getString(map, "dicName"));
         }
+        if (StringUtils.isNotBlank(MapUtils.getString(map, "notes"))) {
+            ew.like(Dic::getNotes, MapUtils.getString(map, "notes"));
+        }
         return success(dicService.list(ew));
     }
 
