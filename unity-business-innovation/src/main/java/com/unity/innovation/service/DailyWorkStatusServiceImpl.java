@@ -101,6 +101,8 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
             List<Long> ids = keyList.stream().map(DailyWorkKeyword::getIdDailyWorkStatus).collect(Collectors.toList());
             if(CollectionUtils.isNotEmpty(ids)){
                 lqw.in(DailyWorkStatus::getId, ids);
+            }else{
+                lqw.eq(DailyWorkStatus::getId, YesOrNoEnum.NO.getType());
             }
         }
         //状态
@@ -194,6 +196,8 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
             List<Long> ids = keyList.stream().map(DailyWorkKeyword::getIdDailyWorkStatus).collect(Collectors.toList());
             if(CollectionUtils.isNotEmpty(ids)){
                 lqw.in(DailyWorkStatus::getId, ids);
+            }else{
+                lqw.eq(DailyWorkStatus::getId, YesOrNoEnum.NO.getType());
             }
         }
          //状态
