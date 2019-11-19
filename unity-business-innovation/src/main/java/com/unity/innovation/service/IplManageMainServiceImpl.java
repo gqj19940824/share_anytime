@@ -71,21 +71,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         List<List<Object>> dataList = new ArrayList<>();
         if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
-            Set<Long> ids = new HashSet<>();
-            Map<Long, String> collect_;
-            if (CollectionUtils.isNotEmpty(parse)) {
-                parse.forEach(e -> {
-                    ids.add(MapUtils.getLong(e, "industryCategory"));
-                    ids.add(MapUtils.getLong(e, "demandCategory"));
-                    ids.add(MapUtils.getLong(e, "demandItem"));
-                });
-
-                List<SysCfg> values = sysCfgService.getValues(ids);
-                collect_ = values.stream().collect(Collectors.toMap(BaseEntity::getId, mSysCfg::getCfgVal, (k1, k2) -> k2));
-            } else {
-                collect_ = Maps.newHashMap();
-            }
-
+            Map<Long, String> collect_ = CollectionUtils.isNotEmpty(parse)?getSysConfigValByIds(collectIds(parse)):Maps.newHashMap();
             parse.forEach(e -> {
                 List<Object> list = Arrays.asList(
                         collect_.get(MapUtils.getLong(e, "industryCategory")),
@@ -118,6 +104,23 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         return dataList;
     }
 
+    private Set<Long> collectIds(List<Map> parse) {
+        Set<Long> ids = new HashSet<>();
+        parse.forEach(e -> {
+            ids.add(MapUtils.getLong(e, "industryCategory"));
+            ids.add(MapUtils.getLong(e, "demandCategory"));
+            ids.add(MapUtils.getLong(e, "demandItem"));
+        });
+        return ids;
+    }
+
+    private Map<Long, String> getSysConfigValByIds(Set<Long> ids) {
+        Map<Long, String> collect_;
+        List<SysCfg> values = sysCfgService.getValues(ids);
+        collect_ = values.stream().collect(Collectors.toMap(BaseEntity::getId, mSysCfg::getCfgVal, (k1, k2) -> k2));
+        return collect_;
+    }
+
     /**
      * 组装企服局excel数据
      *
@@ -130,9 +133,10 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         List<List<Object>> dataList = new ArrayList<>();
         if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
+            Map<Long, String> collect_ = CollectionUtils.isNotEmpty(parse)?getSysConfigValByIds(collectIds(parse)):Maps.newHashMap();
             parse.forEach(e -> {
                 List<Object> list = Arrays.asList(
-                        e.get("industryCategory"),
+                        collect_.get(MapUtils.getLong(e, "industryCategory")),
                         e.get("enterpriseName"),
                         e.get("enterpriseProfile"),
                         e.get("newProductAndTech"),
@@ -161,9 +165,10 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
         List<List<Object>> dataList = new ArrayList<>();
         if (StringUtils.isNotBlank(snapshot)) {
             List<Map> parse = JSON.parseObject(snapshot, List.class);
+            Map<Long, String> collect_ = CollectionUtils.isNotEmpty(parse)?getSysConfigValByIds(collectIds(parse)):Maps.newHashMap();
             parse.forEach(e -> {
                 List<Object> list = Arrays.asList(
-                        e.get("industryCategory"),
+                        collect_.get(MapUtils.getLong(e, "demandItem")),
                         e.get("enterpriseName"),
                         e.get("enterpriseIntroduction"),
                         e.get("jdName"),
