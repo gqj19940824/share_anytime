@@ -95,7 +95,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                         e.get("contactWay"),
                         DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtCreate")),
                         DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtModified")),
-                        SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e, "source")) ? "企业" : "发展局",
+                        SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e, "source")) ? "企业" : InnovationUtil.getDeptNameById(MapUtils.getLong(e, "idRbacDepartmentDuty")),
                         IplStatusEnum.ofName(MapUtils.getInteger(e, "status")),
                         e.get("latestProcess"));
                 dataList.add(list);
@@ -142,10 +142,10 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                         e.get("newProductAndTech"),
                         e.get("contactPerson"),
                         e.get("contactWay"),
-                        e.get("gmtCreate"),
-                        e.get("gmtModified"),
-                        e.get("source"),
-                        e.get("status"),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtCreate")),
+                        DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtModified")),
+                        SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e, "source")) ? "企业" : InnovationUtil.getDeptNameById(MapUtils.getLong(e, "idRbacDepartmentDuty")),
+                        IplStatusEnum.ofName(MapUtils.getInteger(e, "status")),
                         e.get("latestProcess"));
                 dataList.add(list);
             });
@@ -168,7 +168,7 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             Map<Long, String> collect_ = CollectionUtils.isNotEmpty(parse)?getSysConfigValByIds(collectIds(parse)):Maps.newHashMap();
             parse.forEach(e -> {
                 List<Object> list = Arrays.asList(
-                        collect_.get(MapUtils.getLong(e, "demandItem")),
+                        collect_.get(MapUtils.getLong(e, "industryCategory")),
                         e.get("enterpriseName"),
                         e.get("enterpriseIntroduction"),
                         e.get("jdName"),
@@ -181,8 +181,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                         e.get("contactWay"),
                         DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtCreate")),
                         DateUtils.timeStamp2Date(MapUtils.getLong(e, "gmtModified")),
-                        e.get("source"),
-                        e.get("status"),
+                        SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e, "source")) ? "企业" : InnovationUtil.getDeptNameById(MapUtils.getLong(e, "idRbacDepartmentDuty")),
+                        IplStatusEnum.ofName(MapUtils.getInteger(e, "status")),
                         e.get("latestProcess"));
                 dataList.add(list);
             });
