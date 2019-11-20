@@ -11,8 +11,8 @@ import com.unity.common.util.Encryption;
 public class UserConstants {
     /**重置密码*/
     public static final String RESET_PWD = "111111";
-    /**秘钥*/
-    public static final String SECRET_KEY = "jingkaihulian@2019";
+    /**尚亦城对接接口--秘钥*/
+    public static final String SECRET_KEY = "innovation";
     /**手机号*/
     public static final String PHONE = "phone";
     /**名称*/

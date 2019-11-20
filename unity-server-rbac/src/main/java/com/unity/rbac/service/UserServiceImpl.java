@@ -311,15 +311,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         getUserAuthResource(user.getId(), os.longValue(), customer, info);
         //用户信息存入redis
         userHelpService.saveCustomer(user, os, tokenStr, customer);
-        Map userMap = JsonUtil.ObjectToMap(user,
-                new String[]{"id", "loginName", "phone", "name", "notes", "idRbacDepartment", "department",
-                        "isAdmin","userType"},
-                (m, u) -> {
-                    m.put("gmtCreate", DateUtils.timeStamp2Date(u.getGmtCreate()));
-                    m.put("roleList", userRoleService.selectRoleIdsByUserId(u.getId()));
-                    m.put("isSuperAdmin", u.getSuperAdmin());
-                });
-        info.put("user", userMap);
+        info.put("user", convert2Map(user));
         //维护登录信息
         userHelpService.updateLoginInfo(user, os, now, SessionHolder.getRequest());
         return info;
@@ -629,16 +621,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                         "nickName","userType"},
                 null);
         info.put("user", userMap);
-        //生成token
-        String tokenStr = EncryptUtil.generateToken(RedisKeys.CUSTOMER);
-        info.put("token", tokenStr);
-        // 用户拥有的资源权限
-        Customer customer = new Customer();
-        getUserAuthResource(user.getId(), PlatformTypeEnum.WEB.getType(), customer, info);
-        //用户信息存入redis
-        userHelpService.saveCustomer(user, PlatformTypeEnum.WEB.getType(), tokenStr, customer);
-        //维护登录信息
-        userHelpService.updateLoginInfo(user, PlatformTypeEnum.WEB.getType(), new Date(), SessionHolder.getRequest());
         return info;
     }
 
@@ -677,40 +659,44 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
     /**
      * 获取登录信息
      *
-     * @param  secret 加密串
+     * @param phone 手机号
+     * @param  appToken 尚亦城token
      * @return 用户信息
      * @author gengjiajia
      * @since 2019/10/24 09:25
      */
-    public Map<String,Object> getLoginInfo(String secret) {
-        //通过秘钥与token做加密，然后对比判断是否是约定数据
-        String token = SessionHolder.getToken();
-        String localSecret = Encryption.getEncryption(UserConstants.SECRET_KEY, token);
-        if(!localSecret.equalsIgnoreCase(secret)){
+    public Map<String,Object> getLoginInfo(String phone,String appToken) {
+        //TODO 通过手机号与秘钥调用尚亦城接口进行验证手机号是否正确
+        User user = this.getOne(new LambdaQueryWrapper<User>().eq(User::getPhone, phone));
+        if(user == null){
             throw UnityRuntimeException.newInstance()
-                    .message("登录信息错误")
-                    .code(SystemResponse.FormalErrorCode.SERVER_ERROR)
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("当前手机号尚未在创新发布注册，请联系管理员")
                     .build();
         }
         Map<String,Object> info = Maps.newHashMap();
-        Customer customer = LoginContextHolder.getRequestAttributes();
-        info.put(UserConstants.BUTTON_CODE_LIST, customer.getButtonCodeList() == null ?
-                Lists.newArrayList() : customer.getButtonCodeList());
-        info.put(UserConstants.MENU_CODE_LIST, customer.getMenuCodeList() == null ?
-                Lists.newArrayList() : customer.getMenuCodeList());
-        Map<String,Object> userMap = Maps.newHashMap();
-        userMap.put("id",customer.getId());
-        userMap.put("loginName",customer.getLoginName());
-        userMap.put("phone",customer.getPhone());
-        userMap.put("name",customer.getName());
-        userMap.put("idRbacDepartment",customer.getIdRbacDepartment());
-        userMap.put("department",customer.getNameRbacDepartment());
-        userMap.put("userType",customer.getUserType());
-        userMap.put("isSuperAdmin",customer.getIsSuperAdmin());
-        userMap.put("roleList",customer.getRoleList() == null ?
-                Lists.newArrayList() : customer.getRoleList());
-        info.put("user",userMap);
-        info.put("token",token);
+        //生成token
+        String tokenStr = EncryptUtil.generateToken(RedisKeys.CUSTOMER);
+        // 用户拥有的资源权限
+        Customer customer = new Customer();
+        getUserAuthResource(user.getId(), PlatformTypeEnum.WEB.getType(), customer, info);
+        //用户信息存入redis
+        userHelpService.saveCustomer(user, PlatformTypeEnum.WEB.getType(), tokenStr, customer);
+        //维护登录信息
+        userHelpService.updateLoginInfo(user, PlatformTypeEnum.WEB.getType(), new Date(), SessionHolder.getRequest());
+        info.put("user",convert2Map(user));
+        info.put("token",tokenStr);
         return info;
+    }
+
+    private Map<String,Object> convert2Map(User user){
+        return JsonUtil.ObjectToMap(user,
+                new String[]{"id", "loginName", "phone", "name", "notes", "idRbacDepartment", "department",
+                        "isAdmin","userType"},
+                (m, u) -> {
+                    m.put("gmtCreate", DateUtils.timeStamp2Date(u.getGmtCreate()));
+                    m.put("roleList", userRoleService.selectRoleIdsByUserId(u.getId()));
+                    m.put("isSuperAdmin", u.getSuperAdmin());
+                });
     }
 }
