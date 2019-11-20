@@ -687,7 +687,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
         Customer customer = new Customer();
         getUserAuthResource(user.getId(), PlatformTypeEnum.WEB.getType(), customer, info);
         //用户信息存入redis
-        customer.setIsSuperAdmin(YesOrNoEnum.NO.getType());
+        user.setSuperAdmin(YesOrNoEnum.NO.getType());
         userHelpService.saveCustomer(user, PlatformTypeEnum.WEB.getType(), tokenStr, customer);
         //维护登录信息
         userHelpService.updateLoginInfo(user, PlatformTypeEnum.WEB.getType(), new Date(), SessionHolder.getRequest());
