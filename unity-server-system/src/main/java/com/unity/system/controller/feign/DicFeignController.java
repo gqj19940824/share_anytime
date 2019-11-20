@@ -1,18 +1,22 @@
 package com.unity.system.controller.feign;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.RedisConstants;
 import com.unity.system.entity.Dic;
 import com.unity.system.entity.DicGroup;
 import com.unity.system.service.DicGroupServiceImpl;
 import com.unity.system.service.DicServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -31,6 +35,8 @@ public class DicFeignController extends BaseWebController {
     private DicServiceImpl dicService;
     @Autowired
     private DicGroupServiceImpl dicGroupService;
+    @Resource
+    private RedisTemplate redisTemplate;
 
     /**
      * 根据字典组编码和字典项编码查询字典
@@ -99,5 +105,7 @@ public class DicFeignController extends BaseWebController {
             dic.setStatus("1");
             dicService.save(dic);
         }
+        //更新缓存
+        redisTemplate.opsForHash().put(RedisConstants.DICGROUP, groupCode, JSON.toJSONString(dic));
     }
 }

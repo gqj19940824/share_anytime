@@ -153,6 +153,9 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
         if (StringUtils.isNotBlank(entity.getNotes())) {
             ew.like(IplSatbMain::getNotes, entity.getNotes());
         }
+        if (entity.getProcessStatus() != null){
+            ew.eq(IplSatbMain::getProcessStatus,entity.getProcessStatus());
+        }
     }
 
     /**
@@ -200,7 +203,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
     private void adapterField(Map<String, Object> m, IplSatbMain entity) {
         m.put("gmtCreate", entity.getGmtCreate());
         m.put("gmtModified", entity.getGmtModified());
-        m.put("sourceTitle", entity.getSource().equals(SourceEnum.SELF.getId()) ? "科技局" : "企业");
+        m.put("sourceTitle", entity.getSource().equals(SourceEnum.SELF.getId()) ? InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()) : "企业");
         m.put("statusTitle", IplStatusEnum.ofName(entity.getStatus()));
         m.put("processStatusTitle", ProcessStatusEnum.ofName(entity.getProcessStatus()));
     }

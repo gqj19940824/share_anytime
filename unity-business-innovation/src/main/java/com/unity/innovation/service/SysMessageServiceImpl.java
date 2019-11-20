@@ -498,7 +498,7 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
                         log.setFlowStatus(msg.getFlowStatus());
                         log.setDataSourceClass(msg.getDataSourceClass());
                         log.setSourceId(msg.getSourceId());
-                        log.setIdRbacDepartment(msg.getIdRbacDepartment());
+                        log.setIdRbacDepartment(u.getIdRbacDepartment());
                         log.setContent(title);
                         log.setSendStatus(sendStatus);
                         log.setNotes(GsonUtils.format(response));
