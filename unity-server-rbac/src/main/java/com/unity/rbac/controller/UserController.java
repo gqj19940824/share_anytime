@@ -233,10 +233,10 @@ public class UserController extends BaseWebController {
      */
     @PostMapping("getLoginInfo")
     public Mono<ResponseEntity<SystemResponse<Object>>> getLoginInfo(@RequestBody Map<String,String> param) {
-        if(MapUtils.isEmpty(param) || StringUtils.isEmpty(param.get(UserConstants.SECRET))){
+        if(MapUtils.isEmpty(param) || StringUtils.isEmpty(param.get("appToken"))){
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM,"未获取到认证信息");
         }
-        return success(userService.getLoginInfo(param.get(UserConstants.SECRET)));
+        return success(userService.getLoginInfo(param.get(UserConstants.PHONE),param.get("appToken")));
     }
 
     /**
