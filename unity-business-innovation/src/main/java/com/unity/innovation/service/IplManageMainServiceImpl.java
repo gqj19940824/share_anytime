@@ -385,7 +385,9 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
                         .code(SystemResponse.FormalErrorCode.ILLEGAL_OPERATION)
                         .message("只有待提交和已驳回状态下数据可编辑").build();
             }
-
+            if (WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getStatus())) {
+                entity.setStatus(WorkStatusAuditingStatusEnum.TEN.getId());
+            }
             //附件
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
             //修改信息
