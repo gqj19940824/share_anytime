@@ -162,7 +162,13 @@ public class IplSupervisionMainController extends BaseWebController {
         if (entity == null || entity.getId() == null) {
             return error(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR, "缺少id");
         }
-        return success(service.getById(entity.getId()));
+        IplSupervisionMain main = service.getById(entity.getId());
+        main.setCategoryName(IplCategoryEnum.ofName(main.getCategory()));
+
+        return success( JsonUtil.ObjectToMap(main,
+                null
+                , IplSupervisionMain::getId, IplSupervisionMain::getCategory, IplSupervisionMain::getDescription, IplSupervisionMain::getGmtCreate,IplSupervisionMain::getCategoryName
+        ));
     }
 
     //------------------------------------------------我是一个分割线
