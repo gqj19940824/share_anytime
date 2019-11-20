@@ -201,6 +201,9 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
                         .message("只有待提交和已驳回状态下数据可编辑").build();
             }
             updateIds(vo.getId(), ids, entity.getBizType());
+            if (WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getStatus())) {
+                entity.setStatus(WorkStatusAuditingStatusEnum.TEN.getId());
+            }
             updateById(entity);
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
         }

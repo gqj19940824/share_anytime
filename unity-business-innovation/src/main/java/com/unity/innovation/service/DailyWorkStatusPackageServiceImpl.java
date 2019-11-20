@@ -272,6 +272,9 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             }
             workMPackageService.updateWorkPackage(entity.getId(), works);
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
+            if (WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getState())) {
+                entity.setState(WorkStatusAuditingStatusEnum.TEN.getId());
+            }
             updateById(entity);
             return vo.getId();
         }
