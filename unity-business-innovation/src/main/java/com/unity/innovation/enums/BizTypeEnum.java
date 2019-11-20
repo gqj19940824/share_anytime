@@ -26,7 +26,7 @@ public enum BizTypeEnum {
     POLITICAL(50,"亲清政商关系"),
     RQDEPTINFO(60,"入区企业信息"),
     LYDEPTINFO(70,"路演企业信息"),
-    INVESTMENT(80,"投资机构信息管理"),
+    INVESTMENT(80,"投资机构信息"),
     SUGGESTION(90,"意见与建议"),
     SIGNUP(100,"报名参与发布会");
 
