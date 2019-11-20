@@ -100,6 +100,9 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
         }
         Integer dealStatusNew = iplLog.getDealStatus();
         Integer dealStatusOld = iplAssist.getDealStatus();
+        if (dealStatusOld.equals(dealStatusNew)){
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("数据状态已改变，请勿重复操作").build();
+        }
         dealStatusOld = dealStatusOld == null ? IplStatusEnum.UNDEAL.getId() : dealStatusOld;
         //确认当前状态变更方向
         Integer flowStatus = null;
