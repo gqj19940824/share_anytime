@@ -674,6 +674,12 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                     .message("当前手机号尚未在创新发布注册，请联系管理员")
                     .build();
         }
+        if(!user.getUserType().equals(UserTypeEnum.LEADER.getId())){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
+                    .message("当前手机号无法通过此方式进入系统，如有疑问请联系管理员")
+                    .build();
+        }
         Map<String,Object> info = Maps.newHashMap();
         //生成token
         String tokenStr = EncryptUtil.generateToken(RedisKeys.CUSTOMER);

@@ -32,3 +32,5 @@ spring:
       - /department/listAllDepartmentList/*
       - /user/updateUserPwd
       - /department/getDeptList
+      - /api/user/authentication
+      - /user/getLoginInfo
