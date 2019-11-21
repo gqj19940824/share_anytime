@@ -667,7 +667,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
      */
     public Map<String,Object> getLoginInfo(String phone,String appToken) {
         //TODO 通过手机号与秘钥调用尚亦城接口进行验证手机号是否正确
-        User user = this.getOne(new LambdaQueryWrapper<User>().eq(User::getPhone, phone));
+        User user = this.getOne(new LambdaQueryWrapper<User>().eq(User::getLoginName, phone));
         if(user == null){
             throw UnityRuntimeException.newInstance()
                     .code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST)
