@@ -346,7 +346,6 @@ public class IplSupervisionMainController extends BaseWebController {
      */
     @GetMapping("/download/{id}")
     public Mono<ResponseEntity<byte[]>> download(@PathVariable Long id) {
-        check();
         byte[] content;
         HttpHeaders headers = new HttpHeaders();
         try {
