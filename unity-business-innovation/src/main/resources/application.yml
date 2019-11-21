@@ -33,7 +33,7 @@ spring:
       - /attachment/getAttachmentByCode
       - /ipldarbmain/exportExcel
       - /iplEsbMain/export/excel
-      - /iplManageMain/downloadIplSatbMainDataPkgToExcel/*
+      - /iplsatbmain/downloadIplSatbMainDataPkgToExcel/*
       - /iplOdMain/export/excel
       - /iplSuperVisionMain/download
       - /sysCfg/list

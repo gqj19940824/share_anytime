@@ -73,7 +73,7 @@ public class IplDarbMainController extends BaseWebController {
      */
     @GetMapping("exportExcel")
     public Mono<ResponseEntity<byte[]>> outputEXcel(@RequestParam("id") Long id) {
-        InnovationUtil.check(BizTypeEnum.CITY.getType());
+      //  InnovationUtil.check(BizTypeEnum.CITY.getType());
         IplManageMain iplManageMain = iplManageMainService.getById(id);
         // 组装excel需要的数据
         List<List<Object>> data = iplManageMainService.getDarbData(iplManageMain.getSnapshot());
