@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.DicConstants;
 import com.unity.common.constant.RedisConstants;
+import com.unity.common.constants.ConstString;
 import com.unity.common.constants.Constants;
 import com.unity.common.enums.PlatformTypeEnum;
 import com.unity.common.enums.YesOrNoEnum;
@@ -197,7 +198,7 @@ public class UserHelpServiceImpl extends BaseServiceImpl<UserDao, User> implemen
         String roleIds = user.getRoleIds();
         if (StringUtils.isNotEmpty(roleIds)) {
             List<UserRole> userRoleList = new ArrayList<>();
-            Arrays.stream(roleIds.split(",")).forEach(e -> {
+            Arrays.stream(roleIds.split(ConstString.SPLIT_COMMA)).forEach(e -> {
                 UserRole userRole = new UserRole();
                 userRole.setIdRbacUser(user.getId());
                 userRole.setIdRbacRole(Long.parseLong(e));
