@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -70,8 +71,10 @@ public class ExcelExportByTemplate {
             cell.setCellValue((Double) val);
         } else if (val instanceof Float) {
             cell.setCellValue((Float) val);
+        } else if (val instanceof BigDecimal){
+            cell.setCellValue(((BigDecimal) val).doubleValue());
         } else {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("数据类型不支持").build();
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("数据类型不支持:" + val.getClass()).build();
         }
         return cell;
     }
