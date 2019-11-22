@@ -107,7 +107,8 @@ public class InfoDeptSatbServiceImpl extends BaseServiceImpl<InfoDeptSatbDao, In
             }
         }
         //排序规则      未提请发布在前，已提请发布在后；各自按创建时间倒序
-        lqw.last(" ORDER BY status ASC , gmt_create desc ");
+        //lqw.last(" ORDER BY status ASC , gmt_create desc ");
+        lqw.orderByDesc(InfoDeptSatb::getGmtCreate);
         IPage<InfoDeptSatb> list = null;
         if (search != null) {
             list = page(search.getPageable(), lqw);

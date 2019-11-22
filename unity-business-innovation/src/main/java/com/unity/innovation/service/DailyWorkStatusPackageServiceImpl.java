@@ -274,6 +274,8 @@ public class DailyWorkStatusPackageServiceImpl extends BaseServiceImpl<DailyWork
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
             if (WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getState())) {
                 entity.setState(WorkStatusAuditingStatusEnum.TEN.getId());
+                //提交时间设置最大
+                entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
             }
             updateById(entity);
             return vo.getId();

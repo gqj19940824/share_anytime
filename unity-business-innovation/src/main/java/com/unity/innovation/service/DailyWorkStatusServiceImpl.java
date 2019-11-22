@@ -130,7 +130,8 @@ public class DailyWorkStatusServiceImpl extends BaseServiceImpl<DailyWorkStatusD
             lqw.eq(DailyWorkStatus::getIdRbacDepartment, search.getEntity().getIdRbacDepartment());
         }
         //排序规则      未提请发布在前，已提请发布在后；未提请发布按创建时间倒序，已提请发布按提请时间倒序
-        lqw.last(" ORDER BY state ASC , gmt_create desc ");
+        //lqw.last(" ORDER BY state ASC , gmt_create desc ");
+        lqw.orderByDesc(DailyWorkStatus::getGmtCreate);
         IPage<DailyWorkStatus> list = page(search.getPageable(), lqw);
         if (CollectionUtils.isEmpty(list.getRecords())) {
             return list;

@@ -387,6 +387,8 @@ public class IplManageMainServiceImpl extends BaseServiceImpl<IplManageMainDao, 
             }
             if (WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getStatus())) {
                 entity.setStatus(WorkStatusAuditingStatusEnum.TEN.getId());
+                //提交时间设置最大
+                entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
             }
             //附件
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachments());
