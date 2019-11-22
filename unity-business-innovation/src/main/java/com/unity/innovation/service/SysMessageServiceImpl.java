@@ -218,6 +218,12 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             log.error("======《addInventoryMessage》--新增实时清单推送系统消息未获取到指定单位下用户，单位id {}",msg.getIdRbacDepartment());
             return;
         }
+        //移除协同处理目标用户黑名单中的用户id
+        userList = excludeUser(userList);
+        if (CollectionUtils.isEmpty(userList)) {
+            log.error("======《addInventoryMessage》--新增实时清单推送系统消息排除黑名单后已无可发送目标用户");
+            return;
+        }
         //保存系统通知并推送
         saveAndSendMessage(userList, msg.getSourceId(), msg.getIdRbacDepartment(),
                 msg.getDataSourceClass(), msg.getFlowStatus(), title);
@@ -264,10 +270,10 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         List<UserVO> userList = rbacClient.getUserListByDepIdList(msg.getHelpDepartmentIdList());
         if (CollectionUtils.isNotEmpty(userList)) {
             //移除协同处理目标用户黑名单中的用户id
-            Dic dic = dicUtils.getDicByCode(DicConstants.SYSMESSAGE_BLACKLIST, DicConstants.ASSIST_BLACKLIST);
-            if(dic != null && StringUtils.isNotEmpty(dic.getDicValue())){
-                List<Long> blackListUserIds = Arrays.stream(dic.getDicValue().split(ConstString.SPLIT_COMMA)).map(Long::parseLong).collect(Collectors.toList());
-                userList = userList.stream().filter(vo -> !blackListUserIds.contains(vo.getId())).collect(Collectors.toList());
+            userList = excludeUser(userList);
+            if(CollectionUtils.isEmpty(userList)){
+                log.error("======《addInventoryHelpMessage》--实时清单新增清单协同处理推送系统消息排除黑名单后已无可发送目标用户");
+                return;
             }
             //保存系统通知并推送
             saveAndSendMessage(userList, msg.getSourceId(), msg.getIdRbacDepartment(),
@@ -310,7 +316,12 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             //发布流程 获取提交单位下属人员ID列表
             //获取主责单位下用户进行系统消息及短信的发送
             userList = rbacClient.getUserListByDepIdList(Arrays.asList(msg.getIdRbacDepartment()));
-
+            //移除协同处理目标用户黑名单中的用户id
+            userList = excludeUser(userList);
+            if (CollectionUtils.isEmpty(userList)) {
+                log.error("======《addReviewMessage》--发布审核流程推送系统消息排除黑名单后已无可发送目标用户");
+                return;
+            }
         }
         List<Long> userIdList = userList.stream()
                 .filter(u -> u.getReceiveSysMsg() != null && u.getReceiveSysMsg().equals(YesOrNoEnum.YES.getType()))
@@ -528,5 +539,23 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
             item.put("name",map.get(id));
             return item;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * 排除目标用户中包含的黑名单用户
+     *
+     * @param  userList 目标用户
+     * @return 过滤后的数据
+     * @author G
+     * @since 2019/11/22 10:58
+     */
+    private  List<UserVO> excludeUser(List<UserVO> userList){
+        //移除协同处理目标用户黑名单中的用户id
+        Dic dic = dicUtils.getDicByCode(DicConstants.SYSMESSAGE_BLACKLIST, DicConstants.ASSIST_BLACKLIST);
+        if(dic != null && StringUtils.isNotEmpty(dic.getDicValue())){
+            List<Long> blackListUserIds = Arrays.stream(dic.getDicValue().split(ConstString.SPLIT_COMMA)).map(Long::parseLong).collect(Collectors.toList());
+            userList = userList.stream().filter(vo -> !blackListUserIds.contains(vo.getId())).collect(Collectors.toList());
+        }
+        return userList;
     }
 }
