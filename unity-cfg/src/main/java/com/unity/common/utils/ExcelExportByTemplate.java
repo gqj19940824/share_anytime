@@ -74,7 +74,7 @@ public class ExcelExportByTemplate {
         } else if (val instanceof BigDecimal){
             cell.setCellValue(((BigDecimal) val).doubleValue());
         } else {
-            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("数据类型不支持").build();
+            throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message("数据类型不支持:" + val.getClass()).build();
         }
         return cell;
     }
