@@ -24,6 +24,7 @@ import com.unity.common.ui.PageEntity;
 import com.unity.common.util.*;
 import com.unity.common.utils.DicUtils;
 import com.unity.common.utils.HashRedisUtils;
+import com.unity.common.utils.HttpsUtil;
 import com.unity.rbac.constants.UserConstants;
 import com.unity.rbac.dao.UserDao;
 import com.unity.rbac.entity.*;
@@ -35,6 +36,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -413,6 +416,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
             dto.setPwd(Encryption.getEncryption(UserConstants.RESET_PWD, dto.getLoginName()));
             //完善信息标识
             dto.setIsLock(YesOrNoEnum.NO.getType());
+            //领导信息推送到尚亦城
+            if(dto.getUserType().equals(UserTypeEnum.LEADER.getId())){
+                registerAccountToSYC(dto.getLoginName());
+            }
             super.save(dto);
             //默认分配一个身份
             userHelpService.distributionDefaultIdentity(dto.getId());
@@ -666,7 +673,24 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
      * @since 2019/10/24 09:25
      */
     public Map<String,Object> getLoginInfo(String phone,String appToken) {
-        //TODO 通过手机号与秘钥调用尚亦城接口进行验证手机号是否正确
+        //通过appToken调用尚亦城接口进行验证手机号是否正确
+        String url = UserConstants.SYC_VERIFICATION_LOGIN_URL.replace("TOKEN", appToken);
+        try {
+            HttpResponse response = HttpsUtil.doGet(url);
+            if(!Integer.valueOf(HttpStatus.SC_OK).equals(response.getStatusLine().getStatusCode())){
+                log.error("======《getLoginInfo》--尚亦城APP跳转创新发布移动端接口检验异常 接口反参：{}",GsonUtils.format(response));
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.LOGIN_DATA_ERR)
+                        .message("尚亦城APP跳转创新发布网页版身份校验失败，跳转至登录页")
+                        .build();
+            }
+        } catch (Exception e){
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.LOGIN_DATA_ERR)
+                    .message("尚亦城APP跳转创新发布网页版身份校验失败，跳转至登录页")
+                    .build();
+        }
+
         User user = this.getOne(new LambdaQueryWrapper<User>().eq(User::getLoginName, phone));
         if(user == null){
             throw UnityRuntimeException.newInstance()
@@ -705,5 +729,32 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                     m.put("roleList", userRoleService.selectRoleIdsByUserId(u.getId()));
                     m.put("isSuperAdmin", u.getSuperAdmin());
                 });
+    }
+
+    /**
+     * 注册领导账号到尚亦城
+     *
+     * @param  phone 手机号
+     * @author G
+     * @since 2019/11/22 16:54
+     */
+    private void registerAccountToSYC(String phone){
+        String url = UserConstants.SYC_REGISTER_ACCOUNT_URL.replace("PHONE", phone);
+        try {
+            HttpResponse response = HttpsUtil.doGet(url);
+            if(!Integer.valueOf(HttpStatus.SC_OK).equals(response.getStatusLine().getStatusCode())){
+                log.error("======《saveOrUpdateUserInfo》--新增账号推送至尚亦城失败 接口反参：{}",GsonUtils.format(response));
+                throw UnityRuntimeException.newInstance()
+                        .code(SystemResponse.FormalErrorCode.SERVER_ERROR)
+                        .message("账号推送至尚亦城系统失败，请联系管理员")
+                        .build();
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            throw UnityRuntimeException.newInstance()
+                    .code(SystemResponse.FormalErrorCode.SERVER_ERROR)
+                    .message("账号推送至尚亦城系统失败，请联系管理员！")
+                    .build();
+        }
     }
 }
