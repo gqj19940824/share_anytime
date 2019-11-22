@@ -203,6 +203,8 @@ public class PmInfoDeptServiceImpl extends BaseServiceImpl<PmInfoDeptDao, PmInfo
             updateIds(vo.getId(), ids, entity.getBizType());
             if (WorkStatusAuditingStatusEnum.FORTY.getId().equals(vo.getStatus())) {
                 entity.setStatus(WorkStatusAuditingStatusEnum.TEN.getId());
+                //提交时间设置最大
+                entity.setGmtSubmit(ParamConstants.GMT_SUBMIT);
             }
             updateById(entity);
             attachmentService.updateAttachments(vo.getAttachmentCode(), entity.getAttachmentList());
