@@ -106,6 +106,6 @@ public class DicFeignController extends BaseWebController {
             dicService.save(dic);
         }
         //更新缓存
-        redisTemplate.opsForHash().put(RedisConstants.DICGROUP, groupCode, JSON.toJSONString(dic));
+        redisTemplate.opsForHash().put(RedisConstants.DIC_PREFIX, groupCode, JSON.toJSONString(dic));
     }
 }
