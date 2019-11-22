@@ -92,8 +92,10 @@ public class SysMessageReadLogServiceImpl extends BaseServiceImpl<SysMessageRead
                 int numByNotice = numByNoticeObj == null ? 0 : Integer.parseInt(numByNoticeObj.toString());
                 noticeNum += numByNotice;
             }
+            //只有还有未读消息 红点就不能消失 判断数据只要大于1 红点就依然显示
+            int isShow = sysMessageNum+noticeNum > 0 ? YesOrNoEnum.YES.getType() : YesOrNoEnum.NO.getType();
             webSocketHandler.sendMessageToUser(userId.toString(),
-                    new TextMessage("{\"isAdd\":" + isAdd + ",\"sysMessageNum\":" + sysMessageNum + ",\"noticeNum\":" + noticeNum + "}"));
+                    new TextMessage("{\"isAdd\":" + isShow + ",\"sysMessageNum\":" + sysMessageNum + ",\"noticeNum\":" + noticeNum + "}"));
         });
     }
 }
