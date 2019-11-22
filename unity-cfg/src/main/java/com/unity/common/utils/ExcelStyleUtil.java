@@ -98,6 +98,7 @@ public class ExcelStyleUtil {
      * @since 2018/9/3 17:00
      */
     public static Map<String, CellStyle> createProjectStyles(Workbook wb) {
+
         Map<String, CellStyle> styles = Maps.newHashMap();
         CellStyle title = wb.createCellStyle();
         title.setAlignment(HorizontalAlignment.CENTER);
@@ -107,7 +108,8 @@ public class ExcelStyleUtil {
         titleFont.setFontName("Arial");
         titleFont.setFontHeightInPoints((short) 10);
         title.setFont(titleFont);
-        title.setFillForegroundColor(IndexedColors.LIGHT_TURQUOISE.getIndex());
+
+        title.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
         title.setFillPattern(CellStyle.SOLID_FOREGROUND);
         title.setBorderBottom(HSSFCellStyle.BORDER_THIN); //下边框
         title.setBorderLeft(HSSFCellStyle.BORDER_THIN);//左边框
