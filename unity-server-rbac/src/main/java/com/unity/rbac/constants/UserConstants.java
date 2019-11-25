@@ -70,7 +70,10 @@ public class UserConstants {
     public final static int PJ_AD_LOGIN_NAME_MAX_LENGTH = 24;
     /**组织类别*/
     public final static String DEP_TYPE = "dep_type";
-
+    /**测试地址 尚亦城账号注册*/
+    public final static String SYC_REGISTER_ACCOUNT_URL = "http://182.92.109.137:8087/app/login/registerAccount?phone=PHONE&channel=1";
+    /**测试地址 尚亦城验证账号是否已登录接口*/
+    public final static String SYC_VERIFICATION_LOGIN_URL = "http://182.92.109.137:8087/app/login/verificationLogin?token=TOKEN";
     public static void main(String[] args) {
         System.out.println(Encryption.getEncryption(UserConstants.SECRET_KEY,"customer7fc6f50d9f6c4703a8513e65f7d60f48"));
     }

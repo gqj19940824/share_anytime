@@ -73,7 +73,6 @@ public class IplOdMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplOdMain> search) {
-        service.check();
         IPage<IplOdMain> list = service.listByPage(search);
         PageElementGrid result = PageElementGrid.<Map<String, Object>>newInstance()
                 .total(list.getTotal())
