@@ -70,7 +70,6 @@ public class IplSupervisionMainController extends BaseWebController {
      */
     @PostMapping("/listByPage")
     public Mono<ResponseEntity<SystemResponse<Object>>> listByPage(@RequestBody PageEntity<IplSupervisionMain> pageEntity) {
-        check();
         Page<IplSupervisionMain> pageable = pageEntity.getPageable();
         IplSupervisionMain entity = pageEntity.getEntity();
         LambdaQueryWrapper<IplSupervisionMain> ew = service.wrapper(entity);
