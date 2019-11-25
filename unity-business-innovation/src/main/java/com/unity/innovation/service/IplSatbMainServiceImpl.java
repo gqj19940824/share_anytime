@@ -190,7 +190,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 IplSatbMain::getProjectName, IplSatbMain::getProjectAddress, IplSatbMain::getProjectIntroduce, IplSatbMain::getTotalAmount, IplSatbMain::getBank,
                 IplSatbMain::getBond, IplSatbMain::getRaise, IplSatbMain::getTechDemondInfo, IplSatbMain::getContactPerson, IplSatbMain::getContactWay,
                 IplSatbMain::getSource, IplSatbMain::getStatus,IplSatbMain::getProcessStatus,
-                IplSatbMain::getLatestProcess
+                IplSatbMain::getLatestProcess, IplSatbMain::getBizType
         );
     }
 

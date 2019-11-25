@@ -98,7 +98,8 @@ public class IplOdMainController extends BaseWebController {
                 IplOdMain::getDuty, IplOdMain::getQualification, IplOdMain::getSpecificCause,
                 IplOdMain::getContactPerson, IplOdMain::getContactWay, IplOdMain::getEmail,
                 IplOdMain::getGmtCreate, IplOdMain::getGmtModified, IplOdMain::getSource, IplOdMain::getSourceName,
-                IplOdMain::getStatus, IplOdMain::getStatusName, IplOdMain::getProcessStatus, IplOdMain::getProcessStatusName, IplOdMain::getLatestProcess);
+                IplOdMain::getStatus, IplOdMain::getStatusName, IplOdMain::getProcessStatus, IplOdMain::getProcessStatusName, IplOdMain::getLatestProcess,
+                IplOdMain::getBizType);
     }
 
     /**
