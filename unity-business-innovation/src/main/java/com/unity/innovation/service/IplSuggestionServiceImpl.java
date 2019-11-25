@@ -273,11 +273,11 @@ public class IplSuggestionServiceImpl extends BaseServiceImpl<IplSuggestionDao, 
         } else {
             vo.setLogEnterpriseName("未知单位");
         }
-        Customer customer = LoginContextHolder.getRequestAttributes();
+        Long departmentId = Long.parseLong(dicUtils.getDicValueByCode(DicConstants.DEPART_HAVE_LIST_TYPE, BizTypeEnum.SUGGESTION.getType() + ""));
         //根据主表id和单位id 查询纪检组的所有日志信息
         List<IplLog> logList = iplLogService.list(new LambdaQueryWrapper<IplLog>()
                 .eq(IplLog::getIdIplMain, vo.getId())
-                .eq(IplLog::getIdRbacDepartmentDuty, customer.getIdRbacDepartment())
+                .eq(IplLog::getIdRbacDepartmentDuty, departmentId)
                 .orderByDesc(IplLog::getGmtCreate));
         logList.forEach(log -> {
             if (log.getDealStatus() != null) {

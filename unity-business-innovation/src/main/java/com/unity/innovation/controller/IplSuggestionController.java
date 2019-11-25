@@ -152,7 +152,6 @@ public class IplSuggestionController extends BaseWebController {
      */
     @PostMapping("/detailById")
     public Mono<ResponseEntity<SystemResponse<Object>>> detailById(@RequestBody IplSuggestion entity) {
-        check();
         String msg = ValidFieldUtil.checkEmptyStr(entity,IplSuggestion::getId);
         if (StringUtils.isNotBlank(msg)) {
             return error(SystemResponse.FormalErrorCode.LACK_REQUIRED_PARAM, msg);
