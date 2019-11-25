@@ -37,7 +37,7 @@ public interface InfoDeptSatbDao  extends BaseDao<InfoDeptSatb>{
             " ids.is_deleted = 0 " +
             "AND pid.is_deleted = 0 " +
             "AND imm.is_deleted = 0 " +
-            "AND ids.gmt_create BETWEEN #{startTime} AND #{endTime} " +
+            "AND imm.gmt_create BETWEEN #{startTime} AND #{endTime} " +
             "GROUP BY " +
             " ids.achievement_level ")
     List<Map<String,Long>> roadshowEnterpriseInnovationLevel(@Param("startTime") Long startTime,@Param("endTime") Long endTime);
@@ -62,7 +62,7 @@ public interface InfoDeptSatbDao  extends BaseDao<InfoDeptSatb>{
             " ids.is_deleted = 0 " +
             "AND pid.is_deleted = 0 " +
             "AND imm.is_deleted = 0 " +
-            "AND ids.gmt_create BETWEEN #{startTime} AND #{endTime} " +
+            "AND imm.gmt_create BETWEEN #{startTime} AND #{endTime} " +
             "GROUP BY " +
             " ids.is_publish_first")
     List<Map<String,Object>> firstExternalRelease(@Param("startTime") Long startTime,@Param("endTime") Long endTime);
