@@ -71,6 +71,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
                 .set(IpaManageMain::getParticipateMedia, entity.getParticipateMedia())
                 .set(IpaManageMain::getPublishStatus, entity.getPublishStatus());
 
+        // 发布结果 0：草稿、1：发布
         if ("1".equals(entity.getPublishStatus())){
             wrapper.set(IpaManageMain::getStatus, IpaStatusEnum.UPDATED.getId());
             // 更新一次包状态
@@ -107,7 +108,7 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
         }
         Long idIpaMain = entity.getId();
         List<IplManageMain> iplManageMains = iplManageMainService.list(new LambdaQueryWrapper<IplManageMain>().eq(IplManageMain::getIdIpaMain, idIpaMain));
-        String title = entity.getTitle();
+        String title = "已组织" + entity.getTitle();
         if (CollectionUtils.isNotEmpty(iplManageMains)){
             List<IplmManageLog> ls = new ArrayList<>();
             iplManageMains.forEach(e->{
