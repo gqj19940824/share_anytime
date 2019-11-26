@@ -635,8 +635,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                     maps.addAll(JSON.parseArray(snapshot, Map.class));
                 }
             });
-            Long satbEnterpriseCount = maps.stream().filter(e -> SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e, "bizType"))).count();
-            Long satbSelfCount = maps.stream().filter(e -> SourceEnum.SELF.getId().equals(MapUtils.getInteger(e, "bizType"))).count();
+            Long satbEnterpriseCount = maps.stream().filter(e -> SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e, "source"))).count();
+            Long satbSelfCount = maps.stream().filter(e -> SourceEnum.SELF.getId().equals(MapUtils.getInteger(e, "source"))).count();
 
             if (satbSelfCount + satbEnterpriseCount > 0){
                 data.add(BizTypeEnum.GROW.getName());
