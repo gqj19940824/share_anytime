@@ -20,12 +20,14 @@ import com.unity.innovation.entity.generated.IplmManageLog;
 import com.unity.innovation.enums.*;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -54,6 +56,14 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     private PmInfoDeptLogServiceImpl pmInfoDeptLogService;
     @Resource
     private DailyWorkStatusLogServiceImpl dailyWorkStatusLogService;
+
+    public List<Map> demandTrendStatistics(@Param("start") Long start, @Param("end") Long end){
+        return baseMapper.demandTrendStatistics(start, end);
+    }
+
+    public List<IplManageMain> getIplManageMin(Long start, Long end){
+        return baseMapper.getIplManageMain(start, end);
+    }
 
     public List<PieVoByDoc.DataBean> dwsTypeStatistics(Long start, Long end, Long idRbacDepartment){
         return baseMapper.dwsTypeStatistics(start, end, idRbacDepartment);

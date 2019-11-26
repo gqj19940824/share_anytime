@@ -51,6 +51,22 @@ public class ExcelExportByTemplate {
         sheet.addMergedRegion(cellRangeAddress);
     }
 
+    public static void setData(int startRowIndex, String sheetName, List<List<Object>> dataList, XSSFWorkbook wb) {
+        //读取了模板内图表所需数据
+        XSSFSheet sheet = wb.getSheetAt(0);
+        wb.setSheetName(0, sheetName);
+        int dataListSize = dataList.size();
+        for (int rowNum = 0; rowNum < dataListSize; rowNum++) {
+            List<Object> rowData = dataList.get(rowNum);
+            XSSFRow row = sheet.createRow(rowNum + startRowIndex);
+            int colSize = rowData.size();
+            for (int celNum = 0; celNum < colSize; celNum++) {
+                XSSFCell cell = row.createCell(celNum);
+                setCellData(cell, rowData.get(celNum));
+            }
+        }
+    }
+
     /**
      * 给单元格设置值
      *

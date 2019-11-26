@@ -5,10 +5,12 @@ package com.unity.innovation.dao;
 import com.unity.common.base.BaseDao;
 import com.unity.innovation.controller.vo.PieVoByDoc;
 import com.unity.innovation.entity.generated.IpaManageMain;
+import com.unity.innovation.entity.generated.IplManageMain;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 创新发布活动-管理-主表
@@ -16,6 +18,22 @@ import java.util.List;
  * 生成时间 2019-09-21 15:45:33
  */
 public interface IpaManageMainDao  extends BaseDao<IpaManageMain>{
+
+    @Select("SELECT m.snapshot, FROM_UNIXTIME( a.gmt_create/1000, '%Y年%m月' )  AS month FROM ipa_manage_main a INNER JOIN ipl_manage_main m ON a.id = m.id_ipa_main" +
+            " WHERE a.is_deleted = 0 AND m.is_deleted = 0 and a.gmt_create >= #{start} and a.gmt_create < #{end} " +
+            " GROUP BY month ")
+    List<Map> demandTrendStatistics(@Param("start") Long start, @Param("end") Long end);
+
+    @Select("<script>" +
+            "SELECT m.* FROM ipa_manage_main a INNER JOIN ipl_manage_main m ON a.id = m.id_ipa_main WHERE a.is_deleted = 0 AND m.is_deleted = 0 " +
+            "<if test='start != null'> " +
+            "and a.gmt_create &gt;= #{start} " +
+            "</if>" +
+            "<if test='end != null'> " +
+            "and a.gmt_create &lt; #{end} " +
+            "</if>" +
+            "</script>")
+    List<IplManageMain> getIplManageMain(@Param("start") Long start, @Param("end") Long end);
 
     @Select("<script>" +
             "select COUNT(1) value, sc.cfg_val name from ipa_manage_main a inner join daily_work_status_package p on a.id = p.id_ipa_main " +
