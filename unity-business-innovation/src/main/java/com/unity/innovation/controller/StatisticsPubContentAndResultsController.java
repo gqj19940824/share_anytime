@@ -423,7 +423,14 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
 
         collect.forEach((month,snapshot)->{
             List<Map> maps = JSON.parseArray(snapshot, Map.class);
-            Map<Integer, List<Map>> source = maps.stream().collect(Collectors.groupingBy(e -> MapUtils.getInteger(e, "source")));
+            Integer bizType = MapUtils.getInteger(map, "bizType");
+            Map<Integer, List<Map>> source;
+            if (bizType == null){
+                source = maps.stream().collect(Collectors.groupingBy(e -> MapUtils.getInteger(e, "source")));
+            }else {
+                source = maps.stream().filter(e->bizType.equals(MapUtils.getInteger(e, "bizType"))).collect(Collectors.groupingBy(e -> MapUtils.getInteger(e, "source")));
+            }
+
             enMap.put(month, enMap.get(month) + CollectionUtils.size(source.get(SourceEnum.ENTERPRISE.getId())));
             sfMap.put(month, sfMap.get(month) + CollectionUtils.size(source.get(SourceEnum.SELF.getId())));
         });
