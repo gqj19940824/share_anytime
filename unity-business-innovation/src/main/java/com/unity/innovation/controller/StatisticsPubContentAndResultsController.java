@@ -602,10 +602,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         // 企业数据
         List<Long> enterpriseData = new ArrayList<>();
 
-        getdata(collect.get(BizTypeEnum.GROW.getType()), data, selfData, enterpriseData);
-        getdata(collect.get(BizTypeEnum.INTELLIGENCE.getType()), data, selfData, enterpriseData);
-        getdata(collect.get(BizTypeEnum.CITY.getType()), data, selfData, enterpriseData);
-        getdata(collect.get(BizTypeEnum.ENTERPRISE.getType()), data, selfData, enterpriseData);
+        List<BizTypeEnum> bizTypeEnums = Arrays.asList(BizTypeEnum.GROW, BizTypeEnum.INTELLIGENCE, BizTypeEnum.CITY, BizTypeEnum.ENTERPRISE);
+        bizTypeEnums.forEach(e->getdata(collect, e, data, selfData, enterpriseData));
         Long selfDataTotal = selfData.stream().reduce(Long::sum).orElse(0L);
         Long enterpriseDataTotal = enterpriseData.stream().reduce(Long::sum).orElse(0L);
 
@@ -633,7 +631,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         }
     }
 
-    private void getdata(List<IplManageMain> iplManageMains , List<String> data, List<Long> selfData, List<Long> enterpriseData){
+    private void getdata(Map<Integer, List<IplManageMain>> collect, BizTypeEnum bizTypeEnum, List<String> data, List<Long> selfData, List<Long> enterpriseData){
+        List<IplManageMain> iplManageMains = collect.get(bizTypeEnum.getType());
         if (CollectionUtils.isNotEmpty(iplManageMains)){
             List<Map> maps = new ArrayList<>();
             iplManageMains.forEach(e->{
@@ -646,7 +645,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
             Long satbSelfCount = maps.stream().filter(e -> SourceEnum.SELF.getId().equals(MapUtils.getInteger(e, "source"))).count();
 
             if (satbSelfCount + satbEnterpriseCount > 0){
-                data.add(BizTypeEnum.GROW.getName());
+                data.add(bizTypeEnum.getName());
                 selfData.add(satbSelfCount);
                 enterpriseData.add(satbEnterpriseCount);
             }
