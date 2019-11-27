@@ -417,20 +417,22 @@ public class SysMessageServiceImpl extends BaseServiceImpl<SysMessageDao, SysMes
         Customer customer = LoginContextHolder.getRequestAttributes();
         //判断当前用户是否拥有宣传部审核角色
         Dic pdB = dicUtils.getDicByCode(DicConstants.ROLE_GROUP, DicConstants.PD_B_ROLE);
-        if(customer.getRoleList().contains(Long.parseLong(pdB.getDicValue()))){
+        /*if(customer.getRoleList().contains(Long.parseLong(pdB.getDicValue()))){
             numMap.put("isAdd", 0);
             numMap.put("sysMessageNum", 0);
             numMap.put("noticeNum", 0);
             return numMap;
-        }
+        }*/
         //查询数据库获取消息数量
         int noReadSysMsgNum = sysMessageReadLogService.count(new LambdaQueryWrapper<SysMessageReadLog>()
                 .eq(SysMessageReadLog::getIsRead, YesOrNoEnum.NO.getType())
                 .eq(SysMessageReadLog::getTargetUserId, customer.getId()));
-        int noReadNoticeNum = sysNoticeUserService.count(new LambdaQueryWrapper<SysNoticeUser>()
-                .eq(SysNoticeUser::getIsRead, YesOrNoEnum.NO.getType())
-                .eq(SysNoticeUser::getIdRbacUser, customer.getId()));
-
+        int noReadNoticeNum = 0;
+        if(!customer.getRoleList().contains(Long.parseLong(pdB.getDicValue()))) {
+            noReadNoticeNum = sysNoticeUserService.count(new LambdaQueryWrapper<SysNoticeUser>()
+                    .eq(SysNoticeUser::getIsRead, YesOrNoEnum.NO.getType())
+                    .eq(SysNoticeUser::getIdRbacUser, customer.getId()));
+        }
         //获取redis中的消息集
         Map<String, Object> sysMegNumMap = hashRedisUtils.getObj(MessageSaveFormEnum.SYS_MSG.getName());
         Map<String, Object> noticeMegNumMap = hashRedisUtils.getObj(MessageSaveFormEnum.NOTICE.getName());
