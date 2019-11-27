@@ -628,24 +628,11 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                         nameList.add(name);
                     }
         });
-        List<PieVoByDoc.DataBean> finalDataList = dataList;
-        List<String> finalNameList = nameList;
-        if (CollectionUtils.size(finalDataList) > 10){
-            Long aLong = finalDataList.subList(10, finalDataList.size()).stream().map(e -> (Long) e.getValue()).reduce(Long::sum).orElse(0L);
-            finalDataList = finalDataList.subList(0, 10);
-            finalDataList.add(PieVoByDoc.DataBean.newInstance()
-                    .name("其他")
-                    .value(aLong)
-                    .build());
-
-            finalNameList = finalNameList.subList(0, 10);
-            finalNameList.add("其他");
-        }
         data.put("pieData",PieVoByDoc.newInstance()
                 .legend(PieVoByDoc.LegendBean.newInstance()
-                        .data(finalNameList)
+                        .data(nameList)
                         .build())
-                .data(finalDataList)
+                .data(dataList)
                 .build());
         data.put("totalNum",sum);
         return data;
