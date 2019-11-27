@@ -423,7 +423,14 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
 
         collect.forEach((month,snapshot)->{
             List<Map> maps = JSON.parseArray(snapshot, Map.class);
-            Map<Integer, List<Map>> source = maps.stream().collect(Collectors.groupingBy(e -> MapUtils.getInteger(e, "source")));
+            Integer bizType = MapUtils.getInteger(map, "bizType");
+            Map<Integer, List<Map>> source;
+            if (bizType == null){
+                source = maps.stream().collect(Collectors.groupingBy(e -> MapUtils.getInteger(e, "source")));
+            }else {
+                source = maps.stream().filter(e->bizType.equals(MapUtils.getInteger(e, "bizType"))).collect(Collectors.groupingBy(e -> MapUtils.getInteger(e, "source")));
+            }
+
             enMap.put(month, enMap.get(month) + CollectionUtils.size(source.get(SourceEnum.ENTERPRISE.getId())));
             sfMap.put(month, sfMap.get(month) + CollectionUtils.size(source.get(SourceEnum.SELF.getId())));
         });
@@ -595,10 +602,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         // 企业数据
         List<Long> enterpriseData = new ArrayList<>();
 
-        getdata(collect.get(BizTypeEnum.GROW.getType()), data, selfData, enterpriseData);
-        getdata(collect.get(BizTypeEnum.INTELLIGENCE.getType()), data, selfData, enterpriseData);
-        getdata(collect.get(BizTypeEnum.CITY.getType()), data, selfData, enterpriseData);
-        getdata(collect.get(BizTypeEnum.ENTERPRISE.getType()), data, selfData, enterpriseData);
+        List<BizTypeEnum> bizTypeEnums = Arrays.asList(BizTypeEnum.GROW, BizTypeEnum.INTELLIGENCE, BizTypeEnum.CITY, BizTypeEnum.ENTERPRISE);
+        bizTypeEnums.forEach(e->getdata(collect, e, data, selfData, enterpriseData));
         Long selfDataTotal = selfData.stream().reduce(Long::sum).orElse(0L);
         Long enterpriseDataTotal = enterpriseData.stream().reduce(Long::sum).orElse(0L);
 
@@ -626,7 +631,8 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         }
     }
 
-    private void getdata(List<IplManageMain> iplManageMains , List<String> data, List<Long> selfData, List<Long> enterpriseData){
+    private void getdata(Map<Integer, List<IplManageMain>> collect, BizTypeEnum bizTypeEnum, List<String> data, List<Long> selfData, List<Long> enterpriseData){
+        List<IplManageMain> iplManageMains = collect.get(bizTypeEnum.getType());
         if (CollectionUtils.isNotEmpty(iplManageMains)){
             List<Map> maps = new ArrayList<>();
             iplManageMains.forEach(e->{
@@ -635,11 +641,11 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
                     maps.addAll(JSON.parseArray(snapshot, Map.class));
                 }
             });
-            Long satbEnterpriseCount = maps.stream().filter(e -> SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e, "bizType"))).count();
-            Long satbSelfCount = maps.stream().filter(e -> SourceEnum.SELF.getId().equals(MapUtils.getInteger(e, "bizType"))).count();
+            Long satbEnterpriseCount = maps.stream().filter(e -> SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e, "source"))).count();
+            Long satbSelfCount = maps.stream().filter(e -> SourceEnum.SELF.getId().equals(MapUtils.getInteger(e, "source"))).count();
 
             if (satbSelfCount + satbEnterpriseCount > 0){
-                data.add(BizTypeEnum.GROW.getName());
+                data.add(bizTypeEnum.getName());
                 selfData.add(satbSelfCount);
                 enterpriseData.add(satbEnterpriseCount);
             }
