@@ -218,7 +218,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             //待处理时
             if (IplStatusEnum.UNDEAL.getId().equals(vo.getStatus())) {
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
-                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, departmentId,BizTypeEnum.INTELLIGENCE.getType());
+                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, vo.getIdRbacDepartmentDuty(),BizTypeEnum.INTELLIGENCE.getType());
             } else if (IplStatusEnum.DEALING.getId().equals(vo.getStatus())) {
                 //处理中 如果超时 则置为进展正常
                 entity.setProcessStatus(ProcessStatusEnum.NORMAL.getId());
@@ -228,7 +228,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
                         0L,
                         "更新基本信息",BizTypeEnum.INTELLIGENCE.getType());
                 entity.setLatestProcess("更新基本信息");
-                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, departmentId,BizTypeEnum.INTELLIGENCE.getType());
+                redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, vo.getIdRbacDepartmentDuty(),BizTypeEnum.INTELLIGENCE.getType());
                 //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
                 List<IplAssist> assists = iplAssistService.getAssists(BizTypeEnum.INTELLIGENCE.getType(), entity.getId());
                 List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());

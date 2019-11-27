@@ -136,25 +136,25 @@ public class IplDarbMainServiceImpl extends BaseServiceImpl<IplDarbMainDao, IplD
 
         // 设置处理超时时间
         if (IplStatusEnum.UNDEAL.getId().equals(status)) {
-            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.DEAL_OVER_TIME, entity.getIdRbacDepartmentDuty(), entity.getBizType());
+            redisSubscribeService.saveSubscribeInfo(idIplMain + "-0", ListTypeConstants.DEAL_OVER_TIME, byId.getIdRbacDepartmentDuty(), byId.getBizType());
             // 设置更新超时时间
         } else if (IplStatusEnum.DEALING.getId().equals(status)) {
-            redisSubscribeService.saveSubscribeInfo(entity.getId() + "-0", ListTypeConstants.UPDATE_OVER_TIME, entity.getIdRbacDepartmentDuty(), entity.getBizType());
+            redisSubscribeService.saveSubscribeInfo(idIplMain + "-0", ListTypeConstants.UPDATE_OVER_TIME, byId.getIdRbacDepartmentDuty(), byId.getBizType());
 
             // 非"待处理"状态记录日志
             Integer lastDealStatus = iplLogService.getLastDealStatus(idIplMain, BizTypeEnum.CITY.getType());
             IplLog iplLog = IplLog.newInstance().idIplMain(idIplMain).idRbacDepartmentAssist(0L).bizType(BizTypeEnum.CITY.getType())
-                    .processInfo("更新基本信息").idRbacDepartmentDuty(entity.getIdRbacDepartmentDuty()).dealStatus(lastDealStatus).build();
+                    .processInfo("更新基本信息").idRbacDepartmentDuty(byId.getIdRbacDepartmentDuty()).dealStatus(lastDealStatus).build();
             iplLogService.save(iplLog);
             //======处理中的数据，主责单位再次编辑基本信息--清单协同处理--增加系统消息=======
-            List<IplAssist> assists = iplAssistService.getAssists(entity.getBizType(), entity.getId());
+            List<IplAssist> assists = iplAssistService.getAssists(byId.getBizType(), idIplMain);
             List<Long> assistsIdList = assists.stream().map(IplAssist::getIdRbacDepartmentAssist).collect(Collectors.toList());
             sysMessageHelpService.addInventoryHelpMessage(InventoryMessage.newInstance()
-                    .sourceId(entity.getId())
+                    .sourceId(idIplMain)
                     .idRbacDepartment(byId.getIdRbacDepartmentDuty())
                     .dataSourceClass(SysMessageDataSourceClassEnum.HELP.getId())
                     .flowStatus(SysMessageFlowStatusEnum.FOUR.getId())
-                    .title(entity.getEnterpriseName())
+                    .title(byId.getEnterpriseName())
                     .helpDepartmentIdList(assistsIdList)
                     .bizType(BizTypeEnum.CITY.getType())
                     .build());
