@@ -222,6 +222,15 @@ public class IplOdMainController extends BaseWebController {
         Map<String, Object> resultMap;
         resultMap = iplAssistService.totalProcessAndAssists(entity.getId(), entity.getIdRbacDepartmentDuty(), entity.getProcessStatus(), entity.getStatus(), BizTypeEnum.INTELLIGENCE.getType());
         resultMap.put("baseInfo", entity);
+
+        // 用于前端判断是否允许用户更新完成情况时输入本次完成额度，如果缺口大于0则用户可以输入本次完成额度
+        if (entity.getJobDemandNum() == null){
+            resultMap.put("gap", 0);
+        }else {
+            BigDecimal raisedTotal = iplLogService.getRaisedTotal(entity.getId(), BizTypeEnum.INTELLIGENCE.getType());
+            resultMap.put("gap", BigDecimal.valueOf(entity.getJobDemandNum()).subtract(raisedTotal));
+        }
+
         return success(resultMap);
     }
 

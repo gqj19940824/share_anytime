@@ -333,11 +333,10 @@ public class IplAssistServiceImpl extends BaseServiceImpl<IplAssistDao, IplAssis
         Customer customer = LoginContextHolder.getRequestAttributes();
         // 非主责单位协同列表只查自己
         if (!InnovationUtil.isUserAdminOrLeader() &&
-                !customer.getIdRbacDepartment().equals(idRbacDepartmentDuty)){ // TODO
+                !customer.getIdRbacDepartment().equals(idRbacDepartmentDuty)){
             assists.removeIf(next -> !next.getIdRbacDepartmentAssist().equals(customer.getIdRbacDepartment()));
         }
         resultMap.put("assists", assists);
-
         return resultMap;
     }
 

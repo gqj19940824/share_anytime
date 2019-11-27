@@ -220,6 +220,15 @@ public class IplDarbMainController extends BaseWebController {
         entity.setIdRbacDepartmentName(InnovationUtil.getDeptNameById(entity.getIdRbacDepartmentDuty()));
         Map<String, Object> resultMap = iplAssistService.totalProcessAndAssists(id, entity.getIdRbacDepartmentDuty(), entity.getProcessStatus(), entity.getStatus(), BizTypeEnum.CITY.getType());
         resultMap.put("baseInfo", convert2Map(entity));
+
+        // 用于前端判断是否允许用户更新完成情况时输入本次完成额度，如果缺口大于0则用户可以输入本次完成额度
+        if (entity.getTotalAmount() == null){
+            resultMap.put("gap", 0);
+        }else {
+            BigDecimal raisedTotal = iplLogService.getRaisedTotal(id, BizTypeEnum.CITY.getType());
+            resultMap.put("gap", BigDecimal.valueOf(entity.getTotalAmount()).subtract(raisedTotal));
+        }
+
         return success(resultMap);
     }
 
