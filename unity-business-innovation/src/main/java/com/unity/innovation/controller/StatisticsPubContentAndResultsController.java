@@ -73,7 +73,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (CollectionUtils.isNotEmpty(dataBeans)){
             if (dataBeans.size() > 10){
                 List<PieVoByDoc.DataBean> otherDateBeans = dataBeans.subList(10, dataBeans.size());
-                int sum = otherDateBeans.stream().mapToInt(e -> (Integer) e.getValue()).sum();
+                Long sum = otherDateBeans.stream().mapToLong(e -> (Long) e.getValue()).sum();
                 dataBeans = dataBeans.subList(0, 10);
                 dataBeans.add(PieVoByDoc.DataBean.newInstance().name("其他").value(sum).build());
             }
@@ -110,7 +110,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (CollectionUtils.isNotEmpty(dataBeans)){
             if (dataBeans.size() > 10){
                 List<PieVoByDoc.DataBean> otherDateBeans = dataBeans.subList(10, dataBeans.size());
-                int sum = otherDateBeans.stream().mapToInt(e -> (Integer) e.getValue()).sum();
+                Long sum = otherDateBeans.stream().mapToLong(e -> (Long) e.getValue()).sum();
                 dataBeans = dataBeans.subList(0, 10);
                 dataBeans.add(PieVoByDoc.DataBean.newInstance().name("其他").value(sum).build());
             }
