@@ -19,10 +19,17 @@ import java.util.Map;
  */
 public interface IpaManageMainDao  extends BaseDao<IpaManageMain>{
 
-    @Select("SELECT m.snapshot, FROM_UNIXTIME( a.gmt_create/1000, '%Y年%m月' )  AS month FROM ipa_manage_main a INNER JOIN ipl_manage_main m ON a.id = m.id_ipa_main" +
-            " WHERE a.is_deleted = 0 AND m.is_deleted = 0 and a.gmt_create >= #{start} and a.gmt_create < #{end} " +
-            " GROUP BY month ")
-    List<Map> demandTrendStatistics(@Param("start") Long start, @Param("end") Long end);
+    @Select("<script>" +
+            "SELECT m.snapshot, FROM_UNIXTIME( a.gmt_create/1000, '%Y年%m月' )  AS month FROM ipa_manage_main a INNER JOIN ipl_manage_main m ON a.id = m.id_ipa_main" +
+            " WHERE a.is_deleted = 0 AND m.is_deleted = 0 and a.gmt_create &gt;= #{start} and a.gmt_create &lt;= #{end}" +
+            "<if test='bizType == null'>" +
+            " and m.biz_type in(10, 20, 30, 40) " +
+            "</if>" +
+            "<if test='bizType != null'>" +
+            " and m.biz_type = #{bizType}" +
+            "</if>" +
+            "</script>")
+    List<Map<String, String>> demandTrendStatistics(@Param("start") Long start, @Param("end") Long end, @Param("bizType") Integer bizType);
 
     @Select("<script>" +
             "SELECT m.* FROM ipa_manage_main a INNER JOIN ipl_manage_main m ON a.id = m.id_ipa_main WHERE a.is_deleted = 0 AND m.is_deleted = 0 " +

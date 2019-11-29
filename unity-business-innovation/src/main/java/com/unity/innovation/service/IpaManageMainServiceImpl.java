@@ -20,7 +20,6 @@ import com.unity.innovation.entity.generated.IplmManageLog;
 import com.unity.innovation.enums.*;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,8 +56,8 @@ public class IpaManageMainServiceImpl extends BaseServiceImpl<IpaManageMainDao, 
     @Resource
     private DailyWorkStatusLogServiceImpl dailyWorkStatusLogService;
 
-    public List<Map> demandTrendStatistics(@Param("start") Long start, @Param("end") Long end){
-        return baseMapper.demandTrendStatistics(start, end);
+    public List<Map<String, String>> demandTrendStatistics(Long start, Long end, Integer bizTyjpe){
+        return baseMapper.demandTrendStatistics(start, end, bizTyjpe);
     }
 
     public List<IplManageMain> getIplManageMin(Long start, Long end){

@@ -411,34 +411,28 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         Long startLong = InnovationUtil.getStartTimeByMonth(date, -5);
         Long endLong = InnovationUtil.getFirstTimeInMonth(date, false);
         List<String> monthsList = DateUtil.getMonthsList(date);
-        Map<String, Integer> enMap = new LinkedHashMap<>();
-        Map<String, Integer> sfMap = new LinkedHashMap<>();
+        Map<String, Long> enMap = new LinkedHashMap<>();
+        Map<String, Long> sfMap = new LinkedHashMap<>();
         monthsList.forEach(e -> {
-            enMap.put(e, 0);
-            sfMap.put(e, 0);
+            enMap.put(e, 0L);
+            sfMap.put(e, 0L);
         });
 
-        List<Map> iplManageMains = ipaManageMainService.demandTrendStatistics(startLong, endLong);
-        Map<String, String> collect = iplManageMains.stream().collect(Collectors.toMap(e -> MapUtils.getString(e, "month"), e -> MapUtils.getString(e, "snapshot")));
-
-        collect.forEach((month,snapshot)->{
-            List<Map> maps = JSON.parseArray(snapshot, Map.class);
-            Integer bizType = MapUtils.getInteger(map, "bizType");
-            Map<Integer, List<Map>> source;
-            if (bizType == null){
-                source = maps.stream().collect(Collectors.groupingBy(e -> MapUtils.getInteger(e, "source")));
-            }else {
-                source = maps.stream().filter(e->bizType.equals(MapUtils.getInteger(e, "bizType"))).collect(Collectors.groupingBy(e -> MapUtils.getInteger(e, "source")));
-            }
-
-            enMap.put(month, enMap.get(month) + CollectionUtils.size(source.get(SourceEnum.ENTERPRISE.getId())));
-            sfMap.put(month, sfMap.get(month) + CollectionUtils.size(source.get(SourceEnum.SELF.getId())));
+        List<Map<String, String>> iplManageMains = ipaManageMainService.demandTrendStatistics(startLong, endLong, MapUtils.getInteger(map,"bizType"));
+        Map<String, List<Map<String, String>>> groupByMonth = iplManageMains.stream().collect(Collectors.groupingBy(e -> MapUtils.getString(e, "month")));
+        groupByMonth.forEach((month, maps)->{
+            List<String> snapshots = maps.stream().map(e -> MapUtils.getString(e, "snapshot")).collect(Collectors.toList());
+            snapshots.forEach(e->{
+                List<Map> ipls = JSON.parseArray(e, Map.class);
+                enMap.put(month, enMap.get(month) + ipls.stream().filter(i->SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(i, "source"))).count());
+                sfMap.put(month, sfMap.get(month) + ipls.stream().filter(i->SourceEnum.SELF.getId().equals(MapUtils.getInteger(i, "source"))).count());
+            });
         });
 
-        Collection<Integer> enValues = enMap.values();
-        Collection<Integer> sfValues = sfMap.values();
-        int enSum = enValues.stream().mapToInt(Integer::intValue).sum();
-        int sfSum = sfValues.stream().mapToInt(Integer::intValue).sum();
+        Collection<Long> enValues = enMap.values();
+        Collection<Long> sfValues = sfMap.values();
+        Long enSum = enValues.stream().reduce(0L, Long::sum);
+        Long sfSum = sfValues.stream().reduce(0L, Long::sum);
         if (enSum + sfSum > 0){
             MultiBarVO multiBarVO = MultiBarVO.newInstance()
                     .legend(

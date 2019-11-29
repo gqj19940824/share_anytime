@@ -1,6 +1,7 @@
 package com.unity.innovation.entity.generated;
 
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.unity.common.base.BaseEntity;
 import com.unity.common.base.CommentTarget;
@@ -25,7 +26,7 @@ public class IpaManageMain extends BaseEntity{
         * 标题
         **/
         @CommentTarget("单位")
-        @TableField("id_rbac_department")
+        @TableField(value = "id_rbac_department", strategy = FieldStrategy.IGNORED)
         private Long idRbacDepartment ;
 
         /**
@@ -39,7 +40,7 @@ public class IpaManageMain extends BaseEntity{
         * 标题
         **/
         @CommentTarget("姓名")
-        @TableField("name")
+        @TableField(value = "name", strategy = FieldStrategy.IGNORED)
         private String name ;
 
         /**
@@ -113,7 +114,7 @@ public class IpaManageMain extends BaseEntity{
         * 级别
         **/
         @CommentTarget("级别")
-        @TableField("level")
+        @TableField(value = "level", strategy = FieldStrategy.IGNORED)
         private Integer level ;
 
         /**

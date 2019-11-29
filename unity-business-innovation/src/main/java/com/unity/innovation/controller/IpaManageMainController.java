@@ -528,12 +528,15 @@ public class IpaManageMainController extends BaseWebController {
         }
         logger.info("二次包更新发布效果：" + entity.getId());
         entity.setTitle(byId.getTitle());
+        entity.setLevel(byId.getLevel());
+        entity.setIdRbacDepartment(byId.getIdRbacDepartment());
+        entity.setName(byId.getName());
         ipaManageMainService.updatePublishResult(entity);
         return success();
     }
 
     /**
-     * 发布
+     * 获取发布结果
      *
      * @param
      * @return
@@ -602,6 +605,9 @@ public class IpaManageMainController extends BaseWebController {
         }
         logger.info("二次包发布：" + entity.getId());
         entity.setTitle(byId.getTitle());
+        entity.setLevel(byId.getLevel());
+        entity.setIdRbacDepartment(byId.getIdRbacDepartment());
+        entity.setName(byId.getName());
         ipaManageMainService.publish(entity);
         return success();
     }
