@@ -190,7 +190,7 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 IplSatbMain::getProjectName, IplSatbMain::getProjectAddress, IplSatbMain::getProjectIntroduce, IplSatbMain::getTotalAmount, IplSatbMain::getBank,
                 IplSatbMain::getBond, IplSatbMain::getRaise, IplSatbMain::getTechDemondInfo, IplSatbMain::getContactPerson, IplSatbMain::getContactWay,
                 IplSatbMain::getSource, IplSatbMain::getStatus,IplSatbMain::getProcessStatus,
-                IplSatbMain::getLatestProcess, IplSatbMain::getBizType
+                IplSatbMain::getLatestProcess, IplSatbMain::getBizType, IplSatbMain::getIdRbacDepartmentDuty
         );
     }
 
@@ -414,6 +414,14 @@ public class IplSatbMainServiceImpl extends BaseServiceImpl<IplSatbMainDao, IplS
                 , IplSatbMain::getSource, IplSatbMain::getStatus
         );
         assists.put("baseInfo", detail);
+
+        // 用于前端判断是否允许用户更新完成情况时输入本次完成额度，如果缺口大于0则用户可以输入本次完成额度
+        if (ent.getTotalAmount() == null){
+            assists.put("gap", 0);
+        }else {
+            BigDecimal raisedTotal = iplLogService.getRaisedTotal(ent.getId(), BizTypeEnum.GROW.getType());
+            assists.put("gap", BigDecimal.valueOf(ent.getTotalAmount()).subtract(raisedTotal));
+        }
         return assists;
     }
 

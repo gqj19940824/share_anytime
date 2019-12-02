@@ -39,6 +39,7 @@ public class RedisSubscribeServiceImpl {
         try {
             Dic dicByCode = dicUtils.getDicByCode(ListTypeConstants.LIST_TIMEOUT, overTimeType);
             if (dicByCode != null) {
+                // listControl:主责单位id:UPDATE_OVER_TIME:主数据id-0:业务类型
                 String key = ListTypeConstants.LIST_CONTROL
                         .concat(departmentId + RedisConstants.KEY_JOINER)
                         .concat(overTimeType)
@@ -49,13 +50,11 @@ public class RedisSubscribeServiceImpl {
                 //String[] idArrays = id.split("-");
                 //超时未处理
                 if (ListTypeConstants.DEAL_OVER_TIME.equals(overTimeType)) {
-                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600));
-                    //result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 60));//1分钟
+                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 86400));  // n天（60*60*24）
                     //超时未更新
                 } else if (ListTypeConstants.UPDATE_OVER_TIME.equals(overTimeType)) {
                     removeRecordInfo(id, ListTypeConstants.DEAL_OVER_TIME, departmentId, bizType);
-                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 3600 * 24));
-                    //result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 60 * 5));//5分钟
+                    result = RedisPoolUtil.setEx(key, key, (Integer.valueOf(dicByCode.getDicValue()) * 86400)); // n天（60*60*24）
                 } else {
                     log.info("请确认参数");
                 }

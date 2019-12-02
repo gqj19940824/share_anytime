@@ -168,18 +168,18 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
      *
      * @param  idIplMain 主表id
      * @param  bizType 业务类型
-     * @param  total 融资/人才需求
+     * @param  demandTotal 融资/人才需求
      * @param  type 1-成长目标投资的主责
      * @author qinhuan
      * @since 2019/11/15 5:38 下午
      */
-    public void isTotalGeSum(Long idIplMain, Integer bizType, BigDecimal total,BigDecimal completeNum, Integer type){
-        List<IplLog> list = list(new LambdaQueryWrapper<IplLog>().eq(IplLog::getIdIplMain, idIplMain).eq(IplLog::getBizType, bizType));
-        BigDecimal reduce = list.stream().filter(e -> e.getCompleteNum() != null).map(e -> BigDecimal.valueOf(e.getCompleteNum())).collect(Collectors.toList()).stream().reduce(completeNum, BigDecimal::add);
+    public void isTotalGeSum(Long idIplMain, Integer bizType, BigDecimal demandTotal,BigDecimal completeNum, Integer type){
+        BigDecimal raisedTotal = getRaisedTotal(idIplMain, bizType);
+        raisedTotal = raisedTotal.add(completeNum);
         //保留两位小数，四舍五入
-        total = total.setScale(2,BigDecimal.ROUND_HALF_UP);
-        reduce = reduce.setScale(2,BigDecimal.ROUND_HALF_UP);
-        if (total.compareTo(reduce) < 0){
+        demandTotal = demandTotal.setScale(2,BigDecimal.ROUND_HALF_UP);
+        raisedTotal = raisedTotal.setScale(2,BigDecimal.ROUND_HALF_UP);
+        if (demandTotal.compareTo(raisedTotal) < 0){
             String errorMessage;
             switch (type){
                 case 1:
@@ -199,6 +199,19 @@ public class IplLogServiceImpl extends BaseServiceImpl<IplLogDao, IplLog> {
             }
             throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.ORIGINAL_DATA_ERR).message(errorMessage).build();
         }
+    }
+
+    /**
+     * 查询已完成额度
+     *
+     * @param idIplMain 主数据id
+     * @return bizType 业务类型
+     * @author qinhuan
+     * @since 2019/11/27 9:50 上午
+     */
+    public BigDecimal getRaisedTotal(Long idIplMain, Integer bizType) {
+        List<IplLog> list = list(new LambdaQueryWrapper<IplLog>().eq(IplLog::getIdIplMain, idIplMain).eq(IplLog::getBizType, bizType));
+        return list.stream().filter(e -> e.getCompleteNum() != null).map(e -> BigDecimal.valueOf(e.getCompleteNum())).collect(Collectors.toList()).stream().reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
 

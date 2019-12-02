@@ -4,17 +4,17 @@ package com.unity.innovation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
+import com.unity.common.constant.ParamConstants;
 import com.unity.common.pojos.SystemResponse;
 import com.unity.common.ui.PageEntity;
-import com.unity.common.ui.excel.ExcelEntity;
-import com.unity.common.ui.excel.ExportEntity;
 import com.unity.common.util.DateUtils;
 import com.unity.common.util.JKDates;
 import com.unity.common.util.ValidFieldUtil;
-import com.unity.common.constant.ParamConstants;
+import com.unity.common.utils.ExcelExportByTemplate;
 import com.unity.innovation.entity.IplPdMain;
 import com.unity.innovation.service.IplPdMainServiceImpl;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,9 +24,7 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -95,37 +93,41 @@ public class IplPdMainController extends BaseWebController {
      * excel导出
      *
      * @param req  参数
-     * @param res 响应对象
      * @author gengjiajia
      * @since 2019/09/29 16:04
      */
     @RequestMapping({"/export/excel"})
-    public void exportExcel(HttpServletRequest req, HttpServletResponse res) {
-        String fileName = "发布会报名信息";
-        ExportEntity<IplPdMain> excel = ExcelEntity.exportEntity(res);
-        try {
-            LambdaQueryWrapper<IplPdMain> ew = wrapper(req);
-            List<IplPdMain> list = service.list(ew);
-            excel
-                    .addColumn(IplPdMain::getIndustryCategory, "行业类别")
-                    .addColumn(IplPdMain::getEnterpriseName, "企业名称")
-                    .addColumn(IplPdMain::getEnterpriseIntroduction, "企业简介")
-                    .addColumn(IplPdMain::getSpecificCause, "具体意向或事由")
-                    .addColumn(IplPdMain::getContactPerson, "联系人")
-                    .addColumn(IplPdMain::getContactWay, "联系方式")
-                    .addColumn(IplPdMain::getIdCard, "身份证")
-                    .addColumn(IplPdMain::getPost, "职务")
-                    .addColumn(IplPdMain::getAttachmentCode, "附件")
-                    .addColumn(IplPdMain::getNotes, "备注")
-                    .addColumn(IplPdMain::getGmtCreate, "创建时间")
-                    .addColumn(IplPdMain::getGmtModified, "更新时间")
-                    .addColumn(IplPdMain::getSource, "来源")
-                    .export(fileName, service.convert2ListByExport(list));
-        } catch (Exception ex) {
-            excel.exportError(fileName, ex);
-        }
-    }
+    Mono<ResponseEntity<byte[]>> exportExcel(HttpServletRequest req) {
+        List<Map<String, Object>> maps = service.convert2ListByExport(service.list(wrapper(req)));
+        // 组装excel需要的数据
+        List<List<Object>> dataList = new ArrayList<>();
+        maps.forEach(e->{
+            List<Object> iplPd = Arrays.asList(
+                    e.get("industryCategory"),
+                    e.get("enterpriseName"),
+                    e.get("enterpriseIntroduction"),
+                    e.get("specificCause"),
+                    e.get("contactPerson"),
+                    e.get("contactWay"),
+                    e.get("idCard"),
+                    e.get("post"),
+                    e.get("attachmentCode"),
+                    e.get("notes"),
+                    e.get("gmtCreate"),
+                    e.get("gmtModified"),
+                    e.get("source")
+            );
+            dataList.add(iplPd);
+        });
 
+        // 读取模板创建excel文件
+        XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/pd.xlsx");
+        // 从excel的第5行开始插入数据，并给excel的sheet和标题命名
+        String fileName = "发布会报名信息";
+        ExcelExportByTemplate.setData(1, fileName, dataList, wb);
+        // 将生成好的excel响应给用户
+        return ExcelExportByTemplate.download(wb, fileName);
+    }
 
     /**
      * 删除发布会活动

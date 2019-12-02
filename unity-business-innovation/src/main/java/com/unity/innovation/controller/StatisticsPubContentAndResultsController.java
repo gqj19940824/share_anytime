@@ -1,5 +1,6 @@
 package com.unity.innovation.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unity.common.base.controller.BaseWebController;
 import com.unity.common.exception.UnityRuntimeException;
@@ -11,6 +12,7 @@ import com.unity.innovation.entity.IplEsbMain;
 import com.unity.innovation.entity.IplOdMain;
 import com.unity.innovation.entity.IplSatbMain;
 import com.unity.innovation.entity.generated.IplDarbMain;
+import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.enums.BizTypeEnum;
 import com.unity.innovation.enums.SourceEnum;
 import com.unity.innovation.service.*;
@@ -71,7 +73,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (CollectionUtils.isNotEmpty(dataBeans)){
             if (dataBeans.size() > 10){
                 List<PieVoByDoc.DataBean> otherDateBeans = dataBeans.subList(10, dataBeans.size());
-                int sum = otherDateBeans.stream().mapToInt(e -> (Integer) e.getValue()).sum();
+                Long sum = otherDateBeans.stream().mapToLong(e -> (Long) e.getValue()).sum();
                 dataBeans = dataBeans.subList(0, 10);
                 dataBeans.add(PieVoByDoc.DataBean.newInstance().name("其他").value(sum).build());
             }
@@ -108,7 +110,7 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
         if (CollectionUtils.isNotEmpty(dataBeans)){
             if (dataBeans.size() > 10){
                 List<PieVoByDoc.DataBean> otherDateBeans = dataBeans.subList(10, dataBeans.size());
-                int sum = otherDateBeans.stream().mapToInt(e -> (Integer) e.getValue()).sum();
+                Long sum = otherDateBeans.stream().mapToLong(e -> (Long) e.getValue()).sum();
                 dataBeans = dataBeans.subList(0, 10);
                 dataBeans.add(PieVoByDoc.DataBean.newInstance().name("其他").value(sum).build());
             }
@@ -406,6 +408,65 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
     @PostMapping("/innovationPublishInfo/demandTrendStatistics")
     public Mono<ResponseEntity<SystemResponse<Object>>> demandTrendStatistics(@RequestBody Map<String, String> map) throws Exception {
         String date = MapUtils.getString(map, "date");
+        Long startLong = InnovationUtil.getStartTimeByMonth(date, -5);
+        Long endLong = InnovationUtil.getFirstTimeInMonth(date, false);
+        List<String> monthsList = DateUtil.getMonthsList(date);
+        Map<String, Long> enMap = new LinkedHashMap<>();
+        Map<String, Long> sfMap = new LinkedHashMap<>();
+        monthsList.forEach(e -> {
+            enMap.put(e, 0L);
+            sfMap.put(e, 0L);
+        });
+
+        List<Map<String, String>> iplManageMains = ipaManageMainService.demandTrendStatistics(startLong, endLong, MapUtils.getInteger(map,"bizType"));
+        Map<String, List<Map<String, String>>> groupByMonth = iplManageMains.stream().collect(Collectors.groupingBy(e -> MapUtils.getString(e, "month")));
+        groupByMonth.forEach((month, maps)->{
+            List<String> snapshots = maps.stream().map(e -> MapUtils.getString(e, "snapshot")).collect(Collectors.toList());
+            snapshots.forEach(e->{
+                List<Map> ipls = JSON.parseArray(e, Map.class);
+                enMap.put(month, enMap.get(month) + ipls.stream().filter(i->SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(i, "source"))).count());
+                sfMap.put(month, sfMap.get(month) + ipls.stream().filter(i->SourceEnum.SELF.getId().equals(MapUtils.getInteger(i, "source"))).count());
+            });
+        });
+
+        Collection<Long> enValues = enMap.values();
+        Collection<Long> sfValues = sfMap.values();
+        Long enSum = enValues.stream().reduce(0L, Long::sum);
+        Long sfSum = sfValues.stream().reduce(0L, Long::sum);
+        if (enSum + sfSum > 0){
+            MultiBarVO multiBarVO = MultiBarVO.newInstance()
+                    .legend(
+                            MultiBarVO.LegendBean.newInstance().data(
+                                    Arrays.asList("职能局代企业上报的需求", "企业自主上报的需求")
+                            ).build()
+                    ).xAxis(
+                            Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
+                                    .type("category")
+                                    .data(monthsList).build())
+                    ).series(
+                            Arrays.asList(
+                                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
+                                            .data(new ArrayList<>(enValues)).build()
+                                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
+                                            .data(new ArrayList<>(sfValues)).build())
+                    ).build();
+            return success(multiBarVO);
+        }else {
+            return success(null);
+        }
+    }
+
+    /**
+     * 北京亦庄创新发布清单情况-需求数量变化统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
+    // @PostMapping("/innovationPublishInfo/demandTrendStatistics_old")
+    public Mono<ResponseEntity<SystemResponse<Object>>> demandTrendStatistics_old(@RequestBody Map<String, String> map) throws Exception {
+        String date = MapUtils.getString(map, "date");
 
         Long startLong = InnovationUtil.getStartTimeByMonth(date, -5);
         Long endLong = InnovationUtil.getFirstTimeInMonth(date, false);
@@ -522,6 +583,79 @@ public class StatisticsPubContentAndResultsController extends BaseWebController 
      */
     @PostMapping("/innovationPublishInfo/demandStatistics")
     public Mono<ResponseEntity<SystemResponse<Object>>> demandStatistics(@RequestBody Map<String, String> map) {
+        Long start = getStart(map);
+        Long end = getEnd(map);
+        List<IplManageMain> iplManageMin = ipaManageMainService.getIplManageMin(start, end);
+
+        Map<Integer, List<IplManageMain>> collect = iplManageMin.stream().collect(Collectors.groupingBy(IplManageMain::getBizType));
+
+        // 图例数据
+        List<String> data = new ArrayList<>();
+        // 职能局数据
+        List<Long> selfData = new ArrayList<>();
+        // 企业数据
+        List<Long> enterpriseData = new ArrayList<>();
+
+        List<BizTypeEnum> bizTypeEnums = Arrays.asList(BizTypeEnum.GROW, BizTypeEnum.INTELLIGENCE, BizTypeEnum.CITY, BizTypeEnum.ENTERPRISE);
+        bizTypeEnums.forEach(e->getdata(collect, e, data, selfData, enterpriseData));
+        Long selfDataTotal = selfData.stream().reduce(Long::sum).orElse(0L);
+        Long enterpriseDataTotal = enterpriseData.stream().reduce(Long::sum).orElse(0L);
+
+        if (selfDataTotal + enterpriseDataTotal == 0){
+            return success(null);
+        }else {
+            MultiBarVO multiBarVO = MultiBarVO.newInstance()
+                    .legend(
+                            MultiBarVO.LegendBean.newInstance().data(
+                                    Arrays.asList("职能局代企业上报的需求", "企业自主上报的需求")
+                            ).build()
+                    ).xAxis(
+                            Collections.singletonList(MultiBarVO.XAxisBean.newInstance()
+                                    .type("category")
+                                    .data(data).build())
+                    ).series(
+                            Arrays.asList(
+                                    MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("职能局代企业上报的需求")
+                                            .data(selfData).build()
+                                    , MultiBarVO.SeriesBean.newInstance().type("bar").stack("name").name("企业自主上报的需求")
+                                            .data(enterpriseData).build())
+                    ).build();
+
+            return success(multiBarVO);
+        }
+    }
+
+    private void getdata(Map<Integer, List<IplManageMain>> collect, BizTypeEnum bizTypeEnum, List<String> data, List<Long> selfData, List<Long> enterpriseData){
+        List<IplManageMain> iplManageMains = collect.get(bizTypeEnum.getType());
+        if (CollectionUtils.isNotEmpty(iplManageMains)){
+            List<Map> maps = new ArrayList<>();
+            iplManageMains.forEach(e->{
+                String snapshot = e.getSnapshot();
+                if (StringUtils.isNotEmpty(snapshot)){
+                    maps.addAll(JSON.parseArray(snapshot, Map.class));
+                }
+            });
+            Long satbEnterpriseCount = maps.stream().filter(e -> SourceEnum.ENTERPRISE.getId().equals(MapUtils.getInteger(e, "source"))).count();
+            Long satbSelfCount = maps.stream().filter(e -> SourceEnum.SELF.getId().equals(MapUtils.getInteger(e, "source"))).count();
+
+            if (satbSelfCount + satbEnterpriseCount > 0){
+                data.add(bizTypeEnum.getName());
+                selfData.add(satbSelfCount);
+                enterpriseData.add(satbEnterpriseCount);
+            }
+        }
+    }
+
+    /**
+     * 北京亦庄创新发布清单情况-需求数量统计
+     *
+     * @param
+     * @return
+     * @author qinhuan
+     * @since 2019/10/29 10:11 上午
+     */
+    // @PostMapping("/innovationPublishInfo/demandStatistics_old")
+    public Mono<ResponseEntity<SystemResponse<Object>>> demandStatistics_old(@RequestBody Map<String, String> map) {
         Long start = getStart(map);
         Long end = getEnd(map);
 
