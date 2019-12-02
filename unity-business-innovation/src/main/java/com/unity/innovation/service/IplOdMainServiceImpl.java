@@ -361,7 +361,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             titleCell.setCellValue(entity.getTitle());
             row = sheet.createRow(1);
             String[] title = {"行业类别", "企业名称", "企业简介", "岗位需求名称", "岗位需求数量", "需求人员专业领域",
-                    "工作职责", "任职资格", "支持条件和福利待遇", "联系人", "联系方式", "创建时间", "更新时间", "来源", "状态", "最新进展"};
+                    "工作职责", "任职资格", "支持条件和福利待遇", "联系人", "联系方式","邮箱", "创建时间", "更新时间", "来源", "状态", "最新进展"};
             CellRangeAddress range = new CellRangeAddress(0,0, 0, title.length-1);
             sheet.addMergedRegion(range);
             RegionUtil.setBorderRight(1, range, sheet);
@@ -419,6 +419,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             HSSFCell cell13 = row.createCell(13);
             HSSFCell cell14 = row.createCell(14);
             HSSFCell cell15 = row.createCell(15);
+            HSSFCell cell16 = row.createCell(16);
             cell0.setCellStyle(sty);
             sheet.setColumnWidth(0, 10 * 256);
             cell1.setCellStyle(sty);
@@ -442,15 +443,17 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             cell10.setCellStyle(sty);
             sheet.setColumnWidth(10, 15 * 256);
             cell11.setCellStyle(sty);
-            sheet.setColumnWidth(11, 18 * 256);
+            sheet.setColumnWidth(11, 15 * 256);
             cell12.setCellStyle(sty);
             sheet.setColumnWidth(12, 18 * 256);
             cell13.setCellStyle(sty);
-            sheet.setColumnWidth(13, 10 * 256);
+            sheet.setColumnWidth(13, 18 * 256);
             cell14.setCellStyle(sty);
             sheet.setColumnWidth(14, 10 * 256);
             cell15.setCellStyle(sty);
-            sheet.setColumnWidth(15, 30 * 256);
+            sheet.setColumnWidth(15, 10 * 256);
+            cell16.setCellStyle(sty);
+            sheet.setColumnWidth(16, 30 * 256);
             cell0.setCellValue(list.get(j).getIndustryCategoryName());
             cell1.setCellValue(list.get(j).getEnterpriseName());
             cell2.setCellValue(list.get(j).getEnterpriseIntroduction());
@@ -462,12 +465,15 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
             cell8.setCellValue(list.get(j).getSpecificCause());
             cell9.setCellValue(list.get(j).getContactPerson());
             cell10.setCellValue(list.get(j).getContactWay());
-            cell11.setCellValue(DateUtils.timeStamp2Date(list.get(j).getGmtCreate()));
-            cell12.setCellValue(DateUtils.timeStamp2Date(list.get(j).getGmtModified()));
-            cell13.setCellValue(list.get(j).getSourceName());
-            cell14.setCellValue(list.get(j).getStatusName());
+            if (StringUtils.isNotBlank(list.get(j).getEmail())) {
+                cell11.setCellValue(list.get(j).getEmail());
+            }
+            cell12.setCellValue(DateUtils.timeStamp2Date(list.get(j).getGmtCreate()));
+            cell13.setCellValue(DateUtils.timeStamp2Date(list.get(j).getGmtModified()));
+            cell14.setCellValue(list.get(j).getSourceName());
+            cell15.setCellValue(list.get(j).getStatusName());
             if (StringUtils.isNotBlank(list.get(j).getLatestProcess())) {
-                cell15.setCellValue(list.get(j).getLatestProcess());
+                cell16.setCellValue(list.get(j).getLatestProcess());
             }
         }
         Row titleRow = sheet.createRow(list.size() + 2);
@@ -479,7 +485,7 @@ public class IplOdMainServiceImpl extends BaseServiceImpl<IplOdMainDao, IplOdMai
         } else {
             titleCell.setCellValue("备注：");
         }
-        CellRangeAddress range = new CellRangeAddress(list.size() + 2, list.size() + 2, 0, 15);
+        CellRangeAddress range = new CellRangeAddress(list.size() + 2, list.size() + 2, 0, 16);
         sheet.addMergedRegion(range);
         RegionUtil.setBorderLeft(1, range, sheet);
         RegionUtil.setBorderBottom(1, range, sheet);
