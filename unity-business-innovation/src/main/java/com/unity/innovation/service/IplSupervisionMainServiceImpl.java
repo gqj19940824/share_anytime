@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.constant.ParamConstants;
 import com.unity.common.enums.YesOrNoEnum;
 import com.unity.common.exception.UnityRuntimeException;
 import com.unity.common.pojos.SystemConfiguration;
@@ -16,7 +17,8 @@ import com.unity.common.util.DateUtils;
 import com.unity.common.util.FileReaderUtil;
 import com.unity.common.utils.ExcelStyleUtil;
 import com.unity.common.utils.UUIDUtil;
-import com.unity.common.constant.ParamConstants;
+import com.unity.innovation.dao.IplSupervisionMainDao;
+import com.unity.innovation.entity.IplSupervisionMain;
 import com.unity.innovation.entity.generated.IplManageMain;
 import com.unity.innovation.entity.generated.IplmManageLog;
 import com.unity.innovation.enums.IplCategoryEnum;
@@ -26,19 +28,19 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.unity.innovation.entity.IplSupervisionMain;
-import com.unity.innovation.dao.IplSupervisionMainDao;
+
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
@@ -334,10 +336,13 @@ public class IplSupervisionMainServiceImpl extends BaseServiceImpl<IplSupervisio
         Row notesRow = sheet.createRow(num);
         for (int j = 0; j < title.length; j++) {
             Cell cell = notesRow.createCell(j);
-            cell.setCellStyle(styleMap.get("data"));
+            CellStyle data = styleMap.get("data");
+            data.setAlignment(HorizontalAlignment.LEFT); //设置水平方向的对其方式
+            data.setVerticalAlignment(VerticalAlignment.CENTER); //设置垂直方法的对齐方式
+            cell.setCellStyle(data);
             sheet.setColumnWidth(j, title[j].getBytes().length * 2 * 256);
             if (j == 0) {
-                cell.setCellValue(entity.getTitle());
+                cell.setCellValue("备注：" + entity.getNotes());
             }
         }
         sheet.addMergedRegion(new CellRangeAddress(num, num, 0, title.length - 1));
