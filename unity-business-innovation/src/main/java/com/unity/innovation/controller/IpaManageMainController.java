@@ -444,7 +444,7 @@ public class IpaManageMainController extends BaseWebController {
                     throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
             }
 
-            ExcelExportByTemplate.downloadToPath(filePaht + "创新发布清单/" + e.getTitle() + ".xlsx", wb);
+            ExcelExportByTemplate.downloadToPath(filePaht + "创新发布清单/" + e.getTitle() + System.currentTimeMillis() + ".xlsx", wb);
         });
     }
 
@@ -464,7 +464,7 @@ public class IpaManageMainController extends BaseWebController {
             List<List<Object>> data = iplManageMainService.getDwspData(e.getDataList());
             XSSFWorkbook wb = ExcelExportByTemplate.getWorkBook("template/dwsp.xlsx");
             ExcelExportByTemplate.setData(2, e.getTitle(), data, e.getNotes(), wb);
-            ExcelExportByTemplate.downloadToPath(filePaht + "工作动态/" + e.getTitle() + ".xlsx", wb);
+            ExcelExportByTemplate.downloadToPath(filePaht + "工作动态/" + e.getTitle() + System.currentTimeMillis()  + ".xlsx", wb);
         });
     }
 
@@ -499,7 +499,7 @@ public class IpaManageMainController extends BaseWebController {
                 throw UnityRuntimeException.newInstance().code(SystemResponse.FormalErrorCode.DATA_DOES_NOT_EXIST).message("数据不存在").build();
             }
 
-            ExcelExportByTemplate.downloadToPath(filePaht + "与会企业信息/" + e.getTitle() + ".xlsx", wb);
+            ExcelExportByTemplate.downloadToPath(filePaht + "与会企业信息/" + e.getTitle() + System.currentTimeMillis()  + ".xlsx", wb);
         });
     }
 
