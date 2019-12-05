@@ -29,6 +29,7 @@ import com.unity.rbac.entity.UserRole;
 import com.unity.rbac.pojos.Relation;
 import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,11 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
     private final UserRoleServiceImpl userRoleService;
     private final RoleResourceServiceImpl roleResourceService;
     private final UserHelpServiceImpl userHelpService;
+    @Resource
+    private UserServiceImpl userService;
+    @Resource
+    private DicUtils dicUtils;
+
     @Resource
     private SystemClient systemClient;
 
@@ -147,6 +153,15 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
         if(role != null && StringUtils.isNotBlank(role.getName())){
             wrapper.like(Role::getName,role.getName().trim());
         }
+        if(!userService.isSuperAdmin(customer.getId())) {
+            // 获得超管角色id
+            Dic dicByCode = dicUtils.getDicByCode(DicConstants.ACCOUNT, DicConstants.ID_ROLE_SUPER_ADMIN);
+            if (dicByCode != null && dicByCode.getDicValue() != null){
+                Long superRoleId = Long.parseLong(dicByCode.getDicValue());
+                wrapper.ne(Role::getId, superRoleId);
+            }
+        }
+
         //获取最后一条数据 列表是倒叙 获取正序第一条即可
         Long lastId = baseMapper.getTheFirstRoleBySortAsc(null);
         Long firstId = baseMapper.getTheFirstRoleBySortDesc(null);
@@ -320,6 +335,18 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleDao, Role> implements I
                 (m, entity) -> m.put("disabled", false));
         List<UserRole> userRoleList = userRoleService.list(new LambdaQueryWrapper<UserRole>().eq(UserRole::getIdRbacUser, userId));
         List<Long> userBindRoleIdList = userRoleList.stream().map(UserRole::getIdRbacRole).collect(toList());
+        if(!userService.isSuperAdmin(customer.getId())) {
+            // 获得超管角色id
+            Dic dicByCode = dicUtils.getDicByCode(DicConstants.ACCOUNT, DicConstants.ID_ROLE_SUPER_ADMIN);
+            if (dicByCode != null && dicByCode.getDicValue() != null){
+                Long superRoleId = Long.parseLong(dicByCode.getDicValue());
+                allRoleList = allRoleList.stream().filter(e-> {
+                    Long idRole = MapUtils.getLong(e,"id");
+                    return !idRole.equals(superRoleId);
+                }).collect(toList());
+            }
+        }                                 ;
+
         data.put("roleList", allRoleList);
         data.put("userBindRoleIdList", userBindRoleIdList);
         return data;

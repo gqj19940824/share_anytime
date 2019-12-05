@@ -40,7 +40,6 @@ public class UserLoginThreadUtil implements Runnable {
     private Integer os;
     private String tokenStr;
 
-
     @Override
     public void run() {
 

@@ -9,8 +9,8 @@ import com.google.common.collect.Maps;
 import com.unity.common.base.BaseServiceImpl;
 import com.unity.common.base.SessionHolder;
 import com.unity.common.constant.DicConstants;
-import com.unity.common.constant.RedisConstants;
 import com.unity.common.constant.InnovationConstant;
+import com.unity.common.constant.RedisConstants;
 import com.unity.common.constants.ConstString;
 import com.unity.common.constants.RedisKeys;
 import com.unity.common.enums.PlatformTypeEnum;
@@ -38,6 +38,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,21 +66,21 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
     private final UserResourceServiceImpl userResourceService;
     private final UserIdentityServiceImpl userIdentityService;
     private final UserRoleServiceImpl userRoleService;
-    private final ResourceServiceImpl resourceService;
     private final HashRedisUtils hashRedisUtils;
     private final UserHelpServiceImpl userHelpService;
     private final DicUtils dicUtils;
+    @Autowired
+    private ResourceServiceImpl resourceService;
 
     public UserServiceImpl(RedisUtils redisUtils, StringRedisTemplate stringRedisTemplate, UserResourceServiceImpl userResourceService,
                            UserIdentityServiceImpl userIdentityService,
-                           UserRoleServiceImpl userRoleService, ResourceServiceImpl resourceService, HashRedisUtils hashRedisUtils,
+                           UserRoleServiceImpl userRoleService, HashRedisUtils hashRedisUtils,
                            UserHelpServiceImpl userHelpService, DicUtils dicUtils) {
         this.redisUtils = redisUtils;
         this.stringRedisTemplate = stringRedisTemplate;
         this.userResourceService = userResourceService;
         this.userIdentityService = userIdentityService;
         this.userRoleService = userRoleService;
-        this.resourceService = resourceService;
         this.hashRedisUtils = hashRedisUtils;
         this.userHelpService = userHelpService;
         this.dicUtils = dicUtils;
@@ -289,7 +290,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                         .message("暂未分配所属单位，请联系管理员")
                         .build();
             }
-            user.setSuperAdmin(isSuperAdmin(user.getId()));
+            user.setSuperAdmin(isSuperAdmin(user.getId())?1:0);
             //密码校验
             if (!Encryption.getEncryption(pwd, user.getLoginName()).equalsIgnoreCase(user.getPwd())) {
                 throw UnityRuntimeException.newInstance()
@@ -366,18 +367,18 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
      * 判断当前用户是否超级管理员
      *
      * @param id 用户id
-     * @return 0 否 1 是
-     * @author gengjiajia
+     * @return true 是 false 否
+     * @author qinhuan
      * @since 2019/08/01 16:26
      */
-    private Integer isSuperAdmin(Long id) {
+    public boolean isSuperAdmin(Long id) {
         Dic dicByCode = dicUtils.getDicByCode(DicConstants.ACCOUNT, DicConstants.SUPER_ADMIN);
         if (dicByCode == null || StringUtils.isEmpty(dicByCode.getDicValue())) {
-            return 0;
+            return false;
         }
         String dicValue = dicByCode.getDicValue();
         String[] split = dicValue.split(ConstString.SPLIT_COMMA);
-        return ArrayUtils.contains(split, id.toString()) ? 1 : 0;
+        return ArrayUtils.contains(split, id.toString());
     }
 
     /**
@@ -658,7 +659,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements I
                     .message("登录账号无登录权限")
                     .build();
         }
-        user.setSuperAdmin(isSuperAdmin(user.getId()));
+        user.setSuperAdmin(isSuperAdmin(user.getId())?1:0);
         return user;
     }
 

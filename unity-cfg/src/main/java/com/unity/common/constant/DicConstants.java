@@ -22,6 +22,9 @@ public class DicConstants {
 
     // 超级管理员
     public final static String SUPER_ADMIN = "superAdmin";
+
+    // 超级管理员角色id的字典项
+    public final static String ID_ROLE_SUPER_ADMIN = "idRoleSuperadmin";
     /**
      * 角色字典组编码
      */

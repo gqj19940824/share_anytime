@@ -27,6 +27,7 @@ import com.unity.springboot.support.holder.LoginContextHolder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,8 @@ public class ResourceServiceImpl extends BaseServiceImpl<ResourceDao, Resource> 
 
     private final UserResourceServiceImpl userResourceService;
     private final RoleResourceServiceImpl roleResourceService;
-    private final RoleServiceImpl roleService;
+    @Autowired
+    private RoleServiceImpl roleService;
     private final ResourceIdentityServiceImpl resourceIdentityService;
     private final RedisTemplate<String, Object> redisTemplate;
     /**
@@ -66,10 +68,9 @@ public class ResourceServiceImpl extends BaseServiceImpl<ResourceDao, Resource> 
     private final static String EXCLUDE_RESOURCE_ID_LIST = "excludeResourceIds";
 
     public ResourceServiceImpl(UserResourceServiceImpl userResourceService, RoleResourceServiceImpl roleResourceService,
-                               RoleServiceImpl roleService, ResourceIdentityServiceImpl resourceIdentityService, RedisTemplate<String, Object> redisTemplate) {
+                               ResourceIdentityServiceImpl resourceIdentityService, RedisTemplate<String, Object> redisTemplate) {
         this.userResourceService = userResourceService;
         this.roleResourceService = roleResourceService;
-        this.roleService = roleService;
         this.resourceIdentityService = resourceIdentityService;
         this.redisTemplate = redisTemplate;
     }
